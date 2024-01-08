@@ -2,3 +2,5 @@
 .vs
 SysadminAnywhere/bin
 SysadminAnywhere/obj
+SysadminAnywhere.ActiveDirectory/bin
+SysadminAnywhere.ActiveDirectory/obj
