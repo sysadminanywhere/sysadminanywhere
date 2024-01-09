@@ -17,11 +17,11 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             this.ldapService = ldapService;
         }
 
-        public List<ContactEntry> ListAsync()
+        public async Task<List<ContactEntry>> ListAsync()
         {
             List<ContactEntry> contacts = new List<ContactEntry>();
 
-            List<LdapEntry> list = ldapService.Search("(&(objectClass=contact)(objectCategory=person))");
+            List<LdapEntry> list = await ldapService.SearchAsync("(&(objectClass=contact)(objectCategory=person))");
 
             foreach (LdapEntry entry in list)
             {
@@ -31,12 +31,12 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             return contacts;
         }
 
-        public ContactEntry? GetByCN(string cn)
+        public async Task<ContactEntry?> GetByCNAsync(string cn)
         {
             if (string.IsNullOrEmpty(cn))
                 throw new ArgumentNullException(nameof(cn));
 
-            var result = ldapService.Search("(&(objectClass=contact)(objectCategory=person)(cn=" + cn + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=contact)(objectCategory=person)(cn=" + cn + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
@@ -45,12 +45,12 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
                 return null;
         }
 
-        public ContactEntry? Add(ContactEntry contact)
+        public async Task<ContactEntry?> AddAsync(ContactEntry contact)
         {
-            return Add(string.Empty, contact);
+            return await AddAsync(string.Empty, contact);
         }
 
-        public ContactEntry? Add(string distinguishedName, ContactEntry contact)
+        public async Task<ContactEntry?> AddAsync(string distinguishedName, ContactEntry contact)
         {
             if (contact == null)
                 throw new ArgumentNullException(nameof(contact));
@@ -69,15 +69,15 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             if (string.IsNullOrEmpty(distinguishedName))
             {
                 string cn = "cn=" + contact.CN + "," + new ADContainers(ldapService).GetUsersContainer();
-                ldapService.Add(LdapResolver.GetLdapEntry(cn, contact, attributes));
+                await ldapService.AddAsync(LdapResolver.GetLdapEntry(cn, contact, attributes));
             }
             else
             {
                 string cn = "cn=" + contact.CN + "," + distinguishedName;
-                ldapService.Add(LdapResolver.GetLdapEntry(cn, contact, attributes));
+                await ldapService.AddAsync(LdapResolver.GetLdapEntry(cn, contact, attributes));
             }
 
-            var result = ldapService.Search("(&(objectClass=contact)(objectCategory=person)(cn=" + contact.CN + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=contact)(objectCategory=person)(cn=" + contact.CN + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
@@ -86,7 +86,7 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
                 return null;
         }
 
-        public ContactEntry? Modify(ContactEntry contact)
+        public async Task<ContactEntry?> ModifyAsync(ContactEntry contact)
         {
             if (contact == null)
                 throw new ArgumentNullException(nameof(contact));
@@ -121,15 +121,15 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
                 "company"
             };
 
-            var result = ldapService.Search("(&(objectClass=contact)(objectCategory=person)(cn=" + contact.CN + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=contact)(objectCategory=person)(cn=" + contact.CN + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
             {
                 ContactEntry oldContact = ADResolver<ContactEntry>.GetValues(entry);
-                ldapService.SendRequest(contact.DistinguishedName, LdapResolver.GetModificationAttributes(contact, oldContact, attributes));
+                await ldapService.SendRequestAsync(contact.DistinguishedName, LdapResolver.GetModificationAttributes(contact, oldContact, attributes));
 
-                var newContact = GetByCN(contact.CN);
+                var newContact = await GetByCNAsync(contact.CN);
                 if (newContact != null)
                     return newContact;
             }
@@ -137,7 +137,7 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             return null;
         }
 
-        public void Delete(ContactEntry contact)
+        public async Task DeleteAsync(ContactEntry contact)
         {
             if (contact == null)
                 throw new ArgumentNullException(nameof(contact));
@@ -145,7 +145,7 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             if (string.IsNullOrEmpty(contact.DistinguishedName))
                 throw new ArgumentNullException(nameof(contact.DistinguishedName));
 
-            ldapService.Delete(contact.DistinguishedName);
+            await ldapService.DeleteAsync(contact.DistinguishedName);
         }
 
         public void Dispose()

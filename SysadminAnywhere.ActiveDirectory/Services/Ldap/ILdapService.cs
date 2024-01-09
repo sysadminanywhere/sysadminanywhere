@@ -10,21 +10,21 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
 
         bool IsConnected();
 
-        List<LdapEntry> Search(string filter);
-        List<LdapEntry> Search(string path, string filter, int scope = LdapConnection.ScopeSub);
+        Task<List<LdapEntry>> SearchAsync(string filter);
+        Task<List<LdapEntry>> SearchAsync(string path, string filter, int scope = LdapConnection.ScopeSub);
 
-        void SendRequest(string dn, List<LdapModification> ldapModifications);
-        void SendRequest(string dn, LdapModification ldapModification);
+        Task SendRequestAsync(string dn, List<LdapModification> ldapModifications);
+        Task SendRequestAsync(string dn, LdapModification ldapModification);
 
-        void Add(LdapEntry entry);
+        Task AddAsync(LdapEntry entry);
 
-        void Modify(string dn, LdapModification entry);
-        void ModifyProperty(string dn, string name, string value);
+        Task ModifyAsync(string dn, LdapModification entry);
+        Task ModifyPropertyAsync(string dn, string name, string value);
 
-        void Delete(string dn);
+        Task DeleteAsync(string dn);
 
-        List<string> WellKnownObjects();
-        RootDseInfo GetRootDse();
+        Task<List<string>> WellKnownObjectsAsync();
+        Task<RootDseInfo> GetRootDseAsync();
 
         void Dispose();
     }

@@ -1,0 +1,49 @@
+﻿@page "/computers"
+@using Novell.Directory.Ldap
+@using System.Security.Cryptography.X509Certificates
+@using SysadminAnywhere.ActiveDirectory.Models
+@using SysadminAnywhere.ActiveDirectory.Repositories
+@using SysadminAnywhere.ActiveDirectory.Services.Ldap
+@attribute [StreamRendering]
+
+<PageTitle>Computers</PageTitle>
+
+<h1>Computers</h1>
+
+<p>Computers list</p>
+
+@if (computers == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>CN</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var computer in computers)
+            {
+                <tr>
+                    <td>@computer.CN</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<ComputerEntry>? computers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ILdapService ldapService = new LdapService("192.168.245.132", 636, "admin", "Secret2#");
+        ComputersRepository repository = new ComputersRepository(ldapService);
+
+        computers = await repository.ListAsync();
+    }
+
+}

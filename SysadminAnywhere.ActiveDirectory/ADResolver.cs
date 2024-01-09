@@ -35,33 +35,37 @@ namespace SysadminAnywhere.ActiveDirectory
 
                     var attribute = directoryAttributes.FirstOrDefault(a => a.Key.ToLower() == propertyName.ToLower());
 
-                    if (property.PropertyType == typeof(string))
-                        property.SetValue(result, attribute.Value.StringValue);
+                    if (attribute.Key != null)
+                    {
 
-                    if (property.PropertyType == typeof(DateTime?))
-                        property.SetValue(result, GetDate(attribute.Value.StringValue, dateType));
+                        if (property.PropertyType == typeof(string))
+                            property.SetValue(result, attribute.Value.StringValue);
 
-                    if (property.PropertyType == typeof(bool))
-                        property.SetValue(result, bool.Parse(attribute.Value.StringValue));
+                        if (property.PropertyType == typeof(DateTime?))
+                            property.SetValue(result, GetDate(attribute.Value.StringValue, dateType));
 
-                    if (property.PropertyType == typeof(int))
-                        property.SetValue(result, int.Parse(attribute.Value.StringValue));
+                        if (property.PropertyType == typeof(bool))
+                            property.SetValue(result, bool.Parse(attribute.Value.StringValue));
 
-                    if (property.PropertyType == typeof(long))
-                        property.SetValue(result, long.Parse(attribute.Value.StringValue));
+                        if (property.PropertyType == typeof(int))
+                            property.SetValue(result, int.Parse(attribute.Value.StringValue));
 
-                    if (property.PropertyType == typeof(byte[]))
-                        property.SetValue(result, attribute.Value.ByteValue);
+                        if (property.PropertyType == typeof(long))
+                            property.SetValue(result, long.Parse(attribute.Value.StringValue));
 
-                    if (property.PropertyType == typeof(List<string>))
-                        property.SetValue(result, attribute.Value.StringValueArray.ToList());
+                        if (property.PropertyType == typeof(byte[]))
+                            property.SetValue(result, attribute.Value.ByteValue);
 
-                    if (property.PropertyType == typeof(Guid))
-                        property.SetValue(result, new Guid(attribute.Value.ByteValue));
+                        if (property.PropertyType == typeof(List<string>))
+                            property.SetValue(result, attribute.Value.StringValueArray.ToList());
 
-                    if (property.PropertyType == typeof(ADSID))
-                        property.SetValue(result, new ADSID(attribute.Value.ByteValue));
+                        if (property.PropertyType == typeof(Guid))
+                            property.SetValue(result, new Guid(attribute.Value.ByteValue));
 
+                        if (property.PropertyType == typeof(ADSID))
+                            property.SetValue(result, new ADSID(attribute.Value.ByteValue));
+
+                    }
                 }
                 catch (Exception ex)
                 {

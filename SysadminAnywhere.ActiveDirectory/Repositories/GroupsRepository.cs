@@ -17,11 +17,11 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             this.ldapService = ldapService;
         }
 
-        public List<GroupEntry> List()
+        public async Task<List<GroupEntry>> ListAsync()
         {
             List<GroupEntry> groups = new List<GroupEntry>();
 
-            List<LdapEntry> list = ldapService.Search("(objectClass=group)");
+            List<LdapEntry> list = await ldapService.SearchAsync("(objectClass=group)");
 
             foreach (LdapEntry entry in list)
             {
@@ -31,12 +31,12 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             return groups;
         }
 
-        public GroupEntry? GetByCN(string cn)
+        public async Task<GroupEntry?> GetByCNAsync(string cn)
         {
             if (string.IsNullOrEmpty(cn))
                 throw new ArgumentNullException(nameof(cn));
 
-            var result = ldapService.Search("(&(objectClass=group)(cn=" + cn + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=group)(cn=" + cn + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
@@ -45,17 +45,17 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
                 return null;
         }
 
-        public GroupEntry? Add(GroupEntry group)
+        public async Task<GroupEntry?> AddAsync(GroupEntry group)
         {
-            return Add(string.Empty, group, GroupScopes.Global, true);
+            return await AddAsync(string.Empty, group, GroupScopes.Global, true);
         }
 
-        public GroupEntry? Add(GroupEntry group, GroupScopes groupScope, bool isSecurity)
+        public async Task<GroupEntry?> AddAsync(GroupEntry group, GroupScopes groupScope, bool isSecurity)
         {
-            return Add(string.Empty, group, groupScope, isSecurity);
+            return await AddAsync(string.Empty, group, groupScope, isSecurity);
         }
 
-        public GroupEntry? Add(string distinguishedName, GroupEntry group, GroupScopes groupScope, bool isSecurity)
+        public async Task<GroupEntry?> AddAsync(string distinguishedName, GroupEntry group, GroupScopes groupScope, bool isSecurity)
         {
             if (group == null)
                 throw new ArgumentNullException(nameof(group));
@@ -78,15 +78,15 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             if (string.IsNullOrEmpty(distinguishedName))
             {
                 string cn = "cn=" + group.CN + "," + new ADContainers(ldapService).GetUsersContainer();
-                ldapService.Add(LdapResolver.GetLdapEntry(cn, group, attributes));
+                await ldapService.AddAsync(LdapResolver.GetLdapEntry(cn, group, attributes));
             }
             else
             {
                 string cn = "cn=" + group.CN + "," + distinguishedName;
-                ldapService.Add(LdapResolver.GetLdapEntry(cn, group, attributes));
+                await ldapService.AddAsync(LdapResolver.GetLdapEntry(cn, group, attributes));
             }
 
-            var result = ldapService.Search("(&(objectClass=group)(cn=" + group.CN + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=group)(cn=" + group.CN + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
@@ -95,7 +95,7 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
                 return null;
         }
 
-        public GroupEntry? Modify(GroupEntry group)
+        public async Task<GroupEntry?> ModifyAsync(GroupEntry group)
         {
             if (group == null)
                 throw new ArgumentNullException(nameof(group));
@@ -111,15 +111,15 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
                 "description"
             };
 
-            var result = ldapService.Search("(&(objectClass=group)(cn=" + group.CN + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=group)(cn=" + group.CN + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
             {
                 GroupEntry oldGroup = ADResolver<GroupEntry>.GetValues(entry);
-                ldapService.SendRequest(group.DistinguishedName, LdapResolver.GetModificationAttributes(group, oldGroup, attributes));
+                await ldapService.SendRequestAsync(group.DistinguishedName, LdapResolver.GetModificationAttributes(group, oldGroup, attributes));
 
-                var newGroup = GetByCN(group.CN);
+                var newGroup = await GetByCNAsync(group.CN);
                 if (newGroup != null)
                     return newGroup;
             }
@@ -127,7 +127,7 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             return null;
         }
 
-        public void Delete(GroupEntry group)
+        public async Task DeleteAsync(GroupEntry group)
         {
             if (group == null)
                 throw new ArgumentNullException(nameof(group));
@@ -135,10 +135,10 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             if (string.IsNullOrEmpty(group.DistinguishedName))
                 throw new ArgumentNullException(nameof(group.DistinguishedName));
 
-            ldapService.Delete(group.DistinguishedName);
+            await ldapService.DeleteAsync(group.DistinguishedName);
         }
 
-        public void AddMember(GroupEntry group, string distinguishedName)
+        public async Task AddMemberAsync(GroupEntry group, string distinguishedName)
         {
             if (group == null)
                 throw new ArgumentNullException(nameof(group));
@@ -152,17 +152,17 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             if (string.IsNullOrEmpty(distinguishedName))
                 throw new ArgumentNullException(nameof(distinguishedName));
 
-            var result = ldapService.Search("(&(objectClass=group)(cn=" + group.CN + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=group)(cn=" + group.CN + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
             {
                 LdapModification ldapModification = new LdapModification(LdapModification.Add, new LdapAttribute("member", distinguishedName));
-                ldapService.SendRequest(group.DistinguishedName, ldapModification);
+                await ldapService.SendRequestAsync(group.DistinguishedName, ldapModification);
             }
         }
 
-        public void DeleteMember(GroupEntry group, string distinguishedName)
+        public async Task DeleteMemberAsync(GroupEntry group, string distinguishedName)
         {
             if (group == null)
                 throw new ArgumentNullException(nameof(group));
@@ -176,13 +176,13 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             if (string.IsNullOrEmpty(distinguishedName))
                 throw new ArgumentNullException(nameof(distinguishedName));
 
-            var result = ldapService.Search("(&(objectClass=group)(cn=" + group.CN + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=group)(cn=" + group.CN + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
             {
                 LdapModification ldapModification = new LdapModification(LdapModification.Delete, new LdapAttribute("member"));
-                ldapService.SendRequest(group.DistinguishedName, ldapModification);
+                await ldapService.SendRequestAsync(group.DistinguishedName, ldapModification);
             }
         }
 

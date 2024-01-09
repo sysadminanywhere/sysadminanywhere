@@ -20,7 +20,7 @@ namespace SysadminAnywhere.ActiveDirectory
 
         public ADContainers(ILdapService ldapService)
         {
-            wellKnownObjects = ldapService.WellKnownObjects();
+            wellKnownObjects = ldapService.WellKnownObjectsAsync().Result;
         }
 
         public string GetComputersContainer()

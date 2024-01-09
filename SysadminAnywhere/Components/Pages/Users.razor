@@ -1,13 +1,16 @@
 ﻿@page "/users"
 @using Novell.Directory.Ldap
 @using System.Security.Cryptography.X509Certificates
+@using SysadminAnywhere.ActiveDirectory.Models
+@using SysadminAnywhere.ActiveDirectory.Repositories
+@using SysadminAnywhere.ActiveDirectory.Services.Ldap
 @attribute [StreamRendering]
 
 <PageTitle>Users</PageTitle>
 
 <h1>Users</h1>
 
-<p>This component demonstrates showing data.</p>
+<p>Users list</p>
 
 @if (users == null)
 {
@@ -25,7 +28,7 @@ else
             @foreach (var user in users)
             {
                 <tr>
-                    <td>@user</td>
+                    <td>@user.CN</td>
                 </tr>
             }
         </tbody>
@@ -33,37 +36,43 @@ else
 }
 
 @code {
-    private List<string>? users;
+    private List<UserEntry>? users;
 
     protected override async Task OnInitializedAsync()
     {
 
-        LdapConnectionOptions options = new LdapConnectionOptions()
-            .ConfigureRemoteCertificateValidationCallback(new System.Net.Security.RemoteCertificateValidationCallback((a, b, c, d) => true))
-            .UseSsl();
+        // LdapConnectionOptions options = new LdapConnectionOptions()
+        //     .ConfigureRemoteCertificateValidationCallback(new System.Net.Security.RemoteCertificateValidationCallback((a, b, c, d) => true))
+        //     .UseSsl();
 
-        using (var connection = new LdapConnection(options))
-        {
-            connection.Connect("192.168.245.132", 636);
-            connection.Bind("admin", "Secret2#");
+        // using (var connection = new LdapConnection(options))
+        // {
+        //     connection.Connect("192.168.245.132", 636);
+        //     connection.Bind("admin", "Secret2#");
 
-            users = new List<string>();
+        //     users = new List<string>();
 
-            ILdapSearchResults searchResults = connection.Search(
-                "CN=Users,DC=example,DC=com",
-                LdapConnection.ScopeSub,
-                "(&(objectClass=user)(objectCategory=person))",
-                null,
-                false
-                );
+        //     ILdapSearchResults searchResults = connection.Search(
+        //         "CN=Users,DC=example,DC=com",
+        //         LdapConnection.ScopeSub,
+        //         "(&(objectClass=user)(objectCategory=person))",
+        //         null,
+        //         false
+        //         );
 
-            while (searchResults.HasMore())
-            {
-                var nextEntry = searchResults.Next();
-                nextEntry.GetAttributeSet();
-                users.Add(nextEntry.GetAttribute("distinguishedName").StringValue);
-            }
-        }
+        //     while (searchResults.HasMore())
+        //     {
+        //         var nextEntry = searchResults.Next();
+        //         nextEntry.GetAttributeSet();
+        //         users.Add(nextEntry.GetAttribute("distinguishedName").StringValue);
+        //     }
+        // }
+
+        ILdapService ldapService = new LdapService("192.168.245.132", 636, "admin", "Secret2#");
+        UsersRepository repository = new UsersRepository(ldapService);
+
+        users = await repository.ListAsync();
+
     }
 
 }

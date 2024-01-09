@@ -1,5 +1,4 @@
 ﻿using Novell.Directory.Ldap;
-using SysadminAnywhere.ActiveDirectory.Services.Ldap;
 
 namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
 {
@@ -32,16 +31,10 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
                     connection = new LdapConnection();
                 }
 
-                connection.Connect(host, port);
+                connection.ConnectAsync(host, port).Wait();
+                connection.BindAsync(userName, password).Wait();
 
-                ILdapSearchResults searchResults = connection.Search(DefaultNamingContext, LdapConnection.ScopeBase, "(objectclass=*)", null, false);
-
-                while (searchResults.HasMore())
-                {
-                    var nextEntry = searchResults.Next();
-                    DefaultNamingContext = nextEntry.GetAttribute("defaultNamingContext").StringValue;
-                }
-
+                DefaultNamingContext = connection.GetRootDseInfoAsync().Result.DefaultNamingContext;
                 DomainName = DefaultNamingContext.ToUpper().Replace("DC=", "").Replace(",", ".").ToLower();
             }
             catch (Exception ex)
@@ -56,7 +49,7 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
             else return connection.Connected;
         }
 
-        public List<LdapEntry> Search(string filter)
+        public async Task<List<LdapEntry>> SearchAsync(string filter)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
@@ -64,10 +57,10 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
             if (string.IsNullOrEmpty(filter))
                 throw new ArgumentNullException(nameof(filter));
 
-            return Search(DefaultNamingContext, filter);
+            return await SearchAsync(DefaultNamingContext, filter);
         }
 
-        public List<LdapEntry> Search(string path, string filter, int scope = LdapConnection.ScopeSub)
+        public async Task<List<LdapEntry>> SearchAsync(string path, string filter, int scope = LdapConnection.ScopeSub)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
@@ -78,20 +71,16 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
             if (string.IsNullOrEmpty(filter))
                 throw new ArgumentNullException(nameof(filter));
 
-            List<LdapEntry> results = new List<LdapEntry>();
+            LdapSearchConstraints constraints = connection.SearchConstraints;
+            constraints.ReferralFollowing = true;
+            constraints.MaxResults = 10000;
 
-            ILdapSearchResults searchResults = connection.Search(DefaultNamingContext, scope, filter, null, false);
+            ILdapSearchResults searchResults = await connection.SearchAsync(path, scope, filter, null, false, constraints);
 
-            while (searchResults.HasMore())
-            {
-                var nextEntry = searchResults.Next();
-                results.Add(nextEntry);
-            }
-
-            return results;
+            return await searchResults.ToListAsync<LdapEntry>();
         }
 
-        public void SendRequest(string dn, List<LdapModification> ldapModifications)
+        public async Task SendRequestAsync(string dn, List<LdapModification> ldapModifications)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
@@ -99,10 +88,10 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
             if (ldapModifications == null)
                 throw new ArgumentNullException(nameof(ldapModifications));
 
-            connection.Modify(dn, ldapModifications.ToArray());
+            await connection.ModifyAsync(dn, ldapModifications.ToArray());
         }
 
-        public void SendRequest(string dn, LdapModification ldapModification)
+        public async Task SendRequestAsync(string dn, LdapModification ldapModification)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
@@ -110,10 +99,10 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
             if (ldapModification == null)
                 throw new ArgumentNullException(nameof(ldapModification));
 
-            connection.Modify(dn, ldapModification);
+            await connection.ModifyAsync(dn, ldapModification);
         }
 
-        public void Add(LdapEntry entry)
+        public async Task AddAsync(LdapEntry entry)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
@@ -128,10 +117,10 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
                 entry.GetAttributeSet().Remove(item.Key);
             }
 
-            connection.Add(entry);
+            await connection.AddAsync(entry);
         }
 
-        public void Modify(string dn, LdapModification entry)
+        public async Task ModifyAsync(string dn, LdapModification entry)
         {
             if (connection == null)
                 throw new NullReferenceException(nameof(connection));
@@ -139,10 +128,10 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
             if (entry == null)
                 throw new ArgumentNullException(nameof(entry));
 
-            connection.Modify(dn, entry);
+            await connection.ModifyAsync(dn, entry);
         }
 
-        public void ModifyProperty(string dn, string name, string value)
+        public async Task ModifyPropertyAsync(string dn, string name, string value)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
@@ -159,10 +148,10 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
             LdapAttribute attribute = new LdapAttribute(name, value);
             LdapModification ldapModification = new LdapModification(LdapModification.Replace, attribute);
 
-            connection.Modify(dn, ldapModification);
+            await connection.ModifyAsync(dn, ldapModification);
         }
 
-        public void Delete(string dn)
+        public async Task DeleteAsync(string dn)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
@@ -170,32 +159,33 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
             if (string.IsNullOrEmpty(dn))
                 throw new ArgumentNullException(nameof(dn));
 
-            connection.Delete(dn);
+            await connection.DeleteAsync(dn);
         }
 
-        public List<string> WellKnownObjects()
+        public async Task<List<string>> WellKnownObjectsAsync()
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
 
-            ILdapSearchResults searchResults = connection.Search(DefaultNamingContext, LdapConnection.ScopeBase, "(objectclass=domain)", null, false);
+            ILdapSearchResults searchResults = await connection.SearchAsync(DefaultNamingContext, LdapConnection.ScopeBase, "(objectclass=domain)", null, false);
 
             List<string> results = new List<string>();
 
-            while (searchResults.HasMore())
-            {
-                var nextEntry = searchResults.Next();
-                results = nextEntry.GetAttribute("wellKnownObjects").StringValueArray.ToList();
+            var result = await searchResults.ToListAsync<LdapEntry>();
+
+            foreach (LdapEntry ldapEntry in result) 
+            { 
+                results = ldapEntry.GetAttribute("wellKnownObjects").StringValueArray.ToList();
             }
 
             return results;
         }
-        public RootDseInfo GetRootDse()
+        public async Task<RootDseInfo> GetRootDseAsync()
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
 
-            return connection.GetRootDseInfo();
+            return await connection.GetRootDseInfoAsync();
         }
 
         public void Dispose()

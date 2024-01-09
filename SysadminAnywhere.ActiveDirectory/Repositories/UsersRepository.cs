@@ -19,11 +19,11 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             this.ldapService = ldapService;
         }
 
-        public List<UserEntry> List()
+        public async Task<List<UserEntry>> ListAsync()
         {
             List<UserEntry> users = new List<UserEntry>();
 
-            List<LdapEntry> list = ldapService.Search("(&(objectClass=user)(objectCategory=person))");
+            List<LdapEntry> list = await ldapService.SearchAsync("(&(objectClass=user)(objectCategory=person))");
 
             foreach (LdapEntry entry in list)
             {
@@ -33,12 +33,12 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             return users;
         }
 
-        public UserEntry? GetByCN(string cn)
+        public async Task<UserEntry?> GetByCNAsync(string cn)
         {
             if (string.IsNullOrEmpty(cn))
                 throw new ArgumentNullException(nameof(cn));
 
-            var result = ldapService.Search("(&(objectClass=user)(objectCategory=person)(cn=" + cn + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=user)(objectCategory=person)(cn=" + cn + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
@@ -47,17 +47,17 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
                 return null;
         }
 
-        public UserEntry? Add(UserEntry user, string password)
+        public async Task<UserEntry?> AddAsync(UserEntry user, string password)
         {
-            return Add(string.Empty, user, password, false, false, false, false);
+            return await AddAsync(string.Empty, user, password, false, false, false, false);
         }
 
-        public UserEntry? Add(string distinguishedName, UserEntry user, string password)
+        public async Task<UserEntry?> AddAsync(string distinguishedName, UserEntry user, string password)
         {
-            return Add(distinguishedName, user, password, false, false, false, false);
+            return await AddAsync(distinguishedName, user, password, false, false, false, false);
         }
 
-        public UserEntry? Add(string distinguishedName, UserEntry user, string password, bool isCannotChangePassword, bool isPasswordNeverExpires, bool isAccountDisabled, bool isMustChangePassword)
+        public async Task<UserEntry?> AddAsync(string distinguishedName, UserEntry user, string password, bool isCannotChangePassword, bool isPasswordNeverExpires, bool isAccountDisabled, bool isMustChangePassword)
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
@@ -84,27 +84,27 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             if (string.IsNullOrEmpty(distinguishedName))
             {
                 string cn = "cn=" + user.CN + "," + new ADContainers(ldapService).GetUsersContainer();
-                ldapService.Add(LdapResolver.GetLdapEntry(cn, user, attributes));
+                await ldapService.AddAsync(LdapResolver.GetLdapEntry(cn, user, attributes));
             }
             else
             {
                 string cn = "cn=" + user.CN + "," + distinguishedName;
-                ldapService.Add(LdapResolver.GetLdapEntry(cn, user, attributes));
+                await ldapService.AddAsync(LdapResolver.GetLdapEntry(cn, user, attributes));
             }
 
-            var result = ldapService.Search("(&(objectClass=user)(objectCategory=person)(cn=" + user.CN + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=user)(objectCategory=person)(cn=" + user.CN + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
             {
                 UserEntry newUser = ADResolver<UserEntry>.GetValues(entry);
 
-                ResetPassword(newUser, password);
+                await ResetPasswordAsync(newUser, password);
 
-                ChangeUserAccountControl(newUser, isCannotChangePassword, isPasswordNeverExpires, isAccountDisabled);
+                await ChangeUserAccountControlAsync(newUser, isCannotChangePassword, isPasswordNeverExpires, isAccountDisabled);
 
                 if (isMustChangePassword)
-                    MustChangePassword(newUser);
+                    await MustChangePasswordAsync(newUser);
 
                 return newUser;
             }
@@ -112,7 +112,7 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             return null;
         }
 
-        public void Add(string distinguishedName, UserEntry user)
+        public async Task AddAsync(string distinguishedName, UserEntry user)
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
@@ -136,16 +136,16 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             if (string.IsNullOrEmpty(distinguishedName))
             {
                 string cn = "cn=" + user.CN + "," + new ADContainers(ldapService).GetUsersContainer();
-                ldapService.Add(LdapResolver.GetLdapEntry(cn, user, attributes));
+                await ldapService.AddAsync(LdapResolver.GetLdapEntry(cn, user, attributes));
             }
             else
             {
                 string cn = "cn=" + user.CN + "," + distinguishedName;
-                ldapService.Add(LdapResolver.GetLdapEntry(cn, user, attributes));
+                await ldapService.AddAsync(LdapResolver.GetLdapEntry(cn, user, attributes));
             }
         }
 
-        public UserEntry? Modify(UserEntry user)
+        public async Task<UserEntry?> ModifyAsync(UserEntry user)
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
@@ -181,15 +181,15 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
                 "company"
             };
 
-            var result = ldapService.Search("(&(objectClass=user)(objectCategory=person)(cn=" + user.CN + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=user)(objectCategory=person)(cn=" + user.CN + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
             {
                 UserEntry oldUser = ADResolver<UserEntry>.GetValues(entry);
-                ldapService.SendRequest(user.DistinguishedName, LdapResolver.GetModificationAttributes(user, oldUser, attributes));
+                await ldapService.SendRequestAsync(user.DistinguishedName, LdapResolver.GetModificationAttributes(user, oldUser, attributes));
 
-                var newUser = GetByCN(user.CN);
+                var newUser = await GetByCNAsync(user.CN);
                 if (newUser != null)
                     return newUser;
             }
@@ -197,15 +197,15 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             return null;
         }
 
-        public void ResetPassword(UserEntry user, string password)
+        public async Task ResetPasswordAsync(UserEntry user, string password)
         {
             byte[] encodedBytes = Encoding.Unicode.GetBytes("\"" + password + "\"");
 
             LdapModification ldapModification = new LdapModification(LdapModification.Replace, new LdapAttribute("unicodePwd", encodedBytes));
-            ldapService.SendRequest(user.DistinguishedName, ldapModification);
+            await ldapService.SendRequestAsync(user.DistinguishedName, ldapModification);
         }
 
-        public void ChangeUserAccountControl(UserEntry user, bool isCannotChangePassword, bool isPasswordNeverExpires, bool isAccountDisabled)
+        public async Task ChangeUserAccountControlAsync(UserEntry user, bool isCannotChangePassword, bool isPasswordNeverExpires, bool isAccountDisabled)
         {
             UserAccountControls userAccountControl = user.UserControl;
 
@@ -224,15 +224,15 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             else
                 userAccountControl = userAccountControl & ~UserAccountControls.ACCOUNTDISABLE;
 
-            ldapService.ModifyProperty(user.DistinguishedName, "userAccountControl", Convert.ToString((int)userAccountControl));
+            await ldapService.ModifyPropertyAsync(user.DistinguishedName, "userAccountControl", Convert.ToString((int)userAccountControl));
         }
 
-        public void MustChangePassword(UserEntry user)
+        public async Task MustChangePasswordAsync(UserEntry user)
         {
-            ldapService.ModifyProperty(user.DistinguishedName, "pwdlastset", "0");
+            await ldapService.ModifyPropertyAsync(user.DistinguishedName, "pwdlastset", "0");
         }
 
-        public void Delete(UserEntry user)
+        public async Task DeleteAsync(UserEntry user)
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
@@ -240,7 +240,7 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             if (string.IsNullOrEmpty(user.DistinguishedName))
                 throw new ArgumentNullException(nameof(user.DistinguishedName));
 
-            ldapService.Delete(user.DistinguishedName);
+            await ldapService.DeleteAsync(user.DistinguishedName);
         }
 
         public void Dispose()

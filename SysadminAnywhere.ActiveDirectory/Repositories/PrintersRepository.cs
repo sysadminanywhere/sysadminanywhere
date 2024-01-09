@@ -17,11 +17,11 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             this.ldapService = ldapService;
         }
 
-        public List<PrinterEntry> List()
+        public async Task<List<PrinterEntry>> ListAsync()
         {
             List<PrinterEntry> printers = new List<PrinterEntry>();
 
-            List<LdapEntry> list = ldapService.Search("(objectClass=printQueue)");
+            List<LdapEntry> list = await ldapService.SearchAsync("(objectClass=printQueue)");
 
             foreach (LdapEntry entry in list)
             {
@@ -31,12 +31,12 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             return printers;
         }
 
-        public PrinterEntry? GetByCN(string cn)
+        public async Task<PrinterEntry?> GetByCNAsync(string cn)
         {
             if (string.IsNullOrEmpty(cn))
                 throw new ArgumentNullException(nameof(cn));
 
-            var result = ldapService.Search("(&(objectClass=printQueue)(cn=" + cn + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=printQueue)(cn=" + cn + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
@@ -45,7 +45,7 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
                 return null;
         }
 
-        public void Delete(PrinterEntry printer)
+        public async Task DeleteAsync(PrinterEntry printer)
         {
             if (printer == null)
                 throw new ArgumentNullException(nameof(printer));
@@ -53,7 +53,7 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             if (string.IsNullOrEmpty(printer.DistinguishedName))
                 throw new ArgumentNullException(nameof(printer.DistinguishedName));
 
-            ldapService.Delete(printer.DistinguishedName);
+            await ldapService.DeleteAsync(printer.DistinguishedName);
         }
 
         public void Dispose()

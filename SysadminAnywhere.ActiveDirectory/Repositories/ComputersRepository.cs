@@ -17,11 +17,11 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             this.ldapService = ldapService;
         }
 
-        public List<ComputerEntry> List()
+        public async Task<List<ComputerEntry>> ListAsync()
         {
             List<ComputerEntry> computers = new List<ComputerEntry>();
 
-            List<LdapEntry> list = ldapService.Search("(objectClass=computer)");
+            List<LdapEntry> list = await ldapService.SearchAsync("(objectClass=computer)");
 
             foreach (LdapEntry entry in list)
             {
@@ -31,12 +31,12 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             return computers;
         }
 
-        public ComputerEntry? GetByCN(string cn)
+        public async Task<ComputerEntry?> GetByCNAsync(string cn)
         {
             if (string.IsNullOrEmpty(cn))
                 throw new ArgumentNullException(nameof(cn));
 
-            var result = ldapService.Search("(&(objectClass=computer)(cn=" + cn + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=computer)(cn=" + cn + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
@@ -45,15 +45,15 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
                 return null;
         }
 
-        public ComputerEntry? Add(ComputerEntry computer, bool isEnabled)
+        public async Task<ComputerEntry?> AddAsync(ComputerEntry computer, bool isEnabled)
         {
             if (computer == null)
                 throw new ArgumentNullException(nameof(computer));
 
-            return Add(string.Empty, computer, isEnabled);
+            return await AddAsync(string.Empty, computer, isEnabled);
         }
 
-        public ComputerEntry? Add(string distinguishedName, ComputerEntry computer, bool isEnabled)
+        public async Task<ComputerEntry?> AddAsync(string distinguishedName, ComputerEntry computer, bool isEnabled)
         {
             if (computer == null)
                 throw new ArgumentNullException(nameof(computer));
@@ -75,15 +75,15 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             if (string.IsNullOrEmpty(distinguishedName))
             {
                 string cn = "cn=" + computer.CN + "," + new ADContainers(ldapService).GetUsersContainer();
-                ldapService.Add(LdapResolver.GetLdapEntry(cn, computer, attributes));
+                await ldapService.AddAsync(LdapResolver.GetLdapEntry(cn, computer, attributes));
             }
             else
             {
                 string cn = "cn=" + computer.CN + "," + distinguishedName;
-                ldapService.Add(LdapResolver.GetLdapEntry(cn, computer, attributes));
+                await ldapService.AddAsync(LdapResolver.GetLdapEntry(cn, computer, attributes));
             }
 
-            var result = ldapService.Search("(&(objectClass=computer)(cn=" + computer.CN + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=computer)(cn=" + computer.CN + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
@@ -103,7 +103,7 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
                         userAccountControl = userAccountControl & ~UserAccountControls.ACCOUNTDISABLE;
                 }
 
-                ldapService.ModifyProperty(newComputer.DistinguishedName, "userAccountControl", Convert.ToString((int)userAccountControl));
+                await ldapService.ModifyPropertyAsync(newComputer.DistinguishedName, "userAccountControl", Convert.ToString((int)userAccountControl));
 
                 return newComputer;
             }
@@ -111,7 +111,7 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             return null;
         }
 
-        public ComputerEntry? Modify(ComputerEntry computer)
+        public async Task<ComputerEntry?> ModifyAsync(ComputerEntry computer)
         {
             if (computer == null)
                 throw new ArgumentNullException(nameof(computer));
@@ -128,22 +128,22 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
                 "location"
             };
 
-            var result = ldapService.Search("(&(objectClass=computer)(cn=" + computer.CN + "))");
+            var result = await ldapService.SearchAsync("(&(objectClass=computer)(cn=" + computer.CN + "))");
             var entry = result.FirstOrDefault();
 
             if (entry != null)
             {
                 ComputerEntry oldComputer = ADResolver<ComputerEntry>.GetValues(entry);
-                ldapService.SendRequest(computer.DistinguishedName, LdapResolver.GetModificationAttributes(computer, oldComputer, attributes));
+                await ldapService.SendRequestAsync(computer.DistinguishedName, LdapResolver.GetModificationAttributes(computer, oldComputer, attributes));
 
-                var newComputer = GetByCN(computer.CN);
+                var newComputer = await GetByCNAsync(computer.CN);
                 if (newComputer != null)
                     return newComputer;
             }
             return null;
         }
 
-        public void Delete(ComputerEntry computer)
+        public async Task DeleteAsync(ComputerEntry computer)
         {
             if (computer == null)
                 throw new ArgumentNullException(nameof(computer));
@@ -151,7 +151,7 @@ namespace SysadminAnywhere.ActiveDirectory.Repositories
             if (string.IsNullOrEmpty(computer.DistinguishedName))
                 throw new ArgumentNullException(nameof(computer.DistinguishedName));
 
-            ldapService.Delete(computer.DistinguishedName);
+            await ldapService.DeleteAsync(computer.DistinguishedName);
         }
 
         public void Dispose()
