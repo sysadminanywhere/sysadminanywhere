@@ -7,7 +7,9 @@ internal class Program
     private static void Main(string[] args)
     {
 
-        GenerateUsersAsync(1000).Wait();
+        GenerateUsersAsync(1).Wait();
+
+        //GenerateComputersAsync(1).Wait();
 
     }
 
@@ -33,7 +35,33 @@ internal class Program
 
             try
             {
-                await repository.AddAsync("OU=Test,DC=example,DC=com", user, "aaa111#");
+                await repository.AddAsync("OU=Users,OU=Test,DC=example,DC=com", user, "aaa111#");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
+    }
+
+    private static async Task GenerateComputersAsync(int count)
+    {
+
+        ILdapService ldapService = new LdapService("192.168.245.132", 636, "admin", "Secret2#");
+        ComputersRepository repository = new ComputersRepository(ldapService);
+
+        for (int i = 0; i < count; i++)
+        {
+
+            ComputerEntry computer = new ComputerEntry();
+
+            computer.CN = Faker.Internet.DomainWord();
+            computer.Location = Faker.Country.Name();
+
+            try
+            {
+                await repository.AddAsync("OU=Computers,OU=Test,DC=example,DC=com", computer, false);
             }
             catch (Exception ex)
             {

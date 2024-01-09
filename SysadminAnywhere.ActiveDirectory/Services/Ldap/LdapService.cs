@@ -36,6 +36,8 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
                     connection = new LdapConnection();
                 }
 
+                connection.SecureSocketLayer = true;
+
                 connection.ConnectAsync(host, port).Wait();
                 connection.BindAsync(userName, password).Wait();
 
