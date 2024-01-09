@@ -4,3 +4,5 @@ SysadminAnywhere/bin
 SysadminAnywhere/obj
 SysadminAnywhere.ActiveDirectory/bin
 SysadminAnywhere.ActiveDirectory/obj
+Generator/bin
+Generator/obj

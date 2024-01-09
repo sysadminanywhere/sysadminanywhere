@@ -79,9 +79,12 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
             var vlvControlHandler = new VirtualListViewControlHandler(connection);
             var sortControl = new LdapSortControl(new LdapSortKey("cn"), true);
 
-            SearchOptions options = new SearchOptions(path, scope, filter, null);
+            LdapSearchConstraints ldapSearchConstraints = connection.SearchConstraints;
+            ldapSearchConstraints.MaxResults = 10000;
 
-            return await vlvControlHandler.SearchUsingVlvAsync(sortControl, options, 10000);
+            SearchOptions options = new SearchOptions(path, scope, filter, null, false, ldapSearchConstraints);
+
+            return await vlvControlHandler.SearchUsingVlvAsync(sortControl, options, 100);
 
         }
 

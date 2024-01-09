@@ -5,7 +5,9 @@ VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SysadminAnywhere", "SysadminAnywhere\SysadminAnywhere.csproj", "{C40BA231-F4E6-49D4-A683-E8A70194152F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SysadminAnywhere.ActiveDirectory", "SysadminAnywhere.ActiveDirectory\SysadminAnywhere.ActiveDirectory.csproj", "{3AC084B3-4D77-4540-B051-6B906AD77648}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SysadminAnywhere.ActiveDirectory", "SysadminAnywhere.ActiveDirectory\SysadminAnywhere.ActiveDirectory.csproj", "{3AC084B3-4D77-4540-B051-6B906AD77648}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Generator", "Generator\Generator.csproj", "{DCF9CD24-534E-4D25-8530-67612ED00A91}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{3AC084B3-4D77-4540-B051-6B906AD77648}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3AC084B3-4D77-4540-B051-6B906AD77648}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3AC084B3-4D77-4540-B051-6B906AD77648}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCF9CD24-534E-4D25-8530-67612ED00A91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCF9CD24-534E-4D25-8530-67612ED00A91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCF9CD24-534E-4D25-8530-67612ED00A91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCF9CD24-534E-4D25-8530-67612ED00A91}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
