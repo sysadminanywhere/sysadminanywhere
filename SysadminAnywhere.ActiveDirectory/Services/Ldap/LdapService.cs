@@ -1,4 +1,9 @@
 ﻿using Novell.Directory.Ldap;
+using static System.Formats.Asn1.AsnWriter;
+using System.IO;
+using Novell.Directory.Ldap.Controls;
+using Novell.Directory.Ldap.SearchExtensions;
+using System.Net.Http.Headers;
 
 namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
 {
@@ -71,13 +76,13 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
             if (string.IsNullOrEmpty(filter))
                 throw new ArgumentNullException(nameof(filter));
 
-            LdapSearchConstraints constraints = connection.SearchConstraints;
-            constraints.ReferralFollowing = true;
-            constraints.MaxResults = 10000;
+            var vlvControlHandler = new VirtualListViewControlHandler(connection);
+            var sortControl = new LdapSortControl(new LdapSortKey("cn"), true);
 
-            ILdapSearchResults searchResults = await connection.SearchAsync(path, scope, filter, null, false, constraints);
+            SearchOptions options = new SearchOptions(path, scope, filter, null);
 
-            return await searchResults.ToListAsync<LdapEntry>();
+            return await vlvControlHandler.SearchUsingVlvAsync(sortControl, options, 10000);
+
         }
 
         public async Task SendRequestAsync(string dn, List<LdapModification> ldapModifications)
