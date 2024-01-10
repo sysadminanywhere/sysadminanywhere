@@ -31,12 +31,11 @@ namespace SysadminAnywhere.ActiveDirectory.Services.Ldap
                         .UseSsl();
 
                     connection = new LdapConnection(options);
+                    connection.SecureSocketLayer = true;
                 }
                 else {
                     connection = new LdapConnection();
                 }
-
-                connection.SecureSocketLayer = true;
 
                 connection.ConnectAsync(host, port).Wait();
                 connection.BindAsync(userName, password).Wait();
