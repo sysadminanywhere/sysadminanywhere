@@ -1,0 +1,77 @@
+.gridwith-filters-view .filter-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  align-items: end;
+  gap: 0 var(--lumo-space-l);
+}
+
+.gridwith-filters-view .filter-layout .double-width {
+  grid-column-end: span 2;
+}
+
+.gridwith-filters-view .filter-layout .actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  grid-column-end: -1;
+}
+
+.gridwith-filters-view .filter-layout vaadin-date-picker {
+  --vaadin-field-default-width: 6em;
+  width: 100%;
+}
+
+.gridwith-filters-view .filter-layout vaadin-combo-box {
+  --vaadin-field-default-width: auto;
+}
+
+/* Mobile filters */
+.gridwith-filters-view .mobile-filters {
+  display: none;
+  position: relative;
+}
+
+.gridwith-filters-view .mobile-filters span {
+  font-size: var(--lumo-font-size-m);
+  font-weight: 500;
+}
+
+@media screen and (max-width: 800px) {
+  .gridwith-filters-view .filter-layout {
+    display: none;
+    gap: var(--lumo-space-m);
+    padding-left: var(--lumo-space-m);
+    padding-right: var(--lumo-space-m);
+  }
+
+  .gridwith-filters-view .filter-layout.visible {
+    display: grid;
+    padding-top: 0;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .gridwith-filters-view .filter-layout > * {
+    grid-column-end: span 2;
+  }
+
+  .gridwith-filters-view .mobile-filters {
+    display: flex;
+    cursor: pointer;
+    color: var(--lumo-secondary-text-color);
+  }
+
+  .gridwith-filters-view .mobile-filters:hover::before {
+    content: '';
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    position: absolute;
+    opacity: 0.02;
+    background-color: currentcolor;
+  }
+
+  .gridwith-filters-view .mobile-filters:hover {
+    color: var(--lumo-body-text-color);
+  }
+}
