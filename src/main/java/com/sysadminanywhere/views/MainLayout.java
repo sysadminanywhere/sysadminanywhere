@@ -20,6 +20,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.PageTitle;
@@ -64,13 +65,31 @@ public class MainLayout extends AppLayout {
         appName.addClassNames(LumoUtility.FontWeight.SEMIBOLD, LumoUtility.FontSize.LARGE);
         Header header = new Header(appName);
 
-        Scroller scroller = new Scroller(createNavigation());
+        VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout.setSpacing(false);
+        verticalLayout.setPadding(false);
+
+        verticalLayout.add(createNavigation());
+        verticalLayout.add(createManagementNavigation());
+
+        Scroller scroller = new Scroller(verticalLayout);
 
         addToDrawer(header, scroller, createFooter());
     }
 
     private SideNav createNavigation() {
         SideNav nav = new SideNav();
+
+            nav.addItem(
+                    new SideNavItem("Dashboard", ImageGalleryView.class, LineAwesomeIcon.TH_LIST_SOLID.create()));
+
+        return nav;
+    }
+
+    private SideNav createManagementNavigation() {
+        SideNav nav = new SideNav("Management");
+        nav.setCollapsible(true);
+        nav.setWidth("100%");
 
         if (accessChecker.hasAccess(UsersView.class)) {
             nav.addItem(new SideNavItem("Users", UsersView.class, LineAwesomeIcon.USER.create()));
@@ -85,8 +104,8 @@ public class MainLayout extends AppLayout {
                     new SideNavItem("Address Form", AddressFormView.class, LineAwesomeIcon.MAP_MARKER_SOLID.create()));
 
         }
-            nav.addItem(
-                    new SideNavItem("Image Gallery", ImageGalleryView.class, LineAwesomeIcon.TH_LIST_SOLID.create()));
+        nav.addItem(
+                new SideNavItem("Image Gallery", ImageGalleryView.class, LineAwesomeIcon.TH_LIST_SOLID.create()));
 
         if (accessChecker.hasAccess(GridwithFiltersView.class)) {
             nav.addItem(new SideNavItem("Grid with Filters", GridwithFiltersView.class,
