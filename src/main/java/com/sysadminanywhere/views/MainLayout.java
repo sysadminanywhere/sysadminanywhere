@@ -2,6 +2,7 @@ package com.sysadminanywhere.views;
 
 import com.sysadminanywhere.data.User;
 import com.sysadminanywhere.security.AuthenticatedUser;
+import com.sysadminanywhere.views.ad.users.ADUsersView;
 import com.sysadminanywhere.views.addressform.AddressFormView;
 import com.sysadminanywhere.views.gridwithfilters.GridwithFiltersView;
 import com.sysadminanywhere.views.imagegallery.ImageGalleryView;
@@ -110,7 +111,11 @@ public class MainLayout extends AppLayout {
         if (accessChecker.hasAccess(GridwithFiltersView.class)) {
             nav.addItem(new SideNavItem("Grid with Filters", GridwithFiltersView.class,
                     LineAwesomeIcon.FILTER_SOLID.create()));
+        }
 
+        if (accessChecker.hasAccess(GridwithFiltersView.class)) {
+            nav.addItem(new SideNavItem("AD Users", ADUsersView.class,
+                    LineAwesomeIcon.FILTER_SOLID.create()));
         }
 
         return nav;
