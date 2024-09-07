@@ -1,7 +1,9 @@
 package com.sysadminanywhere.views.ad.users;
 
 import com.sysadminanywhere.data.SamplePerson;
+import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.services.SamplePersonService;
+import com.sysadminanywhere.services.ad.AdUserService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
@@ -39,13 +41,13 @@ import java.util.List;
 @Uses(Icon.class)
 public class ADUsersView extends Div {
 
-    private Grid<SamplePerson> grid;
+    private Grid<UserEntry> grid;
 
     private Filters filters;
-    private final SamplePersonService samplePersonService;
+    private final AdUserService userService;
 
-    public ADUsersView(SamplePersonService SamplePersonService) {
-        this.samplePersonService = SamplePersonService;
+    public ADUsersView(AdUserService userService) {
+        this.userService = userService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
@@ -216,16 +218,11 @@ public class ADUsersView extends Div {
     }
 
     private Component createGrid() {
-        grid = new Grid<>(SamplePerson.class, false);
-        grid.addColumn("firstName").setAutoWidth(true);
-        grid.addColumn("lastName").setAutoWidth(true);
-        grid.addColumn("email").setAutoWidth(true);
-        grid.addColumn("phone").setAutoWidth(true);
-        grid.addColumn("dateOfBirth").setAutoWidth(true);
-        grid.addColumn("occupation").setAutoWidth(true);
-        grid.addColumn("role").setAutoWidth(true);
+        grid = new Grid<>(UserEntry.class, false);
+        grid.addColumn("cn").setAutoWidth(true);
+        grid.addColumn("distinguishedName").setAutoWidth(true);
 
-        grid.setItems(query -> samplePersonService.list(
+        grid.setItems(query -> userService.list(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
                 filters).stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
