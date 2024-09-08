@@ -1,7 +1,7 @@
-package com.sysadminanywhere.views.gridwithfilters;
+package com.sysadminanywhere.views.management.users;
 
-import com.sysadminanywhere.data.SamplePerson;
-import com.sysadminanywhere.services.SamplePersonService;
+import com.sysadminanywhere.model.UserEntry;
+import com.sysadminanywhere.services.UserService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
@@ -26,29 +26,27 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 
-@PageTitle("Grid with Filters")
-@Route(value = "grid-with-filters", layout = MainLayout.class)
-@AnonymousAllowed
-@Uses(Icon.class)
-public class GridwithFiltersView extends Div {
+import java.util.ArrayList;
+import java.util.List;
 
-    private Grid<SamplePerson> grid;
+@PageTitle("Users")
+@Route(value = "management/users", layout = MainLayout.class)
+@RolesAllowed("ROLE_ADMIN")
+@Uses(Icon.class)
+public class UsersView extends Div {
+
+    private Grid<UserEntry> grid;
 
     private Filters filters;
-    private final SamplePersonService samplePersonService;
+    private final UserService userService;
 
-    public GridwithFiltersView(SamplePersonService SamplePersonService) {
-        this.samplePersonService = SamplePersonService;
+    public UsersView(UserService userService) {
+        this.userService = userService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
@@ -84,7 +82,7 @@ public class GridwithFiltersView extends Div {
         return mobileFilters;
     }
 
-    public static class Filters extends Div implements Specification<SamplePerson> {
+    public static class Filters extends Div implements Specification<UserEntry> {
 
         private final TextField name = new TextField("Name");
         private final TextField phone = new TextField("Phone");
@@ -146,7 +144,7 @@ public class GridwithFiltersView extends Div {
         }
 
         @Override
-        public Predicate toPredicate(Root<SamplePerson> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+        public Predicate toPredicate(Root<UserEntry> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
             List<Predicate> predicates = new ArrayList<>();
 
             if (!name.isEmpty()) {
@@ -219,16 +217,11 @@ public class GridwithFiltersView extends Div {
     }
 
     private Component createGrid() {
-        grid = new Grid<>(SamplePerson.class, false);
-        grid.addColumn("firstName").setAutoWidth(true);
-        grid.addColumn("lastName").setAutoWidth(true);
-        grid.addColumn("email").setAutoWidth(true);
-        grid.addColumn("phone").setAutoWidth(true);
-        grid.addColumn("dateOfBirth").setAutoWidth(true);
-        grid.addColumn("occupation").setAutoWidth(true);
-        grid.addColumn("role").setAutoWidth(true);
+        grid = new Grid<>(UserEntry.class, false);
+        grid.addColumn("cn").setAutoWidth(true);
+        grid.addColumn("distinguishedName").setAutoWidth(true);
 
-        grid.setItems(query -> samplePersonService.list(
+        grid.setItems(query -> userService.list(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
                 filters).stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);

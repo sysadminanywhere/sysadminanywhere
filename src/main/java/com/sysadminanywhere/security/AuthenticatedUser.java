@@ -1,7 +1,7 @@
 package com.sysadminanywhere.security;
 
-import com.sysadminanywhere.data.User;
-import com.sysadminanywhere.data.UserRepository;
+import com.sysadminanywhere.model.UserEntry;
+import com.sysadminanywhere.services.LdapService;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import java.util.Optional;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,18 +11,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class AuthenticatedUser {
 
-    private final UserRepository userRepository;
+    private final LdapService ldapService;
     private final AuthenticationContext authenticationContext;
 
-    public AuthenticatedUser(AuthenticationContext authenticationContext, UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public AuthenticatedUser(AuthenticationContext authenticationContext, LdapService ldapService) {
+        this.ldapService = ldapService;
         this.authenticationContext = authenticationContext;
     }
 
     @Transactional
-    public Optional<User> get() {
+    public Optional<UserEntry> get() {
         return authenticationContext.getAuthenticatedUser(UserDetails.class)
-                .map(userDetails -> userRepository.findByUsername(userDetails.getUsername()));
+                .map(userDetails -> ldapService.me());
     }
 
     public void logout() {

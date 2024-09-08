@@ -24,8 +24,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility.MaxWidth;
 import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 
-@PageTitle("Image Gallery")
-@Route(value = "image-gallery", layout = MainLayout.class)
+@PageTitle("Dashboard")
+@Route(value = "/", layout = MainLayout.class)
 @AnonymousAllowed
 public class ImageGalleryView extends Main implements HasComponents, HasStyle {
 

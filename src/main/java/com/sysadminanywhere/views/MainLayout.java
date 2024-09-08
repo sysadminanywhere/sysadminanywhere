@@ -1,13 +1,10 @@
 package com.sysadminanywhere.views;
 
-import com.sysadminanywhere.data.User;
+import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
-import com.sysadminanywhere.views.ad.users.ADUsersView;
-import com.sysadminanywhere.views.addressform.AddressFormView;
-import com.sysadminanywhere.views.gridwithfilters.GridwithFiltersView;
+import com.sysadminanywhere.views.management.groups.GroupsView;
+import com.sysadminanywhere.views.management.users.UsersView;
 import com.sysadminanywhere.views.imagegallery.ImageGalleryView;
-import com.sysadminanywhere.views.personform.PersonFormView;
-import com.sysadminanywhere.views.users.UsersView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
@@ -80,10 +77,8 @@ public class MainLayout extends AppLayout {
 
     private SideNav createNavigation() {
         SideNav nav = new SideNav();
-
             nav.addItem(
                     new SideNavItem("Dashboard", ImageGalleryView.class, LineAwesomeIcon.TH_LIST_SOLID.create()));
-
         return nav;
     }
 
@@ -93,28 +88,12 @@ public class MainLayout extends AppLayout {
         nav.setWidth("100%");
 
         if (accessChecker.hasAccess(UsersView.class)) {
-            nav.addItem(new SideNavItem("Users", UsersView.class, LineAwesomeIcon.USER.create()));
-
-        }
-        if (accessChecker.hasAccess(PersonFormView.class)) {
-            nav.addItem(new SideNavItem("Person Form", PersonFormView.class, LineAwesomeIcon.USER.create()));
-
-        }
-        if (accessChecker.hasAccess(AddressFormView.class)) {
-            nav.addItem(
-                    new SideNavItem("Address Form", AddressFormView.class, LineAwesomeIcon.MAP_MARKER_SOLID.create()));
-
-        }
-        nav.addItem(
-                new SideNavItem("Image Gallery", ImageGalleryView.class, LineAwesomeIcon.TH_LIST_SOLID.create()));
-
-        if (accessChecker.hasAccess(GridwithFiltersView.class)) {
-            nav.addItem(new SideNavItem("Grid with Filters", GridwithFiltersView.class,
+            nav.addItem(new SideNavItem("Users", UsersView.class,
                     LineAwesomeIcon.FILTER_SOLID.create()));
         }
 
-        if (accessChecker.hasAccess(GridwithFiltersView.class)) {
-            nav.addItem(new SideNavItem("AD Users", ADUsersView.class,
+        if (accessChecker.hasAccess(GroupsView.class)) {
+            nav.addItem(new SideNavItem("Groups", GroupsView.class,
                     LineAwesomeIcon.FILTER_SOLID.create()));
         }
 
@@ -124,13 +103,13 @@ public class MainLayout extends AppLayout {
     private Footer createFooter() {
         Footer layout = new Footer();
 
-        Optional<User> maybeUser = authenticatedUser.get();
+        Optional<UserEntry> maybeUser = authenticatedUser.get();
         if (maybeUser.isPresent()) {
-            User user = maybeUser.get();
+            UserEntry user = maybeUser.get();
 
             Avatar avatar = new Avatar(user.getName());
             StreamResource resource = new StreamResource("profile-pic",
-                    () -> new ByteArrayInputStream(user.getProfilePicture()));
+                    () -> new ByteArrayInputStream(user.getJpegPhoto()));
             avatar.setImageResource(resource);
             avatar.setThemeName("xsmall");
             avatar.getElement().setAttribute("tabindex", "-1");
