@@ -20,4 +20,8 @@ public class UserService {
         return directoryClient.getAllUsers(pageable).getBody();
     }
 
+    public UserEntry getByCN(String cn) {
+        return directoryClient.getByCN(cn).getBody();
+    }
+
 }
