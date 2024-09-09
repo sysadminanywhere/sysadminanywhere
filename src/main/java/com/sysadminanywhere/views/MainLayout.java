@@ -2,7 +2,10 @@ package com.sysadminanywhere.views;
 
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
+import com.sysadminanywhere.views.management.computers.ComputersView;
+import com.sysadminanywhere.views.management.contacts.ContactsView;
 import com.sysadminanywhere.views.management.groups.GroupsView;
+import com.sysadminanywhere.views.management.printers.PrintersView;
 import com.sysadminanywhere.views.management.users.UsersView;
 import com.sysadminanywhere.views.imagegallery.ImageGalleryView;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -89,12 +92,27 @@ public class MainLayout extends AppLayout {
 
         if (accessChecker.hasAccess(UsersView.class)) {
             nav.addItem(new SideNavItem("Users", UsersView.class,
-                    LineAwesomeIcon.FILTER_SOLID.create()));
+                    LineAwesomeIcon.USER_SOLID.create()));
+        }
+
+        if (accessChecker.hasAccess(ComputersView.class)) {
+            nav.addItem(new SideNavItem("Computers", ComputersView.class,
+                    LineAwesomeIcon.DESKTOP_SOLID.create()));
         }
 
         if (accessChecker.hasAccess(GroupsView.class)) {
             nav.addItem(new SideNavItem("Groups", GroupsView.class,
-                    LineAwesomeIcon.FILTER_SOLID.create()));
+                    LineAwesomeIcon.USERS_SOLID.create()));
+        }
+
+        if (accessChecker.hasAccess(PrintersView.class)) {
+            nav.addItem(new SideNavItem("Printers", PrintersView.class,
+                    LineAwesomeIcon.PRINT_SOLID.create()));
+        }
+
+        if (accessChecker.hasAccess(ContactsView.class)) {
+            nav.addItem(new SideNavItem("Contacts", ContactsView.class,
+                    LineAwesomeIcon.ADDRESS_CARD_SOLID.create()));
         }
 
         return nav;
