@@ -82,7 +82,7 @@ public class ContactsView extends Div {
         return mobileFilters;
     }
 
-    public static class Filters extends Div implements Specification<UserEntry> {
+    public static class Filters extends Div implements Specification<ContactEntry> {
 
         private final TextField name = new TextField("Name");
         private final TextField phone = new TextField("Phone");
@@ -144,7 +144,7 @@ public class ContactsView extends Div {
         }
 
         @Override
-        public Predicate toPredicate(Root<UserEntry> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+        public Predicate toPredicate(Root<ContactEntry> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
             List<Predicate> predicates = new ArrayList<>();
 
             if (!name.isEmpty()) {

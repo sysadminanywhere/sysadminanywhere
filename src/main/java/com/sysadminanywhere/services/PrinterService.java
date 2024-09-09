@@ -17,7 +17,7 @@ public class PrinterService {
         this.directoryClient = directoryClient;
     }
 
-    public Page<PrinterEntry> list(Pageable pageable, Specification<UserEntry> filter) {
+    public Page<PrinterEntry> list(Pageable pageable, Specification<PrinterEntry> filter) {
         return directoryClient.getAllPrinters(pageable).getBody();
     }
 

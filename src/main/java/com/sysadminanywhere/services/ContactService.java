@@ -17,7 +17,7 @@ public class ContactService {
         this.directoryClient = directoryClient;
     }
 
-    public Page<ContactEntry> list(Pageable pageable, Specification<UserEntry> filter) {
+    public Page<ContactEntry> list(Pageable pageable, Specification<ContactEntry> filter) {
         return directoryClient.getAllContacts(pageable).getBody();
     }
 

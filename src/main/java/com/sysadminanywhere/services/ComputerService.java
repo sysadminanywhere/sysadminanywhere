@@ -17,7 +17,7 @@ public class ComputerService {
         this.directoryClient = directoryClient;
     }
 
-    public Page<ComputerEntry> list(Pageable pageable, Specification<UserEntry> filter) {
+    public Page<ComputerEntry> list(Pageable pageable, Specification<ComputerEntry> filter) {
         return directoryClient.getAllComputers(pageable).getBody();
     }
 
