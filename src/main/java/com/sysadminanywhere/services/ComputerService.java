@@ -1,12 +1,13 @@
 package com.sysadminanywhere.services;
 
 import com.sysadminanywhere.api.DirectoryClient;
+import com.sysadminanywhere.domain.FilterSpecification;
 import com.sysadminanywhere.model.ComputerEntry;
-import com.sysadminanywhere.model.UserEntry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 public class ComputerService {
@@ -17,8 +18,8 @@ public class ComputerService {
         this.directoryClient = directoryClient;
     }
 
-    public Page<ComputerEntry> list(Pageable pageable, Specification<ComputerEntry> filter) {
-        return directoryClient.getAllComputers(pageable).getBody();
+    public Page<ComputerEntry> list(Pageable pageable, FilterSpecification<ComputerEntry> filter) {
+        return directoryClient.getAllComputers(pageable, filter.getFilters()).getBody();
     }
 
 }
