@@ -13,8 +13,8 @@ public class LdapService {
         this.directoryClient = directoryClient;
     }
 
-    public UserEntry me() {
-        return directoryClient.getMe().getBody();
+    public Boolean login(String userName, String password) {
+        return directoryClient.login(userName, password).getBody();
     }
 
 }

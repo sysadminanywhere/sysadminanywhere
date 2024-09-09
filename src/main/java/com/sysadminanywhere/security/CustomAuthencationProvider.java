@@ -1,6 +1,8 @@
 package com.sysadminanywhere.security;
 
 import com.sysadminanywhere.model.Person;
+import com.sysadminanywhere.services.LdapService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,6 +15,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class CustomAuthencationProvider implements AuthenticationProvider {
 
+    @Autowired
+    LdapService ldapService;
 
     @Override
     public Authentication authenticate(Authentication authentication)
@@ -21,11 +25,13 @@ public class CustomAuthencationProvider implements AuthenticationProvider {
         String userName = authentication.getName();
         String password = authentication.getCredentials().toString();
 
-        Person myUser = new Person("admin", "admin", "ADMIN");
+        Boolean result = ldapService.login(userName, password);
 
-        if (myUser == null) {
+        if (!result) {
             throw new BadCredentialsException("Unknown user " + userName);
         }
+
+        Person myUser = new Person(userName, password, "ADMIN");
 
         UserDetails principal = User.builder()
                 .username(myUser.getLogin())

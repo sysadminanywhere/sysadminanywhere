@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.net.CacheRequest;
 
@@ -20,8 +21,8 @@ public interface DirectoryClient {
     @GetMapping("/api/groups")
     public ResponseEntity<Page<GroupEntry>> getAllGroups(Pageable pageable);
 
-    @GetMapping("/api/me")
-    public ResponseEntity<UserEntry> getMe();
+    @GetMapping("/api/login")
+    public ResponseEntity<Boolean> login(@RequestParam String userName, @RequestParam String password);
 
     @GetMapping("/api/users/{cn}")
     public ResponseEntity<UserEntry> getByCN(@PathVariable("cn") String cn);
