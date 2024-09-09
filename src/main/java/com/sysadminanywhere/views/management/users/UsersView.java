@@ -26,6 +26,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.PageRequest;
@@ -36,7 +37,7 @@ import java.util.List;
 
 @PageTitle("Users")
 @Route(value = "management/users", layout = MainLayout.class)
-@RolesAllowed("ROLE_ADMIN")
+@PermitAll
 @Uses(Icon.class)
 public class UsersView extends Div {
 

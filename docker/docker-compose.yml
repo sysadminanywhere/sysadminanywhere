@@ -1,11 +1,8 @@
 version: "3.8"
 services:
   postgres:
-    image: postgres:14
+    image: postgres:15
     container_name: postgres
-    environment:
-      - POSTGRES_DB=sysadminanywhere
-      - POSTGRES_USER=sysadminanywhere
-      - POSTGRES_PASSWORD=sysadminanywhere
+    env_file: postgres.env
     ports:
       - "5432:5432"
