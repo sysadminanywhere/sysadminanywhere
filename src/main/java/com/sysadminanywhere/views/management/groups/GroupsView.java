@@ -2,42 +2,30 @@ package com.sysadminanywhere.views.management.groups;
 
 import com.sysadminanywhere.domain.FilterSpecification;
 import com.sysadminanywhere.model.GroupEntry;
-import com.sysadminanywhere.model.UserEntry;
-import com.sysadminanywhere.services.GroupService;
+import com.sysadminanywhere.service.GroupsService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.CheckboxGroup;
-import com.vaadin.flow.component.combobox.MultiSelectComboBox;
-import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @PageTitle("Groups")
 @Route(value = "management/groups", layout = MainLayout.class)
@@ -48,10 +36,10 @@ public class GroupsView extends Div {
     private Grid<GroupEntry> grid;
 
     private Filters filters;
-    private final GroupService groupService;
+    private final GroupsService groupsService;
 
-    public GroupsView(GroupService groupService) {
-        this.groupService = groupService;
+    public GroupsView(GroupsService groupsService) {
+        this.groupsService = groupsService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
@@ -141,9 +129,9 @@ public class GroupsView extends Div {
         grid.addColumn("cn").setAutoWidth(true);
         grid.addColumn("distinguishedName").setAutoWidth(true);
 
-        grid.setItems(query -> groupService.list(
+        grid.setItems(query -> groupsService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                filters).stream());
+                filters.getFilters()).stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 

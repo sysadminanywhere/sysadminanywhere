@@ -2,24 +2,17 @@ package com.sysadminanywhere.views.management.printers;
 
 import com.sysadminanywhere.domain.FilterSpecification;
 import com.sysadminanywhere.model.PrinterEntry;
-import com.sysadminanywhere.model.UserEntry;
-import com.sysadminanywhere.services.PrinterService;
+import com.sysadminanywhere.service.PrintersService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.CheckboxGroup;
-import com.vaadin.flow.component.combobox.MultiSelectComboBox;
-import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -32,9 +25,7 @@ import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @PageTitle("Printers")
 @Route(value = "management/printers", layout = MainLayout.class)
@@ -45,10 +36,10 @@ public class PrintersView extends Div {
     private Grid<PrinterEntry> grid;
 
     private Filters filters;
-    private final PrinterService printerService;
+    private final PrintersService printersService;
 
-    public PrintersView(PrinterService printerService) {
-        this.printerService = printerService;
+    public PrintersView(PrintersService printersService) {
+        this.printersService = printersService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
@@ -138,9 +129,9 @@ public class PrintersView extends Div {
         grid.addColumn("cn").setAutoWidth(true);
         grid.addColumn("distinguishedName").setAutoWidth(true);
 
-        grid.setItems(query -> printerService.list(
+        grid.setItems(query -> printersService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                filters).stream());
+                filters.getFilters()).stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 

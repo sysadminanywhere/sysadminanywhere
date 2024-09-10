@@ -9,6 +9,4 @@ public class ADSID {
         Value = value;
     }
 
-    public ADSID() {};
-
 }

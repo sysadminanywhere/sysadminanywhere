@@ -1,7 +1,7 @@
 package com.sysadminanywhere.security;
 
 import com.sysadminanywhere.model.Person;
-import com.sysadminanywhere.services.LdapService;
+import com.sysadminanywhere.service.LdapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;

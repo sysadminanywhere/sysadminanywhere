@@ -12,6 +12,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.theme.lumo.LumoUtility.AlignItems;
 import com.vaadin.flow.theme.lumo.LumoUtility.Display;
@@ -25,7 +26,9 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 
 @PageTitle("Dashboard")
-@Route(value = "/", layout = MainLayout.class)
+@Route(value = "", layout = MainLayout.class)
+@RouteAlias("home")
+@RouteAlias("dashboard")
 @AnonymousAllowed
 public class ImageGalleryView extends Main implements HasComponents, HasStyle {
 

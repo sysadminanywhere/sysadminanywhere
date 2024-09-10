@@ -2,25 +2,17 @@ package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.domain.FilterSpecification;
 import com.sysadminanywhere.model.ComputerEntry;
-import com.sysadminanywhere.model.UserEntry;
-import com.sysadminanywhere.services.ComputerService;
-import com.sysadminanywhere.services.UserService;
+import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.CheckboxGroup;
-import com.vaadin.flow.component.combobox.MultiSelectComboBox;
-import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -31,12 +23,9 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @PageTitle("Computers")
 @Route(value = "management/computers", layout = MainLayout.class)
@@ -47,10 +36,10 @@ public class ComputersView extends Div {
     private Grid<ComputerEntry> grid;
 
     private Filters filters;
-    private final ComputerService computerService;
+    private final ComputersService computersService;
 
-    public ComputersView(ComputerService computerService) {
-        this.computerService = computerService;
+    public ComputersView(ComputersService computersService) {
+        this.computersService = computersService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
@@ -140,9 +129,9 @@ public class ComputersView extends Div {
         grid.addColumn("cn").setAutoWidth(true);
         grid.addColumn("distinguishedName").setAutoWidth(true);
 
-        grid.setItems(query -> computerService.list(
+        grid.setItems(query -> computersService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                filters).stream());
+                filters.getFilters()).stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 
