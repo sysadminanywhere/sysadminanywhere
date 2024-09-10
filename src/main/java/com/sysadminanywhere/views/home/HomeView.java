@@ -13,7 +13,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 
 @PageTitle("Home")
 @Route(value = "", layout = MainLayout.class)
-@RouteAlias(value = "", layout = MainLayout.class)
+@RouteAlias(value = "home", layout = MainLayout.class)
 @AnonymousAllowed
 public class HomeView extends VerticalLayout {
 

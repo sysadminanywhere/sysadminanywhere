@@ -6,6 +6,8 @@ import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -15,6 +17,7 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -46,10 +49,21 @@ public class UsersView extends Div {
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        Button button = new Button("Add", e -> addDialog().open());
+        HorizontalLayout horizontalLayout = new HorizontalLayout();
+        horizontalLayout.addClassNames(LumoUtility.Padding.Horizontal.SMALL, LumoUtility.Padding.Vertical.SMALL,
+                LumoUtility.BoxSizing.BORDER);
+
+        Button plusButton = new Button(new Icon(VaadinIcon.PLUS));
+        plusButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+        plusButton.setTooltipText("New user");
+        plusButton.addClickListener(e ->
+                plusButton.getUI().ifPresent(ui ->
+                        ui.navigate("management/users/new")));
+
+        horizontalLayout.add(plusButton);
 
         filters = new Filters(() -> refreshGrid());
-        VerticalLayout layout = new VerticalLayout(createMobileFilters(), button, filters, createGrid());
+        VerticalLayout layout = new VerticalLayout(createMobileFilters(), horizontalLayout, filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
         layout.setSpacing(false);
@@ -90,7 +104,6 @@ public class UsersView extends Div {
             addClassName("filter-layout");
             addClassNames(LumoUtility.Padding.Horizontal.LARGE, LumoUtility.Padding.Vertical.MEDIUM,
                     LumoUtility.BoxSizing.BORDER);
-            //cn.setPlaceholder("First or last name");
 
             // Action buttons
             Button resetBtn = new Button("Reset");
@@ -145,39 +158,6 @@ public class UsersView extends Div {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
-    }
-
-    private Dialog addDialog() {
-        Dialog dialog = new Dialog();
-
-        dialog.setHeaderTitle("New user");
-
-        TextField firstName = new TextField("First name");
-        TextField lastName = new TextField("Last name");
-        TextField username = new TextField("Username");
-
-        PasswordField password = new PasswordField("Password");
-        PasswordField confirmPassword = new PasswordField("Confirm password");
-
-        FormLayout formLayout = new FormLayout();
-        formLayout.add(firstName, lastName, username, password,
-                confirmPassword);
-        formLayout.setResponsiveSteps(
-                new FormLayout.ResponsiveStep("0", 1),
-                new FormLayout.ResponsiveStep("500px", 2));
-
-        //formLayout.setColspan(username, 2);
-
-        VerticalLayout dialogLayout = new VerticalLayout();
-        dialogLayout.add(formLayout);
-        dialog.add(dialogLayout);
-
-        Button saveButton = new Button("Save", e -> dialog.close());
-        Button cancelButton = new Button("Cancel", e -> dialog.close());
-        dialog.getFooter().add(cancelButton);
-        dialog.getFooter().add(saveButton);
-
-        return dialog;
     }
 
 }
