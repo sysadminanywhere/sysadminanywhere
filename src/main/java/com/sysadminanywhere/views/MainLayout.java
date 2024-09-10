@@ -2,12 +2,12 @@ package com.sysadminanywhere.views;
 
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
+import com.sysadminanywhere.views.home.HomeView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
 import com.sysadminanywhere.views.management.groups.GroupsView;
 import com.sysadminanywhere.views.management.printers.PrintersView;
 import com.sysadminanywhere.views.management.users.UsersView;
-import com.sysadminanywhere.views.imagegallery.ImageGalleryView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
@@ -80,8 +80,9 @@ public class MainLayout extends AppLayout {
 
     private SideNav createNavigation() {
         SideNav nav = new SideNav();
+        nav.setWidth("100%");
             nav.addItem(
-                    new SideNavItem("Dashboard", ImageGalleryView.class, LineAwesomeIcon.TH_LIST_SOLID.create()));
+                    new SideNavItem("Home", HomeView.class, LineAwesomeIcon.HOME_SOLID.create()));
         return nav;
     }
 
