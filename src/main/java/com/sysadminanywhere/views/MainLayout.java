@@ -81,8 +81,12 @@ public class MainLayout extends AppLayout {
     private SideNav createNavigation() {
         SideNav nav = new SideNav();
         nav.setWidth("100%");
+
+        if (accessChecker.hasAccess(HomeView.class)) {
             nav.addItem(
                     new SideNavItem("Home", HomeView.class, LineAwesomeIcon.HOME_SOLID.create()));
+        }
+
         return nav;
     }
 

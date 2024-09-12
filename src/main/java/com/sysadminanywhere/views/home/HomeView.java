@@ -11,11 +11,12 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
+import jakarta.annotation.security.PermitAll;
 
 @PageTitle("Home")
 @Route(value = "", layout = MainLayout.class)
 @RouteAlias(value = "home", layout = MainLayout.class)
-@AnonymousAllowed
+@PermitAll
 public class HomeView extends VerticalLayout {
 
     public HomeView() {
@@ -29,9 +30,6 @@ public class HomeView extends VerticalLayout {
         header.addClassNames(Margin.Top.XLARGE, Margin.Bottom.MEDIUM);
         add(header);
         //add(new Paragraph("Application makes it so much easier to administer Active Directory-based networks"));
-
-        Anchor loginLink = new Anchor("login", "Sign in");
-        add(loginLink);
 
         setSizeFull();
         setJustifyContentMode(JustifyContentMode.CENTER);

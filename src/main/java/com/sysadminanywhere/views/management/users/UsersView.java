@@ -6,6 +6,8 @@ import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -20,6 +22,8 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
@@ -49,21 +53,8 @@ public class UsersView extends Div {
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        HorizontalLayout horizontalLayout = new HorizontalLayout();
-        horizontalLayout.addClassNames(LumoUtility.Padding.Horizontal.SMALL, LumoUtility.Padding.Vertical.SMALL,
-                LumoUtility.BoxSizing.BORDER);
-
-        Button plusButton = new Button(new Icon(VaadinIcon.PLUS));
-        plusButton.addThemeVariants(ButtonVariant.LUMO_ICON);
-        plusButton.setTooltipText("New user");
-        plusButton.addClickListener(e ->
-                plusButton.getUI().ifPresent(ui ->
-                        ui.navigate("management/users/new")));
-
-        horizontalLayout.add(plusButton);
-
         filters = new Filters(() -> refreshGrid());
-        VerticalLayout layout = new VerticalLayout(createMobileFilters(), horizontalLayout, filters, createGrid());
+        VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
         layout.setSpacing(false);
@@ -116,7 +107,10 @@ public class UsersView extends Div {
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
-            Div actions = new Div(resetBtn, searchBtn);
+            Button plusButton = new Button("+ Add");
+            plusButton.addClickListener(e -> addDialog().open());
+
+            Div actions = new Div(plusButton, resetBtn, searchBtn);
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
@@ -138,6 +132,50 @@ public class UsersView extends Div {
             }
 
             return searchFilters;
+        }
+
+        private Dialog addDialog() {
+            Dialog dialog = new Dialog();
+
+            dialog.setHeaderTitle("New user");
+            dialog.setMaxWidth("800px");
+
+            FormLayout formLayout = new FormLayout();
+
+            TextField txtContainer = new TextField("Container");
+            formLayout.setColspan(txtContainer, 2);
+
+            TextField txtDisplayName = new TextField("Display name");
+
+            TextField txtFirstName = new TextField("First name");
+            TextField txtInitials = new TextField("Initials");
+            TextField txtLastName = new TextField("Last name");
+
+            TextField txtAccountName = new TextField("Account name");
+
+            PasswordField txtPassword = new PasswordField("Password");
+            PasswordField txtConfirmPassword = new PasswordField("Confirm password");
+
+            VerticalLayout checkboxGroup = new VerticalLayout();
+            formLayout.setColspan(checkboxGroup, 2);
+            Checkbox chkUserMustChangePassword = new Checkbox("User must change password at next logon");
+            Checkbox chkUserCannotChangePassword = new Checkbox("User cannot change password");
+            Checkbox chkPasswordNeverExpires = new Checkbox("Password never expires");
+            chkPasswordNeverExpires.setEnabled(false);
+            Checkbox chkAccountDisabled = new Checkbox("Account disabled");
+
+            checkboxGroup.add(chkUserMustChangePassword, chkUserCannotChangePassword, chkPasswordNeverExpires, chkAccountDisabled);
+
+            formLayout.add(txtContainer, txtFirstName, txtLastName, txtDisplayName, txtAccountName, txtPassword, txtConfirmPassword, checkboxGroup);
+            dialog.add(formLayout);
+
+            Button saveButton = new Button("Save", e -> dialog.close());
+            saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            Button cancelButton = new Button("Cancel", e -> dialog.close());
+            dialog.getFooter().add(cancelButton);
+            dialog.getFooter().add(saveButton);
+
+            return dialog;
         }
 
     }

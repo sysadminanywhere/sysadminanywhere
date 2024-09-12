@@ -21,12 +21,12 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode;
 
 @PageTitle("New user")
-@Route(value = "management/users/new", layout = MainLayout.class)
+@Route(value = "management/users/update", layout = MainLayout.class)
 @PermitAll
 @Uses(Icon.class)
-public class NewUserView extends Composite<VerticalLayout> {
+public class UpdateUserView extends Composite<VerticalLayout> {
 
-    public NewUserView() {
+    public UpdateUserView() {
         VerticalLayout layoutColumn2 = new VerticalLayout();
         H3 h32 = new H3();
 
