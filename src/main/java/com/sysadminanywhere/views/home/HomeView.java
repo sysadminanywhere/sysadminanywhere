@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.home;
 
 import com.sysadminanywhere.views.MainLayout;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
@@ -21,13 +22,16 @@ public class HomeView extends VerticalLayout {
         setSpacing(false);
 
         Image img = new Image("images/sa-logo.png", "logo");
-        img.setWidth("200px");
+        img.setWidth("160px");
         add(img);
 
         H2 header = new H2("Sysadmin Anywhere");
         header.addClassNames(Margin.Top.XLARGE, Margin.Bottom.MEDIUM);
         add(header);
         //add(new Paragraph("Application makes it so much easier to administer Active Directory-based networks"));
+
+        Anchor loginLink = new Anchor("login", "Sign in");
+        add(loginLink);
 
         setSizeFull();
         setJustifyContentMode(JustifyContentMode.CENTER);
