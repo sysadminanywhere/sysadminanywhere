@@ -7,7 +7,10 @@ import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -15,6 +18,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -98,7 +102,10 @@ public class ComputersView extends Div {
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
-            Div actions = new Div(resetBtn, searchBtn);
+            Button plusButton = new Button("+ Add");
+            plusButton.addClickListener(e -> addDialog().open());
+
+            Div actions = new Div(plusButton, resetBtn, searchBtn);
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
@@ -120,6 +127,41 @@ public class ComputersView extends Div {
             }
 
             return searchFilters;
+        }
+
+        private Dialog addDialog() {
+            Dialog dialog = new Dialog();
+
+            dialog.setHeaderTitle("New computer");
+            dialog.setMaxWidth("800px");
+
+            FormLayout formLayout = new FormLayout();
+
+            TextField txtContainer = new TextField("Container");
+            formLayout.setColspan(txtContainer, 2);
+
+            TextField txtName = new TextField("Name");
+            formLayout.setColspan(txtName, 2);
+
+            TextField txtDescription = new TextField("Description");
+            formLayout.setColspan(txtDescription, 2);
+
+            VerticalLayout checkboxGroup = new VerticalLayout();
+            formLayout.setColspan(checkboxGroup, 2);
+            Checkbox chkAccountEnabled = new Checkbox("Account enabled");
+
+            checkboxGroup.add(chkAccountEnabled);
+
+            formLayout.add(txtContainer, txtName, txtDescription, checkboxGroup);
+            dialog.add(formLayout);
+
+            Button saveButton = new Button("Save", e -> dialog.close());
+            saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            Button cancelButton = new Button("Cancel", e -> dialog.close());
+            dialog.getFooter().add(cancelButton);
+            dialog.getFooter().add(saveButton);
+
+            return dialog;
         }
 
     }
