@@ -7,9 +7,7 @@ import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.checkbox.CheckboxGroup;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -19,11 +17,10 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
-import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
@@ -53,7 +50,7 @@ public class UsersView extends Div {
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid());
+        filters = new Filters(() -> refreshGrid(), usersService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
@@ -87,9 +84,12 @@ public class UsersView extends Div {
 
     public static class Filters extends Div implements FilterSpecification<UserEntry> {
 
+        private final UsersService usersService;
+
         private final TextField cn = new TextField("CN");
 
-        public Filters(Runnable onSearch) {
+        public Filters(Runnable onSearch, UsersService usersService) {
+            this.usersService = usersService;
 
             setWidthFull();
             addClassName("filter-layout");
@@ -108,7 +108,7 @@ public class UsersView extends Div {
             searchBtn.addClickListener(e -> onSearch.run());
 
             Button plusButton = new Button("+ Add");
-            plusButton.addClickListener(e -> addDialog().open());
+            plusButton.addClickListener(e -> addDialog(onSearch).open());
 
             Div actions = new Div(plusButton, resetBtn, searchBtn);
             actions.addClassName(LumoUtility.Gap.SMALL);
@@ -134,7 +134,7 @@ public class UsersView extends Div {
             return searchFilters;
         }
 
-        private Dialog addDialog() {
+        private Dialog addDialog(Runnable onSearch) {
             Dialog dialog = new Dialog();
 
             dialog.setHeaderTitle("New user");
@@ -169,8 +169,34 @@ public class UsersView extends Div {
             formLayout.add(txtContainer, txtFirstName, txtLastName, txtDisplayName, txtAccountName, txtPassword, txtConfirmPassword, checkboxGroup);
             dialog.add(formLayout);
 
-            Button saveButton = new Button("Save", e -> dialog.close());
-            saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            Button saveButton = new Button("Save", e -> {
+                UserEntry user = new UserEntry();
+                user.setCn(txtDisplayName.getValue());
+                user.setFirstName(txtFirstName.getValue());
+                user.setLastName(txtLastName.getValue());
+                user.setSamAccountName(txtAccountName.getValue());
+                try {
+                    UserEntry newUser = usersService.add(
+                            txtContainer.getValue(),
+                            user,
+                            txtPassword.getValue(),
+                            chkUserCannotChangePassword.getValue(),
+                            chkPasswordNeverExpires.getValue(),
+                            chkAccountDisabled.getValue(),
+                            chkUserMustChangePassword.getValue());
+
+                    onSearch.run();
+
+                    Notification notification = Notification.show("User added");
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                } catch (Exception ex) {
+                    Notification notification = Notification.show(ex.getMessage());
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+
+                dialog.close();
+            });
+
             Button cancelButton = new Button("Cancel", e -> dialog.close());
             dialog.getFooter().add(cancelButton);
             dialog.getFooter().add(saveButton);
