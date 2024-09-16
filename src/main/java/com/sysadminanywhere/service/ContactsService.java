@@ -43,7 +43,7 @@ public class ContactsService {
     public ContactEntry add(String distinguishedName, ContactEntry contact) {
         String dn;
 
-        if(distinguishedName.isEmpty()) {
+        if (distinguishedName == null || distinguishedName.isEmpty()) {
             dn = "cn=" + contact.getCn() + "," + ldapService.getUsersContainer();
         } else {
             dn = "cn=" + contact.getCn() + "," + distinguishedName;

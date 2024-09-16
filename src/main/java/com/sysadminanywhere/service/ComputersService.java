@@ -44,7 +44,7 @@ public class ComputersService {
     public ComputerEntry add(String distinguishedName, ComputerEntry computer, boolean isEnabled) {
         String dn;
 
-        if (distinguishedName.isEmpty()) {
+        if (distinguishedName == null || distinguishedName.isEmpty()) {
             dn = "cn=" + computer.getCn() + "," + ldapService.getComputersContainer();
         } else {
             dn = "cn=" + computer.getCn() + "," + distinguishedName;
@@ -55,8 +55,6 @@ public class ComputersService {
 
         Entry entry = new DefaultEntry(
                 dn,
-                "description", computer.getDescription(),
-                "location", computer.getLocation(),
                 "sAMAccountName", computer.getSamAccountName(),
                 "objectClass:computer",
                 "cn", computer.getCn()
@@ -76,7 +74,13 @@ public class ComputersService {
                 userAccountControl = userAccountControl & ~UserAccountControls.ACCOUNTDISABLE.getValue();
         }
 
-        ldapService.updateProperty(newComputer.getDistinguishedName(),"userAccountControl", String.valueOf(userAccountControl));
+        ldapService.updateProperty(newComputer.getDistinguishedName(), "userAccountControl", String.valueOf(userAccountControl));
+
+        if (computer.getDescription() != null && !computer.getDescription().isEmpty())
+            ldapService.updateProperty(newComputer.getDistinguishedName(), "description", computer.getDescription());
+
+        if (computer.getLocation() != null && !computer.getLocation().isEmpty())
+            ldapService.updateProperty(newComputer.getDistinguishedName(), "location", computer.getLocation());
 
         return newComputer;
     }

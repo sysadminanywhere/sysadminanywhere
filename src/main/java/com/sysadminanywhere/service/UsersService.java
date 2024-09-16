@@ -56,7 +56,7 @@ public class UsersService {
 
         String dn;
 
-        if(distinguishedName.isEmpty()) {
+        if (distinguishedName == null || distinguishedName.isEmpty()) {
             dn = "cn=" + user.getCn() + "," + ldapService.getUsersContainer();
         } else {
             dn = "cn=" + user.getCn() + "," + distinguishedName;

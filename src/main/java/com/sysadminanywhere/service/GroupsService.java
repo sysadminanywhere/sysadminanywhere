@@ -45,7 +45,7 @@ public class GroupsService {
     public GroupEntry add(String distinguishedName, GroupEntry group, GroupScope groupScope, boolean isSecurity) {
         String dn;
 
-        if(distinguishedName.isEmpty()) {
+        if (distinguishedName == null || distinguishedName.isEmpty()) {
             dn = "cn=" + group.getCn() + "," + ldapService.getUsersContainer();
         } else {
             dn = "cn=" + group.getCn() + "," + distinguishedName;

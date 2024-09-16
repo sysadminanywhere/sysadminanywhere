@@ -16,9 +16,10 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -47,7 +48,7 @@ public class ComputersView extends Div {
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid());
+        filters = new Filters(() -> refreshGrid(), computersService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
@@ -81,9 +82,12 @@ public class ComputersView extends Div {
 
     public static class Filters extends Div implements FilterSpecification<ComputerEntry> {
 
+        private final ComputersService computersService;
+
         private final TextField cn = new TextField("CN");
 
-        public Filters(Runnable onSearch) {
+        public Filters(Runnable onSearch, ComputersService computersService) {
+            this.computersService = computersService;
 
             setWidthFull();
             addClassName("filter-layout");
@@ -146,16 +150,36 @@ public class ComputersView extends Div {
             TextField txtDescription = new TextField("Description");
             formLayout.setColspan(txtDescription, 2);
 
+            TextField txtLocation = new TextField("Location");
+            formLayout.setColspan(txtLocation, 2);
+
             VerticalLayout checkboxGroup = new VerticalLayout();
             formLayout.setColspan(checkboxGroup, 2);
             Checkbox chkAccountEnabled = new Checkbox("Account enabled");
 
             checkboxGroup.add(chkAccountEnabled);
 
-            formLayout.add(txtContainer, txtName, txtDescription, checkboxGroup);
+            formLayout.add(txtContainer, txtName, txtDescription, txtLocation, checkboxGroup);
             dialog.add(formLayout);
 
-            Button saveButton = new Button("Save", e -> dialog.close());
+            Button saveButton = new Button("Save", e -> {
+                ComputerEntry computer = new ComputerEntry();
+                computer.setCn(txtName.getValue());
+                computer.setDescription(txtDescription.getValue());
+                computer.setLocation(txtLocation.getValue());
+                try {
+                    ComputerEntry newComputer = computersService.add(txtContainer.getValue(), computer, chkAccountEnabled.getValue());
+
+                    Notification notification = Notification.show("Computer added");
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                } catch (Exception ex) {
+                    Notification notification = Notification.show(ex.getMessage());
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+
+                dialog.close();
+            });
+
             saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             Button cancelButton = new Button("Cancel", e -> dialog.close());
             dialog.getFooter().add(cancelButton);
