@@ -106,11 +106,11 @@ public class UsersService {
         else
             userAccountControl = userAccountControl & ~UserAccountControls.ACCOUNTDISABLE.getValue();
 
-        ldapService.updateProperty(user.getDistinguishedName(),"userAccountControl", String.valueOf(userAccountControl));
+        ldapService.updateProperty(user.getDistinguishedName(), "userAccountControl", String.valueOf(userAccountControl));
     }
 
     private void MustChangePasswordAsync(UserEntry user) {
-        ldapService.updateProperty(user.getDistinguishedName(),"pwdlastset", "0");
+        ldapService.updateProperty(user.getDistinguishedName(), "pwdlastset", "0");
     }
 
     @SneakyThrows
@@ -130,6 +130,10 @@ public class UsersService {
 
     public UserAccountControls getUserControl(int userAccountControl) {
         return UserAccountControls.fromValue(userAccountControl);
+    }
+
+    public String getDefaultContainer() {
+        return ldapService.getUsersContainer();
     }
 
 }

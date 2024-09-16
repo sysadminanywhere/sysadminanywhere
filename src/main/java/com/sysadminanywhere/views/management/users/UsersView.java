@@ -143,6 +143,7 @@ public class UsersView extends Div {
             FormLayout formLayout = new FormLayout();
 
             TextField txtContainer = new TextField("Container");
+            txtContainer.setValue(usersService.getDefaultContainer());
             formLayout.setColspan(txtContainer, 2);
 
             TextField txtDisplayName = new TextField("Display name");

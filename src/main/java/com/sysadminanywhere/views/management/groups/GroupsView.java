@@ -7,7 +7,6 @@ import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -49,7 +48,7 @@ public class GroupsView extends Div {
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid());
+        filters = new Filters(() -> refreshGrid(), groupsService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
@@ -83,9 +82,12 @@ public class GroupsView extends Div {
 
     public static class Filters extends Div implements FilterSpecification<GroupEntry> {
 
+        private final GroupsService groupsService;
+
         private final TextField cn = new TextField("CN");
 
-        public Filters(Runnable onSearch) {
+        public Filters(Runnable onSearch, GroupsService groupsService) {
+            this.groupsService = groupsService;
 
             setWidthFull();
             addClassName("filter-layout");
@@ -140,6 +142,7 @@ public class GroupsView extends Div {
             FormLayout formLayout = new FormLayout();
 
             TextField txtContainer = new TextField("Container");
+            txtContainer.setValue(groupsService.getDefaultContainer());
             formLayout.setColspan(txtContainer, 2);
 
             TextField txtName = new TextField("Name");

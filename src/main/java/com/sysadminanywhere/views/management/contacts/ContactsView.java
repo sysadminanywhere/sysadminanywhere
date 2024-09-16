@@ -7,7 +7,6 @@ import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -19,7 +18,6 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -48,7 +46,7 @@ public class ContactsView extends Div {
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid());
+        filters = new Filters(() -> refreshGrid(), contactsService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
@@ -82,9 +80,12 @@ public class ContactsView extends Div {
 
     public static class Filters extends Div implements FilterSpecification<ContactEntry> {
 
+        private final ContactsService contactsService;
+
         private final TextField cn = new TextField("CN");
 
-        public Filters(Runnable onSearch) {
+        public Filters(Runnable onSearch, ContactsService contactsService) {
+            this.contactsService = contactsService;
 
             setWidthFull();
             addClassName("filter-layout");
@@ -139,6 +140,7 @@ public class ContactsView extends Div {
             FormLayout formLayout = new FormLayout();
 
             TextField txtContainer = new TextField("Container");
+            txtContainer.setValue(contactsService.getDefaultContainer());
             formLayout.setColspan(txtContainer, 2);
 
             TextField txtDisplayName = new TextField("Display name");

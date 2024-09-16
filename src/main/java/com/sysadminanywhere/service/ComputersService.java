@@ -102,4 +102,8 @@ public class ComputersService {
         return UserAccountControls.fromValue(userAccountControl);
     }
 
+    public String getDefaultContainer() {
+        return ldapService.getComputersContainer();
+    }
+
 }

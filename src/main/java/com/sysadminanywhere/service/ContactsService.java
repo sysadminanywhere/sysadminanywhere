@@ -78,4 +78,8 @@ public class ContactsService {
         ldapService.delete(entry);
     }
 
+    public String getDefaultContainer() {
+        return ldapService.getUsersContainer();
+    }
+
 }

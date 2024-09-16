@@ -143,6 +143,7 @@ public class ComputersView extends Div {
             FormLayout formLayout = new FormLayout();
 
             TextField txtContainer = new TextField("Container");
+            txtContainer.setValue(computersService.getDefaultContainer());
             formLayout.setColspan(txtContainer, 2);
 
             TextField txtName = new TextField("Name");
@@ -165,13 +166,6 @@ public class ComputersView extends Div {
             dialog.add(formLayout);
 
             Button saveButton = new Button("Save", e -> {
-
-//                if(txtName.getValue() == null || txtName.getValue().isEmpty()) {
-//                    Notification notification = Notification.show("Name must not be empty.");
-//                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-//                    return;
-//                }
-
                 ComputerEntry computer = new ComputerEntry();
                 computer.setCn(txtName.getValue());
                 computer.setDescription(txtDescription.getValue());
@@ -194,10 +188,12 @@ public class ComputersView extends Div {
             saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             saveButton.setEnabled(false);
 
-            txtName.addValueChangeListener(e ->
-                    saveButton.setEnabled(e.getValue().equals("")));
+            txtName.addValueChangeListener(e -> {
+                saveButton.setEnabled(!e.getValue().equals(""));
+            });
 
             Button cancelButton = new Button("Cancel", e -> dialog.close());
+
             dialog.getFooter().add(cancelButton);
             dialog.getFooter().add(saveButton);
 
