@@ -147,15 +147,21 @@ public class UsersView extends Div {
             formLayout.setColspan(txtContainer, 2);
 
             TextField txtDisplayName = new TextField("Display name");
+            txtDisplayName.setRequired(true);
 
             TextField txtFirstName = new TextField("First name");
+            txtFirstName.setRequired(true);
             TextField txtInitials = new TextField("Initials");
             TextField txtLastName = new TextField("Last name");
+            txtLastName.setRequired(true);
 
             TextField txtAccountName = new TextField("Account name");
+            txtAccountName.setRequired(true);
 
             PasswordField txtPassword = new PasswordField("Password");
+            txtPassword.setRequired(true);
             PasswordField txtConfirmPassword = new PasswordField("Confirm password");
+            txtConfirmPassword.setRequired(true);
 
             VerticalLayout checkboxGroup = new VerticalLayout();
             formLayout.setColspan(checkboxGroup, 2);
@@ -198,7 +204,15 @@ public class UsersView extends Div {
                 dialog.close();
             });
 
+            saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            saveButton.setEnabled(false);
+
+            txtAccountName.addValueChangeListener(e -> {
+                saveButton.setEnabled(!e.getValue().equals(""));
+            });
+
             Button cancelButton = new Button("Cancel", e -> dialog.close());
+
             dialog.getFooter().add(cancelButton);
             dialog.getFooter().add(saveButton);
 
