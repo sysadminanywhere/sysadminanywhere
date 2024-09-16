@@ -183,7 +183,22 @@ public class UsersView extends Div {
     private Component createGrid() {
         grid = new Grid<>(UserEntry.class, false);
         grid.addColumn("cn").setAutoWidth(true);
-        grid.addColumn("distinguishedName").setAutoWidth(true);
+        grid.addColumn("description").setAutoWidth(true);
+
+        grid.addComponentColumn(item -> {
+            Button button = new Button(new Icon(VaadinIcon.EDIT));
+            button.addThemeVariants(ButtonVariant.LUMO_ICON);
+            button.addClickListener(e ->
+                    button.getUI().ifPresent(ui ->
+                            ui.navigate("management/users/update"))
+            );
+            return button;
+        }).setAutoWidth(true).setFlexGrow(0);
+        grid.addComponentColumn(item -> {
+            Button button = new Button(new Icon(VaadinIcon.TRASH));
+            button.addThemeVariants(ButtonVariant.LUMO_ICON);
+            return button;
+        }).setAutoWidth(true).setFlexGrow(0);
 
         grid.setItems(query -> usersService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),

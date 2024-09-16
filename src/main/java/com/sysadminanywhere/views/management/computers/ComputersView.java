@@ -8,6 +8,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -16,6 +17,7 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -107,7 +109,7 @@ public class ComputersView extends Div {
             searchBtn.addClickListener(e -> onSearch.run());
 
             Button plusButton = new Button("+ Add");
-            plusButton.addClickListener(e -> addDialog().open());
+            plusButton.addClickListener(e -> addDialog(onSearch).open());
 
             Div actions = new Div(plusButton, resetBtn, searchBtn);
             actions.addClassName(LumoUtility.Gap.SMALL);
@@ -133,7 +135,7 @@ public class ComputersView extends Div {
             return searchFilters;
         }
 
-        private Dialog addDialog() {
+        private Dialog addDialog(Runnable onSearch) {
             Dialog dialog = new Dialog();
 
             dialog.setHeaderTitle("New computer");
@@ -170,6 +172,8 @@ public class ComputersView extends Div {
                 try {
                     ComputerEntry newComputer = computersService.add(txtContainer.getValue(), computer, chkAccountEnabled.getValue());
 
+                    onSearch.run();
+
                     Notification notification = Notification.show("Computer added");
                     notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 } catch (Exception ex) {
@@ -193,7 +197,41 @@ public class ComputersView extends Div {
     private Component createGrid() {
         grid = new Grid<>(ComputerEntry.class, false);
         grid.addColumn("cn").setAutoWidth(true);
-        grid.addColumn("distinguishedName").setAutoWidth(true);
+        grid.addColumn("description").setAutoWidth(true);
+
+        grid.addComponentColumn(item -> {
+            Button button = new Button(new Icon(VaadinIcon.EDIT));
+            button.addThemeVariants(ButtonVariant.LUMO_ICON);
+            button.addClickListener(e ->
+                    button.getUI().ifPresent(ui ->
+                            ui.navigate("management/computers/update"))
+            );
+            return button;
+        }).setAutoWidth(true).setFlexGrow(0);
+        grid.addComponentColumn(item -> {
+            Button button = new Button(new Icon(VaadinIcon.TRASH));
+            button.addThemeVariants(ButtonVariant.LUMO_ICON);
+
+            button.addClickListener(e -> {
+                ConfirmDialog dialog = new ConfirmDialog();
+                dialog.setHeader("Delete");
+                dialog.setText("Are you sure you want to permanently delete this computer?");
+
+                dialog.setCancelable(true);
+
+                dialog.setConfirmText("Delete");
+                dialog.setConfirmButtonTheme("error primary");
+
+                dialog.addConfirmListener(event -> {
+                    computersService.delete(item.getDistinguishedName());
+                    refreshGrid();
+                });
+
+                dialog.open();
+            });
+
+            return button;
+        }).setAutoWidth(true).setFlexGrow(0);
 
         grid.setItems(query -> computersService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),

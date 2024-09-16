@@ -13,6 +13,7 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -127,7 +128,18 @@ public class PrintersView extends Div {
     private Component createGrid() {
         grid = new Grid<>(PrinterEntry.class, false);
         grid.addColumn("cn").setAutoWidth(true);
-        grid.addColumn("distinguishedName").setAutoWidth(true);
+        grid.addColumn("description").setAutoWidth(true);
+
+        grid.addComponentColumn(item -> {
+            Button button = new Button(new Icon(VaadinIcon.EDIT));
+            button.addThemeVariants(ButtonVariant.LUMO_ICON);
+            return button;
+        }).setAutoWidth(true).setFlexGrow(0);
+        grid.addComponentColumn(item -> {
+            Button button = new Button(new Icon(VaadinIcon.TRASH));
+            button.addThemeVariants(ButtonVariant.LUMO_ICON);
+            return button;
+        }).setAutoWidth(true).setFlexGrow(0);
 
         grid.setItems(query -> printersService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),

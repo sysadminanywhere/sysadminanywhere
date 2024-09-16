@@ -1,4 +1,4 @@
-package com.sysadminanywhere.views.management.users;
+package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Composite;
@@ -9,6 +9,8 @@ import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.EmailField;
@@ -17,16 +19,14 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
-import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
-import com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode;
 
-@PageTitle("Update user")
-@Route(value = "management/users/update", layout = MainLayout.class)
+@PageTitle("Update computer")
+@Route(value = "management/computers/update", layout = MainLayout.class)
 @PermitAll
 @Uses(Icon.class)
-public class UpdateUserView extends Composite<VerticalLayout> {
+public class UpdateComputerView extends Composite<VerticalLayout> {
 
-    public UpdateUserView() {
+    public UpdateComputerView() {
         VerticalLayout layoutColumn2 = new VerticalLayout();
         H3 h32 = new H3();
 
@@ -51,7 +51,7 @@ public class UpdateUserView extends Composite<VerticalLayout> {
         layoutColumn2.setMaxWidth("800px");
         layoutColumn2.setHeight("min-content");
 
-        h32.setText("Updating user");
+        h32.setText("Updating computer");
         h32.setWidth("100%");
 
         formLayout2Col.setWidth("100%");
