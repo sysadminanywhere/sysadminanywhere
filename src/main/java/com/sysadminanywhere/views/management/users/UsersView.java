@@ -33,6 +33,7 @@ import org.springframework.data.domain.PageRequest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @PageTitle("Users")
 @Route(value = "management/users", layout = MainLayout.class)
@@ -134,6 +135,9 @@ public class UsersView extends Div {
             return searchFilters;
         }
 
+        Button saveButton = null;
+        AtomicInteger count = new AtomicInteger();
+
         private Dialog addDialog(Runnable onSearch) {
             Dialog dialog = new Dialog();
 
@@ -176,7 +180,7 @@ public class UsersView extends Div {
             formLayout.add(txtContainer, txtFirstName, txtLastName, txtDisplayName, txtAccountName, txtPassword, txtConfirmPassword, checkboxGroup);
             dialog.add(formLayout);
 
-            Button saveButton = new Button("Save", e -> {
+            saveButton = new Button("Save", e -> {
                 UserEntry user = new UserEntry();
                 user.setCn(txtDisplayName.getValue());
                 user.setFirstName(txtFirstName.getValue());
@@ -208,7 +212,27 @@ public class UsersView extends Div {
             saveButton.setEnabled(false);
 
             txtAccountName.addValueChangeListener(e -> {
-                saveButton.setEnabled(!e.getValue().equals(""));
+                changeEnabled(!e.getValue().equals(""));
+            });
+
+            txtDisplayName.addValueChangeListener(e -> {
+                changeEnabled(!e.getValue().equals(""));
+            });
+
+            txtFirstName.addValueChangeListener(e -> {
+                changeEnabled(!e.getValue().equals(""));
+            });
+
+            txtLastName.addValueChangeListener(e -> {
+                changeEnabled(!e.getValue().equals(""));
+            });
+
+            txtPassword.addValueChangeListener(e -> {
+                changeEnabled(!e.getValue().equals(""));
+            });
+
+            txtConfirmPassword.addValueChangeListener(e -> {
+                changeEnabled(!e.getValue().equals(""));
             });
 
             Button cancelButton = new Button("Cancel", e -> dialog.close());
@@ -217,6 +241,20 @@ public class UsersView extends Div {
             dialog.getFooter().add(saveButton);
 
             return dialog;
+        }
+
+        private void changeEnabled(boolean value) {
+            if (value)
+                count.getAndIncrement();
+            else
+                count.getAndDecrement();
+
+            System.out.println(count);
+
+            if (count.equals(6))
+                saveButton.setEnabled(true);
+            else
+                saveButton.setEnabled(false);
         }
 
     }
