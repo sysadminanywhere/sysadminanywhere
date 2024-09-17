@@ -3,22 +3,29 @@ package com.sysadminanywhere.views.management.users;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.MainLayout;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
+import com.vaadin.flow.component.dialog.Dialog;
 
 import java.awt.*;
 
@@ -107,12 +114,51 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
 
     private void addMenu(UserEntry user) {
         menuBar.addItem("Update", event -> {
-            menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/users/" + user.getSamAccountName() + "/update"));
+            updateForm().open();
         });
         menuBar.addItem("Delete", event -> {
             deleteDialog().open();
         });
+    }
+
+    private Dialog updateForm() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Updating user");
+        dialog.setMaxWidth("800px");
+
+        FormLayout formLayout = new FormLayout();
+
+        TextField txtDisplayName = new TextField("Display name");
+        txtDisplayName.setRequired(true);
+
+        TextField txtFirstName = new TextField("First name");
+        txtFirstName.setRequired(true);
+        TextField txtInitials = new TextField("Initials");
+        TextField txtLastName = new TextField("Last name");
+        txtLastName.setRequired(true);
+
+        formLayout.add(txtFirstName, txtLastName, txtDisplayName);
+        dialog.add(formLayout);
+
+        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
+            UserEntry user = new UserEntry();
+            user.setCn(txtDisplayName.getValue());
+            user.setFirstName(txtFirstName.getValue());
+            user.setLastName(txtLastName.getValue());
+
+
+
+            dialog.close();
+        });
+
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
+
+        dialog.getFooter().add(cancelButton);
+        dialog.getFooter().add(saveButton);
+
+        return dialog;
     }
 
 }

@@ -136,9 +136,6 @@ public class UsersView extends Div {
             return searchFilters;
         }
 
-        Button saveButton = null;
-        AtomicInteger count = new AtomicInteger();
-
         private Dialog addDialog(Runnable onSearch) {
             Dialog dialog = new Dialog();
 
@@ -181,7 +178,7 @@ public class UsersView extends Div {
             formLayout.add(txtContainer, txtFirstName, txtLastName, txtDisplayName, txtAccountName, txtPassword, txtConfirmPassword, checkboxGroup);
             dialog.add(formLayout);
 
-            saveButton = new Button("Save", e -> {
+            Button saveButton = new Button("Save", e -> {
                 UserEntry user = new UserEntry();
                 user.setCn(txtDisplayName.getValue());
                 user.setFirstName(txtFirstName.getValue());
