@@ -68,8 +68,7 @@ public class PrinterDetailsView extends Div implements BeforeEnterObserver {
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
         menuBar.addItem("Delete", event -> {
-            menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/printers/test/edit"));
+            deleteDialog().open();
         });
 
         VerticalLayout verticalLayout2 = new VerticalLayout();

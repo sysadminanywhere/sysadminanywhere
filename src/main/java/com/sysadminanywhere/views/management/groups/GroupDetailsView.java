@@ -33,6 +33,8 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
     H3 lblName = new H3();
     H5 lblDescription = new H5();
 
+    MenuBar menuBar;
+
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         id = event.getRouteParameters().get("id").
@@ -44,6 +46,8 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
             if (group != null) {
                 lblName.setText(group.getCn());
                 lblDescription.setText(group.getDescription());
+
+                addMenu(group);
             }
         }
     }
@@ -64,17 +68,8 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        MenuBar menuBar = new MenuBar();
+        menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
-
-        menuBar.addItem("Edit", event -> {
-            menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/groups/test/edit"));
-        });
-        menuBar.addItem("Delete", event -> {
-            menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/groups/test/edit"));
-        });
 
         VerticalLayout verticalLayout2 = new VerticalLayout();
         verticalLayout2.add(lblName);
@@ -107,4 +102,13 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
         return dialog;
     }
 
+    private void addMenu(GroupEntry group) {
+        menuBar.addItem("Edit", event -> {
+            menuBar.getUI().ifPresent(ui ->
+                    ui.navigate("management/groups/" + group.getSamAccountName() + "/edit"));
+        });
+        menuBar.addItem("Delete", event -> {
+            deleteDialog().open();
+        });
+    }
 }

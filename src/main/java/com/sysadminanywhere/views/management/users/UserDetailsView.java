@@ -3,15 +3,12 @@ package com.sysadminanywhere.views.management.users;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.MainLayout;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -38,6 +35,8 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
     H3 lblName = new H3();
     H5 lblDescription = new H5();
 
+    MenuBar menuBar;
+
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         id = event.getRouteParameters().get("id").
@@ -49,6 +48,8 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
             if (user != null) {
                 lblName.setText(user.getCn());
                 lblDescription.setText(user.getDescription());
+
+                addMenu(user);
             }
         }
     }
@@ -69,16 +70,8 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        MenuBar menuBar = new MenuBar();
+        menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
-
-        menuBar.addItem("Update", event -> {
-            menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/users/test/update"));
-        });
-        menuBar.addItem("Delete", event -> {
-            deleteDialog().open();
-        });
 
         VerticalLayout verticalLayout2 = new VerticalLayout();
         verticalLayout2.add(lblName);
@@ -110,6 +103,16 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         });
 
         return dialog;
+    }
+
+    private void addMenu(UserEntry user) {
+        menuBar.addItem("Update", event -> {
+            menuBar.getUI().ifPresent(ui ->
+                    ui.navigate("management/users/" + user.getSamAccountName() + "/update"));
+        });
+        menuBar.addItem("Delete", event -> {
+            deleteDialog().open();
+        });
     }
 
 }

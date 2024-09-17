@@ -36,6 +36,8 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
     H3 lblName = new H3();
     H5 lblDescription = new H5();
 
+    MenuBar menuBar;
+
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         id = event.getRouteParameters().get("id").
@@ -47,6 +49,8 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
             if (computer != null) {
                 lblName.setText(computer.getCn());
                 lblDescription.setText(computer.getDescription());
+
+                addMenu(computer);
             }
         }
     }
@@ -67,30 +71,8 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        MenuBar menuBar = new MenuBar();
+        menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
-
-        menuBar.addItem("Edit", event -> {
-            menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/computers/test/edit"));
-        });
-        MenuItem menuManagement = menuBar.addItem("Management");
-        menuBar.addItem("Delete", event -> {
-            deleteDialog().open();
-        });
-
-        SubMenu subMenuManagement = menuManagement.getSubMenu();
-        subMenuManagement.addItem("Processes");
-        subMenuManagement.addItem("Services");
-        subMenuManagement.addItem("Events");
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Software");
-        subMenuManagement.addItem("Hardware");
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Performance");
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Reboot");
-        subMenuManagement.addItem("Shutdown");
 
         VerticalLayout verticalLayout2 = new VerticalLayout();
         verticalLayout2.add(lblName);
@@ -121,6 +103,30 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         });
 
         return dialog;
+    }
+
+    private void addMenu(ComputerEntry computer) {
+        menuBar.addItem("Edit", event -> {
+            menuBar.getUI().ifPresent(ui ->
+                    ui.navigate("management/computers/" + computer.getSamAccountName() + "/edit"));
+        });
+        MenuItem menuManagement = menuBar.addItem("Management");
+        menuBar.addItem("Delete", event -> {
+            deleteDialog().open();
+        });
+
+        SubMenu subMenuManagement = menuManagement.getSubMenu();
+        subMenuManagement.addItem("Processes");
+        subMenuManagement.addItem("Services");
+        subMenuManagement.addItem("Events");
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Software");
+        subMenuManagement.addItem("Hardware");
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Performance");
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Reboot");
+        subMenuManagement.addItem("Shutdown");
     }
 
 }

@@ -36,6 +36,8 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
     H3 lblName = new H3();
     H5 lblDescription = new H5();
 
+    MenuBar menuBar;
+
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         id = event.getRouteParameters().get("id").
@@ -47,6 +49,8 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
             if (contact != null) {
                 lblName.setText(contact.getCn());
                 lblDescription.setText(contact.getDescription());
+
+                addMenu(contact);
             }
         }
     }
@@ -67,17 +71,8 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        MenuBar menuBar = new MenuBar();
+        menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
-
-        menuBar.addItem("Edit", event -> {
-            menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/contacts/test/edit"));
-        });
-        menuBar.addItem("Delete", event -> {
-            menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/contacts/test/edit"));
-        });
 
         VerticalLayout verticalLayout2 = new VerticalLayout();
         verticalLayout2.add(lblName);
@@ -110,5 +105,14 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
         return dialog;
     }
 
+    private void addMenu(ContactEntry contact) {
+        menuBar.addItem("Edit", event -> {
+            menuBar.getUI().ifPresent(ui ->
+                    ui.navigate("management/contacts/" + contact.getCn() + "/edit"));
+        });
+        menuBar.addItem("Delete", event -> {
+            deleteDialog().open();
+        });
+    }
 
 }
