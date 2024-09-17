@@ -109,7 +109,7 @@ public class UsersView extends Div {
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
-            Button plusButton = new Button("+ Add");
+            Button plusButton = new Button("New");
             plusButton.addClickListener(e -> addDialog(onSearch).open());
 
             Div actions = new Div(plusButton, resetBtn, searchBtn);
