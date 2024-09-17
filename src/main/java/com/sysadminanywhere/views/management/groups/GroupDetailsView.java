@@ -103,9 +103,9 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
     }
 
     private void addMenu(GroupEntry group) {
-        menuBar.addItem("Edit", event -> {
+        menuBar.addItem("Update", event -> {
             menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/groups/" + group.getSamAccountName() + "/edit"));
+                    ui.navigate("management/groups/" + group.getSamAccountName() + "/update"));
         });
         menuBar.addItem("Delete", event -> {
             deleteDialog().open();

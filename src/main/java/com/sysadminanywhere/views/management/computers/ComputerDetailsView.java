@@ -106,9 +106,9 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
     }
 
     private void addMenu(ComputerEntry computer) {
-        menuBar.addItem("Edit", event -> {
+        menuBar.addItem("Update", event -> {
             menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/computers/" + computer.getSamAccountName() + "/edit"));
+                    ui.navigate("management/computers/" + computer.getSamAccountName() + "/update"));
         });
         MenuItem menuManagement = menuBar.addItem("Management");
         menuBar.addItem("Delete", event -> {
