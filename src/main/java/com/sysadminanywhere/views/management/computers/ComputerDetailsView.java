@@ -1,7 +1,7 @@
-package com.sysadminanywhere.views.management.users;
+package com.sysadminanywhere.views.management.computers;
 
-import com.sysadminanywhere.model.UserEntry;
-import com.sysadminanywhere.service.UsersService;
+import com.sysadminanywhere.model.ComputerEntry;
+import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
@@ -15,15 +15,15 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
-@PageTitle("User details")
-@Route(value = "management/users/:id?/details", layout = MainLayout.class)
+@PageTitle("Computer details")
+@Route(value = "management/computers/:id?/details", layout = MainLayout.class)
 @PermitAll
 @Uses(Icon.class)
-public class UserDetailsView extends Div implements BeforeEnterObserver {
+public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
     private String id;
 
-    private final UsersService usersService;
+    private final ComputersService computersService;
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
@@ -34,17 +34,17 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
                 orElse(null);
 
         if (id != null) {
-            UserEntry user = usersService.getByCN(id);
+            ComputerEntry computer = computersService.getByCN(id);
 
-            if (user != null) {
-                lblName.setText(user.getCn());
-                lblDescription.setText(user.getDescription());
+            if (computer != null) {
+                lblName.setText(computer.getCn());
+                lblDescription.setText(computer.getDescription());
             }
         }
     }
 
-    public UserDetailsView(UsersService usersService) {
-        this.usersService = usersService;
+    public ComputerDetailsView(ComputersService computersService) {
+        this.computersService = computersService;
 
         addClassName("users-view");
 

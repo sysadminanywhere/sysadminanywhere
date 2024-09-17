@@ -207,39 +207,10 @@ public class ComputersView extends Div {
         grid.addColumn("cn").setAutoWidth(true);
         grid.addColumn("description").setAutoWidth(true);
 
-        grid.addComponentColumn(item -> {
-            Button button = new Button(new Icon(VaadinIcon.EDIT));
-            button.addThemeVariants(ButtonVariant.LUMO_ICON);
-            button.addClickListener(e ->
-                    button.getUI().ifPresent(ui ->
-                            ui.navigate("management/computers/update"))
-            );
-            return button;
-        }).setAutoWidth(true).setFlexGrow(0);
-        grid.addComponentColumn(item -> {
-            Button button = new Button(new Icon(VaadinIcon.TRASH));
-            button.addThemeVariants(ButtonVariant.LUMO_ICON);
-
-            button.addClickListener(e -> {
-                ConfirmDialog dialog = new ConfirmDialog();
-                dialog.setHeader("Delete");
-                dialog.setText("Are you sure you want to permanently delete this computer?");
-
-                dialog.setCancelable(true);
-
-                dialog.setConfirmText("Delete");
-                dialog.setConfirmButtonTheme("error primary");
-
-                dialog.addConfirmListener(event -> {
-                    computersService.delete(item.getDistinguishedName());
-                    refreshGrid();
-                });
-
-                dialog.open();
-            });
-
-            return button;
-        }).setAutoWidth(true).setFlexGrow(0);
+        grid.addItemClickListener(item -> {
+            grid.getUI().ifPresent(ui ->
+                    ui.navigate("management/computers/" + item.getItem().getSamAccountName() + "/details"));
+        });
 
         grid.setItems(query -> computersService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),

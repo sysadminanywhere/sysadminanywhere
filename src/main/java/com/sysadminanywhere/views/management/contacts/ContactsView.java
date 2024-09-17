@@ -171,16 +171,10 @@ public class ContactsView extends Div {
         grid.addColumn("cn").setAutoWidth(true);
         grid.addColumn("description").setAutoWidth(true);
 
-        grid.addComponentColumn(item -> {
-            Button button = new Button(new Icon(VaadinIcon.EDIT));
-            button.addThemeVariants(ButtonVariant.LUMO_ICON);
-            return button;
-        }).setAutoWidth(true).setFlexGrow(0);
-        grid.addComponentColumn(item -> {
-            Button button = new Button(new Icon(VaadinIcon.TRASH));
-            button.addThemeVariants(ButtonVariant.LUMO_ICON);
-            return button;
-        }).setAutoWidth(true).setFlexGrow(0);
+        grid.addItemClickListener(item -> {
+            grid.getUI().ifPresent(ui ->
+                    ui.navigate("management/contacts/" + item.getItem().getCn() + "/details"));
+        });
 
         grid.setItems(query -> contactsService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),

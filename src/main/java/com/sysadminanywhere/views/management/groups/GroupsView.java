@@ -183,16 +183,10 @@ public class GroupsView extends Div {
         grid.addColumn("cn").setAutoWidth(true);
         grid.addColumn("description").setAutoWidth(true);
 
-        grid.addComponentColumn(item -> {
-            Button button = new Button(new Icon(VaadinIcon.EDIT));
-            button.addThemeVariants(ButtonVariant.LUMO_ICON);
-            return button;
-        }).setAutoWidth(true).setFlexGrow(0);
-        grid.addComponentColumn(item -> {
-            Button button = new Button(new Icon(VaadinIcon.TRASH));
-            button.addThemeVariants(ButtonVariant.LUMO_ICON);
-            return button;
-        }).setAutoWidth(true).setFlexGrow(0);
+        grid.addItemClickListener(item -> {
+            grid.getUI().ifPresent(ui ->
+                    ui.navigate("management/groups/" + item.getItem().getSamAccountName() + "/details"));
+        });
 
         grid.setItems(query -> groupsService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),

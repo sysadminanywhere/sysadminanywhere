@@ -1,7 +1,7 @@
-package com.sysadminanywhere.views.management.users;
+package com.sysadminanywhere.views.management.contacts;
 
-import com.sysadminanywhere.model.UserEntry;
-import com.sysadminanywhere.service.UsersService;
+import com.sysadminanywhere.model.ContactEntry;
+import com.sysadminanywhere.service.ContactsService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
@@ -15,15 +15,15 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
-@PageTitle("User details")
-@Route(value = "management/users/:id?/details", layout = MainLayout.class)
+@PageTitle("Contact details")
+@Route(value = "management/contacts/:id?/details", layout = MainLayout.class)
 @PermitAll
 @Uses(Icon.class)
-public class UserDetailsView extends Div implements BeforeEnterObserver {
+public class ContactDetailsView extends Div implements BeforeEnterObserver {
 
     private String id;
 
-    private final UsersService usersService;
+    private final ContactsService contactsService;
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
@@ -34,17 +34,17 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
                 orElse(null);
 
         if (id != null) {
-            UserEntry user = usersService.getByCN(id);
+            ContactEntry contact = contactsService.getByCN(id);
 
-            if (user != null) {
-                lblName.setText(user.getCn());
-                lblDescription.setText(user.getDescription());
+            if (contact != null) {
+                lblName.setText(contact.getCn());
+                lblDescription.setText(contact.getDescription());
             }
         }
     }
 
-    public UserDetailsView(UsersService usersService) {
-        this.usersService = usersService;
+    public ContactDetailsView(ContactsService contactsService) {
+        this.contactsService = contactsService;
 
         addClassName("users-view");
 

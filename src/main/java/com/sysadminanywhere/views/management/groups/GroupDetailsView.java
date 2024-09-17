@@ -1,7 +1,7 @@
-package com.sysadminanywhere.views.management.users;
+package com.sysadminanywhere.views.management.groups;
 
-import com.sysadminanywhere.model.UserEntry;
-import com.sysadminanywhere.service.UsersService;
+import com.sysadminanywhere.model.GroupEntry;
+import com.sysadminanywhere.service.GroupsService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
@@ -15,15 +15,15 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
-@PageTitle("User details")
-@Route(value = "management/users/:id?/details", layout = MainLayout.class)
+@PageTitle("Group details")
+@Route(value = "management/groups/:id?/details", layout = MainLayout.class)
 @PermitAll
 @Uses(Icon.class)
-public class UserDetailsView extends Div implements BeforeEnterObserver {
+public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
     private String id;
 
-    private final UsersService usersService;
+    private final GroupsService groupsService;
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
@@ -34,17 +34,17 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
                 orElse(null);
 
         if (id != null) {
-            UserEntry user = usersService.getByCN(id);
+            GroupEntry group = groupsService.getByCN(id);
 
-            if (user != null) {
-                lblName.setText(user.getCn());
-                lblDescription.setText(user.getDescription());
+            if (group != null) {
+                lblName.setText(group.getCn());
+                lblDescription.setText(group.getDescription());
             }
         }
     }
 
-    public UserDetailsView(UsersService usersService) {
-        this.usersService = usersService;
+    public GroupDetailsView(GroupsService groupsService) {
+        this.groupsService = groupsService;
 
         addClassName("users-view");
 
