@@ -3,11 +3,18 @@ package com.sysadminanywhere.views.management.computers;
 import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.views.MainLayout;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -49,18 +56,53 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         addClassName("users-view");
 
         VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout.setWidthFull();
 
-        verticalLayout.setWidth("100%");
-        verticalLayout.setMaxWidth("800px");
-        verticalLayout.setHeight("min-content");
-
+        lblName.setText("Name");
         lblName.setWidth("100%");
+
+        lblDescription.setText("Description");
         lblDescription.setWidth("100%");
 
         add(verticalLayout);
 
-        verticalLayout.add(lblName);
-        verticalLayout.add(lblDescription);
+        MenuBar menuBar = new MenuBar();
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
+
+        menuBar.addItem("Edit", event -> {
+            menuBar.getUI().ifPresent(ui ->
+                    ui.navigate("management/computers/test/edit"));
+        });
+        MenuItem menuManagement = menuBar.addItem("Management");
+        menuBar.addItem("Delete", event -> {
+            menuBar.getUI().ifPresent(ui ->
+                    ui.navigate("management/computers/test/edit"));
+        });
+
+        SubMenu subMenuManagement = menuManagement.getSubMenu();
+        subMenuManagement.addItem("Processes");
+        subMenuManagement.addItem("Services");
+        subMenuManagement.addItem("Events");
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Software");
+        subMenuManagement.addItem("Hardware");
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Performance");
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Reboot");
+        subMenuManagement.addItem("Shutdown");
+
+        VerticalLayout verticalLayout2 = new VerticalLayout();
+        verticalLayout2.add(lblName);
+        verticalLayout2.add(lblDescription);
+
+        HorizontalLayout horizontalLayout = new HorizontalLayout();
+        horizontalLayout.setWidthFull();
+        horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        horizontalLayout.add(verticalLayout2, menuBar);
+
+        verticalLayout.add(horizontalLayout);
+
     }
 
 }
