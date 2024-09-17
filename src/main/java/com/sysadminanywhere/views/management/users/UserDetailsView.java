@@ -142,11 +142,19 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
 
         Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
             UserEntry user = new UserEntry();
-            user.setCn(txtDisplayName.getValue());
             user.setFirstName(txtFirstName.getValue());
             user.setLastName(txtLastName.getValue());
+            user.setDisplayName(txtDisplayName.getValue());
 
+            try {
+                UserEntry newUser = usersService.update(user);
 
+                Notification notification = Notification.show("User updated");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception ex) {
+                Notification notification = Notification.show(ex.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
 
             dialog.close();
         });
