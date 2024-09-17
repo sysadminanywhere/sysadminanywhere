@@ -146,6 +146,7 @@ public class GroupsView extends Div {
             formLayout.setColspan(txtContainer, 2);
 
             TextField txtName = new TextField("Name");
+            txtName.setRequired(true);
             formLayout.setColspan(txtName, 2);
 
             TextField txtDescription = new TextField("Description");

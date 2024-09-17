@@ -23,6 +23,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -209,31 +210,6 @@ public class UsersView extends Div {
             });
 
             saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            saveButton.setEnabled(false);
-
-            txtAccountName.addValueChangeListener(e -> {
-                changeEnabled(!e.getValue().equals(""));
-            });
-
-            txtDisplayName.addValueChangeListener(e -> {
-                changeEnabled(!e.getValue().equals(""));
-            });
-
-            txtFirstName.addValueChangeListener(e -> {
-                changeEnabled(!e.getValue().equals(""));
-            });
-
-            txtLastName.addValueChangeListener(e -> {
-                changeEnabled(!e.getValue().equals(""));
-            });
-
-            txtPassword.addValueChangeListener(e -> {
-                changeEnabled(!e.getValue().equals(""));
-            });
-
-            txtConfirmPassword.addValueChangeListener(e -> {
-                changeEnabled(!e.getValue().equals(""));
-            });
 
             Button cancelButton = new Button("Cancel", e -> dialog.close());
 
@@ -241,20 +217,6 @@ public class UsersView extends Div {
             dialog.getFooter().add(saveButton);
 
             return dialog;
-        }
-
-        private void changeEnabled(boolean value) {
-            if (value)
-                count.getAndIncrement();
-            else
-                count.getAndDecrement();
-
-            System.out.println(count);
-
-            if (count.equals(6))
-                saveButton.setEnabled(true);
-            else
-                saveButton.setEnabled(false);
         }
 
     }

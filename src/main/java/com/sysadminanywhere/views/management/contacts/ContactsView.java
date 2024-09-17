@@ -144,10 +144,13 @@ public class ContactsView extends Div {
             formLayout.setColspan(txtContainer, 2);
 
             TextField txtDisplayName = new TextField("Display name");
+            txtDisplayName.setRequired(true);
 
             TextField txtFirstName = new TextField("First name");
+            txtFirstName.setRequired(true);
             TextField txtInitials = new TextField("Initials");
             TextField txtLastName = new TextField("Last name");
+            txtLastName.setRequired(true);
 
             formLayout.add(txtContainer, txtFirstName, txtLastName, txtDisplayName);
             dialog.add(formLayout);

@@ -65,7 +65,6 @@ public class UsersService {
         Entry entry = new DefaultEntry(
                 dn,
                 "displayName", user.getDisplayName(),
-                "initials", user.getInitials(),
                 "givenName", user.getFirstName(),
                 "sn", user.getLastName(),
                 "sAMAccountName", user.getSamAccountName(),
