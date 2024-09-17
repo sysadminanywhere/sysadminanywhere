@@ -3,6 +3,7 @@ package com.sysadminanywhere.views.management.computers;
 import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.views.MainLayout;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dependency.Uses;
@@ -29,8 +30,8 @@ import jakarta.annotation.security.PermitAll;
 public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
     private String id;
-
     private final ComputersService computersService;
+    ComputerEntry computer;
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
@@ -41,7 +42,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
                 orElse(null);
 
         if (id != null) {
-            ComputerEntry computer = computersService.getByCN(id);
+            computer = computersService.getByCN(id);
 
             if (computer != null) {
                 lblName.setText(computer.getCn());
@@ -75,8 +76,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         });
         MenuItem menuManagement = menuBar.addItem("Management");
         menuBar.addItem("Delete", event -> {
-            menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/computers/test/edit"));
+            deleteDialog().open();
         });
 
         SubMenu subMenuManagement = menuManagement.getSubMenu();
@@ -102,7 +102,25 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         horizontalLayout.add(verticalLayout2, menuBar);
 
         verticalLayout.add(horizontalLayout);
+    }
 
+    private ConfirmDialog deleteDialog() {
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Delete");
+        dialog.setText("Are you sure you want to permanently delete this computer?");
+
+        dialog.setCancelable(true);
+
+        dialog.setConfirmText("Delete");
+        dialog.setConfirmButtonTheme("error primary");
+
+        dialog.addConfirmListener(item -> {
+            computersService.delete(computer.getDistinguishedName());
+            dialog.getUI().ifPresent(ui ->
+                    ui.getPage().getHistory().back());
+        });
+
+        return dialog;
     }
 
 }
