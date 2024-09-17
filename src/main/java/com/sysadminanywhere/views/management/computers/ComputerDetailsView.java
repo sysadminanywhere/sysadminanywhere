@@ -1,12 +1,17 @@
 package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.model.ComputerEntry;
+import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.views.MainLayout;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
@@ -14,9 +19,12 @@ import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -107,8 +115,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
     private void addMenu(ComputerEntry computer) {
         menuBar.addItem("Update", event -> {
-            menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/computers/" + computer.getSamAccountName() + "/update"));
+            updateForm().open();
         });
         MenuItem menuManagement = menuBar.addItem("Management");
         menuBar.addItem("Delete", event -> {
@@ -127,6 +134,50 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         subMenuManagement.add(new Hr());
         subMenuManagement.addItem("Reboot");
         subMenuManagement.addItem("Shutdown");
+    }
+
+    private Dialog updateForm() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Updating user");
+        dialog.setMaxWidth("800px");
+
+        FormLayout formLayout = new FormLayout();
+
+        TextField txtDescription = new TextField("Description");
+        formLayout.setColspan(txtDescription, 2);
+
+        TextField txtLocation = new TextField("Location");
+        formLayout.setColspan(txtLocation, 2);
+
+        formLayout.add(txtDescription, txtLocation);
+        dialog.add(formLayout);
+
+        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
+            ComputerEntry entry = computer;
+            entry.setDescription(txtDescription.getValue());
+            entry.setLocation(txtLocation.getValue());
+
+            try {
+                computer = computersService.update(entry);
+
+                Notification notification = Notification.show("Computer updated");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception ex) {
+                Notification notification = Notification.show(ex.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+
+            dialog.close();
+        });
+
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
+
+        dialog.getFooter().add(cancelButton);
+        dialog.getFooter().add(saveButton);
+
+        return dialog;
     }
 
 }
