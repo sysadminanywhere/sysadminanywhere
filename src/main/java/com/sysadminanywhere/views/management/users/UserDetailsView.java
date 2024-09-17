@@ -53,12 +53,15 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
             user = usersService.getByCN(id);
 
             if (user != null) {
-                lblName.setText(user.getCn());
-                lblDescription.setText(user.getDescription());
-
+                updateView();
                 addMenu(user);
             }
         }
+    }
+
+    private void updateView(){
+        lblName.setText(user.getCn());
+        lblDescription.setText(user.getDescription());
     }
 
     public UserDetailsView(UsersService usersService) {
@@ -129,12 +132,15 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         FormLayout formLayout = new FormLayout();
 
         TextField txtDisplayName = new TextField("Display name");
+        txtDisplayName.setValue(user.getDisplayName());
         txtDisplayName.setRequired(true);
 
         TextField txtFirstName = new TextField("First name");
+        txtFirstName.setValue(user.getFirstName());
         txtFirstName.setRequired(true);
         TextField txtInitials = new TextField("Initials");
         TextField txtLastName = new TextField("Last name");
+        txtLastName.setValue(user.getLastName());
         txtLastName.setRequired(true);
 
         formLayout.add(txtFirstName, txtLastName, txtDisplayName);
@@ -148,6 +154,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
 
             try {
                 user = usersService.update(entry);
+                updateView();
 
                 Notification notification = Notification.show("User updated");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);

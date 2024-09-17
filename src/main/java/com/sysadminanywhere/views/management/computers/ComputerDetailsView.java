@@ -55,12 +55,15 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
             computer = computersService.getByCN(id);
 
             if (computer != null) {
-                lblName.setText(computer.getCn());
-                lblDescription.setText(computer.getDescription());
-
+                updateView();
                 addMenu(computer);
             }
         }
+    }
+
+    private void updateView() {
+        lblName.setText(computer.getCn());
+        lblDescription.setText(computer.getDescription());
     }
 
     public ComputerDetailsView(ComputersService computersService) {
@@ -144,9 +147,11 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         FormLayout formLayout = new FormLayout();
 
         TextField txtDescription = new TextField("Description");
+        txtDescription.setValue(computer.getDescription());
         formLayout.setColspan(txtDescription, 2);
 
         TextField txtLocation = new TextField("Location");
+        txtLocation.setValue(computer.getLocation());
         formLayout.setColspan(txtLocation, 2);
 
         formLayout.add(txtDescription, txtLocation);
@@ -159,6 +164,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
             try {
                 computer = computersService.update(entry);
+                updateView();
 
                 Notification notification = Notification.show("Computer updated");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
