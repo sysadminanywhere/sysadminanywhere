@@ -166,9 +166,15 @@ public class ResolveService<T> {
 
         for (Attribute attribute : newEntry.getAttributes()) {
             if (oldEntry.contains(attribute)) {
-                Modification modification = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, attribute);
-                if (!attribute.get().equals(oldEntry.get(attribute.getId()).get()))
-                    modifyRequest.addModification(modification);
+                if (!attribute.get().equals(oldEntry.get(attribute.getId()).get())) {
+                    if (attribute.get() != null && !attribute.get().equals("")) {
+                        Modification modification = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, attribute);
+                        modifyRequest.addModification(modification);
+                    } else {
+                        Modification modification = new DefaultModification(ModificationOperation.REMOVE_ATTRIBUTE, oldEntry.get(attribute.getId()));
+                        modifyRequest.addModification(modification);
+                    }
+                }
             } else {
                 Modification modification = new DefaultModification(ModificationOperation.ADD_ATTRIBUTE, attribute);
                 modifyRequest.addModification(modification);
