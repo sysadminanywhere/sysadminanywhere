@@ -1,19 +1,27 @@
 package com.sysadminanywhere.views.management.groups;
 
+import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.GroupEntry;
 import com.sysadminanywhere.service.GroupsService;
 import com.sysadminanywhere.views.MainLayout;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -44,12 +52,15 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
             group = groupsService.getByCN(id);
 
             if (group != null) {
-                lblName.setText(group.getCn());
-                lblDescription.setText(group.getDescription());
-
+                updateView();
                 addMenu(group);
             }
         }
+    }
+
+    private void updateView() {
+        lblName.setText(group.getCn());
+        lblDescription.setText(group.getDescription());
     }
 
     public GroupDetailsView(GroupsService groupsService) {
@@ -104,11 +115,53 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
     private void addMenu(GroupEntry group) {
         menuBar.addItem("Update", event -> {
-            menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/groups/" + group.getSamAccountName() + "/update"));
+            updateForm().open();
         });
         menuBar.addItem("Delete", event -> {
             deleteDialog().open();
         });
     }
+
+    private Dialog updateForm() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Updating user");
+        dialog.setMaxWidth("800px");
+
+        FormLayout formLayout = new FormLayout();
+
+        TextField txtDescription = new TextField("Description");
+        txtDescription.setValue(group.getDescription());
+        formLayout.setColspan(txtDescription, 2);
+
+        formLayout.add(txtDescription);
+        dialog.add(formLayout);
+
+        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
+            GroupEntry entry = group;
+            entry.setDescription(txtDescription.getValue());
+
+            try {
+                group = groupsService.update(entry);
+                updateView();
+
+                Notification notification = Notification.show("Group updated");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception ex) {
+                Notification notification = Notification.show(ex.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+
+            dialog.close();
+        });
+
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
+
+        dialog.getFooter().add(cancelButton);
+        dialog.getFooter().add(saveButton);
+
+        return dialog;
+    }
+
 }

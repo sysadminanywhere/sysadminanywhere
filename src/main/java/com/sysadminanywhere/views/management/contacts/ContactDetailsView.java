@@ -1,12 +1,17 @@
 package com.sysadminanywhere.views.management.contacts;
 
 import com.sysadminanywhere.model.ContactEntry;
+import com.sysadminanywhere.model.GroupEntry;
 import com.sysadminanywhere.service.ContactsService;
 import com.sysadminanywhere.views.MainLayout;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
@@ -14,9 +19,12 @@ import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -47,12 +55,15 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
             contact = contactsService.getByCN(id);
 
             if (contact != null) {
-                lblName.setText(contact.getCn());
-                lblDescription.setText(contact.getDescription());
-
+                updateView();
                 addMenu(contact);
             }
         }
+    }
+
+    private void updateView() {
+        lblName.setText(contact.getCn());
+        lblDescription.setText(contact.getDescription());
     }
 
     public ContactDetailsView(ContactsService contactsService) {
@@ -113,6 +124,48 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
         menuBar.addItem("Delete", event -> {
             deleteDialog().open();
         });
+    }
+
+    private Dialog updateForm() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Updating user");
+        dialog.setMaxWidth("800px");
+
+        FormLayout formLayout = new FormLayout();
+
+        TextField txtDescription = new TextField("Description");
+        txtDescription.setValue(contact.getDescription());
+        formLayout.setColspan(txtDescription, 2);
+
+        formLayout.add(txtDescription);
+        dialog.add(formLayout);
+
+        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
+            ContactEntry entry = contact;
+            entry.setDescription(txtDescription.getValue());
+
+            try {
+                contact = contactsService.update(entry);
+                updateView();
+
+                Notification notification = Notification.show("Contact updated");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception ex) {
+                Notification notification = Notification.show(ex.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+
+            dialog.close();
+        });
+
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
+
+        dialog.getFooter().add(cancelButton);
+        dialog.getFooter().add(saveButton);
+
+        return dialog;
     }
 
 }
