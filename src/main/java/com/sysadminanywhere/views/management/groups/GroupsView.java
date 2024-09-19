@@ -185,7 +185,7 @@ public class GroupsView extends Div {
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->
-                    ui.navigate("management/groups/" + item.getItem().getSamAccountName() + "/details"));
+                    ui.navigate("management/groups/" + item.getItem().getCn() + "/details"));
         });
 
         grid.setItems(query -> groupsService.getAll(

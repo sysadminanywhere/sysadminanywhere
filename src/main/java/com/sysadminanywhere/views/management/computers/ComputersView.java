@@ -208,7 +208,7 @@ public class ComputersView extends Div {
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->
-                    ui.navigate("management/computers/" + item.getItem().getSamAccountName() + "/details"));
+                    ui.navigate("management/computers/" + item.getItem().getCn() + "/details"));
         });
 
         grid.setItems(query -> computersService.getAll(

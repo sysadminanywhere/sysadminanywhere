@@ -12,10 +12,7 @@ import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.H5;
-import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
@@ -24,7 +21,9 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -46,6 +45,8 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
     MenuBar menuBar;
 
+    Binder<ComputerEntry> binder = new Binder<>(ComputerEntry.class);
+
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         id = event.getRouteParameters().get("id").
@@ -55,6 +56,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
             computer = computersService.getByCN(id);
 
             if (computer != null) {
+                binder.readBean(computer);
                 updateView();
                 addMenu(computer);
             }
@@ -95,6 +97,32 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         horizontalLayout.add(verticalLayout2, menuBar);
 
         verticalLayout.add(horizontalLayout);
+
+        FormLayout formLayout = new FormLayout();
+
+        TextField txtLocation = new TextField("Location");
+        txtLocation.setReadOnly(true);
+        binder.bind(txtLocation, ComputerEntry::getLocation, null);
+
+        TextField txtHostName = new TextField("Host name");
+        txtHostName.setReadOnly(true);
+        binder.bind(txtHostName, ComputerEntry::getDnsHostName, null);
+
+        TextField txtOperatingSystem = new TextField("Operating system");
+        txtOperatingSystem.setReadOnly(true);
+        binder.bind(txtOperatingSystem, ComputerEntry::getOperatingSystem, null);
+
+        TextField txtVersion = new TextField("Version");
+        txtVersion.setReadOnly(true);
+        binder.bind(txtVersion, ComputerEntry::getOperatingSystemVersion, null);
+
+        TextField txtServicePack = new TextField("Service pack");
+        txtServicePack.setReadOnly(true);
+        binder.bind(txtServicePack, ComputerEntry::getOperatingSystemVersion, null);
+
+        formLayout.add(txtLocation, txtHostName, txtOperatingSystem, txtVersion, txtServicePack);
+
+        verticalLayout.add(formLayout);
     }
 
     private ConfirmDialog deleteDialog() {

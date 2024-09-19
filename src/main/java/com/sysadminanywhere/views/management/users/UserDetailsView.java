@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.users;
 
+import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.MainLayout;
@@ -20,6 +21,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -43,6 +45,8 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
     H5 lblDescription = new H5();
 
     MenuBar menuBar;
+
+    Binder<UserEntry> binder = new Binder<>(UserEntry.class);
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
@@ -94,6 +98,39 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
 
         verticalLayout.add(horizontalLayout);
 
+        FormLayout formLayout = new FormLayout();
+
+        TextField txtDisplayName = new TextField("Display name");
+        txtDisplayName.setReadOnly(true);
+        binder.bind(txtDisplayName, UserEntry::getDisplayName, null);
+
+        TextField txtCompany = new TextField("Company");
+        txtCompany.setReadOnly(true);
+        binder.bind(txtCompany, UserEntry::getCompany, null);
+
+        TextField txtTitle = new TextField("Title");
+        txtTitle.setReadOnly(true);
+        binder.bind(txtTitle, UserEntry::getTitle, null);
+
+        TextField txtEmail = new TextField("Email");
+        txtEmail.setReadOnly(true);
+        binder.bind(txtEmail, UserEntry::getEmailAddress, null);
+
+        TextField txtMobilePhone = new TextField("Mobile phone");
+        txtMobilePhone.setReadOnly(true);
+        binder.bind(txtMobilePhone, UserEntry::getMobilePhone, null);
+
+        TextField txtOfficePhone = new TextField("Office phone");
+        txtOfficePhone.setReadOnly(true);
+        binder.bind(txtOfficePhone, UserEntry::getOfficePhone, null);
+
+        TextField txtHomePhone = new TextField("Home phone");
+        txtHomePhone.setReadOnly(true);
+        binder.bind(txtHomePhone, UserEntry::getOfficePhone, null);
+
+        formLayout.add(txtDisplayName, txtCompany, txtTitle, txtEmail, txtMobilePhone, txtOfficePhone, txtHomePhone);
+
+        verticalLayout.add(formLayout);
     }
 
     private ConfirmDialog deleteDialog() {

@@ -22,6 +22,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -43,6 +44,8 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
     MenuBar menuBar;
 
+    Binder<GroupEntry> binder = new Binder<>(GroupEntry.class);
+
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         id = event.getRouteParameters().get("id").
@@ -52,6 +55,8 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
             group = groupsService.getByCN(id);
 
             if (group != null) {
+                binder.readBean(group);
+
                 updateView();
                 addMenu(group);
             }
@@ -92,6 +97,15 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
         horizontalLayout.add(verticalLayout2, menuBar);
 
         verticalLayout.add(horizontalLayout);
+
+        FormLayout formLayout = new FormLayout();
+
+        TextField txtGroupType = new TextField("Group type");
+        txtGroupType.setReadOnly(true);
+
+        formLayout.add(txtGroupType);
+
+        verticalLayout.add(formLayout);
     }
 
     private ConfirmDialog deleteDialog() {

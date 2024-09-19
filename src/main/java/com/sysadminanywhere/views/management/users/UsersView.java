@@ -225,7 +225,7 @@ public class UsersView extends Div {
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->
-                    ui.navigate("management/users/" + item.getItem().getSamAccountName() + "/details"));
+                    ui.navigate("management/users/" + item.getItem().getCn() + "/details"));
         });
 
         grid.setItems(query -> usersService.getAll(

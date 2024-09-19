@@ -132,7 +132,7 @@ public class PrintersView extends Div {
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->
-                    ui.navigate("management/printers/" + item.getItem().getSamAccountName() + "/details"));
+                    ui.navigate("management/printers/" + item.getItem().getCn() + "/details"));
         });
 
         grid.setItems(query -> printersService.getAll(
