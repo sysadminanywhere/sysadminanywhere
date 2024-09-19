@@ -98,6 +98,11 @@ public class ResolveService<T> {
                             field.set(result, new ADSID(value.getBytes()));
                         }
 
+                    } else {
+                        // Set default value for String - ""
+                        if (field.getType().getName().equalsIgnoreCase(String.class.getName())) {
+                            field.set(result, "");
+                        }
                     }
                 }
             }
