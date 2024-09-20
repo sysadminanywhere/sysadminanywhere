@@ -217,6 +217,7 @@ public class UsersView extends Div {
             Button saveButton = new Button("Save", e -> {
                 UserEntry user = new UserEntry();
                 user.setCn(txtDisplayName.getValue());
+                user.setDisplayName(txtDisplayName.getValue());
                 user.setFirstName(txtFirstName.getValue());
                 user.setInitials(txtInitials.getValue());
                 user.setLastName(txtLastName.getValue());

@@ -185,12 +185,6 @@ public class ComputersView extends Div {
             });
 
             saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            saveButton.setEnabled(false);
-
-            txtName.addValueChangeListener(e -> {
-                saveButton.setEnabled(!e.getValue().equals(""));
-            });
-
             Button cancelButton = new Button("Cancel", e -> dialog.close());
 
             dialog.getFooter().add(cancelButton);
