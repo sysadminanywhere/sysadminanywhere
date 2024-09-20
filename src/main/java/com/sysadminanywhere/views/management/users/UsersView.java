@@ -35,6 +35,7 @@ import org.springframework.data.domain.PageRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 @PageTitle("Users")
 @Route(value = "management/users", layout = MainLayout.class)
@@ -137,6 +138,11 @@ public class UsersView extends Div {
         }
 
         private Dialog addDialog(Runnable onSearch) {
+
+            Pattern userDisplayNameFormat = Pattern.compile("(?<FirstName>\\S+) (?<LastName>\\S+)");
+            Pattern userLoginPattern = Pattern.compile("(?<FirstName>\\S)\\S+ (?<LastName>\\S+)");
+            String userLoginFormat = "${FirstName}${LastName}";
+
             Dialog dialog = new Dialog();
 
             dialog.setHeaderTitle("New user");
@@ -196,7 +202,13 @@ public class UsersView extends Div {
             });
 
             txtDisplayName.addValueChangeListener(event -> {
+                txtFirstName.setValue(userDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${FirstName}"));
+                txtLastName.setValue(userDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${LastName}"));
 
+                if(userDisplayNameFormat.toString().contains("<Middle>"))
+                    txtInitials.setValue(userDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${Middle}"));
+
+                txtAccountName.setValue(userLoginPattern.matcher(txtDisplayName.getValue()).replaceAll(userLoginFormat).toLowerCase());
             });
 
             formLayout.add(txtContainer, txtDisplayName, txtFirstName, txtInitials, txtLastName, txtAccountName, txtPassword, txtConfirmPassword, checkboxGroup);
