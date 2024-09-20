@@ -84,6 +84,9 @@ public class UsersService {
         if (isMustChangePassword)
             MustChangePasswordAsync(newUser);
 
+        if (user.getInitials() != null && !user.getInitials().isEmpty())
+            ldapService.updateProperty(newUser.getDistinguishedName(), "initials", user.getInitials());
+
         return newUser;
     }
 

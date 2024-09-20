@@ -150,6 +150,7 @@ public class UsersView extends Div {
 
             TextField txtDisplayName = new TextField("Display name");
             txtDisplayName.setRequired(true);
+            formLayout.setColspan(txtDisplayName, 2);
 
             TextField txtFirstName = new TextField("First name");
             txtFirstName.setRequired(true);
@@ -168,6 +169,7 @@ public class UsersView extends Div {
             VerticalLayout checkboxGroup = new VerticalLayout();
             formLayout.setColspan(checkboxGroup, 2);
             Checkbox chkUserMustChangePassword = new Checkbox("User must change password at next logon");
+            chkUserMustChangePassword.setValue(true);
             Checkbox chkUserCannotChangePassword = new Checkbox("User cannot change password");
             Checkbox chkPasswordNeverExpires = new Checkbox("Password never expires");
             chkPasswordNeverExpires.setEnabled(false);
@@ -175,13 +177,36 @@ public class UsersView extends Div {
 
             checkboxGroup.add(chkUserMustChangePassword, chkUserCannotChangePassword, chkPasswordNeverExpires, chkAccountDisabled);
 
-            formLayout.add(txtContainer, txtFirstName, txtLastName, txtDisplayName, txtAccountName, txtPassword, txtConfirmPassword, checkboxGroup);
+            chkUserMustChangePassword.addValueChangeListener(event -> {
+                if (chkUserMustChangePassword.getValue()) {
+                    chkPasswordNeverExpires.setEnabled(false);
+                    chkPasswordNeverExpires.setValue(false);
+                } else {
+                    chkPasswordNeverExpires.setEnabled(true);
+                }
+            });
+
+            chkPasswordNeverExpires.addValueChangeListener(event -> {
+                if (chkPasswordNeverExpires.getValue()) {
+                    chkUserMustChangePassword.setEnabled(false);
+                    chkUserMustChangePassword.setValue(false);
+                } else {
+                    chkUserMustChangePassword.setEnabled(true);
+                }
+            });
+
+            txtDisplayName.addValueChangeListener(event -> {
+
+            });
+
+            formLayout.add(txtContainer, txtDisplayName, txtFirstName, txtInitials, txtLastName, txtAccountName, txtPassword, txtConfirmPassword, checkboxGroup);
             dialog.add(formLayout);
 
             Button saveButton = new Button("Save", e -> {
                 UserEntry user = new UserEntry();
                 user.setCn(txtDisplayName.getValue());
                 user.setFirstName(txtFirstName.getValue());
+                user.setInitials(txtInitials.getValue());
                 user.setLastName(txtLastName.getValue());
                 user.setSamAccountName(txtAccountName.getValue());
                 try {
