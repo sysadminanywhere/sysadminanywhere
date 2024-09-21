@@ -20,6 +20,9 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -166,7 +169,19 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         dialog.setHeaderTitle("Updating user");
         dialog.setMaxWidth("800px");
 
-        FormLayout formLayout = new FormLayout();
+        TabSheet tabSheet = new TabSheet();
+
+        Tab tabName = new Tab("Name");
+        Tab tabMain = new Tab("Main");
+        Tab tabAddress = new Tab("Address");
+        Tab tabTelephones = new Tab("Telephones");
+        Tab tabOrganization = new Tab("Organization");
+
+        FormLayout formName = new FormLayout();
+        FormLayout formMain = new FormLayout();
+        FormLayout formAddress = new FormLayout();
+        FormLayout formTelephones = new FormLayout();
+        FormLayout formOrganization = new FormLayout();
 
         TextField txtDisplayName = new TextField("Display name");
         txtDisplayName.setValue(user.getDisplayName());
@@ -180,8 +195,15 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         txtLastName.setValue(user.getLastName());
         txtLastName.setRequired(true);
 
-        formLayout.add(txtFirstName, txtLastName, txtDisplayName);
-        dialog.add(formLayout);
+        formName.add(txtDisplayName, txtFirstName, txtInitials, txtLastName);
+
+        tabSheet.add(tabName, formName);
+        tabSheet.add(tabMain, formMain);
+        tabSheet.add(tabAddress, formAddress);
+        tabSheet.add(tabTelephones, formTelephones);
+        tabSheet.add(tabOrganization, formOrganization);
+
+        dialog.add(tabSheet);
 
         Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
             UserEntry entry = user;
