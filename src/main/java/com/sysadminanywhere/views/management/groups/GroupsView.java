@@ -1,7 +1,9 @@
 package com.sysadminanywhere.views.management.groups;
 
 import com.sysadminanywhere.domain.FilterSpecification;
+import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.GroupEntry;
+import com.sysadminanywhere.model.GroupScope;
 import com.sysadminanywhere.service.GroupsService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
@@ -16,6 +18,8 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
@@ -107,7 +111,7 @@ public class GroupsView extends Div {
             searchBtn.addClickListener(e -> onSearch.run());
 
             Button plusButton = new Button("New");
-            plusButton.addClickListener(e -> addDialog().open());
+            plusButton.addClickListener(e -> addDialog(onSearch).open());
 
             Div actions = new Div(plusButton, resetBtn, searchBtn);
             actions.addClassName(LumoUtility.Gap.SMALL);
@@ -133,7 +137,7 @@ public class GroupsView extends Div {
             return searchFilters;
         }
 
-        private Dialog addDialog() {
+        private Dialog addDialog(Runnable onSearch) {
             Dialog dialog = new Dialog();
 
             dialog.setHeaderTitle("New group");
@@ -167,8 +171,42 @@ public class GroupsView extends Div {
             formLayout.add(txtContainer, txtName, txtDescription, radioGroupScope, radioGroupType);
             dialog.add(formLayout);
 
-            Button saveButton = new Button("Save", e -> dialog.close());
+            Button saveButton = new Button("Save", e -> {
+                GroupEntry group = new GroupEntry();
+                group.setCn(txtName.getValue());
+                group.setDescription(txtDescription.getValue());
+
+                GroupScope scope = GroupScope.Global;
+
+                switch (radioGroupScope.getValue()) {
+                    case "Global":
+                        scope = GroupScope.Global;
+                        break;
+                    case "Local":
+                        scope = GroupScope.Local;
+                        break;
+                    case "Universal":
+                        scope = GroupScope.Universal;
+                        break;
+                }
+
+                try {
+                    GroupEntry newGroup = groupsService.add(txtContainer.getValue(), group, scope, radioGroupType.getValue().equals("Security") ? true : false);
+
+                    onSearch.run();
+
+                    Notification notification = Notification.show("Computer added");
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                } catch (Exception ex) {
+                    Notification notification = Notification.show(ex.getMessage());
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+
+                dialog.close();
+            });
+
             saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
             Button cancelButton = new Button("Cancel", e -> dialog.close());
             dialog.getFooter().add(cancelButton);
             dialog.getFooter().add(saveButton);

@@ -1,5 +1,6 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.GroupEntry;
 import com.sysadminanywhere.model.GroupScope;
 import com.sysadminanywhere.model.GroupType;
@@ -58,7 +59,6 @@ public class GroupsService {
 
         Entry entry = new DefaultEntry(
                 dn,
-                "description", group.getDescription(),
                 "sAMAccountName", group.getSamAccountName(),
                 "objectClass:group",
                 "groupType", String.valueOf(group.getGroupType()),
@@ -66,7 +66,13 @@ public class GroupsService {
         );
 
         ldapService.add(entry);
-        return getByCN(group.getCn());
+
+        GroupEntry newGroup = getByCN(group.getCn());
+
+        if (group.getDescription() != null && !group.getDescription().isEmpty())
+            ldapService.updateProperty(newGroup.getDistinguishedName(), "location", group.getDescription());
+
+        return newGroup;
     }
 
     public GroupEntry update(GroupEntry group) {
