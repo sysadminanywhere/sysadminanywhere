@@ -52,7 +52,6 @@ public class ContactsService {
         Entry entry = new DefaultEntry(
                 dn,
                 "displayName", contact.getDisplayName(),
-                "initials", contact.getInitials(),
                 "givenName", contact.getFirstName(),
                 "sn", contact.getLastName(),
                 "objectClass:contact",
@@ -62,7 +61,12 @@ public class ContactsService {
 
         ldapService.add(entry);
 
-        return getByCN(contact.getCn());
+        ContactEntry newContact = getByCN(contact.getCn());
+
+        if (contact.getInitials() != null && !contact.getInitials().isEmpty())
+            ldapService.updateProperty(newContact.getDistinguishedName(), "initials", contact.getInitials());
+
+        return newContact;
     }
 
     public ContactEntry update(ContactEntry contact) {

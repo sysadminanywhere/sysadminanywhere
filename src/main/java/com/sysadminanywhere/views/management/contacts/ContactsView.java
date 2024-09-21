@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.management.contacts;
 
 import com.sysadminanywhere.domain.FilterSpecification;
+import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.ContactEntry;
 import com.sysadminanywhere.service.ContactsService;
 import com.sysadminanywhere.views.MainLayout;
@@ -16,6 +17,8 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -105,7 +108,7 @@ public class ContactsView extends Div {
             searchBtn.addClickListener(e -> onSearch.run());
 
             Button plusButton = new Button("New");
-            plusButton.addClickListener(e -> addDialog().open());
+            plusButton.addClickListener(e -> addDialog(onSearch).open());
 
             Div actions = new Div(plusButton, resetBtn, searchBtn);
             actions.addClassName(LumoUtility.Gap.SMALL);
@@ -131,7 +134,7 @@ public class ContactsView extends Div {
             return searchFilters;
         }
 
-        private Dialog addDialog() {
+        private Dialog addDialog(Runnable onSearch) {
             Dialog dialog = new Dialog();
 
             dialog.setHeaderTitle("New contact");
@@ -144,6 +147,7 @@ public class ContactsView extends Div {
             formLayout.setColspan(txtContainer, 2);
 
             TextField txtDisplayName = new TextField("Display name");
+            formLayout.setColspan(txtDisplayName, 2);
             txtDisplayName.setRequired(true);
 
             TextField txtFirstName = new TextField("First name");
@@ -152,11 +156,33 @@ public class ContactsView extends Div {
             TextField txtLastName = new TextField("Last name");
             txtLastName.setRequired(true);
 
-            formLayout.add(txtContainer, txtFirstName, txtLastName, txtDisplayName);
+            formLayout.add(txtContainer,txtDisplayName, txtFirstName, txtInitials, txtLastName);
             dialog.add(formLayout);
 
-            Button saveButton = new Button("Save", e -> dialog.close());
+            Button saveButton = new Button("Save", e -> {
+                ContactEntry contact = new ContactEntry();
+                contact.setCn(txtDisplayName.getValue());
+                contact.setDisplayName(txtDisplayName.getValue());
+                contact.setFirstName(txtFirstName.getValue());
+                contact.setInitials(txtInitials.getValue());
+                contact.setLastName(txtLastName.getValue());
+                try {
+                    ContactEntry newContact = contactsService.add(txtContainer.getValue(), contact);
+
+                    onSearch.run();
+
+                    Notification notification = Notification.show("Contact added");
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                } catch (Exception ex) {
+                    Notification notification = Notification.show(ex.getMessage());
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+
+                dialog.close();
+            });
+
             saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
             Button cancelButton = new Button("Cancel", e -> dialog.close());
             dialog.getFooter().add(cancelButton);
             dialog.getFooter().add(saveButton);

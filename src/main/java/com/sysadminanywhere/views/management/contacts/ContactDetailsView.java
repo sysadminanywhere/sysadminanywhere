@@ -118,8 +118,7 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
 
     private void addMenu(ContactEntry contact) {
         menuBar.addItem("Update", event -> {
-            menuBar.getUI().ifPresent(ui ->
-                    ui.navigate("management/contacts/" + contact.getCn() + "/update"));
+            updateForm().open();
         });
         menuBar.addItem("Delete", event -> {
             deleteDialog().open();
