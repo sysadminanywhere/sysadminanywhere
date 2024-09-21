@@ -1,6 +1,5 @@
 package com.sysadminanywhere.service;
 
-import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.GroupEntry;
 import com.sysadminanywhere.model.GroupScope;
 import com.sysadminanywhere.model.GroupType;

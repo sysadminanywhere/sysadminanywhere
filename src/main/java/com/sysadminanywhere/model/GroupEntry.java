@@ -1,5 +1,6 @@
 package com.sysadminanywhere.model;
 
+import com.sysadminanywhere.domain.ADHelper;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -81,5 +82,9 @@ public class GroupEntry {
 
     @AD(name = "primarygroupid")
     private int primaryGroupId;
+
+    public String getADGroupType() {
+        return ADHelper.getGroupType(groupType);
+    }
 
 }

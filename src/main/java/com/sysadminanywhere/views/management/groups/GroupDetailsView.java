@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.management.groups;
 
 import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.GroupEntry;
+import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.GroupsService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.button.Button;
@@ -101,6 +102,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
         FormLayout formLayout = new FormLayout();
 
         TextField txtGroupType = new TextField("Group type");
+        binder.bind(txtGroupType, GroupEntry::getADGroupType, null);
         txtGroupType.setReadOnly(true);
 
         formLayout.add(txtGroupType);

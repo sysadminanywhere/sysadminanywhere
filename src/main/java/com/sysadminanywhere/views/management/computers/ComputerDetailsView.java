@@ -118,7 +118,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
         TextField txtServicePack = new TextField("Service pack");
         txtServicePack.setReadOnly(true);
-        binder.bind(txtServicePack, ComputerEntry::getOperatingSystemVersion, null);
+        binder.bind(txtServicePack, ComputerEntry::getOperatingSystemServicePack, null);
 
         formLayout.add(txtLocation, txtHostName, txtOperatingSystem, txtVersion, txtServicePack);
 
