@@ -66,7 +66,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         }
     }
 
-    private void updateView(){
+    private void updateView() {
         lblName.setText(user.getCn());
         lblDescription.setText(user.getDescription());
     }
@@ -183,7 +183,10 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         FormLayout formTelephones = new FormLayout();
         FormLayout formOrganization = new FormLayout();
 
+        // Name
+
         TextField txtDisplayName = new TextField("Display name");
+        formMain.setColspan(txtDisplayName, 2);
         txtDisplayName.setValue(user.getDisplayName());
         txtDisplayName.setRequired(true);
 
@@ -196,6 +199,30 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         txtLastName.setRequired(true);
 
         formName.add(txtDisplayName, txtFirstName, txtInitials, txtLastName);
+
+        // Main
+
+        TextField txtTitle = new TextField("Title");
+        txtTitle.setValue(user.getTitle());
+
+        TextField txtOffice = new TextField("Office");
+        txtOffice.setValue(user.getOffice());
+
+        TextField txtTelephone = new TextField("Telephone");
+        txtTelephone.setValue(user.getOfficePhone());
+
+        TextField txtEmailAddress = new TextField("E-mail");
+        txtEmailAddress.setValue(user.getEmailAddress());
+
+        TextField txtHomePage = new TextField("Home page");
+        txtHomePage.setValue(user.getHomePage());
+
+        TextField txtDescription = new TextField("Description");
+        txtDescription.setValue(user.getDescription());
+
+        formMain.add(txtTitle, txtOffice, txtTelephone, txtEmailAddress, txtHomePage, txtDescription);
+
+        // Address
 
         tabSheet.add(tabName, formName);
         tabSheet.add(tabMain, formMain);
