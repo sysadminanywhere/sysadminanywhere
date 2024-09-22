@@ -175,13 +175,11 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         Tab tabMain = new Tab("Main");
         Tab tabAddress = new Tab("Address");
         Tab tabTelephones = new Tab("Telephones");
-        Tab tabOrganization = new Tab("Organization");
 
         FormLayout formName = new FormLayout();
         FormLayout formMain = new FormLayout();
         FormLayout formAddress = new FormLayout();
         FormLayout formTelephones = new FormLayout();
-        FormLayout formOrganization = new FormLayout();
 
         // Name
 
@@ -208,6 +206,12 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         TextField txtOffice = new TextField("Office");
         txtOffice.setValue(user.getOffice());
 
+        TextField txtDepartment = new TextField("Department");
+        txtDepartment.setValue(user.getDepartment());
+
+        TextField txtCompany = new TextField("Company");
+        txtCompany.setValue(user.getCompany());
+
         TextField txtTelephone = new TextField("Telephone");
         txtTelephone.setValue(user.getOfficePhone());
 
@@ -220,15 +224,44 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         TextField txtDescription = new TextField("Description");
         txtDescription.setValue(user.getDescription());
 
-        formMain.add(txtTitle, txtOffice, txtTelephone, txtEmailAddress, txtHomePage, txtDescription);
+        formMain.add(txtTitle, txtOffice, txtDepartment, txtCompany, txtTelephone, txtEmailAddress, txtHomePage, txtDescription);
 
         // Address
+
+        TextField txtStreetAddress = new TextField("Street");
+        txtStreetAddress.setValue(user.getStreetAddress());
+
+        TextField txtPOBox = new TextField("P.O. Box");
+        txtPOBox.setValue(user.getPOBox());
+
+        TextField txtCity = new TextField("City");
+        txtCity.setValue(user.getCity());
+
+        TextField txtState = new TextField("State");
+        txtState.setValue(user.getState());
+
+        TextField txtPostalCode = new TextField("Postal code");
+        txtPostalCode.setValue(user.getPostalCode());
+
+        formAddress.add(txtStreetAddress, txtPOBox, txtCity, txtState, txtPostalCode);
+
+        // Telephones
+
+        TextField txtHomePhone = new TextField("Home phone");
+        txtHomePhone.setValue(user.getHomePhone());
+
+        TextField txtMobilePhone = new TextField("Mobile phone");
+        txtMobilePhone.setValue(user.getMobilePhone());
+
+        TextField txtFax = new TextField("Fax");
+        txtFax.setValue(user.getFax());
+
+        formTelephones.add(txtHomePhone, txtMobilePhone, txtFax);
 
         tabSheet.add(tabName, formName);
         tabSheet.add(tabMain, formMain);
         tabSheet.add(tabAddress, formAddress);
         tabSheet.add(tabTelephones, formTelephones);
-        tabSheet.add(tabOrganization, formOrganization);
 
         dialog.add(tabSheet);
 

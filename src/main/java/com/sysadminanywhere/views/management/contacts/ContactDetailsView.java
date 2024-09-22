@@ -24,6 +24,8 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -127,17 +129,104 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
 
     private Dialog updateForm() {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Updating user");
+        dialog.setHeaderTitle("Updating contact");
         dialog.setMaxWidth("800px");
 
-        FormLayout formLayout = new FormLayout();
+        TabSheet tabSheet = new TabSheet();
+
+        Tab tabName = new Tab("Name");
+        Tab tabMain = new Tab("Main");
+        Tab tabAddress = new Tab("Address");
+        Tab tabTelephones = new Tab("Telephones");
+
+        FormLayout formName = new FormLayout();
+        FormLayout formMain = new FormLayout();
+        FormLayout formAddress = new FormLayout();
+        FormLayout formTelephones = new FormLayout();
+
+        // Name
+
+        TextField txtDisplayName = new TextField("Display name");
+        formMain.setColspan(txtDisplayName, 2);
+        txtDisplayName.setValue(contact.getDisplayName());
+        txtDisplayName.setRequired(true);
+
+        TextField txtFirstName = new TextField("First name");
+        txtFirstName.setValue(contact.getFirstName());
+        txtFirstName.setRequired(true);
+        TextField txtInitials = new TextField("Initials");
+        TextField txtLastName = new TextField("Last name");
+        txtLastName.setValue(contact.getLastName());
+        txtLastName.setRequired(true);
+
+        formName.add(txtDisplayName, txtFirstName, txtInitials, txtLastName);
+
+        // Main
+
+        TextField txtTitle = new TextField("Title");
+        txtTitle.setValue(contact.getTitle());
+
+        TextField txtOffice = new TextField("Office");
+        txtOffice.setValue(contact.getOffice());
+
+        TextField txtDepartment = new TextField("Department");
+        txtDepartment.setValue(contact.getDepartment());
+
+        TextField txtCompany = new TextField("Company");
+        txtCompany.setValue(contact.getCompany());
+
+        TextField txtTelephone = new TextField("Telephone");
+        txtTelephone.setValue(contact.getOfficePhone());
+
+        TextField txtEmailAddress = new TextField("E-mail");
+        txtEmailAddress.setValue(contact.getEmailAddress());
+
+        TextField txtHomePage = new TextField("Home page");
+        txtHomePage.setValue(contact.getHomePage());
 
         TextField txtDescription = new TextField("Description");
         txtDescription.setValue(contact.getDescription());
-        formLayout.setColspan(txtDescription, 2);
 
-        formLayout.add(txtDescription);
-        dialog.add(formLayout);
+        formMain.add(txtTitle, txtOffice, txtDepartment, txtCompany, txtTelephone, txtEmailAddress, txtHomePage, txtDescription);
+
+        // Address
+
+        TextField txtStreetAddress = new TextField("Street");
+        txtStreetAddress.setValue(contact.getStreetAddress());
+
+        TextField txtPOBox = new TextField("P.O. Box");
+        txtPOBox.setValue(contact.getPOBox());
+
+        TextField txtCity = new TextField("City");
+        txtCity.setValue(contact.getCity());
+
+        TextField txtState = new TextField("State");
+        txtState.setValue(contact.getState());
+
+        TextField txtPostalCode = new TextField("Postal code");
+        txtPostalCode.setValue(contact.getPostalCode());
+
+        formAddress.add(txtStreetAddress, txtPOBox, txtCity, txtState, txtPostalCode);
+
+        // Telephones
+
+        TextField txtHomePhone = new TextField("Home phone");
+        txtHomePhone.setValue(contact.getHomePhone());
+
+        TextField txtMobilePhone = new TextField("Mobile phone");
+        txtMobilePhone.setValue(contact.getMobilePhone());
+
+        TextField txtFax = new TextField("Fax");
+        txtFax.setValue(contact.getFax());
+
+        formTelephones.add(txtHomePhone, txtMobilePhone, txtFax);
+
+        tabSheet.add(tabName, formName);
+        tabSheet.add(tabMain, formMain);
+        tabSheet.add(tabAddress, formAddress);
+        tabSheet.add(tabTelephones, formTelephones);
+
+        dialog.add(tabSheet);
 
         Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
             ContactEntry entry = contact;
