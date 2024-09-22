@@ -267,9 +267,30 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
 
         Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
             UserEntry entry = user;
-            entry.setFirstName(txtFirstName.getValue());
-            entry.setLastName(txtLastName.getValue());
+
             entry.setDisplayName(txtDisplayName.getValue());
+            entry.setFirstName(txtFirstName.getValue());
+            entry.setInitials(txtInitials.getValue());
+            entry.setLastName(txtLastName.getValue());
+
+            entry.setTitle(txtTitle.getTitle());
+            entry.setOffice(txtOffice.getValue());
+            entry.setDepartment(txtDepartment.getValue());
+            entry.setCompany(txtCompany.getValue());
+            entry.setOfficePhone(txtTelephone.getValue());
+            entry.setEmailAddress(txtEmailAddress.getValue());
+            entry.setHomePage(txtHomePage.getValue());
+            entry.setDescription(txtDescription.getValue());
+
+            entry.setStreetAddress(txtStreetAddress.getValue());
+            entry.setPOBox(txtPOBox.getValue());
+            entry.setCity(txtCity.getValue());
+            entry.setState(txtState.getValue());
+            entry.setPostalCode(txtPostalCode.getValue());
+
+            entry.setHomePhone(txtHomePhone.getValue());
+            entry.setMobilePhone(txtMobilePhone.getValue());
+            entry.setFax(txtFax.getValue());
 
             try {
                 user = usersService.update(entry);
