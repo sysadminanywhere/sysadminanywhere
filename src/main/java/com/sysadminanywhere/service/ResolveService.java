@@ -125,7 +125,7 @@ public class ResolveService<T> {
                     entry.setDn(field.get(item).toString());
                 } else {
 
-                    if(field.get(item) != null) {
+                    if (field.get(item) != null) {
 
                         if (field.getType().getName().equalsIgnoreCase(String.class.getName())) {
                             entry.add(property.name(), field.get(item).toString());

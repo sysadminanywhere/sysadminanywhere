@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.management.contacts;
 
 import com.sysadminanywhere.model.ContactEntry;
 import com.sysadminanywhere.model.GroupEntry;
+import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.ContactsService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.button.Button;
@@ -27,6 +28,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -46,26 +48,27 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
     H3 lblName = new H3();
     H5 lblDescription = new H5();
 
-    MenuBar menuBar;
+    Binder<ContactEntry> binder = new Binder<>(ContactEntry.class);
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         id = event.getRouteParameters().get("id").
                 orElse(null);
 
+        updateView();
+    }
+
+    private void updateView() {
         if (id != null) {
             contact = contactsService.getByCN(id);
 
             if (contact != null) {
-                updateView();
-                addMenu(contact);
+                binder.readBean(contact);
+
+                lblName.setText(contact.getCn());
+                lblDescription.setText(contact.getDescription());
             }
         }
-    }
-
-    private void updateView() {
-        lblName.setText(contact.getCn());
-        lblDescription.setText(contact.getDescription());
     }
 
     public ContactDetailsView(ContactsService contactsService) {
@@ -84,7 +87,14 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        menuBar = new MenuBar();
+        MenuBar menuBar = new MenuBar();
+        menuBar.addItem("Update", event -> {
+            updateForm().open();
+        });
+        menuBar.addItem("Delete", event -> {
+            deleteDialog().open();
+        });
+
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
         VerticalLayout verticalLayout2 = new VerticalLayout();
@@ -97,6 +107,40 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
         horizontalLayout.add(verticalLayout2, menuBar);
 
         verticalLayout.add(horizontalLayout);
+
+        FormLayout formLayout = new FormLayout();
+
+        TextField txtDisplayName = new TextField("Display name");
+        txtDisplayName.setReadOnly(true);
+        binder.bind(txtDisplayName, ContactEntry::getDisplayName, null);
+
+        TextField txtCompany = new TextField("Company");
+        txtCompany.setReadOnly(true);
+        binder.bind(txtCompany, ContactEntry::getCompany, null);
+
+        TextField txtTitle = new TextField("Title");
+        txtTitle.setReadOnly(true);
+        binder.bind(txtTitle, ContactEntry::getTitle, null);
+
+        TextField txtEmail = new TextField("Email");
+        txtEmail.setReadOnly(true);
+        binder.bind(txtEmail, ContactEntry::getEmailAddress, null);
+
+        TextField txtMobilePhone = new TextField("Mobile phone");
+        txtMobilePhone.setReadOnly(true);
+        binder.bind(txtMobilePhone, ContactEntry::getMobilePhone, null);
+
+        TextField txtOfficePhone = new TextField("Office phone");
+        txtOfficePhone.setReadOnly(true);
+        binder.bind(txtOfficePhone, ContactEntry::getOfficePhone, null);
+
+        TextField txtHomePhone = new TextField("Home phone");
+        txtHomePhone.setReadOnly(true);
+        binder.bind(txtHomePhone, ContactEntry::getOfficePhone, null);
+
+        formLayout.add(txtDisplayName, txtCompany, txtTitle, txtEmail, txtMobilePhone, txtOfficePhone, txtHomePhone);
+
+        verticalLayout.add(formLayout);
     }
 
     private ConfirmDialog deleteDialog() {
@@ -116,15 +160,6 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
         });
 
         return dialog;
-    }
-
-    private void addMenu(ContactEntry contact) {
-        menuBar.addItem("Update", event -> {
-            updateForm().open();
-        });
-        menuBar.addItem("Delete", event -> {
-            deleteDialog().open();
-        });
     }
 
     private Dialog updateForm() {
@@ -236,7 +271,7 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
             entry.setInitials(txtInitials.getValue());
             entry.setLastName(txtLastName.getValue());
 
-            entry.setTitle(txtTitle.getTitle());
+            entry.setTitle(txtTitle.getValue());
             entry.setOffice(txtOffice.getValue());
             entry.setDepartment(txtDepartment.getValue());
             entry.setCompany(txtCompany.getValue());

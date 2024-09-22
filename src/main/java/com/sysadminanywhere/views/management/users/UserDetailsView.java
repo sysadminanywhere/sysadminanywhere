@@ -47,8 +47,6 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
     H3 lblName = new H3();
     H5 lblDescription = new H5();
 
-    MenuBar menuBar;
-
     Binder<UserEntry> binder = new Binder<>(UserEntry.class);
 
     @Override
@@ -56,19 +54,20 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         id = event.getRouteParameters().get("id").
                 orElse(null);
 
+        updateView();
+    }
+
+    private void updateView() {
         if (id != null) {
             user = usersService.getByCN(id);
 
             if (user != null) {
-                updateView();
-                addMenu(user);
+                binder.readBean(user);
+
+                lblName.setText(user.getCn());
+                lblDescription.setText(user.getDescription());
             }
         }
-    }
-
-    private void updateView() {
-        lblName.setText(user.getCn());
-        lblDescription.setText(user.getDescription());
     }
 
     public UserDetailsView(UsersService usersService) {
@@ -87,7 +86,14 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        menuBar = new MenuBar();
+        MenuBar menuBar = new MenuBar();
+        menuBar.addItem("Update", event -> {
+            updateForm().open();
+        });
+        menuBar.addItem("Delete", event -> {
+            deleteDialog().open();
+        });
+
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
         VerticalLayout verticalLayout2 = new VerticalLayout();
@@ -153,15 +159,6 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         });
 
         return dialog;
-    }
-
-    private void addMenu(UserEntry user) {
-        menuBar.addItem("Update", event -> {
-            updateForm().open();
-        });
-        menuBar.addItem("Delete", event -> {
-            deleteDialog().open();
-        });
     }
 
     private Dialog updateForm() {
@@ -273,7 +270,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
             entry.setInitials(txtInitials.getValue());
             entry.setLastName(txtLastName.getValue());
 
-            entry.setTitle(txtTitle.getTitle());
+            entry.setTitle(txtTitle.getValue());
             entry.setOffice(txtOffice.getValue());
             entry.setDepartment(txtDepartment.getValue());
             entry.setCompany(txtCompany.getValue());

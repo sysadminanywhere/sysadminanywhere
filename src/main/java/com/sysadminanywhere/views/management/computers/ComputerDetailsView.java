@@ -43,8 +43,6 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
     H3 lblName = new H3();
     H5 lblDescription = new H5();
 
-    MenuBar menuBar;
-
     Binder<ComputerEntry> binder = new Binder<>(ComputerEntry.class);
 
     @Override
@@ -52,20 +50,20 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         id = event.getRouteParameters().get("id").
                 orElse(null);
 
+        updateView();
+    }
+
+    private void updateView() {
         if (id != null) {
             computer = computersService.getByCN(id);
 
             if (computer != null) {
                 binder.readBean(computer);
-                updateView();
-                addMenu(computer);
+
+                lblName.setText(computer.getCn());
+                lblDescription.setText(computer.getDescription());
             }
         }
-    }
-
-    private void updateView() {
-        lblName.setText(computer.getCn());
-        lblDescription.setText(computer.getDescription());
     }
 
     public ComputerDetailsView(ComputersService computersService) {
@@ -84,7 +82,29 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        menuBar = new MenuBar();
+        MenuBar menuBar = new MenuBar();
+
+        menuBar.addItem("Update", event -> {
+            updateForm().open();
+        });
+        MenuItem menuManagement = menuBar.addItem("Management");
+        menuBar.addItem("Delete", event -> {
+            deleteDialog().open();
+        });
+
+        SubMenu subMenuManagement = menuManagement.getSubMenu();
+        subMenuManagement.addItem("Processes");
+        subMenuManagement.addItem("Services");
+        subMenuManagement.addItem("Events");
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Software");
+        subMenuManagement.addItem("Hardware");
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Performance");
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Reboot");
+        subMenuManagement.addItem("Shutdown");
+
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
         VerticalLayout verticalLayout2 = new VerticalLayout();
@@ -142,29 +162,6 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         });
 
         return dialog;
-    }
-
-    private void addMenu(ComputerEntry computer) {
-        menuBar.addItem("Update", event -> {
-            updateForm().open();
-        });
-        MenuItem menuManagement = menuBar.addItem("Management");
-        menuBar.addItem("Delete", event -> {
-            deleteDialog().open();
-        });
-
-        SubMenu subMenuManagement = menuManagement.getSubMenu();
-        subMenuManagement.addItem("Processes");
-        subMenuManagement.addItem("Services");
-        subMenuManagement.addItem("Events");
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Software");
-        subMenuManagement.addItem("Hardware");
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Performance");
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Reboot");
-        subMenuManagement.addItem("Shutdown");
     }
 
     private Dialog updateForm() {

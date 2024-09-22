@@ -152,7 +152,8 @@ public class LdapService {
 
     @SneakyThrows
     public void update(ModifyRequest modifyRequest) {
-        connection.modify(modifyRequest);
+        if (modifyRequest.getModifications().size() > 0)
+            connection.modify(modifyRequest);
     }
 
     @SneakyThrows

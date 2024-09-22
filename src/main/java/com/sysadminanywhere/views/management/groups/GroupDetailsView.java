@@ -43,8 +43,6 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
     H3 lblName = new H3();
     H5 lblDescription = new H5();
 
-    MenuBar menuBar;
-
     Binder<GroupEntry> binder = new Binder<>(GroupEntry.class);
 
     @Override
@@ -52,21 +50,20 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
         id = event.getRouteParameters().get("id").
                 orElse(null);
 
+        updateView();
+    }
+
+    private void updateView() {
         if (id != null) {
             group = groupsService.getByCN(id);
 
             if (group != null) {
                 binder.readBean(group);
 
-                updateView();
-                addMenu(group);
+                lblName.setText(group.getCn());
+                lblDescription.setText(group.getDescription());
             }
         }
-    }
-
-    private void updateView() {
-        lblName.setText(group.getCn());
-        lblDescription.setText(group.getDescription());
     }
 
     public GroupDetailsView(GroupsService groupsService) {
@@ -85,7 +82,14 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        menuBar = new MenuBar();
+        MenuBar menuBar = new MenuBar();
+        menuBar.addItem("Update", event -> {
+            updateForm().open();
+        });
+        menuBar.addItem("Delete", event -> {
+            deleteDialog().open();
+        });
+
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
         VerticalLayout verticalLayout2 = new VerticalLayout();
@@ -127,15 +131,6 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
         });
 
         return dialog;
-    }
-
-    private void addMenu(GroupEntry group) {
-        menuBar.addItem("Update", event -> {
-            updateForm().open();
-        });
-        menuBar.addItem("Delete", event -> {
-            deleteDialog().open();
-        });
     }
 
     private Dialog updateForm() {
