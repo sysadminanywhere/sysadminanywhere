@@ -6,11 +6,14 @@ import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.message.ModifyRequest;
+import org.sentrysoftware.wmi.WmiHelper;
+import org.sentrysoftware.wmi.wbem.WmiWbemServices;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -104,6 +107,26 @@ public class ComputersService {
 
     public String getDefaultContainer() {
         return ldapService.getComputersContainer();
+    }
+
+    @SneakyThrows
+    private Map<String, String> wmi(String hostName, String wqlQuery) {
+        final String username = "admin";
+        final char[] password = "Secret2#".toCharArray();
+        final String namespace = WmiHelper.DEFAULT_NAMESPACE;
+        String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
+        try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, username, password)) {
+            List<Map<String, Object>> resultRows = wbemServices.executeWql(wqlQuery, 5000);
+            resultRows.isEmpty();
+        }
+
+        return null;
+    }
+
+    @SneakyThrows
+    public Page<ComputerEntry> getProcesses(Pageable pageable, String filter, String hostName) {
+        var r = wmi(hostName,"Select * From Win32_Process");
+        return null;
     }
 
 }

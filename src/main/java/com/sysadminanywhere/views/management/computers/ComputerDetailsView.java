@@ -4,6 +4,8 @@ import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.views.MainLayout;
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
@@ -92,8 +94,15 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
             deleteDialog().open();
         });
 
+        ComponentEventListener<ClickEvent<MenuItem>> listener = e -> {
+            if (computer != null) {
+                e.getSource().getUI().ifPresent(ui ->
+                        ui.navigate("management/computers/" + computer.getCn() + "/" + e.getSource().getText().toLowerCase()));
+            }
+        };
+
         SubMenu subMenuManagement = menuManagement.getSubMenu();
-        subMenuManagement.addItem("Processes");
+        subMenuManagement.addItem("Processes", listener);
         subMenuManagement.addItem("Services");
         subMenuManagement.addItem("Events");
         subMenuManagement.add(new Hr());
