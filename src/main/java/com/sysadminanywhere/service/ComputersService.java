@@ -1,7 +1,8 @@
 package com.sysadminanywhere.service;
 
-import com.sysadminanywhere.model.ComputerEntry;
-import com.sysadminanywhere.model.UserAccountControls;
+import com.sysadminanywhere.model.*;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -9,9 +10,11 @@ import org.apache.directory.api.ldap.model.message.ModifyRequest;
 import org.sentrysoftware.wmi.WmiHelper;
 import org.sentrysoftware.wmi.wbem.WmiWbemServices;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,11 +23,13 @@ import java.util.Optional;
 public class ComputersService {
 
     private final LdapService ldapService;
+    private final WmiService wmiService;
 
     ResolveService<ComputerEntry> resolveService = new ResolveService<>(ComputerEntry.class);
 
-    public ComputersService(LdapService ldapService) {
+    public ComputersService(LdapService ldapService, WmiService wmiService) {
         this.ldapService = ldapService;
+        this.wmiService = wmiService;
     }
 
     @SneakyThrows
@@ -110,23 +115,49 @@ public class ComputersService {
     }
 
     @SneakyThrows
-    private Map<String, String> wmi(String hostName, String wqlQuery) {
-        final String username = "admin";
-        final char[] password = "Secret2#".toCharArray();
-        final String namespace = WmiHelper.DEFAULT_NAMESPACE;
-        String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
-        try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, username, password)) {
-            List<Map<String, Object>> resultRows = wbemServices.executeWql(wqlQuery, 5000);
-            resultRows.isEmpty();
+    public Page<ProcessEntity> getProcesses(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<ProcessEntity> wmiResolveService = new WmiResolveService<>(ProcessEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Process"), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
-
-        return null;
     }
 
     @SneakyThrows
-    public Page<ComputerEntry> getProcesses(Pageable pageable, String filter, String hostName) {
-        var r = wmi(hostName,"Select * From Win32_Process");
-        return null;
+    public Page<ServiceEntity> getServices(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<ServiceEntity> wmiResolveService = new WmiResolveService<>(ServiceEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Service"), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<SoftwareEntity> getSoftware(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Product"), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<EventEntity> getEvents(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<EventEntity> wmiResolveService = new WmiResolveService<>(EventEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_NTLogEvent"), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
     }
 
 }

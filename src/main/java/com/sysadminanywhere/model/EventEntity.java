@@ -15,7 +15,7 @@ public class EventEntity {
     String recordNumber;
 
     @WMIAttribute(name = "EventType")
-    Long eventType;
+    String eventType;
 
     @WMIAttribute(name = "EventCode")
     String eventCode;

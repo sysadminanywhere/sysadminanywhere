@@ -3,15 +3,13 @@ package com.sysadminanywhere.views.management.computers;
 import com.sysadminanywhere.domain.FilterSpecification;
 import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.ProcessEntity;
+import com.sysadminanywhere.model.SoftwareEntity;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.Uses;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -39,14 +37,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PageTitle("Processes")
-@Route(value = "management/computers/:id?/processes", layout = MainLayout.class)
+@Route(value = "management/computers/:id?/software", layout = MainLayout.class)
 @PermitAll
 @Uses(Icon.class)
-public class ComputerProcessesView extends Div implements BeforeEnterObserver {
+public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
 
     private String id;
 
-    private Grid<ProcessEntity> grid;
+    private Grid<SoftwareEntity> grid;
 
     private Filters filters;
     private final ComputersService computersService;
@@ -57,7 +55,7 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver {
                 orElse(null);
     }
 
-    public ComputerProcessesView(ComputersService computersService) {
+    public ComputerSoftwareView(ComputersService computersService) {
         this.computersService = computersService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
@@ -94,7 +92,7 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver {
         return mobileFilters;
     }
 
-    public static class Filters extends Div implements FilterSpecification<ProcessEntity> {
+    public static class Filters extends Div implements FilterSpecification<SoftwareEntity> {
 
         private final ComputersService computersService;
 
@@ -127,7 +125,7 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver {
         }
 
         @Override
-        public Predicate toPredicate(Root<ProcessEntity> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+        public Predicate toPredicate(Root<SoftwareEntity> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
             List<Predicate> predicates = new ArrayList<>();
             return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
         }
@@ -142,13 +140,19 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver {
     }
 
     private Component createGrid() {
-        grid = new Grid<>(ProcessEntity.class, false);
-        grid.addColumn("caption").setAutoWidth(true);
-        grid.addColumn("description").setAutoWidth(true);
+        grid = new Grid<>(SoftwareEntity.class, false);
+        grid.addColumn("name").setAutoWidth(true);
+        grid.addColumn("vendor").setAutoWidth(true);
+        grid.addColumn("version").setAutoWidth(true);
 
-        grid.setItems(query -> computersService.getProcesses(
-                PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                filters.getFilters(), id).stream());
+        try {
+            grid.setItems(query -> computersService.getSoftware(
+                    PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
+                    filters.getFilters(), id).stream());
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
 
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);

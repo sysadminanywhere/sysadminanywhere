@@ -2,6 +2,7 @@ package com.sysadminanywhere.security;
 
 import com.sysadminanywhere.model.Person;
 import com.sysadminanywhere.service.LdapService;
+import com.sysadminanywhere.service.WmiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -13,10 +14,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CustomAuthencationProvider implements AuthenticationProvider {
+public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     @Autowired
     LdapService ldapService;
+
+    @Autowired
+    WmiService wmiService;
 
     @Override
     public Authentication authenticate(Authentication authentication)
@@ -30,6 +34,8 @@ public class CustomAuthencationProvider implements AuthenticationProvider {
         if (!result) {
             throw new BadCredentialsException("Unknown user " + userName);
         }
+
+        wmiService.init(userName, password);
 
         Person myUser = new Person(userName, password, "ADMIN");
 
