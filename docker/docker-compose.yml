@@ -1,8 +1,18 @@
 version: "3.8"
 services:
+
   postgres:
     image: postgres:15
     container_name: postgres
     env_file: postgres.env
     ports:
       - "5432:5432"
+
+  sysadminanywhere:
+    image: sysadminanywhere/sysadminanywhere:latest
+    container_name: sysadminanywhere
+    env_file: sysadminanywhere.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
