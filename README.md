@@ -2,6 +2,7 @@
 
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
+![Static Badge](https://img.shields.io/badge/version-working_prototype-blue)
 
 
 **Docker command:**
