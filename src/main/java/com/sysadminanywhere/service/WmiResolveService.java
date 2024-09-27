@@ -56,10 +56,7 @@ public class WmiResolveService<T> {
                 if (item.containsKey(property.name())) {
                     var value = item.get(property.name());
                     if ((value != null)) {
-                        if (value instanceof String)
-                            field.set(result, item.get(property.name()));
-                        if (value instanceof Integer)
-                            field.set(result, Integer.valueOf(item.get(property.name()).toString()));
+                        field.set(result, item.get(property.name()).toString());
                     }
                 }
             }

@@ -24,7 +24,7 @@ public class EventEntity {
     String type;
 
     @WMIAttribute(name = "TimeGenerated")
-    LocalDateTime timeGenerated;
+    String timeGenerated;
 
     @WMIAttribute(name = "SourceName")
     String sourceName;

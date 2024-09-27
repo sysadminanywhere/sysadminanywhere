@@ -14,10 +14,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
 
 @Service
 public class ComputersService {
@@ -152,7 +156,13 @@ public class ComputersService {
     public Page<EventEntity> getEvents(Pageable pageable, String filter, String hostName) {
         try {
             WmiResolveService<EventEntity> wmiResolveService = new WmiResolveService<>(EventEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_NTLogEvent"), pageable, filter);
+
+            //"20240927000000.000000000"
+            String today = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "000000.000000000";
+
+            String queryString = "Select RecordNumber, EventType, EventCode, Type, TimeGenerated, SourceName, Category, Logfile, Message From Win32_NTLogEvent Where TimeGenerated > '" + today + "'";
+
+            return wmiResolveService.GetValues(wmiService.execute(hostName, queryString), pageable, filter);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
