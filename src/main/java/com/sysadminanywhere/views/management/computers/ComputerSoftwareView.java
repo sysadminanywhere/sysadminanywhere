@@ -36,7 +36,7 @@ import org.springframework.data.domain.PageRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-@PageTitle("Processes")
+@PageTitle("Software")
 @Route(value = "management/computers/:id?/software", layout = MainLayout.class)
 @PermitAll
 @Uses(Icon.class)

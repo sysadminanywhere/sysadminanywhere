@@ -31,5 +31,5 @@ public class ServiceEntity {
     String startMode;
 
     @WMIAttribute(name = "ProcessId")
-    Integer processId;
+    String processId;
 }
