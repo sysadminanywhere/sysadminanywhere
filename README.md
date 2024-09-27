@@ -10,6 +10,7 @@
 `docker push sysadminanywhere/sysadminanywhere:latest`
 
 **Environment variables:**
+```
 - DB_ADDRESS=postgres
 - DB_PORT=5432
 - DB_BASE=sysadminanywhere
@@ -18,6 +19,6 @@
 - LDAP_SERVER=192.168.1.1
 - LDAP_PORT=636
 - LDAP_GROUPS_ALLOWED=CN=Domain Admins,CN=Users,DC=example,DC=com
-
+```
 
 **[Docker compose file examle](docker/docker-compose.yml)**
