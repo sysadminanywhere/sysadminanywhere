@@ -6,7 +6,8 @@
 ![Sysadmin Screenshot](images/Screen02.png)
 
 **Docker command:**
-> docker push sysadminanywhere/sysadminanywhere:latest
+
+`docker push sysadminanywhere/sysadminanywhere:latest`
 
 **Environment variables:**
 - DB_ADDRESS=postgres
