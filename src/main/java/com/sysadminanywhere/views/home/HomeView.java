@@ -37,27 +37,30 @@ public class HomeView extends VerticalLayout {
 
         FormLayout formLayout = new FormLayout();
 
-        TextField txtComputers = new TextField("Computers");
+        TextField txtComputers = new TextField();
         txtComputers.setReadOnly(true);
         txtComputers.setValue(String.valueOf(ldapService.search("(objectClass=computer)").size()));
+        formLayout.addFormItem(txtComputers, "Computers");
 
-        TextField txtUsers = new TextField("Users");
+        TextField txtUsers = new TextField();
         txtUsers.setReadOnly(true);
         txtUsers.setValue(String.valueOf(ldapService.search("(&(objectClass=user)(objectCategory=person))").size()));
+        formLayout.addFormItem(txtUsers, "Users");
 
-        TextField txtGroups = new TextField("Groups");
+        TextField txtGroups = new TextField();
         txtGroups.setReadOnly(true);
         txtGroups.setValue(String.valueOf(ldapService.search("(objectClass=group)").size()));
+        formLayout.addFormItem(txtGroups, "Groups");
 
-        TextField txtPrinters = new TextField("Printers");
+        TextField txtPrinters = new TextField();
         txtPrinters.setReadOnly(true);
         txtPrinters.setValue(String.valueOf(ldapService.search("(objectClass=printQueue)").size()));
+        formLayout.addFormItem(txtPrinters, "Printers");
 
-        TextField txtContacts = new TextField("Contacts");
+        TextField txtContacts = new TextField();
         txtContacts.setReadOnly(true);
         txtContacts.setValue(String.valueOf(ldapService.search("(&(objectClass=contact)(objectCategory=person))").size()));
-
-        formLayout.add(txtComputers, txtUsers, txtGroups, txtPrinters, txtContacts);
+        formLayout.addFormItem(txtContacts, "Contacts");
 
         verticalLayout.add(lblDomain, lblDistinguishedName, formLayout);
 
