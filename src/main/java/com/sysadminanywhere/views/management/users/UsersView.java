@@ -7,6 +7,7 @@ import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.Uses;
@@ -90,6 +91,7 @@ public class UsersView extends Div {
         private final UsersService usersService;
 
         private final TextField cn = new TextField("CN");
+        private final ComboBox<String> availability = new ComboBox<>("Availability");
 
         public Filters(Runnable onSearch, UsersService usersService) {
             this.usersService = usersService;
@@ -117,7 +119,10 @@ public class UsersView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(cn, actions);
+            availability.setItems("All", "Disabled", "Locked", "Expired", "Never expires");
+            availability.setValue("All");
+
+            add(cn, availability, actions);
         }
 
         @Override
@@ -132,6 +137,16 @@ public class UsersView extends Div {
 
             if (!cn.isEmpty()) {
                 searchFilters += "(cn=" + cn.getValue() + "*)";
+            }
+            if (!availability.isEmpty()) {
+                if (availability.getValue().equalsIgnoreCase("Disabled"))
+                    searchFilters += "(userAccountControl:1.2.840.113556.1.4.803:=2)";
+                if (availability.getValue().equalsIgnoreCase("Locked"))
+                    searchFilters += "(lockoutTime>=1)";
+                if (availability.getValue().equalsIgnoreCase("Expired"))
+                    searchFilters += "(accountExpires<=127818648000000000)";
+                if (availability.getValue().equalsIgnoreCase("Never expires"))
+                    searchFilters += "(userAccountControl:1.2.840.113556.1.4.803:=65536)";
             }
 
             return searchFilters;

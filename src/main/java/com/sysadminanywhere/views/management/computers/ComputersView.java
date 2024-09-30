@@ -8,6 +8,8 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -19,6 +21,7 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -54,6 +57,7 @@ public class ComputersView extends Div {
         layout.setSizeFull();
         layout.setPadding(false);
         layout.setSpacing(false);
+
         add(layout);
     }
 
@@ -86,6 +90,7 @@ public class ComputersView extends Div {
         private final ComputersService computersService;
 
         private final TextField cn = new TextField("CN");
+        private final ComboBox<String> availability = new ComboBox<>("Availability");
 
         public Filters(Runnable onSearch, ComputersService computersService) {
             this.computersService = computersService;
@@ -113,7 +118,10 @@ public class ComputersView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(cn, actions);
+            availability.setItems("All", "Disabled");
+            availability.setValue("All");
+
+            add(cn, availability, actions);
         }
 
         @Override
@@ -128,6 +136,10 @@ public class ComputersView extends Div {
 
             if (!cn.isEmpty()) {
                 searchFilters += "(cn=" + cn.getValue() + "*)";
+            }
+            if (!availability.isEmpty()) {
+                if (availability.getValue().equalsIgnoreCase("Disabled"))
+                    searchFilters += "(userAccountControl:1.2.840.113556.1.4.803:=2)";
             }
 
             return searchFilters;
