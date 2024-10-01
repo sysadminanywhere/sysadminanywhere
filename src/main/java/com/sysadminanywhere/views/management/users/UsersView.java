@@ -91,7 +91,7 @@ public class UsersView extends Div {
         private final UsersService usersService;
 
         private final TextField cn = new TextField("CN");
-        private final ComboBox<String> availability = new ComboBox<>("Availability");
+        private final ComboBox<String> availability = new ComboBox<>("Filters");
 
         public Filters(Runnable onSearch, UsersService usersService) {
             this.usersService = usersService;
@@ -106,7 +106,7 @@ public class UsersView extends Div {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 cn.clear();
-                availability.clear();
+                availability.setValue("All");
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");

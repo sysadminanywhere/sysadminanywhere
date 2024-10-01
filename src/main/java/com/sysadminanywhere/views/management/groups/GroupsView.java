@@ -9,6 +9,7 @@ import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -89,6 +90,7 @@ public class GroupsView extends Div {
         private final GroupsService groupsService;
 
         private final TextField cn = new TextField("CN");
+        private final ComboBox<String> availability = new ComboBox<>("Filters");
 
         public Filters(Runnable onSearch, GroupsService groupsService) {
             this.groupsService = groupsService;
@@ -104,6 +106,7 @@ public class GroupsView extends Div {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 cn.clear();
+                availability.setValue("All");
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -117,7 +120,10 @@ public class GroupsView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(cn, actions);
+            availability.setItems("All", "Global security", "Global distribution", "Domain security", "Domain distribution", "Universal security", "Universal distribution", "BuiltIn");
+            availability.setValue("All");
+
+            add(cn, availability, actions);
         }
 
         @Override
@@ -132,6 +138,32 @@ public class GroupsView extends Div {
 
             if (!cn.isEmpty()) {
                 searchFilters += "(cn=" + cn.getValue() + "*)";
+            }
+
+            if (!availability.isEmpty()) {
+                switch (availability.getValue()) {
+                    case "Global security":
+                        searchFilters += "(groupType=-2147483646)";
+                        break;
+                    case "Global distribution":
+                        searchFilters += "(groupType=2)";
+                        break;
+                    case "Domain security":
+                        searchFilters += "(groupType=-2147483644)";
+                        break;
+                    case "Domain distribution":
+                        searchFilters += "(groupType=4)";
+                        break;
+                    case "Universal security":
+                        searchFilters += "(groupType=-2147483640)";
+                        break;
+                    case "Universal distribution":
+                        searchFilters += "(groupType=2)";
+                        break;
+                    case "BuiltIn":
+                        searchFilters += "(groupType=-2147483643)";
+                        break;
+                }
             }
 
             return searchFilters;

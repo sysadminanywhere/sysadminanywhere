@@ -90,7 +90,7 @@ public class ComputersView extends Div {
         private final ComputersService computersService;
 
         private final TextField cn = new TextField("CN");
-        private final ComboBox<String> availability = new ComboBox<>("Availability");
+        private final ComboBox<String> availability = new ComboBox<>("Filters");
 
         public Filters(Runnable onSearch, ComputersService computersService) {
             this.computersService = computersService;
@@ -105,7 +105,7 @@ public class ComputersView extends Div {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 cn.clear();
-                availability.clear();
+                availability.setValue("All");
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
