@@ -106,6 +106,7 @@ public class UsersView extends Div {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 cn.clear();
+                availability.clear();
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
