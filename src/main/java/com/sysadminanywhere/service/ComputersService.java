@@ -1,14 +1,15 @@
 package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.model.*;
+import com.sysadminanywhere.model.hardware.DiskDriveEntity;
+import com.sysadminanywhere.model.hardware.HardwareEntity;
+import com.sysadminanywhere.model.hardware.OperatingSystemEntity;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.message.ModifyRequest;
-import org.sentrysoftware.wmi.WmiHelper;
-import org.sentrysoftware.wmi.wbem.WmiWbemServices;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -18,10 +19,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-
-import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
 
 @Service
 public class ComputersService {
@@ -157,12 +155,130 @@ public class ComputersService {
         try {
             WmiResolveService<EventEntity> wmiResolveService = new WmiResolveService<>(EventEntity.class);
 
-            //"20240927000000.000000000"
             String today = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "000000.000000000";
-
             String queryString = "Select RecordNumber, EventType, EventCode, Type, TimeGenerated, SourceName, Category, Logfile, Message From Win32_NTLogEvent Where TimeGenerated > '" + today + "'";
 
             return wmiResolveService.GetValues(wmiService.execute(hostName, queryString), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<HardwareEntity> getHardware(Pageable pageable, String filter, String hostName) {
+        try {
+            return null;
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<DiskDriveEntity> getDiskDrive(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<DiskDriveEntity> wmiResolveService = new WmiResolveService<>(DiskDriveEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_DiskDrive"), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<OperatingSystemEntity> getOperatingSystem(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<OperatingSystemEntity> wmiResolveService = new WmiResolveService<>(OperatingSystemEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_OperatingSystem"), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<SoftwareEntity> getDiskPartition(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_DiskPartition"), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<SoftwareEntity> getProcessor(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_Processor"), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<SoftwareEntity> getVideoController(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_VideoController"), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<SoftwareEntity> getPhysicalMemory(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_PhysicalMemory"), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<SoftwareEntity> getLogicalDisk(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_LogicalDisk"), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<SoftwareEntity> getBaseBoard(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_BaseBoard"), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<SoftwareEntity> getBIOS(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_BIOS"), pageable, filter);
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<SoftwareEntity> getComputerSystem(Pageable pageable, String filter, String hostName) {
+        try {
+            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_ComputerSystem"), pageable, filter);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);

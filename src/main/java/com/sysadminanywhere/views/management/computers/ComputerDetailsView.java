@@ -107,12 +107,12 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         subMenuManagement.addItem("Events", listener);
         subMenuManagement.add(new Hr());
         subMenuManagement.addItem("Software", listener);
-        subMenuManagement.addItem("Hardware");
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Performance");
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Reboot");
-        subMenuManagement.addItem("Shutdown");
+//        subMenuManagement.addItem("Hardware", listener);
+//        subMenuManagement.add(new Hr());
+//        subMenuManagement.addItem("Performance");
+//        subMenuManagement.add(new Hr());
+//        subMenuManagement.addItem("Reboot");
+//        subMenuManagement.addItem("Shutdown");
 
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
