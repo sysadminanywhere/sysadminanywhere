@@ -1,5 +1,11 @@
 package com.sysadminanywhere.views.home;
 
+import com.github.appreciated.apexcharts.ApexCharts;
+import com.github.appreciated.apexcharts.ApexChartsBuilder;
+import com.github.appreciated.apexcharts.config.builder.*;
+import com.github.appreciated.apexcharts.config.chart.Type;
+import com.github.appreciated.apexcharts.config.plotoptions.builder.BarBuilder;
+import com.github.appreciated.apexcharts.helper.Series;
 import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -9,8 +15,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
-import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import jakarta.annotation.security.PermitAll;
 
 @PageTitle("Home")
@@ -62,9 +66,33 @@ public class HomeView extends VerticalLayout {
         txtContacts.setValue(String.valueOf(ldapService.search("(&(objectClass=contact)(objectCategory=person))").size()));
         formLayout.addFormItem(txtContacts, "Contacts");
 
-        verticalLayout.add(lblDomain, lblDistinguishedName, formLayout);
 
-        add(verticalLayout);
+        ApexCharts chart = ApexChartsBuilder.get().withChart(ChartBuilder.get()
+                        .withType(Type.BAR)
+                        .build())
+                .withPlotOptions(PlotOptionsBuilder.get()
+                        .withBar(BarBuilder.get()
+                                .withHorizontal(false)
+                                .withColumnWidth("55%")
+                                .build())
+                        .build())
+                .withDataLabels(DataLabelsBuilder.get()
+                        .withEnabled(false).build())
+                .withStroke(StrokeBuilder.get()
+                        .withShow(true)
+                        .withWidth(2.0)
+                        .withColors("transparent")
+                        .build())
+                .withSeries(new Series<>("Test 1","44","55","57","56","61","58","63","60","66"),
+                        new Series<>("Test 2","76","85","101","98","87","105","91","114","94"),
+                        new Series<>("Test 3","35","41","36","26","45","48","52","53","41"))
+                .withXaxis(XAxisBuilder.get().withCategories("Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct").build())
+                .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
+        chart.setHeight("200px");
+
+        verticalLayout.add(lblDomain, lblDistinguishedName, formLayout, chart);
+
+        add(verticalLayout, chart);
     }
 
 }
