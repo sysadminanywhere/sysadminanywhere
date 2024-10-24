@@ -3,7 +3,9 @@ package com.sysadminanywhere.views.home;
 import com.github.appreciated.apexcharts.ApexCharts;
 import com.github.appreciated.apexcharts.ApexChartsBuilder;
 import com.github.appreciated.apexcharts.config.builder.*;
+import com.github.appreciated.apexcharts.config.chart.Toolbar;
 import com.github.appreciated.apexcharts.config.chart.Type;
+import com.github.appreciated.apexcharts.config.chart.builder.ToolbarBuilder;
 import com.github.appreciated.apexcharts.config.plotoptions.builder.BarBuilder;
 import com.github.appreciated.apexcharts.helper.Series;
 import com.sysadminanywhere.service.LdapService;
@@ -47,6 +49,7 @@ public class HomeView extends VerticalLayout {
 
         ApexCharts chart = ApexChartsBuilder.get().withChart(ChartBuilder.get()
                         .withType(Type.BAR)
+                        .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .build())
                 .withPlotOptions(PlotOptionsBuilder.get()
                         .withBar(BarBuilder.get()
