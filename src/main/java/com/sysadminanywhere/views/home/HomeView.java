@@ -68,7 +68,8 @@ public class HomeView extends VerticalLayout {
                         new Series<>("Contacts",contacts))
                 .withXaxis(XAxisBuilder.get().withCategories("Count").build())
                 .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
-        chart.setHeight("400px");
+        chart.setHeight("300px");
+        chart.setWidth("300px");
 
         verticalLayout.add(lblDomain, lblDistinguishedName, chart);
 
