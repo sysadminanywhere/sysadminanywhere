@@ -39,33 +39,11 @@ public class HomeView extends VerticalLayout {
         lblDistinguishedName.setText(ldapService.getDefaultNamingContext().toUpperCase());
         lblDistinguishedName.setWidth("100%");
 
-        FormLayout formLayout = new FormLayout();
-
-        TextField txtComputers = new TextField();
-        txtComputers.setReadOnly(true);
-        txtComputers.setValue(String.valueOf(ldapService.search("(objectClass=computer)").size()));
-        formLayout.addFormItem(txtComputers, "Computers");
-
-        TextField txtUsers = new TextField();
-        txtUsers.setReadOnly(true);
-        txtUsers.setValue(String.valueOf(ldapService.search("(&(objectClass=user)(objectCategory=person))").size()));
-        formLayout.addFormItem(txtUsers, "Users");
-
-        TextField txtGroups = new TextField();
-        txtGroups.setReadOnly(true);
-        txtGroups.setValue(String.valueOf(ldapService.search("(objectClass=group)").size()));
-        formLayout.addFormItem(txtGroups, "Groups");
-
-        TextField txtPrinters = new TextField();
-        txtPrinters.setReadOnly(true);
-        txtPrinters.setValue(String.valueOf(ldapService.search("(objectClass=printQueue)").size()));
-        formLayout.addFormItem(txtPrinters, "Printers");
-
-        TextField txtContacts = new TextField();
-        txtContacts.setReadOnly(true);
-        txtContacts.setValue(String.valueOf(ldapService.search("(&(objectClass=contact)(objectCategory=person))").size()));
-        formLayout.addFormItem(txtContacts, "Contacts");
-
+        int computers = ldapService.search("(objectClass=computer)").size();
+        int users = ldapService.search("(&(objectClass=user)(objectCategory=person))").size();
+        int groups = ldapService.search("(objectClass=group)").size();
+        int printers = ldapService.search("(objectClass=printQueue)").size();
+        int contacts = ldapService.search("(&(objectClass=contact)(objectCategory=person))").size();
 
         ApexCharts chart = ApexChartsBuilder.get().withChart(ChartBuilder.get()
                         .withType(Type.BAR)
@@ -83,14 +61,16 @@ public class HomeView extends VerticalLayout {
                         .withWidth(2.0)
                         .withColors("transparent")
                         .build())
-                .withSeries(new Series<>("Test 1","44","55","57","56","61","58","63","60","66"),
-                        new Series<>("Test 2","76","85","101","98","87","105","91","114","94"),
-                        new Series<>("Test 3","35","41","36","26","45","48","52","53","41"))
-                .withXaxis(XAxisBuilder.get().withCategories("Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct").build())
+                .withSeries(new Series<>("Computers",computers),
+                        new Series<>("Users",users),
+                        new Series<>("Groups",groups),
+                        new Series<>("Printers",printers),
+                        new Series<>("Contacts",contacts))
+                .withXaxis(XAxisBuilder.get().withCategories("Count").build())
                 .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
-        chart.setHeight("200px");
+        chart.setHeight("400px");
 
-        verticalLayout.add(lblDomain, lblDistinguishedName, formLayout, chart);
+        verticalLayout.add(lblDomain, lblDistinguishedName, chart);
 
         add(verticalLayout, chart);
     }
