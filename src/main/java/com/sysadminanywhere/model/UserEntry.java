@@ -210,4 +210,12 @@ public class UserEntry {
     @AD(name = "jpegphoto")
     private byte[] jpegPhoto;
 
+    public boolean isDisabled() {
+        return ((userAccountControl & 2) != 0);
+    }
+
+    public boolean isLocked() {
+        return ((userAccountControl & 16) != 0);
+    }
+
 }

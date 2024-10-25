@@ -46,6 +46,18 @@ public class ResolveService<T> {
     }
 
     @SneakyThrows
+    public List<T> getADList(List<Entry> list) {
+        List<T> content = new ArrayList<>();
+
+        if (!list.isEmpty()) {
+            for (Entry entry : list)
+                content.add(getADValue(entry));
+        }
+
+        return content;
+    }
+
+    @SneakyThrows
     public T getADValue(Entry entry) {
 
         T result = typeArgumentClass.newInstance();
