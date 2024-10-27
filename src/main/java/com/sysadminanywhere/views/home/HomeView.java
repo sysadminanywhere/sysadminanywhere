@@ -12,6 +12,7 @@ import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.service.ResolveService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -75,7 +76,7 @@ public class HomeView extends VerticalLayout {
                 .withXaxis(XAxisBuilder.get().withCategories("Count").build())
                 .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
         chartSummary.setHeight("300px");
-        chartSummary.setWidth("300px");
+        chartSummary.setWidth("400px");
         chartSummary.setTitle(TitleSubtitleBuilder.get().withText("Summary").build());
 
         ApexCharts chartUsers = ApexChartsBuilder.get().withChart(ChartBuilder.get()
@@ -98,12 +99,12 @@ public class HomeView extends VerticalLayout {
                 .withSeries(new Series<>("Number of users", users.size()),
                         new Series<>("Disabled", users.stream().filter(c -> c.isDisabled()).count()),
                         new Series<>("Locked", users.stream().filter(c -> c.isLocked()).count()),
-                        new Series<>("Expired", users.size()),
-                        new Series<>("Never expires", users.size()))
+                        new Series<>("Expired", users.stream().filter(c -> c.isExpired()).count()),
+                        new Series<>("Never expires", users.stream().filter(c -> c.isNeverExpires()).count()))
                 .withXaxis(XAxisBuilder.get().withCategories("Count").build())
                 .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
         chartUsers.setHeight("300px");
-        chartUsers.setWidth("300px");
+        chartUsers.setWidth("400px");
         chartUsers.setTitle(TitleSubtitleBuilder.get().withText("Users").build());
 
         ApexCharts chartComputers = ApexChartsBuilder.get().withChart(ChartBuilder.get()
@@ -124,13 +125,14 @@ public class HomeView extends VerticalLayout {
                         .withColors("transparent")
                         .build())
                 .withSeries(new Series<>("Number of computers", computers.size()),
-                        new Series<>("Disabled", computers.size()),
-                        new Series<>("Workstations", computers.size()),
-                        new Series<>("Domain controllers", computers.size()))
+                        new Series<>("Disabled", computers.stream().filter(c -> c.isDisabled()).count()),
+                        new Series<>("Workstations", computers.stream().filter(c -> c.isWorkstation()).count()),
+                        new Series<>("Servers", computers.stream().filter(c -> c.isServer()).count()),
+                        new Series<>("Domain controllers", computers.stream().filter(c -> c.isDomainController()).count()))
                 .withXaxis(XAxisBuilder.get().withCategories("Count").build())
                 .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
         chartComputers.setHeight("300px");
-        chartComputers.setWidth("300px");
+        chartComputers.setWidth("400px");
         chartComputers.setTitle(TitleSubtitleBuilder.get().withText("Computers").build());
 
         ApexCharts chartGroups = ApexChartsBuilder.get().withChart(ChartBuilder.get()
@@ -151,16 +153,22 @@ public class HomeView extends VerticalLayout {
                         .withColors("transparent")
                         .build())
                 .withSeries(new Series<>("Number of groups", groups.size()),
-                        new Series<>("Security", groups.size()),
-                        new Series<>("Distribution", groups.size()),
-                        new Series<>("Built-In", groups.size()))
+                        new Series<>("Security", groups.stream().filter(c -> c.isSecurity()).count()),
+                        new Series<>("Distribution", groups.stream().filter(c -> c.isDistribution()).count()),
+                        new Series<>("BuiltIn", groups.stream().filter(c -> c.isBuiltIn()).count()))
                 .withXaxis(XAxisBuilder.get().withCategories("Count").build())
                 .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
         chartGroups.setHeight("300px");
-        chartGroups.setWidth("300px");
+        chartGroups.setWidth("400px");
         chartGroups.setTitle(TitleSubtitleBuilder.get().withText("Groups").build());
 
-        verticalLayout.add(lblDomain, lblDistinguishedName, chartSummary, chartUsers, chartComputers, chartGroups);
+        HorizontalLayout line1 = new HorizontalLayout();
+        line1.add(chartSummary, chartUsers);
+
+        HorizontalLayout line2 = new HorizontalLayout();
+        line2.add(chartComputers, chartGroups);
+
+        verticalLayout.add(lblDomain, lblDistinguishedName, line1, line2);
 
         add(verticalLayout);
     }

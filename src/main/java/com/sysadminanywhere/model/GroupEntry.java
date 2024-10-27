@@ -87,4 +87,16 @@ public class GroupEntry {
         return ADHelper.getGroupType(groupType);
     }
 
+    public boolean isSecurity() {
+        return getADGroupType().contains("security");
+    }
+
+    public boolean isDistribution() {
+        return getADGroupType().contains("distribution");
+    }
+
+    public boolean isBuiltIn() {
+        return getADGroupType().contains("BuiltIn");
+    }
+
 }

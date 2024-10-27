@@ -57,7 +57,7 @@ public class ADHelper {
                 return "Universal security group";
 
             case -2147483643:
-                return "BuiltIn Group";
+                return "BuiltIn group";
 
             default:
                 return "";

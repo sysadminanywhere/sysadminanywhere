@@ -94,6 +94,10 @@ public class ResolveService<T> {
                             field.set(result, Integer.valueOf(value.getString()));
                         }
 
+                        if (field.getType().getName().equalsIgnoreCase(long.class.getName())) {
+                            field.set(result, Integer.valueOf(value.getString()));
+                        }
+
                         if (field.getType().getName().equalsIgnoreCase(boolean.class.getName())) {
                             field.set(result, Boolean.valueOf(value.getString()));
                         }

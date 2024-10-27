@@ -211,11 +211,19 @@ public class UserEntry {
     private byte[] jpegPhoto;
 
     public boolean isDisabled() {
-        return ((userAccountControl & 2) != 0);
+        return ((userAccountControl & UserAccountControls.ACCOUNTDISABLE.getValue()) != 0);
     }
 
     public boolean isLocked() {
-        return ((userAccountControl & 16) != 0);
+        return ((userAccountControl & UserAccountControls.LOCKOUT.getValue()) != 0);
+    }
+
+    public boolean isExpired() {
+        return ((userAccountControl & UserAccountControls.PASSWORD_EXPIRED.getValue()) != 0);
+    }
+
+    public boolean isNeverExpires() {
+        return ((userAccountControl & UserAccountControls.DONT_EXPIRE_PASSWD.getValue()) != 0);
     }
 
 }

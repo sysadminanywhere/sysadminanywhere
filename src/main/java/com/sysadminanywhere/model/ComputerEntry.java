@@ -127,4 +127,20 @@ public class ComputerEntry {
     @AD(name = "codepage")
     private int codepage;
 
+    public boolean isDisabled() {
+        return ((userAccountControl & UserAccountControls.ACCOUNTDISABLE.getValue()) != 0);
+    }
+
+    public boolean isWorkstation() {
+        return !operatingSystem.contains("Server");
+    }
+
+    public boolean isServer() {
+        return operatingSystem.contains("Server");
+    }
+
+    public boolean isDomainController() {
+        return primaryGroupId == 516;
+    }
+
 }
