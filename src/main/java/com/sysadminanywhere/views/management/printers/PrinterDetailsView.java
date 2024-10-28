@@ -71,14 +71,20 @@ public class PrinterDetailsView extends Div implements BeforeEnterObserver {
             deleteDialog().open();
         });
 
-        VerticalLayout verticalLayout2 = new VerticalLayout();
-        verticalLayout2.add(lblName);
-        verticalLayout2.add(lblDescription);
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
+
+        VerticalLayout verticalLayout2 = new VerticalLayout(lblName, lblDescription);
+        verticalLayout2.setWidth("70%");
 
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         horizontalLayout.setWidthFull();
         horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        horizontalLayout.add(verticalLayout2, menuBar);
+
+        HorizontalLayout horizontalLayout2 = new HorizontalLayout(menuBar);
+        horizontalLayout2.setWidthFull();
+        horizontalLayout2.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+
+        horizontalLayout.add(verticalLayout2, horizontalLayout2);
 
         verticalLayout.add(horizontalLayout);
     }
