@@ -85,6 +85,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         add(verticalLayout);
 
         MenuBar menuBar = new MenuBar();
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
 
         menuBar.addItem("Update", event -> {
             updateForm().open();
