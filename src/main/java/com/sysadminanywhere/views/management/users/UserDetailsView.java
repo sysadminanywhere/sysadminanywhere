@@ -1,6 +1,5 @@
 package com.sysadminanywhere.views.management.users;
 
-import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.MainLayout;
@@ -12,6 +11,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
@@ -22,21 +22,27 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
-import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.dialog.Dialog;
 
-import java.awt.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicReference;
 
 @PageTitle("User details")
 @Route(value = "management/users/:id?/details", layout = MainLayout.class)
 @PermitAll
+@Uses(Upload.class)
 @Uses(Icon.class)
 public class UserDetailsView extends Div implements BeforeEnterObserver {
 
@@ -89,6 +95,9 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         MenuBar menuBar = new MenuBar();
         menuBar.addItem("Update", event -> {
             updateForm().open();
+        });
+        menuBar.addItem("Photo", event -> {
+            updatePhotoForm().open();
         });
         menuBar.addItem("Delete", event -> {
             deleteDialog().open();
@@ -168,7 +177,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
     private Dialog updateForm() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Updating user");
-        dialog.setMaxWidth("800px");
+        dialog.setWidth("800px");
 
         TabSheet tabSheet = new TabSheet();
 
@@ -313,6 +322,104 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
 
         dialog.getFooter().add(cancelButton);
         dialog.getFooter().add(saveButton);
+
+        return dialog;
+    }
+
+    private Dialog updatePhotoForm() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Updating user photo");
+        dialog.setWidth("600px");
+
+        StreamResource resource = new StreamResource("", () -> new ByteArrayInputStream(user.getJpegPhoto()));
+        AtomicReference<Image> image = new AtomicReference<>(new Image(resource, ""));
+        image.get().setHeight("400px");
+
+        MemoryBuffer buffer = new MemoryBuffer();
+
+        Upload upload = new Upload(buffer);
+        upload.setMaxFiles(1);
+        upload.setAcceptedFileTypes("image/jpeg", ".jpg");
+
+        Button uploadButton = new Button("Upload photo...");
+        uploadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        upload.setUploadButton(uploadButton);
+
+        upload.addFileRejectedListener(event -> {
+            String errorMessage = event.getErrorMessage();
+
+            Notification notification = Notification.show(errorMessage, 5000,
+                    Notification.Position.MIDDLE);
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        });
+
+        AtomicReference<InputStream> fileData = new AtomicReference<>();
+
+        upload.addSucceededListener(event -> {
+            fileData.set(buffer.getInputStream());
+
+            StreamResource resource2 = new StreamResource("", () -> {
+                try {
+                    byte[] data = fileData.get().readAllBytes();
+                    user.setJpegPhoto(data);
+                    return new ByteArrayInputStream(data);
+                } catch (IOException e) {
+                    return null;
+                }
+            });
+            image.get().setSrc(resource2);
+        });
+
+        VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout.add(image.get(), upload);
+
+        dialog.add(verticalLayout);
+
+        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
+            UserEntry entry = user;
+
+            try {
+                user = usersService.update(entry);
+                updateView();
+
+                Notification notification = Notification.show("User photo updated");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception ex) {
+                Notification notification = Notification.show(ex.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+
+            dialog.close();
+        });
+
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
+
+        com.vaadin.flow.component.button.Button deleteButton = new Button("Delete", e -> {
+            UserEntry entry = user;
+
+            try {
+                entry.setJpegPhoto(null);
+
+                user = usersService.update(entry);
+                updateView();
+
+                Notification notification = Notification.show("User photo deleted");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception ex) {
+                Notification notification = Notification.show(ex.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+
+            dialog.close();
+        });
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
+
+        dialog.getFooter().add(deleteButton);
+        dialog.getFooter().add(cancelButton);
+        dialog.getFooter().add(saveButton);
+
 
         return dialog;
     }

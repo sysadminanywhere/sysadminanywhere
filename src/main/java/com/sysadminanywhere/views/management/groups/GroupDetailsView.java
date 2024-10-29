@@ -140,7 +140,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
     private Dialog updateForm() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Updating user");
-        dialog.setMaxWidth("800px");
+        dialog.setWidth("800px");
 
         FormLayout formLayout = new FormLayout();
 

@@ -169,7 +169,7 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
     private Dialog updateForm() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Updating contact");
-        dialog.setMaxWidth("800px");
+        dialog.setWidth("800px");
 
         TabSheet tabSheet = new TabSheet();
 

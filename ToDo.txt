@@ -1,0 +1,73 @@
+
+- Management
+
+1. Computers
+	+ Search
+	+ Sort
+	+ Filter
+2. Users
+	+ Search
+	+ Sort
+	+ Filter
+3. Contacts
+	+ Search
+	+ Sort
+	+ Filter
+4. Groups
+	+ Search
+	+ Sort
+	+ Filter
+5. Printers
+	+ Search
+	+ Sort
+6. User
+	+ Add
+	+ Update
+	+ Photo
+	- Options
+	- Reset password
+	- Member of
+	+ Delete
+7. Group
+	+ Add
+	+ Update
+	- Members
+	- Member Of
+	+ Delete
+8. Computer
+    + Add
+    + Update
+    - Member of
+    + Delete
+    - Management
+    	+ Events
+    		- Filters
+    	- Hardware
+    	+ Processes
+    		- Stop
+    	+ Services
+    		- Start
+    		- Stop
+    	+ Software
+    	- Performance
+    		- Cpu
+    		- Memory
+    		- Disk
+9. Contact
+	+ Add
+	+ Update
+	- Photo
+	+ Delete
+
+
+- Reporting
+
+1. Reports
+    - Reports list
+	- Show reports
+
+
+- Monitoring
+
+1. Monitors
+    - Monitors list

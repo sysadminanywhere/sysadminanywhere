@@ -7,11 +7,15 @@ import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
 import com.sysadminanywhere.views.management.groups.GroupsView;
 import com.sysadminanywhere.views.management.printers.PrintersView;
+import com.sysadminanywhere.views.management.users.UserDetailsView;
 import com.sysadminanywhere.views.management.users.UsersView;
+import com.sysadminanywhere.views.monitoring.MonitorsView;
+import com.sysadminanywhere.views.reporting.ReportsView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Footer;
@@ -24,6 +28,7 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
@@ -71,7 +76,7 @@ public class MainLayout extends AppLayout {
         verticalLayout.setPadding(false);
 
         verticalLayout.add(createNavigation());
-        verticalLayout.add(createManagementNavigation());
+        verticalLayout.add(createManagementNavigation(), createMonitoringNavigation(), createReportingNavigation());
 
         Scroller scroller = new Scroller(verticalLayout);
 
@@ -118,6 +123,32 @@ public class MainLayout extends AppLayout {
         if (accessChecker.hasAccess(ContactsView.class)) {
             nav.addItem(new SideNavItem("Contacts", ContactsView.class,
                     LineAwesomeIcon.ADDRESS_CARD_SOLID.create()));
+        }
+
+        return nav;
+    }
+
+    private SideNav createMonitoringNavigation() {
+        SideNav nav = new SideNav("Monitoring");
+        nav.setCollapsible(true);
+        nav.setWidth("100%");
+
+        if (accessChecker.hasAccess(HomeView.class)) {
+            nav.addItem(
+                    new SideNavItem("Monitors", MonitorsView.class, LineAwesomeIcon.CHART_AREA_SOLID.create()));
+        }
+
+        return nav;
+    }
+
+    private SideNav createReportingNavigation() {
+        SideNav nav = new SideNav("Reporting");
+        nav.setCollapsible(true);
+        nav.setWidth("100%");
+
+        if (accessChecker.hasAccess(HomeView.class)) {
+            nav.addItem(
+                    new SideNavItem("Reports", ReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
         }
 
         return nav;
@@ -172,4 +203,5 @@ public class MainLayout extends AppLayout {
         PageTitle title = getContent().getClass().getAnnotation(PageTitle.class);
         return title == null ? "" : title.value();
     }
+
 }
