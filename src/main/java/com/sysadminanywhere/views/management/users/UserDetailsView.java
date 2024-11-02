@@ -1,10 +1,13 @@
 package com.sysadminanywhere.views.management.users;
 
+import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.MainLayout;
+import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -22,6 +25,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
@@ -52,6 +56,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
+    Avatar avatar = new Avatar();
 
     Binder<UserEntry> binder = new Binder<>(UserEntry.class);
 
@@ -72,6 +77,13 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
 
                 lblName.setText(user.getCn());
                 lblDescription.setText(user.getDescription());
+
+                avatar.setName(user.getName());
+                if(user.getJpegPhoto() != null) {
+                    StreamResource resource = new StreamResource("profile-pic",
+                            () -> new ByteArrayInputStream(user.getJpegPhoto()));
+                    avatar.setImageResource(resource);
+                }
             }
         }
     }
@@ -90,6 +102,8 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         lblDescription.setText("Description");
         lblDescription.setWidth("100%");
 
+        avatar.setThemeName("xlarge");
+
         add(verticalLayout);
 
         MenuBar menuBar = new MenuBar();
@@ -98,6 +112,12 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         });
         menuBar.addItem("Photo", event -> {
             updatePhotoForm().open();
+        });
+        menuBar.addItem("Options", event -> {
+            optionsForm().open();
+        });
+        menuBar.addItem("Reset password", event -> {
+            resetPasswordForm().open();
         });
         menuBar.addItem("Delete", event -> {
             deleteDialog().open();
@@ -116,7 +136,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         horizontalLayout2.setWidthFull();
         horizontalLayout2.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
 
-        horizontalLayout.add(verticalLayout2, horizontalLayout2);
+        horizontalLayout.add(avatar, verticalLayout2, horizontalLayout2);
 
         verticalLayout.add(horizontalLayout);
 
@@ -420,6 +440,122 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         dialog.getFooter().add(cancelButton);
         dialog.getFooter().add(saveButton);
 
+
+        return dialog;
+    }
+
+    private Dialog resetPasswordForm() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Reset password");
+        dialog.setWidth("500px");
+
+        FormLayout formLayout = new FormLayout();
+
+        PasswordField txtPassword = new PasswordField("New password");
+        formLayout.setColspan(txtPassword, 2);
+
+        formLayout.add(txtPassword);
+        dialog.add(formLayout);
+
+        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
+            UserEntry entry = user;
+
+            try {
+                usersService.resetPassword(entry, txtPassword.getValue());
+                updateView();
+
+                Notification notification = Notification.show("Password reset");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception ex) {
+                Notification notification = Notification.show(ex.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+
+            dialog.close();
+        });
+
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
+
+        dialog.getFooter().add(cancelButton);
+        dialog.getFooter().add(saveButton);
+
+        return dialog;
+    }
+
+    private Dialog optionsForm() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("User Options");
+        dialog.setWidth("600px");
+
+        FormLayout formLayout = new FormLayout();
+
+        VerticalLayout checkboxGroup = new VerticalLayout();
+        formLayout.setColspan(checkboxGroup, 2);
+        Checkbox chkUserMustChangePassword = new Checkbox("User must change password at next logon");
+        chkUserMustChangePassword.setValue(user.isUserMustChangePassword());
+
+        Checkbox chkUserCannotChangePassword = new Checkbox("User cannot change password");
+        chkUserCannotChangePassword.setValue(user.isUserCannotChangePassword());
+
+        Checkbox chkPasswordNeverExpires = new Checkbox("Password never expires");
+        chkPasswordNeverExpires.setValue(user.isNeverExpires());
+
+        Checkbox chkAccountDisabled = new Checkbox("Account disabled");
+        chkAccountDisabled.setValue(user.isDisabled());
+
+        checkboxGroup.add(chkUserMustChangePassword, chkUserCannotChangePassword, chkPasswordNeverExpires, chkAccountDisabled);
+
+        chkUserMustChangePassword.addValueChangeListener(event -> {
+            if (chkUserMustChangePassword.getValue()) {
+                chkPasswordNeverExpires.setEnabled(false);
+                chkPasswordNeverExpires.setValue(false);
+            } else {
+                chkPasswordNeverExpires.setEnabled(true);
+            }
+        });
+
+        chkPasswordNeverExpires.addValueChangeListener(event -> {
+            if (chkPasswordNeverExpires.getValue()) {
+                chkUserMustChangePassword.setEnabled(false);
+                chkUserMustChangePassword.setValue(false);
+            } else {
+                chkUserMustChangePassword.setEnabled(true);
+            }
+        });
+
+        formLayout.add(checkboxGroup);
+        dialog.add(formLayout);
+
+        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
+            UserEntry entry = user;
+
+            try {
+                usersService.ChangeUserAccountControl(
+                        entry,
+                        chkUserCannotChangePassword.getValue(),
+                        chkPasswordNeverExpires.getValue(),
+                        chkAccountDisabled.getValue());
+
+                updateView();
+
+                Notification notification = Notification.show("Options changed");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception ex) {
+                Notification notification = Notification.show(ex.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+
+            dialog.close();
+        });
+
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
+
+        dialog.getFooter().add(cancelButton);
+        dialog.getFooter().add(saveButton);
 
         return dialog;
     }

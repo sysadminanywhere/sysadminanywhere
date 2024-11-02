@@ -210,6 +210,9 @@ public class UserEntry {
     @AD(name = "jpegphoto")
     private byte[] jpegPhoto;
 
+    @AD(name = "pwdlastset")
+    private String pwdLastSet;
+
     public boolean isDisabled() {
         return ((userAccountControl & UserAccountControls.ACCOUNTDISABLE.getValue()) != 0);
     }
@@ -224,6 +227,14 @@ public class UserEntry {
 
     public boolean isNeverExpires() {
         return ((userAccountControl & UserAccountControls.DONT_EXPIRE_PASSWD.getValue()) != 0);
+    }
+
+    public boolean isUserMustChangePassword() {
+        return getPwdLastSet().equals("0");
+    }
+
+    public boolean isUserCannotChangePassword() {
+        return ((userAccountControl & UserAccountControls.PASSWD_CANT_CHANGE.getValue()) != 0);
     }
 
 }

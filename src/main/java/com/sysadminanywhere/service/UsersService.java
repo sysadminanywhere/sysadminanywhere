@@ -79,7 +79,7 @@ public class UsersService {
 
         UserEntry newUser = getByCN(user.getCn());
 
-        ChangeUserAccountControlAsync(newUser, isCannotChangePassword, isPasswordNeverExpires, isAccountDisabled);
+        ChangeUserAccountControl(newUser, isCannotChangePassword, isPasswordNeverExpires, isAccountDisabled);
 
         if (isMustChangePassword)
             MustChangePasswordAsync(newUser);
@@ -90,7 +90,7 @@ public class UsersService {
         return newUser;
     }
 
-    private void ChangeUserAccountControlAsync(UserEntry user, boolean isCannotChangePassword, boolean isPasswordNeverExpires, boolean isAccountDisabled) {
+    public void ChangeUserAccountControl(UserEntry user, boolean isCannotChangePassword, boolean isPasswordNeverExpires, boolean isAccountDisabled) {
         int userAccountControl = user.getUserAccountControl();
 
         if (isCannotChangePassword)
@@ -136,6 +136,11 @@ public class UsersService {
 
     public String getDefaultContainer() {
         return ldapService.getUsersContainer();
+    }
+
+    public void resetPassword(UserEntry user, String password) {
+        ldapService.updateProperty(user.getDistinguishedName(), "userPassword", password);
+        ldapService.updateProperty(user.getDistinguishedName(), "pwdLastSet", "0");
     }
 
 }

@@ -24,8 +24,8 @@
         + Add
         + Update
         + Photo
-        - Options
-        - Reset password
+        + Options
+        + Reset password
         - Member of
         + Delete
     7. Group
