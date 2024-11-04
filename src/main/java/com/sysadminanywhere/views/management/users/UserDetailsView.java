@@ -1,6 +1,5 @@
 package com.sysadminanywhere.views.management.users;
 
-import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.MainLayout;
@@ -37,9 +36,13 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.dialog.Dialog;
+import lombok.SneakyThrows;
+import net.coobird.thumbnailator.Thumbnails;
 
+import javax.imageio.ImageIO;
+import java.awt.image.*;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -378,14 +381,13 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         upload.addSucceededListener(event -> {
             fileData.set(buffer.getInputStream());
 
+            byte[] thumbnailPhoto = resizeImage(buffer.getInputStream(), 96, 96);
+            byte[] jpegPhoto = resizeImage(buffer.getInputStream(), 648, 648);
+
             StreamResource resource2 = new StreamResource("", () -> {
-                try {
-                    byte[] data = fileData.get().readAllBytes();
-                    user.setJpegPhoto(data);
-                    return new ByteArrayInputStream(data);
-                } catch (IOException e) {
-                    return null;
-                }
+                user.setJpegPhoto(jpegPhoto);
+                user.setThumbnailPhoto(thumbnailPhoto);
+                return new ByteArrayInputStream(jpegPhoto);
             });
             image.get().setSrc(resource2);
         });
@@ -421,6 +423,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
 
             try {
                 entry.setJpegPhoto(null);
+                entry.setThumbnailPhoto(null);
 
                 user = usersService.update(entry);
                 updateView();
@@ -558,6 +561,22 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         dialog.getFooter().add(saveButton);
 
         return dialog;
+    }
+
+    @SneakyThrows
+    byte[] resizeImage(InputStream originalImage, int targetWidth, int targetHeight)  {
+
+        BufferedImage image = ImageIO.read(originalImage);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        Thumbnails.of(image)
+                .size(targetWidth, targetHeight)
+                .outputFormat("JPEG")
+                .outputQuality(1)
+                .toOutputStream(outputStream);
+        byte[] data = outputStream.toByteArray();
+
+        return data;
     }
 
 }

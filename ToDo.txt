@@ -56,7 +56,7 @@
     9. Contact
         + Add
         + Update
-        - Photo
+        ? Photo
         + Delete
 
 

@@ -208,7 +208,10 @@ public class UserEntry {
     private byte[] logonHours;
 
     @AD(name = "jpegphoto")
-    private byte[] jpegPhoto;
+    private byte[] jpegPhoto;   // 648x648
+
+    @AD(name = "thumbnailphoto")
+    private byte[] thumbnailPhoto;  // 96x96
 
     @AD(name = "pwdlastset")
     private String pwdLastSet;

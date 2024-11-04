@@ -164,7 +164,7 @@ public class MainLayout extends AppLayout {
             Avatar avatar = new Avatar(user.getName());
             if(user.getJpegPhoto() != null) {
                 StreamResource resource = new StreamResource("profile-pic",
-                        () -> new ByteArrayInputStream(user.getJpegPhoto()));
+                        () -> new ByteArrayInputStream(user.getThumbnailPhoto()));
                 avatar.setImageResource(resource);
             }
             avatar.setThemeName("xsmall");

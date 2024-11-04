@@ -5,6 +5,7 @@ import com.sysadminanywhere.model.GroupEntry;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.ContactsService;
 import com.sysadminanywhere.views.MainLayout;
+import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
@@ -13,10 +14,7 @@ import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.H5;
-import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
@@ -28,16 +26,25 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicReference;
 
 @PageTitle("Contact details")
 @Route(value = "management/contacts/:id?/details", layout = MainLayout.class)
 @PermitAll
+@Uses(Upload.class)
 @Uses(Icon.class)
 public class ContactDetailsView extends Div implements BeforeEnterObserver {
 
@@ -47,6 +54,7 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
+    Avatar avatar = new Avatar();
 
     Binder<ContactEntry> binder = new Binder<>(ContactEntry.class);
 
@@ -67,6 +75,13 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
 
                 lblName.setText(contact.getCn());
                 lblDescription.setText(contact.getDescription());
+
+                avatar.setName(contact.getName());
+                if(contact.getJpegPhoto() != null) {
+                    StreamResource resource = new StreamResource("profile-pic",
+                            () -> new ByteArrayInputStream(contact.getJpegPhoto()));
+                    avatar.setImageResource(resource);
+                }
             }
         }
     }
@@ -85,12 +100,17 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
         lblDescription.setText("Description");
         lblDescription.setWidth("100%");
 
+        avatar.setThemeName("xlarge");
+
         add(verticalLayout);
 
         MenuBar menuBar = new MenuBar();
         menuBar.addItem("Update", event -> {
             updateForm().open();
         });
+//        menuBar.addItem("Photo", event -> {
+//            updatePhotoForm().open();
+//        });
         menuBar.addItem("Delete", event -> {
             deleteDialog().open();
         });
@@ -108,7 +128,7 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
         horizontalLayout2.setWidthFull();
         horizontalLayout2.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
 
-        horizontalLayout.add(verticalLayout2, horizontalLayout2);
+        horizontalLayout.add(avatar, verticalLayout2, horizontalLayout2);
 
         verticalLayout.add(horizontalLayout);
 
@@ -314,6 +334,104 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
 
         dialog.getFooter().add(cancelButton);
         dialog.getFooter().add(saveButton);
+
+        return dialog;
+    }
+
+    private Dialog updatePhotoForm() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Updating contact photo");
+        dialog.setWidth("600px");
+
+        StreamResource resource = new StreamResource("", () -> new ByteArrayInputStream(contact.getJpegPhoto()));
+        AtomicReference<Image> image = new AtomicReference<>(new Image(resource, ""));
+        image.get().setHeight("400px");
+
+        MemoryBuffer buffer = new MemoryBuffer();
+
+        Upload upload = new Upload(buffer);
+        upload.setMaxFiles(1);
+        upload.setAcceptedFileTypes("image/jpeg", ".jpg");
+
+        Button uploadButton = new Button("Upload photo...");
+        uploadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        upload.setUploadButton(uploadButton);
+
+        upload.addFileRejectedListener(event -> {
+            String errorMessage = event.getErrorMessage();
+
+            Notification notification = Notification.show(errorMessage, 5000,
+                    Notification.Position.MIDDLE);
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        });
+
+        AtomicReference<InputStream> fileData = new AtomicReference<>();
+
+        upload.addSucceededListener(event -> {
+            fileData.set(buffer.getInputStream());
+
+            StreamResource resource2 = new StreamResource("", () -> {
+                try {
+                    byte[] data = fileData.get().readAllBytes();
+                    contact.setJpegPhoto(data);
+                    return new ByteArrayInputStream(data);
+                } catch (IOException e) {
+                    return null;
+                }
+            });
+            image.get().setSrc(resource2);
+        });
+
+        VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout.add(image.get(), upload);
+
+        dialog.add(verticalLayout);
+
+        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
+            ContactEntry entry = contact;
+
+            try {
+                contact = contactsService.update(entry);
+                updateView();
+
+                Notification notification = Notification.show("Contact photo updated");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception ex) {
+                Notification notification = Notification.show(ex.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+
+            dialog.close();
+        });
+
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
+
+        com.vaadin.flow.component.button.Button deleteButton = new Button("Delete", e -> {
+            ContactEntry entry = contact;
+
+            try {
+                entry.setJpegPhoto(null);
+
+                contact = contactsService.update(entry);
+                updateView();
+
+                Notification notification = Notification.show("Contact photo deleted");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception ex) {
+                Notification notification = Notification.show(ex.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+
+            dialog.close();
+        });
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
+
+        dialog.getFooter().add(deleteButton);
+        dialog.getFooter().add(cancelButton);
+        dialog.getFooter().add(saveButton);
+
 
         return dialog;
     }

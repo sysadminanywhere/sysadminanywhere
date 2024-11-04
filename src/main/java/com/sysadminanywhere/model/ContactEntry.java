@@ -130,4 +130,7 @@ public class ContactEntry {
     @AD(name = "instancetype")
     private int instanceType;
 
+    @AD(name = "jpegphoto")
+    private byte[] jpegPhoto;
+
 }
