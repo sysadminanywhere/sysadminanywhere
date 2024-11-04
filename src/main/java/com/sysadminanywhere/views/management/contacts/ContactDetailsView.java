@@ -77,11 +77,6 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
                 lblDescription.setText(contact.getDescription());
 
                 avatar.setName(contact.getName());
-                if(contact.getJpegPhoto() != null) {
-                    StreamResource resource = new StreamResource("profile-pic",
-                            () -> new ByteArrayInputStream(contact.getJpegPhoto()));
-                    avatar.setImageResource(resource);
-                }
             }
         }
     }
@@ -334,104 +329,6 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
 
         dialog.getFooter().add(cancelButton);
         dialog.getFooter().add(saveButton);
-
-        return dialog;
-    }
-
-    private Dialog updatePhotoForm() {
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Updating contact photo");
-        dialog.setWidth("600px");
-
-        StreamResource resource = new StreamResource("", () -> new ByteArrayInputStream(contact.getJpegPhoto()));
-        AtomicReference<Image> image = new AtomicReference<>(new Image(resource, ""));
-        image.get().setHeight("400px");
-
-        MemoryBuffer buffer = new MemoryBuffer();
-
-        Upload upload = new Upload(buffer);
-        upload.setMaxFiles(1);
-        upload.setAcceptedFileTypes("image/jpeg", ".jpg");
-
-        Button uploadButton = new Button("Upload photo...");
-        uploadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        upload.setUploadButton(uploadButton);
-
-        upload.addFileRejectedListener(event -> {
-            String errorMessage = event.getErrorMessage();
-
-            Notification notification = Notification.show(errorMessage, 5000,
-                    Notification.Position.MIDDLE);
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-        });
-
-        AtomicReference<InputStream> fileData = new AtomicReference<>();
-
-        upload.addSucceededListener(event -> {
-            fileData.set(buffer.getInputStream());
-
-            StreamResource resource2 = new StreamResource("", () -> {
-                try {
-                    byte[] data = fileData.get().readAllBytes();
-                    contact.setJpegPhoto(data);
-                    return new ByteArrayInputStream(data);
-                } catch (IOException e) {
-                    return null;
-                }
-            });
-            image.get().setSrc(resource2);
-        });
-
-        VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.add(image.get(), upload);
-
-        dialog.add(verticalLayout);
-
-        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
-            ContactEntry entry = contact;
-
-            try {
-                contact = contactsService.update(entry);
-                updateView();
-
-                Notification notification = Notification.show("Contact photo updated");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            }
-
-            dialog.close();
-        });
-
-        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
-
-        com.vaadin.flow.component.button.Button deleteButton = new Button("Delete", e -> {
-            ContactEntry entry = contact;
-
-            try {
-                entry.setJpegPhoto(null);
-
-                contact = contactsService.update(entry);
-                updateView();
-
-                Notification notification = Notification.show("Contact photo deleted");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            }
-
-            dialog.close();
-        });
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
-
-        dialog.getFooter().add(deleteButton);
-        dialog.getFooter().add(cancelButton);
-        dialog.getFooter().add(saveButton);
-
 
         return dialog;
     }

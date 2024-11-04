@@ -23,7 +23,7 @@
     6. User
         + Add
         + Update
-        + Photo
+        + Photo (thumbnailPhoto + jpegPhoto)
         + Options
         + Reset password
         - Member of
@@ -56,7 +56,6 @@
     9. Contact
         + Add
         + Update
-        ? Photo
         + Delete
 
 
