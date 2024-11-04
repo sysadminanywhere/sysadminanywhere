@@ -103,9 +103,6 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
         menuBar.addItem("Update", event -> {
             updateForm().open();
         });
-//        menuBar.addItem("Photo", event -> {
-//            updatePhotoForm().open();
-//        });
         menuBar.addItem("Delete", event -> {
             deleteDialog().open();
         });
