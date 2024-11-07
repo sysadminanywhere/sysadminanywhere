@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.users;
 
+import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.MainLayout;
@@ -15,6 +16,7 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.notification.Notification;
@@ -110,19 +112,19 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         add(verticalLayout);
 
         MenuBar menuBar = new MenuBar();
-        menuBar.addItem("Update", event -> {
+        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
             updateForm().open();
         });
-        menuBar.addItem("Photo", event -> {
+        MenuHelper.createIconItem(menuBar, VaadinIcon.USER, "Photo", event -> {
             updatePhotoForm().open();
         });
-        menuBar.addItem("Options", event -> {
+        MenuHelper.createIconItem(menuBar, VaadinIcon.OPTIONS, "Options", event -> {
             optionsForm().open();
         });
-        menuBar.addItem("Reset password", event -> {
+        MenuHelper.createIconItem(menuBar, VaadinIcon.PASSWORD, "Reset password", event -> {
             resetPasswordForm().open();
         });
-        menuBar.addItem("Delete", event -> {
+        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
             deleteDialog().open();
         });
 

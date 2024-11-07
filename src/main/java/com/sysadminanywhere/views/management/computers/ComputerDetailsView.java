@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.computers;
 
+import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.ComputersService;
@@ -16,6 +17,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.notification.Notification;
@@ -87,11 +89,13 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         MenuBar menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
 
-        menuBar.addItem("Update", event -> {
+        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
             updateForm().open();
         });
+
         MenuItem menuManagement = menuBar.addItem("Management");
-        menuBar.addItem("Delete", event -> {
+
+        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
             deleteDialog().open();
         });
 

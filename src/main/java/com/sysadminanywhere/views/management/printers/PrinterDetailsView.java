@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.printers;
 
+import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.PrinterEntry;
 import com.sysadminanywhere.service.PrintersService;
 import com.sysadminanywhere.views.MainLayout;
@@ -9,6 +10,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -67,7 +69,7 @@ public class PrinterDetailsView extends Div implements BeforeEnterObserver {
         MenuBar menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
-        menuBar.addItem("Delete", event -> {
+        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
             deleteDialog().open();
         });
 
