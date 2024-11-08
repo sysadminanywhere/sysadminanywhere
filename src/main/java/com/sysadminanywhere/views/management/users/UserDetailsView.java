@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.users;
 
+import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.UsersService;
@@ -11,12 +12,10 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.H5;
-import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.notification.Notification;
@@ -46,6 +45,8 @@ import java.awt.image.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @PageTitle("User details")
@@ -53,6 +54,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @PermitAll
 @Uses(Upload.class)
 @Uses(Icon.class)
+@Uses(ListBox.class)
 public class UserDetailsView extends Div implements BeforeEnterObserver {
 
     private String id;
@@ -62,6 +64,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
     H3 lblName = new H3();
     H5 lblDescription = new H5();
     Avatar avatar = new Avatar();
+    ListBox<String> listMemberOf = new ListBox<>();
 
     Binder<UserEntry> binder = new Binder<>(UserEntry.class);
 
@@ -84,10 +87,21 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
                 lblDescription.setText(user.getDescription());
 
                 avatar.setName(user.getName());
-                if(user.getJpegPhoto() != null) {
+                if (user.getJpegPhoto() != null) {
                     StreamResource resource = new StreamResource("profile-pic",
                             () -> new ByteArrayInputStream(user.getJpegPhoto()));
                     avatar.setImageResource(resource);
+                }
+
+                listMemberOf.clear();
+                if (user.getMemberOf() != null) {
+                    List<String> items = new ArrayList<>();
+                    if (user.getPrimaryGroupId() != 0)
+                        items.add(ADHelper.getPrimaryGroup(user.getPrimaryGroupId()));
+                    for (String item : user.getMemberOf()) {
+                        items.add(ADHelper.ExtractCN(item));
+                    }
+                    listMemberOf.setItems(items);
                 }
             }
         }
@@ -178,6 +192,8 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         formLayout.add(txtDisplayName, txtCompany, txtTitle, txtEmail, txtMobilePhone, txtOfficePhone, txtHomePhone);
 
         verticalLayout.add(formLayout);
+
+        verticalLayout.add(new Hr(), new H5("Member of"), listMemberOf);
     }
 
     private ConfirmDialog deleteDialog() {

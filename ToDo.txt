@@ -26,18 +26,18 @@
         + Photo (thumbnailPhoto + jpegPhoto)
         + Options
         + Reset password
-        - Member of
+        +- Member of
         + Delete
     7. Group
         + Add
         + Update
-        - Members
-        - Member Of
+        +- Members
+        +- Member Of
         + Delete
     8. Computer
         + Add
         + Update
-        - Member of
+        +- Member of
         + Delete
         - Management
             + Events

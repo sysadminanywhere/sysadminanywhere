@@ -1,9 +1,8 @@
 package com.sysadminanywhere.views.management.groups;
 
+import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.GroupEntry;
-import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.GroupsService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.button.Button;
@@ -15,8 +14,10 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.notification.Notification;
@@ -24,6 +25,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -32,10 +34,15 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @PageTitle("Group details")
 @Route(value = "management/groups/:id?/details", layout = MainLayout.class)
 @PermitAll
 @Uses(Icon.class)
+@Uses(ListBox.class)
+@Uses(TabSheet.class)
 public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
     private String id;
@@ -44,6 +51,8 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
+    ListBox<String> listMemberOf = new ListBox<>();
+    ListBox<String> listMembers = new ListBox<>();
 
     Binder<GroupEntry> binder = new Binder<>(GroupEntry.class);
 
@@ -64,6 +73,26 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
                 lblName.setText(group.getCn());
                 lblDescription.setText(group.getDescription());
+
+                listMemberOf.clear();
+                if (group.getMemberOf() != null) {
+                    List<String> items = new ArrayList<>();
+                    if (group.getPrimaryGroupId() != 0)
+                        items.add(ADHelper.getPrimaryGroup(group.getPrimaryGroupId()));
+                    for (String item : group.getMemberOf()) {
+                        items.add(ADHelper.ExtractCN(item));
+                    }
+                    listMemberOf.setItems(items);
+                }
+
+                listMembers.clear();
+                if (group.getMembers() != null) {
+                    List<String> items = new ArrayList<>();
+                    for (String item : group.getMembers()) {
+                        items.add(ADHelper.ExtractCN(item));
+                    }
+                    listMembers.setItems(items);
+                }
             }
         }
     }
@@ -118,6 +147,13 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
         formLayout.add(txtGroupType);
 
         verticalLayout.add(formLayout);
+
+        TabSheet tabSheet = new TabSheet();
+        tabSheet.add("Member of", listMemberOf);
+        tabSheet.add("Members", listMembers);
+        add(tabSheet);
+
+        verticalLayout.add(new Hr(), tabSheet);
     }
 
     private ConfirmDialog deleteDialog() {

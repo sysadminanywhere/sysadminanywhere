@@ -2,6 +2,24 @@ package com.sysadminanywhere.domain;
 
 public class ADHelper {
 
+    public static String ExtractCN(String dn)
+    {
+        String[] parts = dn.split(",");
+
+        for (int i = 0; i < parts.length; i++)
+        {
+            var p = parts[i];
+            var elems = p.split("=");
+            var t = elems[0].trim().toUpperCase();
+            var v = elems[1].trim();
+            if (t.equals("CN"))
+            {
+                return v;
+            }
+        }
+        return dn;
+    }
+
     public static String getPrimaryGroup(int id)
     {
     /*

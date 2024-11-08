@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.computers;
 
+import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.UserEntry;
@@ -18,6 +19,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.notification.Notification;
@@ -25,6 +27,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
@@ -34,10 +37,14 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @PageTitle("Computer details")
 @Route(value = "management/computers/:id?/details", layout = MainLayout.class)
 @PermitAll
 @Uses(Icon.class)
+@Uses(ListBox.class)
 public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
     private String id;
@@ -46,6 +53,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
+    ListBox<String> listMemberOf = new ListBox<>();
 
     Binder<ComputerEntry> binder = new Binder<>(ComputerEntry.class);
 
@@ -66,6 +74,17 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
                 lblName.setText(computer.getCn());
                 lblDescription.setText(computer.getDescription());
+
+                listMemberOf.clear();
+                if (computer.getMemberOf() != null) {
+                    List<String> items = new ArrayList<>();
+                    if (computer.getPrimaryGroupId() != 0)
+                        items.add(ADHelper.getPrimaryGroup(computer.getPrimaryGroupId()));
+                    for (String item : computer.getMemberOf()) {
+                        items.add(ADHelper.ExtractCN(item));
+                    }
+                    listMemberOf.setItems(items);
+                }
             }
         }
     }
@@ -87,7 +106,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         add(verticalLayout);
 
         MenuBar menuBar = new MenuBar();
-        menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
+        //menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
 
         MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
             updateForm().open();
@@ -161,6 +180,8 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         formLayout.add(txtLocation, txtHostName, txtOperatingSystem, txtVersion, txtServicePack);
 
         verticalLayout.add(formLayout);
+
+        verticalLayout.add(new Hr(), new H5("Member of"), listMemberOf);
     }
 
     private ConfirmDialog deleteDialog() {
