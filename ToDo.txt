@@ -49,9 +49,9 @@
                 - Start
                 - Stop
             + Software
-            - Performance
-                - Cpu
-                - Memory
+            +- Performance
+                + Cpu
+                + Memory
                 - Disk
     9. Contact
         + Add

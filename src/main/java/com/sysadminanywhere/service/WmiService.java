@@ -1,10 +1,12 @@
 package com.sysadminanywhere.service;
 
+import com.sun.jna.platform.win32.COM.Wbemcli;
 import lombok.SneakyThrows;
 import org.sentrysoftware.wmi.WmiHelper;
 import org.sentrysoftware.wmi.wbem.WmiWbemServices;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +35,16 @@ public class WmiService {
         }
 
         return result;
+    }
+
+    @SneakyThrows
+    public void invoke(String hostName, String className, String methodName, Map<String, Object> inputMap) {
+        final String namespace = WmiHelper.DEFAULT_NAMESPACE;
+        String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
+
+        try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, username, password)) {
+            wbemServices.executeMethod(networkResource, className, methodName, inputMap);
+        }
     }
 
 }

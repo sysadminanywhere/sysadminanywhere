@@ -17,9 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ComputersService {
@@ -283,6 +281,54 @@ public class ComputersService {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public void reboot(String hostName) {
+        Map<String, Object> inputMap = new HashMap<>();
+        inputMap.put("Flags", 2);
+        wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
+    }
+
+    public void shutdown(String hostName) {
+        Map<String, Object> inputMap = new HashMap<>();
+        inputMap.put("Flags", 1);
+        wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
+    }
+
+    public Integer getProcessorLoad(String hostName) {
+        try {
+            List<Map<String, Object>> result = wmiService.execute(hostName, "Select * FROM Win32_PerfFormattedData_PerfOS_Processor");
+
+            for (Map<String, Object> item : result) {
+                if (item.get("Name").toString().equals("_Total")) {
+                    Integer percent = Integer.valueOf(item.get("PercentProcessorTime").toString());
+                    return percent;
+                }
+            }
+        } catch (Exception ex) {
+            return 0;
+        }
+        return 0;
+    }
+
+    public Long getAvailableBytes(String hostName) {
+        try {
+            List<Map<String, Object>> result = wmiService.execute(hostName, "Select * FROM Win32_PerfFormattedData_PerfOS_Memory");
+            Long availableBytes = Long.valueOf(result.get(0).get("AvailableBytes").toString());
+            return availableBytes;
+        } catch (Exception ex) {
+            return 0L;
+        }
+    }
+
+    public Long getTotalPhysicalMemory(String hostName) {
+        try {
+            List<Map<String, Object>> result = wmiService.execute(hostName, "Select * FROM Win32_ComputerSystem");
+            Long totalPhysicalMemory = Long.valueOf(result.get(0).get("TotalPhysicalMemory").toString());
+            return totalPhysicalMemory;
+        } catch (Exception ex) {
+            return 0L;
         }
     }
 

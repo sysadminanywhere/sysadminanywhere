@@ -132,11 +132,15 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         subMenuManagement.add(new Hr());
         subMenuManagement.addItem("Software", listener);
 //        subMenuManagement.addItem("Hardware", listener);
-//        subMenuManagement.add(new Hr());
-//        subMenuManagement.addItem("Performance");
-//        subMenuManagement.add(new Hr());
-//        subMenuManagement.addItem("Reboot");
-//        subMenuManagement.addItem("Shutdown");
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Performance", listener);
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Reboot", menuItemClickEvent -> {
+            rebootDialog().open();
+        });
+        subMenuManagement.addItem("Shutdown", menuItemClickEvent -> {
+            shutdownDialog().open();
+        });
 
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
@@ -246,6 +250,46 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
         dialog.getFooter().add(cancelButton);
         dialog.getFooter().add(saveButton);
+
+        return dialog;
+    }
+
+    private ConfirmDialog rebootDialog() {
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Reboot");
+        dialog.setText("Are you sure you want to reboot this computer?");
+
+        dialog.setCancelable(true);
+
+        dialog.setConfirmText("Reboot");
+        dialog.setConfirmButtonTheme("error primary");
+
+        dialog.addConfirmListener(item -> {
+            computersService.reboot(id);
+
+            Notification notification = Notification.show("Reboot command sent");
+            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        });
+
+        return dialog;
+    }
+
+    private ConfirmDialog shutdownDialog() {
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Shutdown");
+        dialog.setText("Are you sure you want to shutdown this computer?");
+
+        dialog.setCancelable(true);
+
+        dialog.setConfirmText("Shutdown");
+        dialog.setConfirmButtonTheme("error primary");
+
+        dialog.addConfirmListener(item -> {
+            computersService.shutdown(id);
+
+            Notification notification = Notification.show("Shutdown command sent");
+            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        });
 
         return dialog;
     }
