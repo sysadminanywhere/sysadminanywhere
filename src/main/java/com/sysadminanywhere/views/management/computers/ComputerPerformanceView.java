@@ -129,11 +129,7 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
         VerticalLayout verticalLayout2 = new VerticalLayout(lblName, lblDescription);
         verticalLayout2.setWidth("70%");
 
-        HorizontalLayout horizontalLayout = new HorizontalLayout();
-        horizontalLayout.setWidthFull();
-        horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-
-        verticalLayout.add(horizontalLayout);
+        verticalLayout.add(verticalLayout2);
 
         final ApexCharts chartProcessor = ApexChartsBuilder.get().withChart(ChartBuilder.get()
                         .withType(Type.LINE)
