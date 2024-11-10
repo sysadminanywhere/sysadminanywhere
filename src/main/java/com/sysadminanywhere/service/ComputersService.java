@@ -332,4 +332,19 @@ public class ComputersService {
         }
     }
 
+    public Integer getDisk(String hostName) {
+        try {
+            List<Map<String, Object>> result = wmiService.execute(hostName, "Select * From Win32_LogicalDisk WHERE Caption='C:'");
+
+            Long diskSize = Long.valueOf(result.get(0).get("Size").toString());
+            Long diskFreeSpace = Long.valueOf(result.get(0).get("FreeSpace").toString());
+
+            Long percent = ((diskSize - diskFreeSpace) * 100) / diskSize;
+
+            return percent.intValue();
+        } catch (Exception ex) {
+            return 0;
+        }
+    }
+
 }

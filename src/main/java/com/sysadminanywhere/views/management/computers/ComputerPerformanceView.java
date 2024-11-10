@@ -8,6 +8,8 @@ import com.github.appreciated.apexcharts.config.chart.builder.ToolbarBuilder;
 import com.github.appreciated.apexcharts.config.chart.builder.ZoomBuilder;
 import com.github.appreciated.apexcharts.config.grid.builder.RowBuilder;
 import com.github.appreciated.apexcharts.config.plotoptions.builder.BarBuilder;
+import com.github.appreciated.apexcharts.config.plotoptions.builder.RadialBarBuilder;
+import com.github.appreciated.apexcharts.config.plotoptions.radialbar.builder.HollowBuilder;
 import com.github.appreciated.apexcharts.config.stroke.Curve;
 import com.github.appreciated.apexcharts.config.xaxis.TickPlacement;
 import com.github.appreciated.apexcharts.helper.Series;
@@ -185,10 +187,33 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
         chartMemory.setWidth("400px");
         chartMemory.setTitle(TitleSubtitleBuilder.get().withText("Memory").build());
 
-        HorizontalLayout line = new HorizontalLayout();
-        horizontalLayout.add(chartProcessor, chartMemory);
+        HorizontalLayout line1 = new HorizontalLayout();
+        line1.add(chartProcessor, chartMemory);
 
-        verticalLayout.add(line);
+        final ApexCharts chartDisk = ApexChartsBuilder.get().withChart(ChartBuilder.get()
+                        .withType(Type.RADIALBAR)
+                        .withToolbar(ToolbarBuilder.get().withShow(false).build())
+                        .withZoom(ZoomBuilder.get().withEnabled(false).build())
+                        .build())
+                .withPlotOptions(PlotOptionsBuilder.get()
+                        .withRadialBar(RadialBarBuilder.get()
+                                .withHollow(HollowBuilder.get()
+                                        .withSize("70%")
+                                        .build())
+                                .build())
+                        .build())
+                .withSeries(0.0)
+                .withLabels("C:")
+                .build();
+
+        chartDisk.setHeight("300px");
+        chartDisk.setWidth("400px");
+        chartDisk.setTitle(TitleSubtitleBuilder.get().withText("Disk").build());
+
+        HorizontalLayout line2 = new HorizontalLayout();
+        line2.add(chartDisk);
+
+        verticalLayout.add(line1, line2);
 
         scheduler.scheduleAtFixedRate(() -> {
 
@@ -200,6 +225,7 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
             Series seriesMemory = new Series();
             seriesMemory.setData(memoryStack.toArray());
 
+
             Integer processorLoad = computersService.getProcessorLoad(id);
 
             processorStack.remove(0);
@@ -207,10 +233,13 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
             Series seriesProcessor = new Series();
             seriesProcessor.setData(processorStack.toArray());
 
+            Integer disk = computersService.getDisk(id);
+
             if (getUI().isEmpty()) return;
             getUI().get().access(() -> {
                 chartMemory.updateSeries(seriesMemory);
                 chartProcessor.updateSeries(seriesProcessor);
+                chartDisk.updateSeries(disk.doubleValue());
             });
         }, 1, 5, TimeUnit.SECONDS);
     }
