@@ -38,6 +38,11 @@ public class ComputersService {
         return resolveService.getADPage(result, pageable);
     }
 
+    public List<ComputerEntry> getAll() {
+        List<Entry> result = ldapService.search("(objectClass=computer)");
+        return resolveService.getADList(result);
+    }
+
     public ComputerEntry getByCN(String cn) {
         List<Entry> result = ldapService.search("(&(objectClass=computer)(cn=" + cn + "))");
         Optional<Entry> entry = result.stream().findFirst();
