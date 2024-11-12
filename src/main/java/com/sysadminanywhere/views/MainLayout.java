@@ -7,15 +7,13 @@ import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
 import com.sysadminanywhere.views.management.groups.GroupsView;
 import com.sysadminanywhere.views.management.printers.PrintersView;
-import com.sysadminanywhere.views.management.users.UserDetailsView;
 import com.sysadminanywhere.views.management.users.UsersView;
 import com.sysadminanywhere.views.monitoring.MonitorsView;
-import com.sysadminanywhere.views.reporting.ReportsView;
+import com.sysadminanywhere.views.reports.*;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.contextmenu.MenuItem;
-import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Footer;
@@ -28,7 +26,6 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
-import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
@@ -142,13 +139,28 @@ public class MainLayout extends AppLayout {
     }
 
     private SideNav createReportingNavigation() {
-        SideNav nav = new SideNav("Reporting");
+        SideNav nav = new SideNav("Reports");
         nav.setCollapsible(true);
         nav.setWidth("100%");
 
         if (accessChecker.hasAccess(HomeView.class)) {
             nav.addItem(
-                    new SideNavItem("Reports", ReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
+                    new SideNavItem("User reports", UserReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
+        }
+
+        if (accessChecker.hasAccess(HomeView.class)) {
+            nav.addItem(
+                    new SideNavItem("Computer reports", ComputerReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
+        }
+
+        if (accessChecker.hasAccess(HomeView.class)) {
+            nav.addItem(
+                    new SideNavItem("Group reports", GroupReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
+        }
+
+        if (accessChecker.hasAccess(HomeView.class)) {
+            nav.addItem(
+                    new SideNavItem("Other reports", OtherReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
         }
 
         return nav;
