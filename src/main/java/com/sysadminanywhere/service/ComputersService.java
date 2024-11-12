@@ -38,8 +38,8 @@ public class ComputersService {
         return resolveService.getADPage(result, pageable);
     }
 
-    public List<ComputerEntry> getAll() {
-        List<Entry> result = ldapService.search("(objectClass=computer)");
+    public List<ComputerEntry> getAll(String filters) {
+        List<Entry> result = ldapService.search("(&(objectClass=computer)" + filters + ")");
         return resolveService.getADList(result);
     }
 

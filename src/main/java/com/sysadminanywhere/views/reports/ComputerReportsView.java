@@ -56,7 +56,8 @@ public class ComputerReportsView extends Div {
 
         listBox.addValueChangeListener(event ->
         {
-            event.getSource().getUI().ifPresent(ui -> ui.navigate("reports/report?filter=" + event.getValue().getFilter()));
+            event.getSource().getUI().ifPresent(ui ->
+                    ui.navigate("reports/report?entry=computer&filter=" + event.getValue().getFilter() + "&columns=" + event.getValue().getColumns()));
         });
 
         add(listBox);
@@ -66,12 +67,12 @@ public class ComputerReportsView extends Div {
         listBox.clear();
 
         List<ReportItem> reports = new ArrayList<>();
-        reports.add(new ReportItem("Computers", "All computers", "(objectClass=computer)"));
-        reports.add(new ReportItem("Controllers", "All controllers", "(&(objectCategory=computer)(primaryGroupID=516))"));
-        reports.add(new ReportItem("Disabled", "Disabled computers", "(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=2))"));
-        reports.add(new ReportItem("Servers", "All servers", "(&(objectCategory=computer)(operatingSystem=Windows*Server*))"));
-        reports.add(new ReportItem("Created", "Created dates", "(objectClass=computer)"));
-        reports.add(new ReportItem("Last logon", "Computers with last logon dates", "(objectClass=computer)"));
+        reports.add(new ReportItem("Computers", "All computers", "", "cn,operatingSystem,operatingSystemServicePack"));
+        reports.add(new ReportItem("Controllers", "All controllers", "(primaryGroupID=516)", "cn,operatingSystem,operatingSystemServicePack"));
+        reports.add(new ReportItem("Disabled", "Disabled computers", "(userAccountControl:1.2.840.113556.1.4.803:=2)", "cn,operatingSystem,operatingSystemServicePack"));
+        reports.add(new ReportItem("Servers", "All servers", "(operatingSystem=Windows*Server*)", "cn,operatingSystem,operatingSystemServicePack"));
+        reports.add(new ReportItem("Created", "Created dates", "", "cn,operatingSystem,modified"));
+        reports.add(new ReportItem("Last logon", "Computers with last logon dates", "", "cn,operatingSystem,lastLogon"));
 
         listBox.setItems(reports);
     }

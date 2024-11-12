@@ -1,5 +1,6 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.UserAccountControls;
 import com.sysadminanywhere.model.UserEntry;
 import lombok.SneakyThrows;
@@ -27,6 +28,11 @@ public class UsersService {
     public Page<UserEntry> getAll(Pageable pageable, String filters) {
         List<Entry> result = ldapService.search("(&(objectClass=user)(objectCategory=person)" + filters + ")", pageable.getSort());
         return resolveService.getADPage(result, pageable);
+    }
+
+    public List<UserEntry> getAll(String filters) {
+        List<Entry> result = ldapService.search("(&(objectClass=user)(objectCategory=person)" + filters + ")");
+        return resolveService.getADList(result);
     }
 
     public UserEntry getByCN(String cn) {

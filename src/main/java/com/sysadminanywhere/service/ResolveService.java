@@ -75,7 +75,10 @@ public class ResolveService<T> {
                         Value value = entry.get(property.name()).get();
 
                         if (field.getType().getName().equalsIgnoreCase(String.class.getName())) {
-                            field.set(result, value.getString());
+                            if(value == null)
+                                field.set(result, "");
+                            else
+                                field.set(result, value.getString());
                         }
 
                         if (field.getType().getName().equalsIgnoreCase(LocalDateTime.class.getName())) {

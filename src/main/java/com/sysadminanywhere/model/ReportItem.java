@@ -12,5 +12,6 @@ public class ReportItem {
     public String name;
     private String description;
     private String filter;
+    private String columns;
 
 }

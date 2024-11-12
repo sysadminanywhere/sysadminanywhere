@@ -1,5 +1,6 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.GroupEntry;
 import com.sysadminanywhere.model.GroupScope;
 import com.sysadminanywhere.model.GroupType;
@@ -29,6 +30,11 @@ public class GroupsService {
     public Page<GroupEntry> getAll(Pageable pageable, String filters) {
         List<Entry> result = ldapService.search("(&(objectClass=group)" + filters + ")", pageable.getSort());
         return resolveService.getADPage(result, pageable);
+    }
+
+    public List<GroupEntry> getAll(String filters) {
+        List<Entry> result = ldapService.search("(&(objectClass=group)" + filters + ")");
+        return resolveService.getADList(result);
     }
 
     public GroupEntry getByCN(String cn) {

@@ -158,10 +158,10 @@ public class MainLayout extends AppLayout {
                     new SideNavItem("Group reports", GroupReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
         }
 
-        if (accessChecker.hasAccess(HomeView.class)) {
-            nav.addItem(
-                    new SideNavItem("Other reports", OtherReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
-        }
+//        if (accessChecker.hasAccess(HomeView.class)) {
+//            nav.addItem(
+//                    new SideNavItem("Other reports", OtherReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
+//        }
 
         return nav;
     }
