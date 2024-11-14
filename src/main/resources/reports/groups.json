@@ -1,0 +1,37 @@
+[ {
+  "id" : "groups",
+  "name" : "Groups",
+  "description" : "All groups",
+  "filter" : "",
+  "columns" : ["cn","description"]
+}, {
+  "id" : "domainsecurity",
+  "name" : "Domain security",
+  "description" : "Domain security groups",
+  "filter" : "(groupType:1.2.840.113556.1.4.803:=2147483652)",
+  "columns" : ["cn","description"]
+}, {
+  "id" : "globaldistribution",
+  "name" : "Global distribution",
+  "description" : "Global distribution groups",
+  "filter" : "(groupType:1.2.840.113556.1.4.803:=2)(!(groupType:1.2.840.113556.1.4.803:=2147483648))",
+  "columns" : ["cn","description"]
+}, {
+  "id" : "globalsecurity",
+  "name" : "Global security",
+  "description" : "Global security groups",
+  "filter" : "(groupType:1.2.840.113556.1.4.803:=2147483650)",
+  "columns" : ["cn","description"]
+}, {
+  "id" : "universalsecurity",
+  "name" : "Universal security",
+  "description" : "Universal security groups",
+  "filter" : "(groupType:1.2.840.113556.1.4.803:=2147483656)",
+  "columns" : ["cn","description"]
+}, {
+  "id" : "created",
+  "name" : "Created",
+  "description" : "Created dates",
+  "filter" : "",
+  "columns" : ["cn","description","created"]
+} ]

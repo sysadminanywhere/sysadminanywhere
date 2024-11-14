@@ -9,9 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ReportItem {
 
-    public String name;
+    private String id;
+    private String name;
     private String description;
     private String filter;
-    private String columns;
+    private String[] columns;
 
 }

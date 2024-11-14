@@ -1,5 +1,7 @@
 package com.sysadminanywhere.views.reports;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.sysadminanywhere.model.ReportItem;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.dependency.Uses;
@@ -15,7 +17,11 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
+import lombok.SneakyThrows;
+import org.springframework.core.io.ClassPathResource;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,22 +61,19 @@ public class GroupReportsView extends Div {
         listBox.addValueChangeListener(event ->
         {
             event.getSource().getUI().ifPresent(ui ->
-                    ui.navigate("reports/report?entry=group&filter=" + event.getValue().getFilter() + "&columns=" + event.getValue().getColumns()));
+                    ui.navigate("reports/report?entry=groups&id=" + event.getValue().getId()));
         });
 
         add(listBox);
     }
 
+    @SneakyThrows
     private void addReports() {
         listBox.clear();
 
-        List<ReportItem> reports = new ArrayList<>();
-        reports.add(new ReportItem("Groups", "All groups", "","cn,description"));
-        reports.add(new ReportItem("Domain security", "Domain security groups", "(groupType:1.2.840.113556.1.4.803:=2147483652)","cn,description"));
-        reports.add(new ReportItem("Global distribution", "Global distribution groups", "(groupType:1.2.840.113556.1.4.803:=2)(!(groupType:1.2.840.113556.1.4.803:=2147483648))","cn,description"));
-        reports.add(new ReportItem("Global security", "Global security groups", "(groupType:1.2.840.113556.1.4.803:=2147483650)","cn,description"));
-        reports.add(new ReportItem("Universal security", "Universal security groups", "(groupType:1.2.840.113556.1.4.803:=2147483656)", "cn,description"));
-        reports.add(new ReportItem("Created", "Created dates", "", "cn,description,created"));
+        File resource = new ClassPathResource("reports/groups.json").getFile();
+        String json = new String(Files.readAllBytes(resource.toPath()));
+        ReportItem[] reports = new ObjectMapper().readValue(json, ReportItem[].class);
 
         listBox.setItems(reports);
     }

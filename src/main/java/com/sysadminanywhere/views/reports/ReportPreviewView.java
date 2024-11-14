@@ -1,7 +1,9 @@
 package com.sysadminanywhere.views.reports;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.GroupEntry;
+import com.sysadminanywhere.model.ReportItem;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.*;
 import com.sysadminanywhere.views.MainLayout;
@@ -10,10 +12,16 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.router.*;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.core.io.ClassPathResource;
 import org.vaadin.reports.PrintPreviewReport;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @PageTitle("Report")
 @Route(value = "reports/report", layout = MainLayout.class)
@@ -21,8 +29,7 @@ import java.util.Map;
 @Uses(Icon.class)
 public class ReportPreviewView extends Div implements BeforeEnterObserver {
 
-    private String filter;
-    private String[] columns;
+    private String id;
     private String entry;
 
     private final ComputersService computersService;
@@ -38,12 +45,10 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
 
         if (!parametersMap.isEmpty()
                 && parametersMap.containsKey("entry")
-                && parametersMap.containsKey("filter")
-                && parametersMap.containsKey("columns")) {
+                && parametersMap.containsKey("id")) {
 
             entry = parametersMap.get("entry").get(0);
-            filter = parametersMap.get("filter").get(0);
-            columns = parametersMap.get("columns").get(0).split(",");
+            id = parametersMap.get("id").get(0);
 
             updateView();
         }
@@ -57,54 +62,72 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
     }
 
     private void updateView() {
-        switch (entry.toLowerCase()){
-            case "computer":
-                add(computerReports());
+
+        ReportItem reportItem = null;
+
+        try {
+            File resource = new ClassPathResource("reports/" + entry.toLowerCase() + ".json").getFile();
+            String json = new String(Files.readAllBytes(resource.toPath()));
+            ReportItem[] reports = new ObjectMapper().readValue(json, ReportItem[].class);
+
+            Optional<ReportItem> item = Arrays.stream(reports).filter(c -> c.getId().equalsIgnoreCase(id)).findFirst();
+            if (item.isPresent())
+                reportItem = item.get();
+            else
+                return;
+
+        } catch (IOException e) {
+            return;
+        }
+
+        switch (entry.toLowerCase()) {
+            case "computers":
+                add(computerReports(reportItem));
                 break;
-            case "user":
-                add(userReports());
+            case "users":
+                add(userReports(reportItem));
                 break;
-            case "group":
-                add(groupReports());
+            case "groups":
+                add(groupReports(reportItem));
                 break;
         }
     }
 
-    private PrintPreviewReport computerReports() {
-        PrintPreviewReport<ComputerEntry> report = new PrintPreviewReport<>(ComputerEntry.class, columns);
+    private PrintPreviewReport computerReports(ReportItem reportItem) {
+        PrintPreviewReport<ComputerEntry> report = new PrintPreviewReport<>(ComputerEntry.class, reportItem.getColumns());
 
         report.getReportBuilder()
                 .setMargins(20, 20, 20, 20)
-                .setTitle("Computers")
+                .setTitle(reportItem.getDescription())
                 .setPrintBackgroundOnOddRows(true);
 
-        report.setItems(computersService.getAll(filter));
+        report.setItems(computersService.getAll(reportItem.getFilter()));
 
         return report;
     }
 
-    private PrintPreviewReport userReports() {
-        PrintPreviewReport<UserEntry> report = new PrintPreviewReport<>(UserEntry.class, columns);
+    private PrintPreviewReport userReports(ReportItem reportItem) {
+        PrintPreviewReport<UserEntry> report = new PrintPreviewReport<>(UserEntry.class, reportItem.getColumns());
 
         report.getReportBuilder()
                 .setMargins(20, 20, 20, 20)
-                .setTitle("Users")
+                .setTitle(reportItem.getDescription())
                 .setPrintBackgroundOnOddRows(true);
 
-        report.setItems(usersService.getAll(filter));
+        report.setItems(usersService.getAll(reportItem.getFilter()));
 
         return report;
     }
 
-    private PrintPreviewReport groupReports() {
-        PrintPreviewReport<GroupEntry> report = new PrintPreviewReport<>(GroupEntry.class, columns);
+    private PrintPreviewReport groupReports(ReportItem reportItem) {
+        PrintPreviewReport<GroupEntry> report = new PrintPreviewReport<>(GroupEntry.class, reportItem.getColumns());
 
         report.getReportBuilder()
                 .setMargins(20, 20, 20, 20)
-                .setTitle("Groups")
+                .setTitle(reportItem.getDescription())
                 .setPrintBackgroundOnOddRows(true);
 
-        report.setItems(groupsService.getAll(filter));
+        report.setItems(groupsService.getAll(reportItem.getFilter()));
 
         return report;
     }

@@ -1,7 +1,7 @@
 package com.sysadminanywhere.views.reports;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.model.ReportItem;
-import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
@@ -16,10 +16,12 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
-import org.apache.directory.api.ldap.model.entry.Entry;
+import lombok.SneakyThrows;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
+import java.nio.file.Files;
 
 @PageTitle("Computer Reports")
 @Route(value = "reports/computers", layout = MainLayout.class)
@@ -57,22 +59,19 @@ public class ComputerReportsView extends Div {
         listBox.addValueChangeListener(event ->
         {
             event.getSource().getUI().ifPresent(ui ->
-                    ui.navigate("reports/report?entry=computer&filter=" + event.getValue().getFilter() + "&columns=" + event.getValue().getColumns()));
+                    ui.navigate("reports/report?entry=computers&id=" + event.getValue().getId()));
         });
 
         add(listBox);
     }
 
+    @SneakyThrows
     private void addReports() {
         listBox.clear();
 
-        List<ReportItem> reports = new ArrayList<>();
-        reports.add(new ReportItem("Computers", "All computers", "", "cn,operatingSystem,operatingSystemServicePack"));
-        reports.add(new ReportItem("Controllers", "All controllers", "(primaryGroupID=516)", "cn,operatingSystem,operatingSystemServicePack"));
-        reports.add(new ReportItem("Disabled", "Disabled computers", "(userAccountControl:1.2.840.113556.1.4.803:=2)", "cn,operatingSystem,operatingSystemServicePack"));
-        reports.add(new ReportItem("Servers", "All servers", "(operatingSystem=Windows*Server*)", "cn,operatingSystem,operatingSystemServicePack"));
-        reports.add(new ReportItem("Created", "Created dates", "", "cn,operatingSystem,modified"));
-        reports.add(new ReportItem("Last logon", "Computers with last logon dates", "", "cn,operatingSystem,lastLogon"));
+        File resource = new ClassPathResource("reports/computers.json").getFile();
+        String json = new String(Files.readAllBytes(resource.toPath()));
+        ReportItem[] reports = new ObjectMapper().readValue(json, ReportItem[].class);
 
         listBox.setItems(reports);
     }
