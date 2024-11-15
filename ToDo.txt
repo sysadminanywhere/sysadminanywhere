@@ -64,6 +64,7 @@
     1. Reports
         + Reports list
         + Show reports
+        + Download PDF
 
 
 - Monitoring

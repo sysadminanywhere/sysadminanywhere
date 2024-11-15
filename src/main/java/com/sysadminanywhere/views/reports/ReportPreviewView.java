@@ -8,12 +8,17 @@ import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.*;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.function.SerializableSupplier;
 import com.vaadin.flow.router.*;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.core.io.ClassPathResource;
 import org.vaadin.reports.PrintPreviewReport;
+import com.vaadin.flow.server.StreamResource;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,20 +85,24 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
             return;
         }
 
+        VerticalLayout verticalLayout = new VerticalLayout();
+
         switch (entry.toLowerCase()) {
             case "computers":
-                add(computerReports(reportItem));
+                verticalLayout = computerReports(reportItem);
                 break;
             case "users":
-                add(userReports(reportItem));
+                verticalLayout = userReports(reportItem);
                 break;
             case "groups":
-                add(groupReports(reportItem));
+                verticalLayout = groupReports(reportItem);
                 break;
         }
+
+        add(verticalLayout);
     }
 
-    private PrintPreviewReport computerReports(ReportItem reportItem) {
+    private VerticalLayout computerReports(ReportItem reportItem) {
         PrintPreviewReport<ComputerEntry> report = new PrintPreviewReport<>(ComputerEntry.class, reportItem.getColumns());
 
         report.getReportBuilder()
@@ -101,12 +110,13 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
                 .setTitle(reportItem.getDescription())
                 .setPrintBackgroundOnOddRows(true);
 
-        report.setItems(computersService.getAll(reportItem.getFilter()));
+        SerializableSupplier<List<? extends ComputerEntry>> itemsSupplier = () -> computersService.getAll(reportItem.getFilter());
+        report.setItems(itemsSupplier.get());
 
-        return report;
+        return new DownloadMenu<>(ComputerEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
     }
 
-    private PrintPreviewReport userReports(ReportItem reportItem) {
+    private VerticalLayout userReports(ReportItem reportItem) {
         PrintPreviewReport<UserEntry> report = new PrintPreviewReport<>(UserEntry.class, reportItem.getColumns());
 
         report.getReportBuilder()
@@ -114,12 +124,13 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
                 .setTitle(reportItem.getDescription())
                 .setPrintBackgroundOnOddRows(true);
 
-        report.setItems(usersService.getAll(reportItem.getFilter()));
+        SerializableSupplier<List<? extends UserEntry>> itemsSupplier = () -> usersService.getAll(reportItem.getFilter());
+        report.setItems(itemsSupplier.get());
 
-        return report;
+        return new DownloadMenu<>(UserEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
     }
 
-    private PrintPreviewReport groupReports(ReportItem reportItem) {
+    private VerticalLayout groupReports(ReportItem reportItem) {
         PrintPreviewReport<GroupEntry> report = new PrintPreviewReport<>(GroupEntry.class, reportItem.getColumns());
 
         report.getReportBuilder()
@@ -127,9 +138,10 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
                 .setTitle(reportItem.getDescription())
                 .setPrintBackgroundOnOddRows(true);
 
-        report.setItems(groupsService.getAll(reportItem.getFilter()));
+        SerializableSupplier<List<? extends GroupEntry>> itemsSupplier = () -> groupsService.getAll(reportItem.getFilter());
+        report.setItems(itemsSupplier.get());
 
-        return report;
+        return new DownloadMenu<>(GroupEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
     }
 
 }
