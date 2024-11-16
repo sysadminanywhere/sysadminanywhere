@@ -1,5 +1,7 @@
 package com.sysadminanywhere.views.reports;
 
+import ar.com.fdvs.dj.domain.AutoText;
+import ar.com.fdvs.dj.domain.DJCrosstab;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.GroupEntry;
@@ -105,10 +107,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
     private VerticalLayout computerReports(ReportItem reportItem) {
         PrintPreviewReport<ComputerEntry> report = new PrintPreviewReport<>(ComputerEntry.class, reportItem.getColumns());
 
-        report.getReportBuilder()
-                .setMargins(20, 20, 20, 20)
-                .setTitle(reportItem.getDescription())
-                .setPrintBackgroundOnOddRows(true);
+        report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
 
         SerializableSupplier<List<? extends ComputerEntry>> itemsSupplier = () -> computersService.getAll(reportItem.getFilter());
         report.setItems(itemsSupplier.get());
@@ -119,10 +118,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
     private VerticalLayout userReports(ReportItem reportItem) {
         PrintPreviewReport<UserEntry> report = new PrintPreviewReport<>(UserEntry.class, reportItem.getColumns());
 
-        report.getReportBuilder()
-                .setMargins(20, 20, 20, 20)
-                .setTitle(reportItem.getDescription())
-                .setPrintBackgroundOnOddRows(true);
+        report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
 
         SerializableSupplier<List<? extends UserEntry>> itemsSupplier = () -> usersService.getAll(reportItem.getFilter());
         report.setItems(itemsSupplier.get());
@@ -133,15 +129,24 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
     private VerticalLayout groupReports(ReportItem reportItem) {
         PrintPreviewReport<GroupEntry> report = new PrintPreviewReport<>(GroupEntry.class, reportItem.getColumns());
 
-        report.getReportBuilder()
-                .setMargins(20, 20, 20, 20)
-                .setTitle(reportItem.getDescription())
-                .setPrintBackgroundOnOddRows(true);
+        report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
 
         SerializableSupplier<List<? extends GroupEntry>> itemsSupplier = () -> groupsService.getAll(reportItem.getFilter());
         report.setItems(itemsSupplier.get());
 
         return new DownloadMenu<>(GroupEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
+    }
+
+    private PrintPreviewReport getTemplate(PrintPreviewReport report, String title, String subtitle) {
+        report.getReportBuilder()
+                .setMargins(20, 20, 20, 20)
+                .setTitle(title + " / " + subtitle)
+                .setPrintBackgroundOnOddRows(true)
+                .addAutoText("Sysadmin Anywhere", AutoText.POSITION_FOOTER, AutoText.ALIGMENT_LEFT, 200)
+                .addAutoText("sysadminanywhere.com", AutoText.POSITION_FOOTER, AutoText.ALIGNMENT_CENTER, 200)
+                .addAutoText(AutoText.AUTOTEXT_PAGE_X, AutoText.POSITION_FOOTER, AutoText.ALIGNMENT_RIGHT);
+
+        return report;
     }
 
 }
