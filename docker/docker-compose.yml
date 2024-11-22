@@ -11,11 +11,11 @@ services:
     ports:
       - "5432:5432"
 
-#  sysadminanywhere:
-#    image: sysadminanywhere/sysadminanywhere:latest
-#    container_name: sysadminanywhere
-#    env_file: sysadminanywhere.env
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - postgres
+  sysadminanywhere:
+    image: sysadminanywhere/sysadminanywhere:latest
+    container_name: sysadminanywhere
+    env_file: sysadminanywhere.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
