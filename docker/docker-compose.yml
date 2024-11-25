@@ -4,7 +4,7 @@ services:
     image: ghcr.io/danielptv/postgres-multiple-databases:latest
     container_name: postgres
     environment:
-      POSTGRES_MULTIPLE_DATABASES: sysadminanywhere:sysadminanywhere:sysadminanywhere
+      POSTGRES_MULTIPLE_DATABASES: sysadminanywhere:sysadminanywhere:sysadminanywhere, inventory:inventory:inventory, monitoring:monitoring:monitoring
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123456
       POSTGRES_DB: postgres
