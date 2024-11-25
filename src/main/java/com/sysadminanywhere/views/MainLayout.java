@@ -3,6 +3,7 @@ package com.sysadminanywhere.views;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.views.home.HomeView;
+import com.sysadminanywhere.views.inventory.InventoryView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
 import com.sysadminanywhere.views.management.groups.GroupsView;
@@ -68,7 +69,7 @@ public class MainLayout extends AppLayout {
         verticalLayout.setPadding(false);
 
         verticalLayout.add(createNavigation());
-        verticalLayout.add(createManagementNavigation(), createMonitoringNavigation(), createReportingNavigation());
+        verticalLayout.add(createManagementNavigation(), createMonitoringNavigation(), createInventoryNavigation(), createReportingNavigation());
 
         Scroller scroller = new Scroller(verticalLayout);
 
@@ -128,6 +129,19 @@ public class MainLayout extends AppLayout {
         if (accessChecker.hasAccess(HomeView.class)) {
             nav.addItem(
                     new SideNavItem("Monitors", MonitorsView.class, LineAwesomeIcon.CHART_AREA_SOLID.create()));
+        }
+
+        return nav;
+    }
+
+    private SideNav createInventoryNavigation() {
+        SideNav nav = new SideNav("Inventory");
+        nav.setCollapsible(true);
+        nav.setWidth("100%");
+
+        if (accessChecker.hasAccess(HomeView.class)) {
+            nav.addItem(
+                    new SideNavItem("Inventory", InventoryView.class, LineAwesomeIcon.CLIPBOARD.create()));
         }
 
         return nav;

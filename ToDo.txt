@@ -71,3 +71,8 @@
 
     1. Monitors
         - Monitors list
+
+- Inventory
+
+    1. Software inventory
+    2. Hardware inventory
