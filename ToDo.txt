@@ -78,6 +78,6 @@
         + Scan
         + Software installations count
         + List of software on selected computer
-        - List of computers with selected software
+        + List of computers with selected software
 
     2. Hardware inventory

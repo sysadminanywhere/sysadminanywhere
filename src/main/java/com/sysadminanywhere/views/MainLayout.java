@@ -1,5 +1,7 @@
 package com.sysadminanywhere.views;
 
+import com.sysadminanywhere.domain.InventorySetting;
+import com.sysadminanywhere.domain.MonitoringSetting;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.views.home.HomeView;
@@ -40,9 +42,17 @@ public class MainLayout extends AppLayout {
     private AuthenticatedUser authenticatedUser;
     private AccessAnnotationChecker accessChecker;
 
-    public MainLayout(AuthenticatedUser authenticatedUser, AccessAnnotationChecker accessChecker) {
+    private final InventorySetting inventorySetting;
+    private final MonitoringSetting monitoringSetting;
+
+    public MainLayout(AuthenticatedUser authenticatedUser,
+                      AccessAnnotationChecker accessChecker,
+                      InventorySetting inventorySetting,
+                      MonitoringSetting monitoringSetting) {
         this.authenticatedUser = authenticatedUser;
         this.accessChecker = accessChecker;
+        this.inventorySetting = inventorySetting;
+        this.monitoringSetting = monitoringSetting;
 
         setPrimarySection(Section.DRAWER);
         addDrawerContent();
@@ -69,7 +79,15 @@ public class MainLayout extends AppLayout {
         verticalLayout.setPadding(false);
 
         verticalLayout.add(createNavigation());
-        verticalLayout.add(createManagementNavigation(), createMonitoringNavigation(), createInventoryNavigation(), createReportingNavigation());
+        verticalLayout.add(createManagementNavigation());
+
+        if(inventorySetting.getAvailable())
+            verticalLayout.add(createInventoryNavigation());
+
+        if(monitoringSetting.getAvailable())
+            verticalLayout.add(createMonitoringNavigation());
+
+        verticalLayout.add(createReportingNavigation());
 
         Scroller scroller = new Scroller(verticalLayout);
 
