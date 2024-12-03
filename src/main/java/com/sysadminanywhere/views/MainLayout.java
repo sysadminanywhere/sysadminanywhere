@@ -5,7 +5,7 @@ import com.sysadminanywhere.domain.MonitoringSetting;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.views.home.HomeView;
-import com.sysadminanywhere.views.inventory.InventoryView;
+import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
 import com.sysadminanywhere.views.management.groups.GroupsView;
@@ -159,7 +159,7 @@ public class MainLayout extends AppLayout {
 
         if (accessChecker.hasAccess(HomeView.class)) {
             nav.addItem(
-                    new SideNavItem("Inventory", InventoryView.class, LineAwesomeIcon.CLIPBOARD.create()));
+                    new SideNavItem("Software", InventorySoftwareView.class, LineAwesomeIcon.CLIPBOARD.create()));
         }
 
         return nav;
@@ -172,22 +172,22 @@ public class MainLayout extends AppLayout {
 
         if (accessChecker.hasAccess(HomeView.class)) {
             nav.addItem(
-                    new SideNavItem("User reports", UserReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
+                    new SideNavItem("Users", UserReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
         }
 
         if (accessChecker.hasAccess(HomeView.class)) {
             nav.addItem(
-                    new SideNavItem("Computer reports", ComputerReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
+                    new SideNavItem("Computers", ComputerReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
         }
 
         if (accessChecker.hasAccess(HomeView.class)) {
             nav.addItem(
-                    new SideNavItem("Group reports", GroupReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
+                    new SideNavItem("Groups", GroupReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
         }
 
 //        if (accessChecker.hasAccess(HomeView.class)) {
 //            nav.addItem(
-//                    new SideNavItem("Other reports", OtherReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
+//                    new SideNavItem("Others", OtherReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
 //        }
 
         return nav;
