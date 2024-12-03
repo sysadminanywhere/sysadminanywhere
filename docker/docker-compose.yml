@@ -20,15 +20,15 @@ services:
 #    depends_on:
 #      - postgres
 #
-#  inventory:
-#    image: sysadminanywhere/inventory:latest
-#    container_name: inventory
-#    env_file: inventory.env
-#    ports:
-#      - "8081:8080"
-#    depends_on:
-#      - postgres
-#
+  inventory:
+    image: sysadminanywhere/inventory:latest
+    container_name: inventory
+    env_file: inventory.env
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+
 #  monitoring:
 #    image: sysadminanywhere/monitoring:latest
 #    container_name: monitoring

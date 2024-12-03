@@ -75,4 +75,9 @@
 - Inventory
 
     1. Software inventory
+        + Scan
+        + Software installations count
+        + List of software on selected computer
+        - List of computers with selected software
+
     2. Hardware inventory
