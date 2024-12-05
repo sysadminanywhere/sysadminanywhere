@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SoftwareCount {
 
+    private Long id;
     private String name;
     private String vendor;
     private String version;

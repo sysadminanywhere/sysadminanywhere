@@ -1,7 +1,10 @@
 package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.client.InventoryClient;
+import com.sysadminanywhere.client.dto.ComputerDto;
 import com.sysadminanywhere.client.dto.SoftwareCount;
+import com.sysadminanywhere.client.dto.SoftwareOnComputer;
+import com.sysadminanywhere.views.inventory.InventoryComputersWithSoftwareView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -22,6 +25,14 @@ public class InventoryService {
 
     public Page<SoftwareCount> getSoftwareCount(Pageable pageable, InventorySoftwareView.Filters filters) {
         return inventoryClient.getSoftwareCount(pageable);
+    }
+
+    public Page<SoftwareOnComputer> getSoftwareOnComputer(Long computerId, Pageable pageable, InventorySoftwareView.Filters filters) {
+        return inventoryClient.getSoftwareOnComputer(computerId, pageable);
+    }
+
+    public Page<ComputerDto> getComputersWithSoftware(Long softwareId, Pageable pageable, InventoryComputersWithSoftwareView.Filters filters) {
+        return inventoryClient.getComputersWithSoftware(softwareId, pageable);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.inventory;
 
+import com.sysadminanywhere.client.dto.ComputerDto;
 import com.sysadminanywhere.client.dto.SoftwareCount;
 import com.sysadminanywhere.service.InventoryService;
 import com.sysadminanywhere.views.MainLayout;
@@ -15,6 +16,8 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -28,17 +31,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PageTitle("Software inventory")
-@Route(value = "inventory/software", layout = MainLayout.class)
+@Route(value = "inventory/software/:id?/computer", layout = MainLayout.class)
 @PermitAll
 @Uses(Icon.class)
-public class InventorySoftwareView extends Div {
+public class InventoryComputersWithSoftwareView  extends Div implements BeforeEnterObserver {
 
-    private Grid<SoftwareCount> grid;
+    private Long id = 0L;
+
+    private Grid<ComputerDto> grid;
 
     private Filters filters;
     private final InventoryService inventoryService;
 
-    public InventorySoftwareView(InventoryService inventoryService) {
+    public void beforeEnter(BeforeEnterEvent event) {
+        String idParam = event.getRouteParameters().get("id").
+                orElse(null);
+
+        if(idParam != null && !idParam.isEmpty())
+            id = Long.valueOf(idParam);
+    }
+
+    public InventoryComputersWithSoftwareView(InventoryService inventoryService) {
         this.inventoryService = inventoryService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
@@ -75,10 +88,9 @@ public class InventorySoftwareView extends Div {
         return mobileFilters;
     }
 
-    public static class Filters extends Div implements Specification<SoftwareCount> {
+    public static class Filters extends Div implements Specification<ComputerDto> {
 
         private final TextField name = new TextField("Name");
-        private final TextField vendor = new TextField("Vendor");
 
         public Filters(Runnable onSearch) {
 
@@ -92,7 +104,6 @@ public class InventorySoftwareView extends Div {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 name.clear();
-                vendor.clear();
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -103,11 +114,11 @@ public class InventorySoftwareView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(name, vendor, actions);
+            add(name, actions);
         }
 
         @Override
-        public Predicate toPredicate(Root<SoftwareCount> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+        public Predicate toPredicate(Root<ComputerDto> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
             List<Predicate> predicates = new ArrayList<>();
 
             if (!name.isEmpty()) {
@@ -117,17 +128,6 @@ public class InventorySoftwareView extends Div {
                 Predicate lastNameMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")),
                         lowerCaseFilter + "%");
                 predicates.add(criteriaBuilder.or(firstNameMatch, lastNameMatch));
-            }
-            if (!vendor.isEmpty()) {
-                String databaseColumn = "phone";
-                String ignore = "- ()";
-
-                String lowerCaseFilter = ignoreCharacters(ignore, vendor.getValue().toLowerCase());
-                Predicate phoneMatch = criteriaBuilder.like(
-                        ignoreCharacters(ignore, criteriaBuilder, criteriaBuilder.lower(root.get(databaseColumn))),
-                        "%" + lowerCaseFilter + "%");
-                predicates.add(phoneMatch);
-
             }
             return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
         }
@@ -153,18 +153,11 @@ public class InventorySoftwareView extends Div {
     }
 
     private Component createGrid() {
-        grid = new Grid<>(SoftwareCount.class, false);
+        grid = new Grid<>(ComputerDto.class, false);
         grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("vendor").setAutoWidth(true);
-        grid.addColumn("version").setAutoWidth(true);
-        grid.addColumn("count").setAutoWidth(true);
+        grid.addColumn("dns").setAutoWidth(true);
 
-        grid.addItemClickListener(item -> {
-            grid.getUI().ifPresent(ui ->
-                    ui.navigate("inventory/software/" + item.getItem().getId() + "/computer"));
-        });
-
-        grid.setItems(query -> inventoryService.getSoftwareCount(
+        grid.setItems(query -> inventoryService.getComputersWithSoftware(id,
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
                 filters).stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
