@@ -316,7 +316,7 @@ public class ComputersService {
 
     public void shutdown(String hostName) {
         Map<String, Object> inputMap = new HashMap<>();
-        inputMap.put("Flags", 1);
+        inputMap.put("Flags", 8);
         wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
     }
 
