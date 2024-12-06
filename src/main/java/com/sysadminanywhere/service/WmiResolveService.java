@@ -22,7 +22,7 @@ public class WmiResolveService<T> {
     }
 
     @SneakyThrows
-    public Page<T> GetValues(List<Map<String, Object>> list, Pageable pageable, String filter) {
+    public Page<T> GetValues(List<Map<String, Object>> list, Pageable pageable) {
         List<T> content = new ArrayList<>();
 
         if (!list.isEmpty()) {

@@ -4,6 +4,7 @@ import com.sun.jna.platform.win32.COM.Wbemcli;
 import lombok.SneakyThrows;
 import org.sentrysoftware.wmi.WmiHelper;
 import org.sentrysoftware.wmi.wbem.WmiWbemServices;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -24,6 +25,7 @@ public class WmiService {
     }
 
     @SneakyThrows
+    @Cacheable(value = "wmi_execute", key = "#wqlQuery")
     public List<Map<String, Object>> execute(String hostName, String wqlQuery) {
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);

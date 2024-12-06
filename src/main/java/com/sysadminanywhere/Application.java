@@ -7,6 +7,7 @@ import com.vaadin.flow.theme.Theme;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
@@ -19,6 +20,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication()
 @Theme(value = "sysadminanywhere")
 @EnableFeignClients
+@EnableCaching
 @Push(PushMode.AUTOMATIC)
 public class Application implements AppShellConfigurator {
 

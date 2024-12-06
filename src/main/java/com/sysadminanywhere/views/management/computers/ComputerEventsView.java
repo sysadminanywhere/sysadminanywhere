@@ -29,8 +29,12 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @PageTitle("Events")
 @Route(value = "management/computers/:id?/events", layout = MainLayout.class)
@@ -92,7 +96,7 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver {
 
         private final ComputersService computersService;
 
-        private final TextField caption = new TextField("Caption");
+        private final TextField sourceName = new TextField("Source name");
 
         public Filters(Runnable onSearch, ComputersService computersService) {
             this.computersService = computersService;
@@ -106,7 +110,7 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver {
             Button resetBtn = new Button("Reset");
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
-                caption.clear();
+                sourceName.clear();
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -117,13 +121,13 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(caption, actions);
+            add(sourceName, actions);
         }
 
-        public String getFilters() {
-            String searchFilters = "";
-
-            return searchFilters;
+        public Map<String, String> getFilters() {
+            Map<String, String> filters = new HashMap<>();
+            filters.put("sourceName", sourceName.getValue());
+            return filters;
         }
 
     }

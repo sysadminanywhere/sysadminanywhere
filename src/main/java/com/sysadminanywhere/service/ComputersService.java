@@ -10,6 +10,7 @@ import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.message.ModifyRequest;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -119,11 +120,11 @@ public class ComputersService {
         return ldapService.getComputersContainer();
     }
 
-    @SneakyThrows
-    public Page<ProcessEntity> getProcesses(Pageable pageable, String filter, String hostName) {
+    @Cacheable("processes")
+    public Page<ProcessEntity> getProcesses(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
             WmiResolveService<ProcessEntity> wmiResolveService = new WmiResolveService<>(ProcessEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Process"), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Process" + getWmiQueryFromFilters(filters)), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -131,11 +132,11 @@ public class ComputersService {
         }
     }
 
-    @SneakyThrows
-    public Page<ServiceEntity> getServices(Pageable pageable, String filter, String hostName) {
+    @Cacheable("services")
+    public Page<ServiceEntity> getServices(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
             WmiResolveService<ServiceEntity> wmiResolveService = new WmiResolveService<>(ServiceEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Service"), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Service" + getWmiQueryFromFilters(filters)), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -143,10 +144,11 @@ public class ComputersService {
         }
     }
 
-    public Page<SoftwareEntity> getSoftware(Pageable pageable, String filter, String hostName) {
+    @Cacheable("software")
+    public Page<SoftwareEntity> getSoftware(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Product"), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Product" + getWmiQueryFromFilters(filters)), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -154,14 +156,20 @@ public class ComputersService {
         }
     }
 
-    public Page<EventEntity> getEvents(Pageable pageable, String filter, String hostName) {
+    @Cacheable("events")
+    public Page<EventEntity> getEvents(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
             WmiResolveService<EventEntity> wmiResolveService = new WmiResolveService<>(EventEntity.class);
 
             String today = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "000000.000000000";
-            String queryString = "Select RecordNumber, EventType, EventCode, Type, TimeGenerated, SourceName, Category, Logfile, Message From Win32_NTLogEvent Where TimeGenerated > '" + today + "'";
+            String queryString = "Select RecordNumber, EventType, EventCode, Type, TimeGenerated, SourceName, Category, Logfile, Message From Win32_NTLogEvent";
+            String addQuery = getWmiQueryFromFilters(filters);
+            if (addQuery.isEmpty())
+                queryString += " Where TimeGenerated > '" + today + "'";
+            else
+                queryString += addQuery + " AND TimeGenerated > '" + today + "'";
 
-            return wmiResolveService.GetValues(wmiService.execute(hostName, queryString), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, queryString), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -169,7 +177,8 @@ public class ComputersService {
         }
     }
 
-    public Page<HardwareEntity> getHardware(Pageable pageable, String filter, String hostName) {
+    @Cacheable("hardware")
+    public Page<HardwareEntity> getHardware(Pageable pageable, String hostName) {
         try {
             return null;
         } catch (Exception ex) {
@@ -179,10 +188,11 @@ public class ComputersService {
         }
     }
 
-    public Page<DiskDriveEntity> getDiskDrive(Pageable pageable, String filter, String hostName) {
+    @Cacheable("disk")
+    public Page<DiskDriveEntity> getDiskDrive(Pageable pageable, String hostName) {
         try {
             WmiResolveService<DiskDriveEntity> wmiResolveService = new WmiResolveService<>(DiskDriveEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_DiskDrive"), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_DiskDrive"), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -190,10 +200,11 @@ public class ComputersService {
         }
     }
 
-    public Page<OperatingSystemEntity> getOperatingSystem(Pageable pageable, String filter, String hostName) {
+    @Cacheable("system")
+    public Page<OperatingSystemEntity> getOperatingSystem(Pageable pageable, String hostName) {
         try {
             WmiResolveService<OperatingSystemEntity> wmiResolveService = new WmiResolveService<>(OperatingSystemEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_OperatingSystem"), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_OperatingSystem"), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -201,10 +212,11 @@ public class ComputersService {
         }
     }
 
-    public Page<SoftwareEntity> getDiskPartition(Pageable pageable, String filter, String hostName) {
+    @Cacheable("partition")
+    public Page<SoftwareEntity> getDiskPartition(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_DiskPartition"), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_DiskPartition"), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -212,10 +224,11 @@ public class ComputersService {
         }
     }
 
-    public Page<SoftwareEntity> getProcessor(Pageable pageable, String filter, String hostName) {
+    @Cacheable("processor")
+    public Page<SoftwareEntity> getProcessor(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_Processor"), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_Processor"), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -223,10 +236,11 @@ public class ComputersService {
         }
     }
 
-    public Page<SoftwareEntity> getVideoController(Pageable pageable, String filter, String hostName) {
+    @Cacheable("video")
+    public Page<SoftwareEntity> getVideoController(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_VideoController"), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_VideoController"), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -234,10 +248,11 @@ public class ComputersService {
         }
     }
 
-    public Page<SoftwareEntity> getPhysicalMemory(Pageable pageable, String filter, String hostName) {
+    @Cacheable("memory")
+    public Page<SoftwareEntity> getPhysicalMemory(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_PhysicalMemory"), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_PhysicalMemory"), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -245,10 +260,11 @@ public class ComputersService {
         }
     }
 
-    public Page<SoftwareEntity> getLogicalDisk(Pageable pageable, String filter, String hostName) {
+    @Cacheable("logical")
+    public Page<SoftwareEntity> getLogicalDisk(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_LogicalDisk"), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_LogicalDisk"), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -256,10 +272,11 @@ public class ComputersService {
         }
     }
 
-    public Page<SoftwareEntity> getBaseBoard(Pageable pageable, String filter, String hostName) {
+    @Cacheable("board")
+    public Page<SoftwareEntity> getBaseBoard(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_BaseBoard"), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_BaseBoard"), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -267,10 +284,11 @@ public class ComputersService {
         }
     }
 
-    public Page<SoftwareEntity> getBIOS(Pageable pageable, String filter, String hostName) {
+    @Cacheable("bios")
+    public Page<SoftwareEntity> getBIOS(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_BIOS"), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_BIOS"), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -278,10 +296,11 @@ public class ComputersService {
         }
     }
 
-    public Page<SoftwareEntity> getComputerSystem(Pageable pageable, String filter, String hostName) {
+    @Cacheable("computer")
+    public Page<SoftwareEntity> getComputerSystem(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_ComputerSystem"), pageable, filter);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_ComputerSystem"), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -350,6 +369,21 @@ public class ComputersService {
         } catch (Exception ex) {
             return 0;
         }
+    }
+
+    private String getWmiQueryFromFilters(Map<String, String> filters) {
+        List<String> list = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : filters.entrySet()) {
+            if (!entry.getValue().isEmpty()) {
+                list.add(entry.getKey() + " LIKE '" + entry.getValue() + "%'");
+            }
+        }
+
+        if (list.isEmpty())
+            return "";
+        else
+            return " WHERE " + String.join(" AND ", list);
     }
 
 }

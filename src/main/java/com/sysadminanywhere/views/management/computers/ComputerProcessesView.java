@@ -36,7 +36,9 @@ import jakarta.persistence.criteria.Root;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @PageTitle("Processes")
 @Route(value = "management/computers/:id?/processes", layout = MainLayout.class)
@@ -126,10 +128,10 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver {
             add(caption, actions);
         }
 
-        public String getFilters() {
-            String searchFilters = "";
-
-            return searchFilters;
+        public Map<String, String> getFilters() {
+            Map<String, String> filters = new HashMap<>();
+            filters.put("caption", caption.getValue());
+            return filters;
         }
 
     }

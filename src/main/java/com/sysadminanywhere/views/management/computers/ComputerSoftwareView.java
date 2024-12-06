@@ -34,7 +34,9 @@ import jakarta.persistence.criteria.Root;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @PageTitle("Software")
 @Route(value = "management/computers/:id?/software", layout = MainLayout.class)
@@ -96,7 +98,8 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
 
         private final ComputersService computersService;
 
-        private final TextField caption = new TextField("Caption");
+        private final TextField name = new TextField("Name");
+        private final TextField vendor = new TextField("Vendor");
 
         public Filters(Runnable onSearch, ComputersService computersService) {
             this.computersService = computersService;
@@ -110,7 +113,8 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
             Button resetBtn = new Button("Reset");
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
-                caption.clear();
+                name.clear();
+                vendor.clear();
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -121,13 +125,14 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(caption, actions);
+            add(name, vendor, actions);
         }
 
-        public String getFilters() {
-            String searchFilters = "";
-
-            return searchFilters;
+        public Map<String, String> getFilters() {
+            Map<String, String> filters = new HashMap<>();
+            filters.put("name", name.getValue());
+            filters.put("vendor", vendor.getValue());
+            return filters;
         }
 
     }
