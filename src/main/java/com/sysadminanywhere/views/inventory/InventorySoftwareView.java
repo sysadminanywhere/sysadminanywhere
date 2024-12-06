@@ -77,7 +77,7 @@ public class InventorySoftwareView extends Div {
         return mobileFilters;
     }
 
-    public static class Filters extends Div implements Specification<SoftwareCount> {
+    public static class Filters extends Div {
 
         private final TextField name = new TextField("Name");
         private final TextField vendor = new TextField("Vendor");
@@ -106,12 +106,6 @@ public class InventorySoftwareView extends Div {
             actions.addClassName("actions");
 
             add(name, vendor, actions);
-        }
-
-        @Override
-        public Predicate toPredicate(Root<SoftwareCount> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-            List<Predicate> predicates = new ArrayList<>();
-            return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
         }
 
         public Map<String, String> getFilters() {

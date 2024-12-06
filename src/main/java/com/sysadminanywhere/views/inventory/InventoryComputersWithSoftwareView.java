@@ -90,7 +90,7 @@ public class InventoryComputersWithSoftwareView  extends Div implements BeforeEn
         return mobileFilters;
     }
 
-    public static class Filters extends Div implements Specification<ComputerDto> {
+    public static class Filters extends Div {
 
         private final TextField name = new TextField("Name");
 
@@ -117,12 +117,6 @@ public class InventoryComputersWithSoftwareView  extends Div implements BeforeEn
             actions.addClassName("actions");
 
             add(name, actions);
-        }
-
-        @Override
-        public Predicate toPredicate(Root<ComputerDto> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-            List<Predicate> predicates = new ArrayList<>();
-            return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
         }
 
         public Map<String, String> getFilters() {

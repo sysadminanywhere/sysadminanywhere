@@ -84,7 +84,7 @@ public class UsersView extends Div {
         return mobileFilters;
     }
 
-    public static class Filters extends Div implements FilterSpecification<UserEntry> {
+    public static class Filters extends Div {
 
         private final UsersService usersService;
 
@@ -124,13 +124,6 @@ public class UsersView extends Div {
             add(cn, availability, actions);
         }
 
-        @Override
-        public Predicate toPredicate(Root<UserEntry> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-            List<Predicate> predicates = new ArrayList<>();
-            return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
-        }
-
-        @Override
         public String getFilters() {
             String searchFilters = "";
 

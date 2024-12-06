@@ -76,7 +76,7 @@ public class PrintersView extends Div {
         return mobileFilters;
     }
 
-    public static class Filters extends Div implements FilterSpecification<PrinterEntry> {
+    public static class Filters extends Div {
 
         private final TextField cn = new TextField("CN");
 
@@ -106,13 +106,6 @@ public class PrintersView extends Div {
             add(cn, actions);
         }
 
-        @Override
-        public Predicate toPredicate(Root<PrinterEntry> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-            List<Predicate> predicates = new ArrayList<>();
-            return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
-        }
-
-        @Override
         public String getFilters() {
             String searchFilters = "";
 

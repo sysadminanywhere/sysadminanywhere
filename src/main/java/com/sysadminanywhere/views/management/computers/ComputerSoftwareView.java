@@ -92,7 +92,7 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
         return mobileFilters;
     }
 
-    public static class Filters extends Div implements FilterSpecification<SoftwareEntity> {
+    public static class Filters extends Div {
 
         private final ComputersService computersService;
 
@@ -124,13 +124,6 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
             add(caption, actions);
         }
 
-        @Override
-        public Predicate toPredicate(Root<SoftwareEntity> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-            List<Predicate> predicates = new ArrayList<>();
-            return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
-        }
-
-        @Override
         public String getFilters() {
             String searchFilters = "";
 

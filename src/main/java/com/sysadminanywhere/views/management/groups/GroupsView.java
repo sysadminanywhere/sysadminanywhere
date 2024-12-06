@@ -85,7 +85,7 @@ public class GroupsView extends Div {
         return mobileFilters;
     }
 
-    public static class Filters extends Div implements FilterSpecification<GroupEntry> {
+    public static class Filters extends Div {
 
         private final GroupsService groupsService;
 
@@ -126,13 +126,6 @@ public class GroupsView extends Div {
             add(cn, availability, actions);
         }
 
-        @Override
-        public Predicate toPredicate(Root<GroupEntry> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-            List<Predicate> predicates = new ArrayList<>();
-            return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
-        }
-
-        @Override
         public String getFilters() {
             String searchFilters = "";
 
