@@ -4,15 +4,11 @@ import com.sysadminanywhere.client.InventoryClient;
 import com.sysadminanywhere.client.dto.ComputerDto;
 import com.sysadminanywhere.client.dto.SoftwareCount;
 import com.sysadminanywhere.client.dto.SoftwareOnComputer;
-import com.sysadminanywhere.views.inventory.InventoryComputersWithSoftwareView;
-import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 @Service
 public class InventoryService {
@@ -23,16 +19,16 @@ public class InventoryService {
         this.inventoryClient = inventoryClient;
     }
 
-    public Page<SoftwareCount> getSoftwareCount(Pageable pageable, InventorySoftwareView.Filters filters) {
-        return inventoryClient.getSoftwareCount(pageable);
+    public Page<SoftwareCount> getSoftwareCount(Pageable pageable, Map<String, String> filters) {
+        return inventoryClient.getSoftwareCount(filters, pageable);
     }
 
-    public Page<SoftwareOnComputer> getSoftwareOnComputer(Long computerId, Pageable pageable, InventorySoftwareView.Filters filters) {
-        return inventoryClient.getSoftwareOnComputer(computerId, pageable);
+    public Page<SoftwareOnComputer> getSoftwareOnComputer(Long computerId, Pageable pageable, Map<String, String> filters) {
+        return inventoryClient.getSoftwareOnComputer(computerId, filters, pageable);
     }
 
-    public Page<ComputerDto> getComputersWithSoftware(Long softwareId, Pageable pageable, InventoryComputersWithSoftwareView.Filters filters) {
-        return inventoryClient.getComputersWithSoftware(softwareId, pageable);
+    public Page<ComputerDto> getComputersWithSoftware(Long softwareId, Pageable pageable, Map<String, String> filters) {
+        return inventoryClient.getComputersWithSoftware(softwareId, filters, pageable);
     }
 
 }
