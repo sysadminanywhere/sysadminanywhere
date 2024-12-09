@@ -49,10 +49,12 @@
                 - Start
                 - Stop
             + Software
-            +- Performance
+            + Performance
                 + Cpu
                 + Memory
                 + Disk C:
+            - Reboot
+            - Shutdown
     9. Contact
         + Add
         + Update
