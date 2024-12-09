@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -309,15 +310,19 @@ public class ComputersService {
     }
 
     public void reboot(String hostName) {
-        Map<String, Object> inputMap = new HashMap<>();
-        inputMap.put("Flags", 2);
-        wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
+//        Map<String, Object> inputMap = new HashMap<>();
+//        inputMap.put("Flags", 0x2);
+//        wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
+
+        wmiService.executeCommand(hostName, "shutdown /r", "c:/Windows", 30000);
     }
 
     public void shutdown(String hostName) {
-        Map<String, Object> inputMap = new HashMap<>();
-        inputMap.put("Flags", 8);
-        wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
+//        Map<String, Object> inputMap = new HashMap<>();
+//        inputMap.put("Flags", 0x8);
+//        wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
+
+        wmiService.executeCommand(hostName, "shutdown /s", "c:/Windows", 30000);
     }
 
     public Integer getProcessorLoad(String hostName) {
