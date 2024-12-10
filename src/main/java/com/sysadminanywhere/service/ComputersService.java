@@ -16,7 +16,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -121,7 +120,6 @@ public class ComputersService {
         return ldapService.getComputersContainer();
     }
 
-    @Cacheable("processes")
     public Page<ProcessEntity> getProcesses(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
             WmiResolveService<ProcessEntity> wmiResolveService = new WmiResolveService<>(ProcessEntity.class);
@@ -133,7 +131,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("services")
     public Page<ServiceEntity> getServices(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
             WmiResolveService<ServiceEntity> wmiResolveService = new WmiResolveService<>(ServiceEntity.class);
@@ -145,7 +142,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("software")
     public Page<SoftwareEntity> getSoftware(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
@@ -157,7 +153,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("events")
     public Page<EventEntity> getEvents(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
             WmiResolveService<EventEntity> wmiResolveService = new WmiResolveService<>(EventEntity.class);
@@ -178,7 +173,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("hardware")
     public Page<HardwareEntity> getHardware(Pageable pageable, String hostName) {
         try {
             return null;
@@ -189,7 +183,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("disk")
     public Page<DiskDriveEntity> getDiskDrive(Pageable pageable, String hostName) {
         try {
             WmiResolveService<DiskDriveEntity> wmiResolveService = new WmiResolveService<>(DiskDriveEntity.class);
@@ -201,7 +194,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("system")
     public Page<OperatingSystemEntity> getOperatingSystem(Pageable pageable, String hostName) {
         try {
             WmiResolveService<OperatingSystemEntity> wmiResolveService = new WmiResolveService<>(OperatingSystemEntity.class);
@@ -213,7 +205,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("partition")
     public Page<SoftwareEntity> getDiskPartition(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
@@ -225,7 +216,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("processor")
     public Page<SoftwareEntity> getProcessor(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
@@ -237,7 +227,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("video")
     public Page<SoftwareEntity> getVideoController(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
@@ -249,7 +238,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("memory")
     public Page<SoftwareEntity> getPhysicalMemory(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
@@ -261,7 +249,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("logical")
     public Page<SoftwareEntity> getLogicalDisk(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
@@ -273,7 +260,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("board")
     public Page<SoftwareEntity> getBaseBoard(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
@@ -285,7 +271,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("bios")
     public Page<SoftwareEntity> getBIOS(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
@@ -297,7 +282,6 @@ public class ComputersService {
         }
     }
 
-    @Cacheable("computer")
     public Page<SoftwareEntity> getComputerSystem(Pageable pageable, String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
@@ -310,19 +294,19 @@ public class ComputersService {
     }
 
     public void reboot(String hostName) {
-//        Map<String, Object> inputMap = new HashMap<>();
-//        inputMap.put("Flags", 0x2);
-//        wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
-
-        wmiService.executeCommand(hostName, "shutdown /r", "c:/Windows", 30000);
+        Map<String, Object> inputMap = new HashMap<>();
+        inputMap.put("Flags", 2);
+        inputMap.put("Reserved", 0);
+        wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
+//        wmiService.executeCommand(hostName, "shutdown /r");
     }
 
     public void shutdown(String hostName) {
-//        Map<String, Object> inputMap = new HashMap<>();
-//        inputMap.put("Flags", 0x8);
-//        wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
-
-        wmiService.executeCommand(hostName, "shutdown /s", "c:/Windows", 30000);
+        Map<String, Object> inputMap = new HashMap<>();
+        inputMap.put("Flags", 8);
+        inputMap.put("Reserved", 0);
+        wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
+//        wmiService.executeCommand(hostName, "shutdown /s");
     }
 
     public Integer getProcessorLoad(String hostName) {

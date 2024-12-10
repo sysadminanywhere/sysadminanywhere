@@ -37,6 +37,8 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,11 +58,19 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
     ListBox<String> listMemberOf = new ListBox<>();
 
     Binder<ComputerEntry> binder = new Binder<>(ComputerEntry.class);
+    Binder<String> binder2 = new Binder<>(String.class);
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         id = event.getRouteParameters().get("id").
                 orElse(null);
+
+        try {
+            String address = InetAddress.getByName(id).getHostAddress();
+            binder2.readBean(address);
+        } catch (UnknownHostException e) {
+
+        }
 
         updateView();
     }
@@ -181,7 +191,11 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         txtServicePack.setReadOnly(true);
         binder.bind(txtServicePack, ComputerEntry::getOperatingSystemServicePack, null);
 
-        formLayout.add(txtLocation, txtHostName, txtOperatingSystem, txtVersion, txtServicePack);
+        TextField txtIPAddress = new TextField("IP address");
+        txtServicePack.setReadOnly(true);
+        binder2.bind(txtIPAddress, String::toLowerCase, null);
+
+        formLayout.add(txtLocation, txtHostName, txtOperatingSystem, txtVersion, txtServicePack, txtIPAddress);
 
         verticalLayout.add(formLayout);
 

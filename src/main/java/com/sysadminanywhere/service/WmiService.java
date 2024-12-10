@@ -24,7 +24,7 @@ public class WmiService {
     }
 
     @SneakyThrows
-    @Cacheable(value = "wmi_execute", key = "#wqlQuery")
+    @Cacheable(value = "wmi_execute", key = "{#hostName, #wqlQuery}")
     public List<Map<String, Object>> execute(String hostName, String wqlQuery) {
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
@@ -43,18 +43,20 @@ public class WmiService {
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
+        String path = networkResource + ":" + className;
+
         try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, username, password)) {
-            wbemServices.executeMethod(networkResource, className, methodName, inputMap);
+            wbemServices.executeMethod(path, className, methodName, inputMap);
         }
     }
 
     @SneakyThrows
-    public void executeCommand(String hostName, String command, String workingDirectory, long timeout) {
+    public void executeCommand(String hostName, String command) {
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
         try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, username, password)) {
-            wbemServices.executeCommand(command, workingDirectory, Charset.defaultCharset(), timeout);
+            wbemServices.executeCommand(command, "c:/", Charset.defaultCharset(), 30000);
         }
     }
 
