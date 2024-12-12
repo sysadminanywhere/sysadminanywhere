@@ -10,6 +10,8 @@ import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.message.ModifyRequest;
+import org.sentrysoftware.wmi.exceptions.WmiComException;
+import org.sentrysoftware.wmi.exceptions.WqlQuerySyntaxException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 @Service
 public class ComputersService {
@@ -124,7 +127,7 @@ public class ComputersService {
         try {
             WmiResolveService<ProcessEntity> wmiResolveService = new WmiResolveService<>(ProcessEntity.class);
             return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Process" + getWmiQueryFromFilters(filters)), pageable);
-        } catch (Exception ex) {
+        } catch (WmiComException | WqlQuerySyntaxException | TimeoutException ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
@@ -297,16 +300,24 @@ public class ComputersService {
         Map<String, Object> inputMap = new HashMap<>();
         inputMap.put("Flags", 2);
         inputMap.put("Reserved", 0);
-        wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
-//        wmiService.executeCommand(hostName, "shutdown /r");
+        try {
+            wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
+        } catch (WmiComException ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
 
     public void shutdown(String hostName) {
         Map<String, Object> inputMap = new HashMap<>();
         inputMap.put("Flags", 8);
         inputMap.put("Reserved", 0);
-        wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
-//        wmiService.executeCommand(hostName, "shutdown /s");
+        try {
+            wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
+        } catch (WmiComException ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
 
     public Integer getProcessorLoad(String hostName) {

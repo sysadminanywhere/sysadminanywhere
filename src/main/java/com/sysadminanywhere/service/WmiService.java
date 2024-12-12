@@ -2,6 +2,8 @@ package com.sysadminanywhere.service;
 
 import lombok.SneakyThrows;
 import org.sentrysoftware.wmi.WmiHelper;
+import org.sentrysoftware.wmi.exceptions.WmiComException;
+import org.sentrysoftware.wmi.exceptions.WqlQuerySyntaxException;
 import org.sentrysoftware.wmi.wbem.WmiWbemServices;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 @Service
 public class WmiService {
@@ -23,9 +26,8 @@ public class WmiService {
         this.password = password.toCharArray();
     }
 
-    @SneakyThrows
     @Cacheable(value = "wmi_execute", key = "{#hostName, #wqlQuery}")
-    public List<Map<String, Object>> execute(String hostName, String wqlQuery) {
+    public List<Map<String, Object>> execute(String hostName, String wqlQuery) throws WmiComException, WqlQuerySyntaxException, TimeoutException {
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
@@ -38,8 +40,7 @@ public class WmiService {
         return result;
     }
 
-    @SneakyThrows
-    public void invoke(String hostName, String className, String methodName, Map<String, Object> inputMap) {
+    public void invoke(String hostName, String className, String methodName, Map<String, Object> inputMap) throws WmiComException {
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
@@ -50,8 +51,7 @@ public class WmiService {
         }
     }
 
-    @SneakyThrows
-    public void executeCommand(String hostName, String command) {
+    public void executeCommand(String hostName, String command) throws WmiComException, TimeoutException {
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
