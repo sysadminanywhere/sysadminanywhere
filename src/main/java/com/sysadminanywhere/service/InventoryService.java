@@ -19,6 +19,15 @@ public class InventoryService {
         this.inventoryClient = inventoryClient;
     }
 
+    public Boolean ping() {
+        try {
+            String ping = inventoryClient.ping();
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
     public Page<SoftwareCount> getSoftwareCount(Pageable pageable, Map<String, String> filters) {
         return inventoryClient.getSoftwareCount(filters, pageable);
     }

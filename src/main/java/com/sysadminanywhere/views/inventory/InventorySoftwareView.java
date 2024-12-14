@@ -10,6 +10,7 @@ import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -45,12 +46,16 @@ public class InventorySoftwareView extends Div {
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid());
-        VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
-        layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
-        add(layout);
+        if (inventoryService.ping()) {
+            filters = new Filters(() -> refreshGrid());
+            VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
+            layout.setSizeFull();
+            layout.setPadding(false);
+            layout.setSpacing(false);
+            add(layout);
+        } else {
+            add(new H3("Inventory service is unavailable!"));
+        }
     }
 
     private HorizontalLayout createMobileFilters() {

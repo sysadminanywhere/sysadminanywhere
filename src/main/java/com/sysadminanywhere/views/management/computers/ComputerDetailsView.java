@@ -36,6 +36,7 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.scheduling.annotation.Async;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -65,14 +66,17 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         id = event.getRouteParameters().get("id").
                 orElse(null);
 
+        getIPAddress();
+        updateView();
+    }
+
+    public void getIPAddress() {
         try {
             String address = InetAddress.getByName(id).getHostAddress();
             binder2.readBean(address);
         } catch (UnknownHostException e) {
 
         }
-
-        updateView();
     }
 
     private void updateView() {

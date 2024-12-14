@@ -16,6 +16,9 @@ import java.util.Map;
 @FeignClient(value = "inventory", url = "${sysadminanywhere.inventory.address}")
 public interface InventoryClient {
 
+    @RequestMapping(method = RequestMethod.GET, value = "/ping")
+    String ping();
+
     @RequestMapping(method = RequestMethod.POST, value = "/api/inventory/software/count")
     Page<SoftwareCount> getSoftwareCount(Map<String, String> filters, Pageable pageable);
 
