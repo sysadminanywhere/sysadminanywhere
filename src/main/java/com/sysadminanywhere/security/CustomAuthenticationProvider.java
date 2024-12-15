@@ -35,7 +35,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("Unknown user " + userName);
         }
 
-        wmiService.init(userName, password);
+        wmiService.init(ldapService.getDomainName() + "\\" + userName, password);
 
         Person myUser = new Person(userName, password, "ADMIN");
 
@@ -47,6 +47,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         return new UsernamePasswordAuthenticationToken(principal, password, principal.getAuthorities());
     }
+
     @Override
     public boolean supports(Class<?> authentication) {
         return authentication.equals(UsernamePasswordAuthenticationToken.class);

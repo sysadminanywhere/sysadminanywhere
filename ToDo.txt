@@ -69,12 +69,9 @@
         + Download PDF
 
 
-- Monitoring
-
-    1. Monitors
-        - Monitors list
-
 - Inventory
+
+    https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/enable-psremoting?view=powershell-7.4
 
     1. Software inventory
         + Scan
@@ -83,3 +80,11 @@
         + List of computers with selected software
 
     2. Hardware inventory
+
+- Monitoring
+
+    1. Monitors
+        - Monitors list
+
+
+
