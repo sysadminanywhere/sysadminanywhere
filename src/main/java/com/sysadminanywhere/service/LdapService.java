@@ -1,6 +1,8 @@
 package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.domain.DirectorySetting;
+import com.sysadminanywhere.model.Container;
+import com.sysadminanywhere.model.Containers;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
@@ -12,6 +14,7 @@ import org.apache.directory.api.ldap.model.message.controls.*;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -68,21 +71,26 @@ public class LdapService {
 
     @SneakyThrows
     public List<Entry> search(String filter, Sort sort) {
-        return search(filter, SearchScope.SUBTREE, sort);
+        return search(baseDn, filter, SearchScope.SUBTREE, sort);
     }
 
     @SneakyThrows
     public List<Entry> search(String filter) {
-        return search(filter, SearchScope.SUBTREE, null);
+        return search(baseDn, filter, SearchScope.SUBTREE, null);
     }
 
     @SneakyThrows
     public List<Entry> search(String filter, SearchScope searchScope) {
-        return search(filter, searchScope, null);
+        return search(baseDn, filter, searchScope, null);
     }
 
     @SneakyThrows
-    public List<Entry> search(String filter, SearchScope searchScope, Sort sort) {
+    public List<Entry> search(Dn dn, String filter, SearchScope searchScope) {
+        return search(dn, filter, searchScope, null);
+    }
+
+    @SneakyThrows
+    public List<Entry> search(Dn dn, String filter, SearchScope searchScope, Sort sort) {
 
         List<Entry> list = new ArrayList<>();
 
@@ -92,8 +100,7 @@ public class LdapService {
             searchRequest.addAttributes("*");
             searchRequest.setTypesOnly(false);
             searchRequest.setTimeLimit(0);
-            searchRequest.setBase(baseDn);
-
+            searchRequest.setBase(dn);
             searchRequest.setFilter(filter);
 
             int pageSize = 100;
@@ -227,6 +234,46 @@ public class LdapService {
         }
 
         return false;
+    }
+
+    @Cacheable(value = "containers")
+    public Containers getContainers() {
+        Containers containers = new Containers();
+
+        List<Entry> list = search("(objectclass=*)", SearchScope.ONELEVEL);
+        for (Entry entry : list) {
+            if (entry.get("name") != null
+                    && (entry.get("showInAdvancedViewOnly") == null
+                    || entry.get("showInAdvancedViewOnly").get().getString().equalsIgnoreCase("false"))) {
+
+                Container container = new Container(entry.get("name").get().getString(), entry.get("distinguishedName").get().getString(), null);
+                containers.getContainers().add(container);
+
+                getChild(containers, container);
+            }
+        }
+
+        return containers;
+    }
+
+    @SneakyThrows
+    private void getChild(Containers containers, Container parent) {
+
+        List<Entry> list = search(new Dn(parent.getDistinguishedName()), "(objectclass=*)", SearchScope.ONELEVEL);
+        for (Entry entry : list) {
+
+            boolean organizationalUnit = false;
+            for (Value v : entry.get("objectClass")) {
+                if (v.getString().equalsIgnoreCase("organizationalUnit"))
+                    organizationalUnit = true;
+            }
+
+            if (entry.get("name") != null && organizationalUnit) {
+                Container container = new Container(entry.get("name").get().getString(), entry.get("distinguishedName").get().getString(), parent);
+                containers.getContainers().add(container);
+                getChild(containers, container);
+            }
+        }
     }
 
 }

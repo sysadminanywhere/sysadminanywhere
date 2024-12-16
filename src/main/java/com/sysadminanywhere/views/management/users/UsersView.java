@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.users;
 
+import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.domain.FilterSpecification;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.UsersService;
@@ -157,9 +158,9 @@ public class UsersView extends Div {
 
             FormLayout formLayout = new FormLayout();
 
-            TextField txtContainer = new TextField("Container");
-            txtContainer.setValue(usersService.getDefaultContainer());
-            formLayout.setColspan(txtContainer, 2);
+            ContainerField containerField = new ContainerField(usersService.getLdapService());
+            containerField.setValue(usersService.getDefaultContainer());
+            formLayout.setColspan(containerField, 2);
 
             TextField txtDisplayName = new TextField("Display name");
             txtDisplayName.setRequired(true);
@@ -218,7 +219,7 @@ public class UsersView extends Div {
                 txtAccountName.setValue(userLoginPattern.matcher(txtDisplayName.getValue()).replaceAll(userLoginFormat).toLowerCase());
             });
 
-            formLayout.add(txtContainer, txtDisplayName, txtFirstName, txtInitials, txtLastName, txtAccountName, txtPassword, txtConfirmPassword, checkboxGroup);
+            formLayout.add(containerField, txtDisplayName, txtFirstName, txtInitials, txtLastName, txtAccountName, txtPassword, txtConfirmPassword, checkboxGroup);
             dialog.add(formLayout);
 
             Button saveButton = new Button("Save", e -> {
@@ -231,7 +232,7 @@ public class UsersView extends Div {
                 user.setSamAccountName(txtAccountName.getValue());
                 try {
                     UserEntry newUser = usersService.add(
-                            txtContainer.getValue(),
+                            containerField.getValue(),
                             user,
                             txtPassword.getValue(),
                             chkUserCannotChangePassword.getValue(),

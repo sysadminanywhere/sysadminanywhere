@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.computers;
 
+import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.views.MainLayout;
@@ -139,9 +140,9 @@ public class ComputersView extends Div {
 
             FormLayout formLayout = new FormLayout();
 
-            TextField txtContainer = new TextField("Container");
-            txtContainer.setValue(computersService.getDefaultContainer());
-            formLayout.setColspan(txtContainer, 2);
+            ContainerField containerField = new ContainerField(computersService.getLdapService());
+            containerField.setValue(computersService.getDefaultContainer());
+            formLayout.setColspan(containerField, 2);
 
             TextField txtName = new TextField("Name");
             txtName.setRequired(true);
@@ -159,7 +160,7 @@ public class ComputersView extends Div {
 
             checkboxGroup.add(chkAccountEnabled);
 
-            formLayout.add(txtContainer, txtName, txtDescription, txtLocation, checkboxGroup);
+            formLayout.add(containerField, txtName, txtDescription, txtLocation, checkboxGroup);
             dialog.add(formLayout);
 
             Button saveButton = new Button("Save", e -> {
@@ -168,7 +169,7 @@ public class ComputersView extends Div {
                 computer.setDescription(txtDescription.getValue());
                 computer.setLocation(txtLocation.getValue());
                 try {
-                    ComputerEntry newComputer = computersService.add(txtContainer.getValue(), computer, chkAccountEnabled.getValue());
+                    ComputerEntry newComputer = computersService.add(containerField.getValue(), computer, chkAccountEnabled.getValue());
 
                     onSearch.run();
 

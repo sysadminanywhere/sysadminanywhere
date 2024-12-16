@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.contacts;
 
+import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.domain.FilterSpecification;
 import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.ContactEntry;
@@ -135,9 +136,9 @@ public class ContactsView extends Div {
 
             FormLayout formLayout = new FormLayout();
 
-            TextField txtContainer = new TextField("Container");
-            txtContainer.setValue(contactsService.getDefaultContainer());
-            formLayout.setColspan(txtContainer, 2);
+            ContainerField containerField = new ContainerField(contactsService.getLdapService());
+            containerField.setValue(contactsService.getDefaultContainer());
+            formLayout.setColspan(containerField, 2);
 
             TextField txtDisplayName = new TextField("Display name");
             formLayout.setColspan(txtDisplayName, 2);
@@ -149,7 +150,7 @@ public class ContactsView extends Div {
             TextField txtLastName = new TextField("Last name");
             txtLastName.setRequired(true);
 
-            formLayout.add(txtContainer,txtDisplayName, txtFirstName, txtInitials, txtLastName);
+            formLayout.add(containerField,txtDisplayName, txtFirstName, txtInitials, txtLastName);
             dialog.add(formLayout);
 
             Button saveButton = new Button("Save", e -> {
@@ -160,7 +161,7 @@ public class ContactsView extends Div {
                 contact.setInitials(txtInitials.getValue());
                 contact.setLastName(txtLastName.getValue());
                 try {
-                    ContactEntry newContact = contactsService.add(txtContainer.getValue(), contact);
+                    ContactEntry newContact = contactsService.add(containerField.getValue(), contact);
 
                     onSearch.run();
 

@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.groups;
 
+import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.domain.FilterSpecification;
 import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.GroupEntry;
@@ -170,9 +171,9 @@ public class GroupsView extends Div {
 
             FormLayout formLayout = new FormLayout();
 
-            TextField txtContainer = new TextField("Container");
-            txtContainer.setValue(groupsService.getDefaultContainer());
-            formLayout.setColspan(txtContainer, 2);
+            ContainerField containerField = new ContainerField(groupsService.getLdapService());
+            containerField.setValue(groupsService.getDefaultContainer());
+            formLayout.setColspan(containerField, 2);
 
             TextField txtName = new TextField("Name");
             txtName.setRequired(true);
@@ -193,7 +194,7 @@ public class GroupsView extends Div {
             radioGroupType.setItems("Security", "Distribution");
             radioGroupType.setValue("Security");
 
-            formLayout.add(txtContainer, txtName, txtDescription, radioGroupScope, radioGroupType);
+            formLayout.add(containerField, txtName, txtDescription, radioGroupScope, radioGroupType);
             dialog.add(formLayout);
 
             Button saveButton = new Button("Save", e -> {
@@ -216,7 +217,7 @@ public class GroupsView extends Div {
                 }
 
                 try {
-                    GroupEntry newGroup = groupsService.add(txtContainer.getValue(), group, scope, radioGroupType.getValue().equals("Security") ? true : false);
+                    GroupEntry newGroup = groupsService.add(containerField.getValue(), group, scope, radioGroupType.getValue().equals("Security") ? true : false);
 
                     onSearch.run();
 

@@ -138,4 +138,8 @@ public class GroupsService {
         return ldapService.getUsersContainer();
     }
 
+    public LdapService getLdapService() {
+        return ldapService;
+    }
+
 }

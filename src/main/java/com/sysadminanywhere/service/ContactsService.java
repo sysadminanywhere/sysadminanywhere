@@ -86,4 +86,8 @@ public class ContactsService {
         return ldapService.getUsersContainer();
     }
 
+    public LdapService getLdapService() {
+        return ldapService;
+    }
+
 }

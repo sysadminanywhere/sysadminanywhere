@@ -386,4 +386,8 @@ public class ComputersService {
             return " WHERE " + String.join(" AND ", list);
     }
 
+    public LdapService getLdapService() {
+        return ldapService;
+    }
+
 }

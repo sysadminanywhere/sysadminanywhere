@@ -149,4 +149,8 @@ public class UsersService {
         ldapService.updateProperty(user.getDistinguishedName(), "pwdLastSet", "0");
     }
 
+    public LdapService getLdapService() {
+        return ldapService;
+    }
+
 }

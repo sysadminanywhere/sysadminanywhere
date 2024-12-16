@@ -48,4 +48,8 @@ public class PrintersService {
         return ldapService.getUsersContainer();
     }
 
+    public LdapService getLdapService() {
+        return ldapService;
+    }
+
 }
