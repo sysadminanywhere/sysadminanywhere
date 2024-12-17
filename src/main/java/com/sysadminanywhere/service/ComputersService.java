@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -156,17 +157,40 @@ public class ComputersService {
         }
     }
 
-    public Page<EventEntity> getEvents(Pageable pageable, Map<String, String> filters, String hostName) {
+    public Page<EventEntity> getEvents(Pageable pageable, Map<String, Object> filters, String hostName) {
         try {
             WmiResolveService<EventEntity> wmiResolveService = new WmiResolveService<>(EventEntity.class);
 
-            String today = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "000000.000000000";
+            LocalDate date = (LocalDate) filters.get("date");
+
+            String startDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "000000.000000000";
+            String endDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "235959.000000000";
+
             String queryString = "Select RecordNumber, EventType, EventCode, Type, TimeGenerated, SourceName, Category, Logfile, Message From Win32_NTLogEvent";
-            String addQuery = getWmiQueryFromFilters(filters);
-            if (addQuery.isEmpty())
-                queryString += " Where TimeGenerated > '" + today + "'";
-            else
-                queryString += addQuery + " AND TimeGenerated > '" + today + "'";
+
+            queryString += " Where TimeGenerated >= '" + startDate + "' AND TimeGenerated <= '" + endDate + "'";
+
+            if (!filters.get("sourceName").toString().isEmpty())
+                queryString += " AND sourceName LIKE '" + filters.get("sourceName").toString() + "%'";
+
+            String eventType = filters.get("eventType").toString();
+            switch (eventType) {
+                case "Error":
+                    queryString += " And EventType = 1";
+                    break;
+                case "Warning":
+                    queryString += " And EventType = 2";
+                    break;
+                case "Information":
+                    queryString += " And EventType = 3";
+                    break;
+                case "Audit Success":
+                    queryString += " And EventType = 4";
+                    break;
+                case "Audit Failure":
+                    queryString += " And EventType = 5";
+                    break;
+            }
 
             return wmiResolveService.GetValues(wmiService.execute(hostName, queryString), pageable);
         } catch (Exception ex) {

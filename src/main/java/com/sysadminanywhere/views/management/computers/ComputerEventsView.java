@@ -1,12 +1,13 @@
 package com.sysadminanywhere.views.management.computers;
 
-import com.sysadminanywhere.domain.FilterSpecification;
 import com.sysadminanywhere.model.EventEntity;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -23,23 +24,19 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @PageTitle("Events")
 @Route(value = "management/computers/:id?/events", layout = MainLayout.class)
 @PermitAll
 @Uses(Icon.class)
+@Uses(DatePicker.class)
 public class ComputerEventsView extends Div implements BeforeEnterObserver {
 
     private String id;
@@ -97,9 +94,16 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver {
         private final ComputersService computersService;
 
         private final TextField sourceName = new TextField("Source name");
+        private final ComboBox<String> eventType = new ComboBox<>("Event type");
+        private final DatePicker datePicker = new DatePicker("Date");
 
         public Filters(Runnable onSearch, ComputersService computersService) {
             this.computersService = computersService;
+
+            eventType.setItems("Error", "Warning", "Information", "Audit Success", "Audit Failure", "All");
+            eventType.setValue("Error");
+
+            datePicker.setValue(LocalDate.now());
 
             setWidthFull();
             addClassName("filter-layout");
@@ -111,6 +115,13 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 sourceName.clear();
+
+                eventType.clear();
+                eventType.setValue("Errors");
+
+                datePicker.clear();
+                datePicker.setValue(LocalDate.now());
+
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -121,12 +132,14 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(sourceName, actions);
+            add(sourceName, eventType, datePicker, actions);
         }
 
-        public Map<String, String> getFilters() {
-            Map<String, String> filters = new HashMap<>();
+        public Map<String, Object> getFilters() {
+            Map<String, Object> filters = new HashMap<>();
             filters.put("sourceName", sourceName.getValue());
+            filters.put("eventType", eventType.getValue());
+            filters.put("date", datePicker.getValue());
             return filters;
         }
 
@@ -135,9 +148,13 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver {
     private Component createGrid() {
         grid = new Grid<>(EventEntity.class, false);
         grid.addColumn("sourceName").setAutoWidth(true);
-        grid.addColumn("eventType").setAutoWidth(true);
+        grid.addColumn("type").setAutoWidth(true);
         grid.addColumn("timeGenerated").setAutoWidth(true);
         grid.addColumn("logfile").setAutoWidth(true);
+
+        grid.addItemClickListener(item -> {
+
+        });
 
         grid.setItems(query -> computersService.getEvents(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),

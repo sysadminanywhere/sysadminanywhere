@@ -40,4 +40,5 @@ public class EventEntity {
 
     @WMIAttribute(name = "Logfile")
     String logfile;
+
 }
