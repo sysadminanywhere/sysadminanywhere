@@ -41,7 +41,8 @@
         + Delete
         - Management
             + Events
-                - Filters
+                + Filters
+                + Event form
             - Hardware
             + Processes
                 - Stop

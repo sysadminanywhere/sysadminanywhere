@@ -9,6 +9,8 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -16,6 +18,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -37,6 +40,7 @@ import java.util.Map;
 @PermitAll
 @Uses(Icon.class)
 @Uses(DatePicker.class)
+@Uses(TextArea.class)
 public class ComputerEventsView extends Div implements BeforeEnterObserver {
 
     private String id;
@@ -153,7 +157,7 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver {
         grid.addColumn("logfile").setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
-
+            showDialog(item.getItem()).open();
         });
 
         grid.setItems(query -> computersService.getEvents(
@@ -168,6 +172,46 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    private Dialog showDialog(EventEntity event) {
+        Dialog dialog = new Dialog();
+
+        dialog.setHeaderTitle("Event");
+        dialog.setMaxWidth("800px");
+
+        FormLayout formLayout = new FormLayout();
+
+        TextField txtSourceName = new TextField("Source name");
+        txtSourceName.setReadOnly(true);
+        txtSourceName.setValue(event.getSourceName());
+
+        TextField txtEventType = new TextField("Event type");
+        txtEventType.setReadOnly(true);
+        txtEventType.setValue(event.getType());
+
+        TextField txtTimeGenerated = new TextField("Time generated");
+        txtTimeGenerated.setReadOnly(true);
+        txtTimeGenerated.setValue(event.getTimeGenerated());
+
+        TextField txtLogfile = new TextField("Log file");
+        txtLogfile.setReadOnly(true);
+        txtLogfile.setValue(event.getLogfile());
+
+        TextArea txtMessage = new TextArea("Message");
+        txtMessage.setReadOnly(true);
+        txtMessage.setValue(event.getMessage());
+        txtMessage.setMinHeight("100px");
+        formLayout.setColspan(txtMessage, 2);
+
+        formLayout.add(txtSourceName, txtEventType, txtTimeGenerated, txtLogfile, txtMessage);
+
+        dialog.add(formLayout);
+
+        Button cancelButton = new Button("Close", e -> dialog.close());
+        dialog.getFooter().add(cancelButton);
+
+        return dialog;
     }
 
 }
