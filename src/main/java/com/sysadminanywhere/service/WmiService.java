@@ -44,19 +44,19 @@ public class WmiService {
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
-        String path = networkResource + ":" + className;
+        final String path = className + "=@";
 
         try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, username, password)) {
             wbemServices.executeMethod(path, className, methodName, inputMap);
         }
     }
 
-    public void executeCommand(String hostName, String command) throws WmiComException, TimeoutException {
+    public void executeCommand(String hostName, String command, String workingDirectory) throws WmiComException, TimeoutException {
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
         try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, username, password)) {
-            wbemServices.executeCommand(command, "c:/", Charset.defaultCharset(), 30000);
+            wbemServices.executeCommand(command, workingDirectory, Charset.defaultCharset(), 30000);
         }
     }
 

@@ -322,7 +322,7 @@ public class ComputersService {
 
     public void reboot(String hostName) {
         Map<String, Object> inputMap = new HashMap<>();
-        inputMap.put("Flags", 2);
+        inputMap.put("Flags", 6);
         try {
             wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
         } catch (WmiComException ex) {
@@ -333,7 +333,7 @@ public class ComputersService {
 
     public void shutdown(String hostName) {
         Map<String, Object> inputMap = new HashMap<>();
-        inputMap.put("Flags", 8);
+        inputMap.put("Flags", 12);
         try {
             wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
         } catch (WmiComException ex) {
