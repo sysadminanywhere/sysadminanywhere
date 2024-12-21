@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.domain.FilterSpecification;
 import com.sysadminanywhere.model.ComputerEntry;
+import com.sysadminanywhere.model.EventEntity;
 import com.sysadminanywhere.model.ProcessEntity;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.views.MainLayout;
@@ -21,6 +22,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -141,6 +143,10 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver {
         grid.addColumn("caption").setAutoWidth(true);
         grid.addColumn("description").setAutoWidth(true);
 
+        grid.addItemClickListener(item -> {
+            showDialog(item.getItem()).open();
+        });
+
         grid.setItems(query -> computersService.getProcesses(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
                 filters.getFilters(), id).stream());
@@ -153,6 +159,46 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    private Dialog showDialog(ProcessEntity process) {
+        Dialog dialog = new Dialog();
+
+        dialog.setHeaderTitle("Process");
+        dialog.setMaxWidth("800px");
+
+        FormLayout formLayout = new FormLayout();
+
+        TextField txtCaption = new TextField("Caption");
+        txtCaption.setReadOnly(true);
+        txtCaption.setValue(process.getCaption());
+
+        TextField txtDescription = new TextField("Description");
+        txtDescription.setReadOnly(true);
+        txtDescription.setValue(process.getDescription());
+
+        TextField txtHandle = new TextField("Handle");
+        txtHandle.setReadOnly(true);
+        txtHandle.setValue(process.getHandle());
+
+        TextField txtExecutablePath = new TextField("Executable path");
+        txtExecutablePath.setReadOnly(true);
+        formLayout.setColspan(txtExecutablePath, 2);
+        if(process.getExecutablePath() != null)
+            txtExecutablePath.setValue(process.getExecutablePath());
+
+        TextField txtWorkingSetSize = new TextField("Working set size");
+        txtWorkingSetSize.setReadOnly(true);
+        txtWorkingSetSize.setValue(process.getWorkingSetSize());
+
+        formLayout.add(txtCaption, txtDescription, txtExecutablePath, txtHandle, txtWorkingSetSize);
+
+        dialog.add(formLayout);
+
+        Button cancelButton = new Button("Close", e -> dialog.close());
+        dialog.getFooter().add(cancelButton);
+
+        return dialog;
     }
 
 }

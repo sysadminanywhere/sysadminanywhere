@@ -10,6 +10,8 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -19,6 +21,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -42,6 +45,7 @@ import java.util.Map;
 @Route(value = "management/computers/:id?/services", layout = MainLayout.class)
 @PermitAll
 @Uses(Icon.class)
+@Uses(TextArea.class)
 public class ComputerServicesView extends Div implements BeforeEnterObserver {
 
     private String id;
@@ -139,6 +143,10 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver {
         grid.addColumn("caption").setAutoWidth(true);
         grid.addColumn("description").setAutoWidth(true);
 
+        grid.addItemClickListener(item -> {
+            showDialog(item.getItem()).open();
+        });
+
         try {
             grid.setItems(query -> computersService.getServices(
                     PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
@@ -156,6 +164,52 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    private Dialog showDialog(ServiceEntity service) {
+        Dialog dialog = new Dialog();
+
+        dialog.setHeaderTitle("Service");
+        dialog.setMaxWidth("800px");
+
+        FormLayout formLayout = new FormLayout();
+
+        TextField txtCaption = new TextField("Caption");
+        txtCaption.setReadOnly(true);
+        txtCaption.setValue(service.getCaption());
+
+        TextArea txtDescription = new TextArea("Description");
+        txtDescription.setReadOnly(true);
+        txtDescription.setValue(service.getDescription());
+        txtDescription.setMinHeight("100px");
+        formLayout.setColspan(txtDescription, 2);
+
+        TextField txtDisplayName = new TextField("Display name");
+        txtDisplayName.setReadOnly(true);
+        txtDisplayName.setValue(service.getDisplayName());
+
+        TextField txtPathName = new TextField("Path name");
+        txtPathName.setReadOnly(true);
+        formLayout.setColspan(txtPathName, 2);
+        if(service.getPathName() != null)
+            txtPathName.setValue(service.getPathName());
+
+        TextField txtState = new TextField("State");
+        txtState.setReadOnly(true);
+        txtState.setValue(service.getState());
+
+        TextField txtStartMode = new TextField("Start mode");
+        txtStartMode.setReadOnly(true);
+        txtStartMode.setValue(service.getStartMode());
+
+        formLayout.add(txtCaption, txtDisplayName, txtDescription, txtPathName, txtState, txtStartMode);
+
+        dialog.add(formLayout);
+
+        Button cancelButton = new Button("Close", e -> dialog.close());
+        dialog.getFooter().add(cancelButton);
+
+        return dialog;
     }
 
 }
