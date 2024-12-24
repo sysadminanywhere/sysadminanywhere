@@ -45,7 +45,7 @@
                 + Event form
             - Hardware
             + Processes
-                - Stop
+                + Stop
             + Services
                 - Start
                 - Stop
