@@ -1,6 +1,5 @@
 package com.sysadminanywhere.service;
 
-import lombok.SneakyThrows;
 import org.sentrysoftware.wmi.WmiHelper;
 import org.sentrysoftware.wmi.exceptions.WmiComException;
 import org.sentrysoftware.wmi.exceptions.WqlQuerySyntaxException;
@@ -9,7 +8,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -20,7 +18,7 @@ public class WmiService {
     String username;
     char[] password;
 
-    private int timeOut = 30000;
+    private final int timeOut = 30000;
 
     public void init(String userName, String password) {
         this.username = userName;
@@ -45,7 +43,7 @@ public class WmiService {
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result;
 
         try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, username, password)) {
             result = wbemServices.executeMethod(path, className, methodName, inputMap);

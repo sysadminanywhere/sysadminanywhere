@@ -71,11 +71,6 @@
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.sentrysoftware</groupId>
-            <artifactId>wmi</artifactId>
-            <version>1.0.02</version>
-        </dependency>
 
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -90,7 +85,7 @@
         <dependency>
             <groupId>com.github.appreciated</groupId>
             <artifactId>apexcharts</artifactId>
-            <version>24.0.1</version>
+            <version>24.0.2</version>
         </dependency>
         <dependency>
             <groupId>net.coobird</groupId>
@@ -116,6 +111,21 @@
             <groupId>org.vaadin.tatu</groupId>
             <artifactId>tree</artifactId>
             <version>3.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>5.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna-platform</artifactId>
+            <version>5.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.sentrysoftware</groupId>
+            <artifactId>wmi</artifactId>
+            <version>1.0.02</version>
         </dependency>
 
         <dependency>

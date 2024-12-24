@@ -1,9 +1,7 @@
 package com.sysadminanywhere.service;
 
-import com.sysadminanywhere.model.AD;
 import com.sysadminanywhere.model.WMIAttribute;
 import lombok.SneakyThrows;
-import org.apache.directory.api.ldap.model.entry.Entry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;

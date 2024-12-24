@@ -54,8 +54,8 @@
                 + Cpu
                 + Memory
                 + Disk C:
-            - Reboot
-            - Shutdown
+            + Reboot
+            + Shutdown
     9. Contact
         + Add
         + Update

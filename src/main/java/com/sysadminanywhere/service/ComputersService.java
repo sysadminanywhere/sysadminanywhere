@@ -12,14 +12,12 @@ import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.message.ModifyRequest;
 import org.sentrysoftware.wmi.exceptions.WmiComException;
 import org.sentrysoftware.wmi.exceptions.WqlQuerySyntaxException;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -52,10 +50,7 @@ public class ComputersService {
         List<Entry> result = ldapService.search("(&(objectClass=computer)(cn=" + cn + "))");
         Optional<Entry> entry = result.stream().findFirst();
 
-        if (entry.isPresent())
-            return resolveService.getADValue(entry.get());
-        else
-            return null;
+        return entry.map(attributes -> resolveService.getADValue(attributes)).orElse(null);
     }
 
     @SneakyThrows
@@ -346,8 +341,7 @@ public class ComputersService {
 
             for (Map<String, Object> item : result) {
                 if (item.get("Name").toString().equals("_Total")) {
-                    Integer percent = Integer.valueOf(item.get("PercentProcessorTime").toString());
-                    return percent;
+                    return Integer.valueOf(item.get("PercentProcessorTime").toString());
                 }
             }
         } catch (Exception ex) {
@@ -359,8 +353,7 @@ public class ComputersService {
     public Long getAvailableBytes(String hostName) {
         try {
             List<Map<String, Object>> result = wmiService.execute(hostName, "Select * FROM Win32_PerfFormattedData_PerfOS_Memory");
-            Long availableBytes = Long.valueOf(result.get(0).get("AvailableBytes").toString());
-            return availableBytes;
+            return Long.valueOf(result.get(0).get("AvailableBytes").toString());
         } catch (Exception ex) {
             return 0L;
         }
@@ -369,8 +362,7 @@ public class ComputersService {
     public Long getTotalPhysicalMemory(String hostName) {
         try {
             List<Map<String, Object>> result = wmiService.execute(hostName, "Select * FROM Win32_ComputerSystem");
-            Long totalPhysicalMemory = Long.valueOf(result.get(0).get("TotalPhysicalMemory").toString());
-            return totalPhysicalMemory;
+            return Long.valueOf(result.get(0).get("TotalPhysicalMemory").toString());
         } catch (Exception ex) {
             return 0L;
         }
@@ -416,27 +408,14 @@ public class ComputersService {
             Map<String, Object> result = wmiService.invoke(hostName, String.format("Win32_Process.Handle='%s'", process.getHandle()), "Win32_Process", "Terminate", inputMap);
             if (result.containsKey("ReturnValue") && result.get("ReturnValue") != null) {
                 if ((int) result.get("ReturnValue") > 0) {
-                    String errorMessage = "";
-                    switch ((int) result.get("ReturnValue")) {
-                        case 2:
-                            errorMessage = "Access denied";
-                            break;
-                        case 3:
-                            errorMessage = "Insufficient privilege";
-                            break;
-                        case 8:
-                            errorMessage = "Unknown failure";
-                            break;
-                        case 9:
-                            errorMessage = "Path not found";
-                            break;
-                        case 21:
-                            errorMessage = "Invalid parameter";
-                            break;
-                        default:
-                            errorMessage = "Other error";
-                            break;
-                    }
+                    String errorMessage = switch ((int) result.get("ReturnValue")) {
+                        case 2 -> "Access denied";
+                        case 3 -> "Insufficient privilege";
+                        case 8 -> "Unknown failure";
+                        case 9 -> "Path not found";
+                        case 21 -> "Invalid parameter";
+                        default -> "Other error";
+                    };
                     Notification notification = Notification.show(errorMessage);
                     notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 } else {
