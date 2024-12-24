@@ -121,8 +121,11 @@ public class ComputersService {
 
     public Page<ProcessEntity> getProcesses(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
+            String query = "Select * From Win32_Process" + getWmiQueryFromFilters(filters);
+            if (pageable.getPageNumber() == 0)
+                wmiService.clearExecuteCache(hostName, query);
             WmiResolveService<ProcessEntity> wmiResolveService = new WmiResolveService<>(ProcessEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Process" + getWmiQueryFromFilters(filters)), pageable);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, query), pageable);
         } catch (WmiComException | WqlQuerySyntaxException | TimeoutException ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -132,8 +135,11 @@ public class ComputersService {
 
     public Page<ServiceEntity> getServices(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
+            String query = "Select * From Win32_Service" + getWmiQueryFromFilters(filters);
+            if (pageable.getPageNumber() == 0)
+                wmiService.clearExecuteCache(hostName, query);
             WmiResolveService<ServiceEntity> wmiResolveService = new WmiResolveService<>(ServiceEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Service" + getWmiQueryFromFilters(filters)), pageable);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, query), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -143,8 +149,9 @@ public class ComputersService {
 
     public Page<SoftwareEntity> getSoftware(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
+            String query = "Select * From Win32_Product" + getWmiQueryFromFilters(filters);
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Product" + getWmiQueryFromFilters(filters)), pageable);
+            return wmiResolveService.GetValues(wmiService.execute(hostName, query), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -186,6 +193,9 @@ public class ComputersService {
                     queryString += " And EventType = 5";
                     break;
             }
+
+            if (pageable.getPageNumber() == 0)
+                wmiService.clearExecuteCache(hostName, queryString);
 
             return wmiResolveService.GetValues(wmiService.execute(hostName, queryString), pageable);
         } catch (Exception ex) {

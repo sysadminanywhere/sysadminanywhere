@@ -4,6 +4,7 @@ import org.sentrysoftware.wmi.WmiHelper;
 import org.sentrysoftware.wmi.exceptions.WmiComException;
 import org.sentrysoftware.wmi.exceptions.WqlQuerySyntaxException;
 import org.sentrysoftware.wmi.wbem.WmiWbemServices;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +38,10 @@ public class WmiService {
         }
 
         return result;
+    }
+
+    @CacheEvict(value = "wmi_execute", key = "{#hostName, #wqlQuery}")
+    public void clearExecuteCache(String hostName, String wqlQuery) {
     }
 
     public Map<String, Object> invoke(String hostName, String path, String className, String methodName, Map<String, Object> inputMap) throws WmiComException {
