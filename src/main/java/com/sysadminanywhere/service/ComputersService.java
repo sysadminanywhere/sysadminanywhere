@@ -321,8 +321,7 @@ public class ComputersService {
     }
 
     public void reboot(String hostName) {
-        Map<String, Object> inputMap = new HashMap<>();
-        inputMap.put("Flags", 6);
+        Map<String, Object> inputMap = Collections.singletonMap("Flags", 6);
         try {
             wmiService.invoke(hostName, "Win32_OperatingSystem=@", "Win32_OperatingSystem", "Win32Shutdown", inputMap);
         } catch (WmiComException ex) {
@@ -332,8 +331,7 @@ public class ComputersService {
     }
 
     public void shutdown(String hostName) {
-        Map<String, Object> inputMap = new HashMap<>();
-        inputMap.put("Flags", 12);
+        Map<String, Object> inputMap = Collections.singletonMap("Flags", 12);
         try {
             wmiService.invoke(hostName, "Win32_OperatingSystem=@", "Win32_OperatingSystem", "Win32Shutdown", inputMap);
         } catch (WmiComException ex) {
@@ -414,9 +412,8 @@ public class ComputersService {
 
     public void stopProcess(String hostName, ProcessEntity process) {
         try {
-            Map<String, Object> inputMap = new HashMap<>();
-            inputMap.put("Reason", 0);
-            Map<String, Object> result = wmiService.invoke(hostName, "Win32_Process.Handle = \"" + process.getHandle() + "\"", "Win32_Process", "Terminate", inputMap);
+            Map<String, Object> inputMap = Collections.singletonMap("Reason", 1);
+            Map<String, Object> result = wmiService.invoke(hostName, String.format("Win32_Process.Handle='%s'", process.getHandle()), "Win32_Process", "Terminate", inputMap);
             if (result.containsKey("ReturnValue") && result.get("ReturnValue") != null) {
                 if ((int) result.get("ReturnValue") > 0) {
                     String errorMessage = "";
