@@ -17,7 +17,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.0</version>
+        <version>3.3.6</version>
     </parent>
 
     <repositories>
@@ -71,12 +71,12 @@
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.sentrysoftware</groupId>
             <artifactId>wmi</artifactId>
-            <version>1.0.02</version>
+            <version>1.1.00-SNAPSHOT</version>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
