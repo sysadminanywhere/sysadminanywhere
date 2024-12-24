@@ -324,7 +324,7 @@ public class ComputersService {
         Map<String, Object> inputMap = new HashMap<>();
         inputMap.put("Flags", 6);
         try {
-            wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
+            wmiService.invoke(hostName, "Win32_OperatingSystem=@", "Win32_OperatingSystem", "Win32Shutdown", inputMap);
         } catch (WmiComException ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -335,7 +335,7 @@ public class ComputersService {
         Map<String, Object> inputMap = new HashMap<>();
         inputMap.put("Flags", 12);
         try {
-            wmiService.invoke(hostName, "Win32_OperatingSystem", "Win32Shutdown", inputMap);
+            wmiService.invoke(hostName, "Win32_OperatingSystem=@", "Win32_OperatingSystem", "Win32Shutdown", inputMap);
         } catch (WmiComException ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -410,6 +410,47 @@ public class ComputersService {
 
     public LdapService getLdapService() {
         return ldapService;
+    }
+
+    public void stopProcess(String hostName, ProcessEntity process) {
+        try {
+            Map<String, Object> inputMap = new HashMap<>();
+            inputMap.put("Reason", 0);
+            Map<String, Object> result = wmiService.invoke(hostName, "Win32_Process.Handle = \"" + process.getHandle() + "\"", "Win32_Process", "Terminate", inputMap);
+            if (result.containsKey("ReturnValue") && result.get("ReturnValue") != null) {
+                if ((int) result.get("ReturnValue") > 0) {
+                    String errorMessage = "";
+                    switch ((int) result.get("ReturnValue")) {
+                        case 2:
+                            errorMessage = "Access denied";
+                            break;
+                        case 3:
+                            errorMessage = "Insufficient privilege";
+                            break;
+                        case 8:
+                            errorMessage = "Unknown failure";
+                            break;
+                        case 9:
+                            errorMessage = "Path not found";
+                            break;
+                        case 21:
+                            errorMessage = "Invalid parameter";
+                            break;
+                        default:
+                            errorMessage = "Other error";
+                            break;
+                    }
+                    Notification notification = Notification.show(errorMessage);
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                } else {
+                    Notification notification = Notification.show("Process '" + process.getCaption() + "' stopped");
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                }
+            }
+        } catch (WmiComException e) {
+            Notification notification = Notification.show(e.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
 
 }

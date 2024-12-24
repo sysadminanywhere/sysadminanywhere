@@ -184,7 +184,7 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver {
         TextField txtExecutablePath = new TextField("Executable path");
         txtExecutablePath.setReadOnly(true);
         formLayout.setColspan(txtExecutablePath, 2);
-        if(process.getExecutablePath() != null)
+        if (process.getExecutablePath() != null)
             txtExecutablePath.setValue(process.getExecutablePath());
 
         TextField txtWorkingSetSize = new TextField("Working set size");
@@ -194,6 +194,13 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver {
         formLayout.add(txtCaption, txtDescription, txtExecutablePath, txtHandle, txtWorkingSetSize);
 
         dialog.add(formLayout);
+
+        Button stopButton = new Button("Stop", e -> {
+            computersService.stopProcess(id, process);
+            dialog.close();
+        });
+        stopButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+        dialog.getFooter().add(stopButton);
 
         Button cancelButton = new Button("Close", e -> dialog.close());
         dialog.getFooter().add(cancelButton);

@@ -9,6 +9,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -40,15 +41,17 @@ public class WmiService {
         return result;
     }
 
-    public void invoke(String hostName, String className, String methodName, Map<String, Object> inputMap) throws WmiComException {
+    public Map<String, Object> invoke(String hostName, String path, String className, String methodName, Map<String, Object> inputMap) throws WmiComException {
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
-        final String path = className + "=@";
+        Map<String, Object> result = new HashMap<>();
 
         try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, username, password)) {
-            wbemServices.executeMethod(path, className, methodName, inputMap);
+            result = wbemServices.executeMethod(path, className, methodName, inputMap);
         }
+
+        return result;
     }
 
     public void executeCommand(String hostName, String command, String workingDirectory) throws WmiComException, TimeoutException {
@@ -56,7 +59,7 @@ public class WmiService {
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
         try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, username, password)) {
-            wbemServices.executeCommand(command, workingDirectory, Charset.defaultCharset(), 30000);
+            wbemServices.executeCommand(command, workingDirectory, Charset.defaultCharset(), timeOut);
         }
     }
 
