@@ -174,9 +174,9 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver {
 
         FormLayout formLayout = new FormLayout();
 
-        TextField txtCaption = new TextField("Caption");
-        txtCaption.setReadOnly(true);
-        txtCaption.setValue(service.getCaption());
+        TextField txtName = new TextField("Name");
+        txtName.setReadOnly(true);
+        txtName.setValue(service.getName());
 
         TextArea txtDescription = new TextArea("Description");
         txtDescription.setReadOnly(true);
@@ -202,9 +202,24 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver {
         txtStartMode.setReadOnly(true);
         txtStartMode.setValue(service.getStartMode());
 
-        formLayout.add(txtCaption, txtDisplayName, txtDescription, txtPathName, txtState, txtStartMode);
+        formLayout.add(txtName, txtDisplayName, txtDescription, txtPathName, txtState, txtStartMode);
 
         dialog.add(formLayout);
+
+        Button startButton = new Button("Start", e -> {
+            computersService.startService(id, service);
+            dialog.close();
+        });
+        startButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
+        dialog.getFooter().add(startButton);
+
+        Button stopButton = new Button("Stop", e -> {
+            computersService.stopService(id, service);
+            dialog.close();
+        });
+        stopButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+        dialog.getFooter().add(stopButton);
+
 
         Button cancelButton = new Button("Close", e -> dialog.close());
         dialog.getFooter().add(cancelButton);

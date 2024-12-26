@@ -439,4 +439,22 @@ public class ComputersService {
         }
     }
 
+    public void startService(String hostName, ServiceEntity service) {
+        try {
+            wmiService.executeCommand(hostName, String.format("net start '%s'", service.getName()), "c:\\");
+        } catch (WmiComException | TimeoutException ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+    }
+
+    public void stopService(String hostName, ServiceEntity service) {
+        try {
+            wmiService.executeCommand(hostName, String.format("net stop '%s'", service.getName()), "c:\\");
+        } catch (WmiComException | TimeoutException ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+    }
+
 }

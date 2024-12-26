@@ -47,8 +47,8 @@
             + Processes
                 + Stop
             + Services
-                - Start
-                - Stop
+                + Start
+                + Stop
             + Software
             + Performance
                 + Cpu
