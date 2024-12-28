@@ -30,6 +30,10 @@ import java.util.Map;
 @PermitAll
 public class HomeView extends VerticalLayout {
 
+    private final String ColumnWidth = "55%";
+    private final String ChartHeight = "300px";
+    private final String ChartWidth = "400px";
+
     private final LdapService ldapService;
 
     public HomeView(LdapService ldapService) {
@@ -58,7 +62,7 @@ public class HomeView extends VerticalLayout {
                 .withPlotOptions(PlotOptionsBuilder.get()
                         .withBar(BarBuilder.get()
                                 .withHorizontal(false)
-                                .withColumnWidth("55%")
+                                .withColumnWidth(ColumnWidth)
                                 .build())
                         .build())
                 .withDataLabels(DataLabelsBuilder.get()
@@ -75,8 +79,8 @@ public class HomeView extends VerticalLayout {
                         new Series<>("Contacts", contacts.size()))
                 .withXaxis(XAxisBuilder.get().withCategories("Count").build())
                 .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
-        chartSummary.setHeight("300px");
-        chartSummary.setWidth("400px");
+        chartSummary.setHeight(ChartHeight);
+        chartSummary.setWidth(ChartWidth);
         chartSummary.setTitle(TitleSubtitleBuilder.get().withText("Summary").build());
 
         ApexCharts chartUsers = ApexChartsBuilder.get().withChart(ChartBuilder.get()
@@ -86,7 +90,7 @@ public class HomeView extends VerticalLayout {
                 .withPlotOptions(PlotOptionsBuilder.get()
                         .withBar(BarBuilder.get()
                                 .withHorizontal(false)
-                                .withColumnWidth("55%")
+                                .withColumnWidth(ColumnWidth)
                                 .build())
                         .build())
                 .withDataLabels(DataLabelsBuilder.get()
@@ -103,8 +107,8 @@ public class HomeView extends VerticalLayout {
                         new Series<>("Never expires", users.stream().filter(c -> c.isNeverExpires()).count()))
                 .withXaxis(XAxisBuilder.get().withCategories("Count").build())
                 .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
-        chartUsers.setHeight("300px");
-        chartUsers.setWidth("400px");
+        chartUsers.setHeight(ChartHeight);
+        chartUsers.setWidth(ChartWidth);
         chartUsers.setTitle(TitleSubtitleBuilder.get().withText("Users").build());
 
         ApexCharts chartComputers = ApexChartsBuilder.get().withChart(ChartBuilder.get()
@@ -114,7 +118,7 @@ public class HomeView extends VerticalLayout {
                 .withPlotOptions(PlotOptionsBuilder.get()
                         .withBar(BarBuilder.get()
                                 .withHorizontal(false)
-                                .withColumnWidth("55%")
+                                .withColumnWidth(ColumnWidth)
                                 .build())
                         .build())
                 .withDataLabels(DataLabelsBuilder.get()
@@ -131,8 +135,8 @@ public class HomeView extends VerticalLayout {
                         new Series<>("Domain controllers", computers.stream().filter(c -> c.isDomainController()).count()))
                 .withXaxis(XAxisBuilder.get().withCategories("Count").build())
                 .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
-        chartComputers.setHeight("300px");
-        chartComputers.setWidth("400px");
+        chartComputers.setHeight(ChartHeight);
+        chartComputers.setWidth(ChartWidth);
         chartComputers.setTitle(TitleSubtitleBuilder.get().withText("Computers").build());
 
         ApexCharts chartGroups = ApexChartsBuilder.get().withChart(ChartBuilder.get()
@@ -142,7 +146,7 @@ public class HomeView extends VerticalLayout {
                 .withPlotOptions(PlotOptionsBuilder.get()
                         .withBar(BarBuilder.get()
                                 .withHorizontal(false)
-                                .withColumnWidth("55%")
+                                .withColumnWidth(ColumnWidth)
                                 .build())
                         .build())
                 .withDataLabels(DataLabelsBuilder.get()
@@ -158,17 +162,15 @@ public class HomeView extends VerticalLayout {
                         new Series<>("BuiltIn", groups.stream().filter(c -> c.isBuiltIn()).count()))
                 .withXaxis(XAxisBuilder.get().withCategories("Count").build())
                 .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
-        chartGroups.setHeight("300px");
-        chartGroups.setWidth("400px");
+        chartGroups.setHeight(ChartHeight);
+        chartGroups.setWidth(ChartWidth);
         chartGroups.setTitle(TitleSubtitleBuilder.get().withText("Groups").build());
 
-        HorizontalLayout line1 = new HorizontalLayout();
-        line1.add(chartSummary, chartUsers);
+        HorizontalLayout line = new HorizontalLayout();
+        line.setWrap(true);
+        line.add(chartSummary, chartUsers, chartComputers, chartGroups);
 
-        HorizontalLayout line2 = new HorizontalLayout();
-        line2.add(chartComputers, chartGroups);
-
-        verticalLayout.add(lblDomain, lblDistinguishedName, line1, line2);
+        verticalLayout.add(lblDomain, lblDistinguishedName, line);
 
         add(verticalLayout);
     }
