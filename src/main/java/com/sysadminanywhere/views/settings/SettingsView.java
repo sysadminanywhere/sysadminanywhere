@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class SettingsView extends VerticalLayout {
 
     public SettingsView() {
-        add(getAbout(), getUserPatterns(), getFeedback());
+        add(getAbout(), getFeedback());
     }
 
     private Card getAbout() {
