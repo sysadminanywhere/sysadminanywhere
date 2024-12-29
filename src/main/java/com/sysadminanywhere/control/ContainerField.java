@@ -1,6 +1,5 @@
 package com.sysadminanywhere.control;
 
-import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.Container;
 import com.sysadminanywhere.model.Containers;
 import com.sysadminanywhere.service.LdapService;
@@ -8,13 +7,9 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.customfield.CustomField;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.tatu.Tree;
 
 public class ContainerField extends CustomField<String> {

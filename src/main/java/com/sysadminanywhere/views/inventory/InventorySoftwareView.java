@@ -10,7 +10,7 @@ import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -21,13 +21,9 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
-import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @PageTitle("Software inventory")
@@ -54,7 +50,8 @@ public class InventorySoftwareView extends Div {
             layout.setSpacing(false);
             add(layout);
         } else {
-            add(new H3("Inventory service is unavailable!"));
+            VerticalLayout layout = new VerticalLayout(new H4("Inventory service is unavailable!"));
+            add(layout);
         }
     }
 

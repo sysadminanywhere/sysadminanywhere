@@ -81,10 +81,10 @@ public class MainLayout extends AppLayout {
         verticalLayout.add(createNavigation());
         verticalLayout.add(createManagementNavigation());
 
-        if(inventorySetting.getAvailable())
+        if (inventorySetting.getAvailable())
             verticalLayout.add(createInventoryNavigation());
 
-        if(monitoringSetting.getAvailable())
+        if (monitoringSetting.getAvailable())
             verticalLayout.add(createMonitoringNavigation());
 
         verticalLayout.add(createReportingNavigation());
@@ -201,7 +201,7 @@ public class MainLayout extends AppLayout {
             UserEntry user = maybeUser.get();
 
             Avatar avatar = new Avatar(user.getName());
-            if(user.getJpegPhoto() != null) {
+            if (user.getJpegPhoto() != null) {
                 StreamResource resource = new StreamResource("profile-pic",
                         () -> new ByteArrayInputStream(user.getThumbnailPhoto()));
                 avatar.setImageResource(resource);
@@ -221,9 +221,9 @@ public class MainLayout extends AppLayout {
             div.getElement().getStyle().set("align-items", "center");
             div.getElement().getStyle().set("gap", "var(--lumo-space-s)");
             userName.add(div);
-            userName.getSubMenu().addItem("Feedback", e -> {
+            userName.getSubMenu().addItem("Settings", e -> {
                 e.getSource().getUI().ifPresent(ui ->
-                        ui.getPage().setLocation("https://github.com/sysadminanywhere/sysadminanywhere/discussions"));
+                        ui.navigate("settings"));
             });
             userName.getSubMenu().addItem("Sign out", e -> {
                 authenticatedUser.logout();
