@@ -4,6 +4,7 @@ import com.sysadminanywhere.domain.InventorySetting;
 import com.sysadminanywhere.domain.MonitoringSetting;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
+import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.views.home.HomeView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
@@ -24,18 +25,21 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.RouterLayout;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import java.io.ByteArrayInputStream;
 import java.util.Optional;
+
+import lombok.extern.slf4j.Slf4j;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
-/**
- * The main view is a top-level placeholder for other views.
- */
-public class MainLayout extends AppLayout {
+@Slf4j
+@Layout
+public class MainLayout extends AppLayout implements RouterLayout {
 
     private H1 viewTitle;
 
@@ -45,14 +49,18 @@ public class MainLayout extends AppLayout {
     private final InventorySetting inventorySetting;
     private final MonitoringSetting monitoringSetting;
 
+    private final LoginService loginService;
+
     public MainLayout(AuthenticatedUser authenticatedUser,
                       AccessAnnotationChecker accessChecker,
                       InventorySetting inventorySetting,
-                      MonitoringSetting monitoringSetting) {
+                      MonitoringSetting monitoringSetting,
+                      LoginService loginService) {
         this.authenticatedUser = authenticatedUser;
         this.accessChecker = accessChecker;
         this.inventorySetting = inventorySetting;
         this.monitoringSetting = monitoringSetting;
+        this.loginService = loginService;
 
         setPrimarySection(Section.DRAWER);
         addDrawerContent();
@@ -200,6 +208,8 @@ public class MainLayout extends AppLayout {
         if (maybeUser.isPresent()) {
             UserEntry user = maybeUser.get();
 
+            loginService.Login(user);
+
             Avatar avatar = new Avatar(user.getName());
             if (user.getJpegPhoto() != null) {
                 StreamResource resource = new StreamResource("profile-pic",
@@ -221,6 +231,10 @@ public class MainLayout extends AppLayout {
             div.getElement().getStyle().set("align-items", "center");
             div.getElement().getStyle().set("gap", "var(--lumo-space-s)");
             userName.add(div);
+            userName.getSubMenu().addItem("About", e -> {
+                e.getSource().getUI().ifPresent(ui ->
+                        ui.navigate("about"));
+            });
             userName.getSubMenu().addItem("Settings", e -> {
                 e.getSource().getUI().ifPresent(ui ->
                         ui.navigate("settings"));

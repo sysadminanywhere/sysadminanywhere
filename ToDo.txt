@@ -63,7 +63,9 @@
 
 
 - Settings
-    1. 
+    1. New user patterns
+        + Settings
+        + Using
 
 - Reporting
 

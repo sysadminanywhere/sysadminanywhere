@@ -2,7 +2,14 @@ package com.sysadminanywhere.views.management.users;
 
 import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.domain.FilterSpecification;
+import com.sysadminanywhere.entity.LoginEntity;
+import com.sysadminanywhere.model.DisplayNamePattern;
+import com.sysadminanywhere.model.LoginPattern;
+import com.sysadminanywhere.model.Settings;
 import com.sysadminanywhere.model.UserEntry;
+import com.sysadminanywhere.security.AuthenticatedUser;
+import com.sysadminanywhere.service.LoginService;
+import com.sysadminanywhere.service.SettingsService;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
@@ -35,6 +42,7 @@ import org.springframework.data.domain.PageRequest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @PageTitle("Users")
@@ -48,12 +56,23 @@ public class UsersView extends Div {
     private Filters filters;
     private final UsersService usersService;
 
-    public UsersView(UsersService usersService) {
+    private AuthenticatedUser authenticatedUser;
+    private final LoginService loginService;
+    private final SettingsService settingsService;
+
+    private Optional<LoginEntity> loginEntity;
+    private Settings settings;
+
+    public UsersView(UsersService usersService, AuthenticatedUser authenticatedUser, LoginService loginService, SettingsService settingsService) {
         this.usersService = usersService;
+        this.loginService = loginService;
+        this.settingsService = settingsService;
+        this.authenticatedUser = authenticatedUser;
+
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid(), usersService);
+        filters = new Filters(() -> refreshGrid(), usersService, authenticatedUser, loginService, settingsService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
@@ -88,12 +107,22 @@ public class UsersView extends Div {
     public static class Filters extends Div {
 
         private final UsersService usersService;
+        private AuthenticatedUser authenticatedUser;
+        private final LoginService loginService;
+        private final SettingsService settingsService;
+
+        private Optional<LoginEntity> loginEntity;
+        private Settings settings;
+
 
         private final TextField cn = new TextField("CN");
         private final ComboBox<String> availability = new ComboBox<>("Filters");
 
-        public Filters(Runnable onSearch, UsersService usersService) {
+        public Filters(Runnable onSearch, UsersService usersService, AuthenticatedUser authenticatedUser, LoginService loginService, SettingsService settingsService) {
             this.usersService = usersService;
+            this.loginService = loginService;
+            this.settingsService = settingsService;
+            this.authenticatedUser = authenticatedUser;
 
             setWidthFull();
             addClassName("filter-layout");
@@ -147,9 +176,23 @@ public class UsersView extends Div {
 
         private Dialog addDialog(Runnable onSearch) {
 
-            Pattern userDisplayNameFormat = Pattern.compile("(?<FirstName>\\S+) (?<LastName>\\S+)");
-            Pattern userLoginPattern = Pattern.compile("(?<FirstName>\\S)\\S+ (?<LastName>\\S+)");
-            String userLoginFormat = "${FirstName}${LastName}";
+            Pattern userDisplayNameFormat = Pattern.compile("");
+            Pattern userLoginPattern = Pattern.compile("");
+            String userLoginFormat = "";
+
+            Optional<UserEntry> maybeUser = authenticatedUser.get();
+            if (maybeUser.isPresent()) {
+                UserEntry user = maybeUser.get();
+                loginEntity = loginService.getLogin(user);
+                if (loginEntity.isPresent()) {
+                    settings = settingsService.getSettings(loginEntity.get());
+
+                    userDisplayNameFormat = Pattern.compile(DisplayNamePattern.valueOf(settings.getDisplayNamePattern()).getPattern());
+                    LoginPattern loginPattern = LoginPattern.valueOf(settings.getLoginPattern());
+                    userLoginPattern = Pattern.compile(loginPattern.getPattern());
+                    userLoginFormat = loginPattern.getFormat();
+                }
+            }
 
             Dialog dialog = new Dialog();
 
@@ -209,15 +252,24 @@ public class UsersView extends Div {
                 }
             });
 
+            Pattern finalUserDisplayNameFormat = userDisplayNameFormat;
+            Pattern finalUserLoginPattern = userLoginPattern;
+            String finalUserLoginFormat = userLoginFormat;
+
             txtDisplayName.addValueChangeListener(event -> {
-                txtFirstName.setValue(userDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${FirstName}"));
-                txtLastName.setValue(userDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${LastName}"));
+                txtFirstName.setValue(finalUserDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${FirstName}"));
+                txtLastName.setValue(finalUserDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${LastName}"));
 
-                if(userDisplayNameFormat.toString().contains("<Middle>"))
-                    txtInitials.setValue(userDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${Middle}"));
+                if(finalUserDisplayNameFormat.toString().contains("<Middle>"))
+                    txtInitials.setValue(finalUserDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${Middle}"));
 
-                txtAccountName.setValue(userLoginPattern.matcher(txtDisplayName.getValue()).replaceAll(userLoginFormat).toLowerCase());
+                txtAccountName.setValue(finalUserLoginPattern.matcher(txtDisplayName.getValue()).replaceAll(finalUserLoginFormat).toLowerCase());
             });
+
+            if(settings != null && !settings.getDefaultPassword().isEmpty()) {
+                txtPassword.setValue(settings.getDefaultPassword());
+                txtConfirmPassword.setValue(settings.getDefaultPassword());
+            }
 
             formLayout.add(containerField, txtDisplayName, txtFirstName, txtInitials, txtLastName, txtAccountName, txtPassword, txtConfirmPassword, checkboxGroup);
             dialog.add(formLayout);
