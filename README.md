@@ -1,9 +1,30 @@
 # Sysadmin Anywhere
 
+Free web-based application revolutionizes Active Directory network administration by offering a unified tool that simplifies every task you need to perform.
+
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
 ![Static Badge](https://img.shields.io/badge/version-1.0.0-blue)
 
 ![Sysadmin Screenshot](images/Screen02.png)
+
+### Features
+
+- Add, edit and delete objects in Active Directory
+- View software and hardware
+- Events, processes, services on computers
+- Add and delete objects from groups
+- Reset a user's password
+- Add photos
+- Restart and shutdown remote computers
+- Computers performance
+- Patterns for add new users
+- Reports (20+)
+- No limitation on the number of objects
+
+### License
+
+This software is distributed under the terms of the MIT License (MIT).
+
 
 **[Docker compose file examle](docker/docker-compose.yml)**
 
