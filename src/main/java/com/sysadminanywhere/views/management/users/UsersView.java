@@ -14,6 +14,7 @@ import com.sysadminanywhere.service.SettingsService;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -414,8 +415,14 @@ public class UsersView extends Div {
             saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             saveButton.setEnabled(false);
 
+            Button templateButton = new Button("Get template", e -> {
+                UI.getCurrent().getPage().open("https://github.com/sysadminanywhere/sysadminanywhere/blob/main/import_users_template.csv","_blank");
+            });
+            templateButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
             Button cancelButton = new Button("Cancel", e -> dialog.close());
 
+            dialog.getFooter().add(templateButton);
             dialog.getFooter().add(cancelButton);
             dialog.getFooter().add(saveButton);
 
