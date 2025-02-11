@@ -34,6 +34,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import java.io.ByteArrayInputStream;
 import java.util.Optional;
 
+import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 

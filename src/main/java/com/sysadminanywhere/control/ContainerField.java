@@ -30,6 +30,10 @@ public class ContainerField extends CustomField<String> {
         layout.setSpacing(false);
         layout.getThemeList().add("spacing-s");
 
+        container.addValueChangeListener(e->{
+            this.updateValue();
+        });
+
         button.addClickListener(e -> showTree().open());
 
         add(layout);
@@ -37,7 +41,7 @@ public class ContainerField extends CustomField<String> {
 
     @Override
     protected String generateModelValue() {
-        return "";
+        return container.getValue();
     }
 
     @Override

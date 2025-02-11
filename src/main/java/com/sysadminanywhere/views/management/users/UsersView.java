@@ -1,7 +1,8 @@
 package com.sysadminanywhere.views.management.users;
 
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
 import com.sysadminanywhere.control.ContainerField;
-import com.sysadminanywhere.domain.FilterSpecification;
 import com.sysadminanywhere.entity.LoginEntity;
 import com.sysadminanywhere.model.DisplayNamePattern;
 import com.sysadminanywhere.model.LoginPattern;
@@ -16,7 +17,6 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -30,18 +30,25 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import jakarta.persistence.criteria.*;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
 import org.springframework.data.domain.PageRequest;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -49,6 +56,7 @@ import java.util.regex.Pattern;
 @Route(value = "management/users", layout = MainLayout.class)
 @PermitAll
 @Uses(Icon.class)
+@Uses(Upload.class)
 public class UsersView extends Div {
 
     private Grid<UserEntry> grid;
@@ -114,6 +122,7 @@ public class UsersView extends Div {
         private Optional<LoginEntity> loginEntity;
         private Settings settings;
 
+        Iterable<CSVRecord> records = null;
 
         private final TextField cn = new TextField("CN");
         private final ComboBox<String> availability = new ComboBox<>("Filters");
@@ -144,7 +153,10 @@ public class UsersView extends Div {
             Button plusButton = new Button("New");
             plusButton.addClickListener(e -> addDialog(onSearch).open());
 
-            Div actions = new Div(plusButton, resetBtn, searchBtn);
+            Button importButton = new Button("Import");
+            importButton.addClickListener(e -> importDialog(onSearch).open());
+
+            Div actions = new Div(plusButton, importButton, resetBtn, searchBtn);
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
@@ -260,13 +272,13 @@ public class UsersView extends Div {
                 txtFirstName.setValue(finalUserDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${FirstName}"));
                 txtLastName.setValue(finalUserDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${LastName}"));
 
-                if(finalUserDisplayNameFormat.toString().contains("<Middle>"))
+                if (finalUserDisplayNameFormat.toString().contains("<Middle>"))
                     txtInitials.setValue(finalUserDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${Middle}"));
 
                 txtAccountName.setValue(finalUserLoginPattern.matcher(txtDisplayName.getValue()).replaceAll(finalUserLoginFormat).toLowerCase());
             });
 
-            if(settings != null && !settings.getDefaultPassword().isEmpty()) {
+            if (settings != null && !settings.getDefaultPassword().isEmpty()) {
                 txtPassword.setValue(settings.getDefaultPassword());
                 txtConfirmPassword.setValue(settings.getDefaultPassword());
             }
@@ -305,6 +317,102 @@ public class UsersView extends Div {
             });
 
             saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+            Button cancelButton = new Button("Cancel", e -> dialog.close());
+
+            dialog.getFooter().add(cancelButton);
+            dialog.getFooter().add(saveButton);
+
+            return dialog;
+        }
+
+        private Dialog importDialog(Runnable onSearch) {
+            Dialog dialog = new Dialog();
+
+            dialog.setHeaderTitle("Import users");
+            dialog.setMaxWidth("800px");
+
+            FormLayout formLayout = new FormLayout();
+
+            ContainerField containerField = new ContainerField(usersService.getLdapService());
+            containerField.setValue(usersService.getDefaultContainer());
+            formLayout.setColspan(containerField, 2);
+
+            Button saveButton = new Button("Import");
+
+            MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
+            Upload upload = new Upload(buffer);
+            upload.setAcceptedFileTypes("text/csv", ".csv");
+
+            upload.addSucceededListener(event -> {
+                String fileName = event.getFileName();
+                InputStream inputStream = buffer.getInputStream(fileName);
+
+                String[] HEADERS = {"firstName", "lastName", "accountName", "displayName", "company", "department", "title", "description", "password"};
+
+                CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                        .setHeader(HEADERS)
+                        .setSkipHeaderRecord(true)
+                        .build();
+
+                try {
+                    records = csvFormat.parse(new InputStreamReader(inputStream));
+                    saveButton.setEnabled(true);
+                } catch (IOException ex) {
+                    Notification notification = Notification.show(ex.getMessage());
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            });
+
+            formLayout.add(containerField, upload);
+            dialog.add(formLayout);
+
+            saveButton.addClickListener(e -> {
+                for (CSVRecord record : records) {
+                    UserEntry user = new UserEntry();
+                    user.setCn(record.get("displayName"));
+                    user.setDisplayName(record.get("displayName"));
+                    user.setFirstName(record.get("firstName"));
+                    user.setLastName(record.get("lastName"));
+                    user.setSamAccountName(record.get("accountName"));
+                    try {
+                        UserEntry newUser = usersService.add(
+                                containerField.getValue(),
+                                user,
+                                record.get("password"),
+                                false,
+                                false,
+                                false,
+                                true);
+
+                        if(!record.get("company").isEmpty())
+                            newUser.setCompany(record.get("company"));
+
+                        if(!record.get("department").isEmpty())
+                            newUser.setDepartment(record.get("department"));
+
+                        if(!record.get("title").isEmpty())
+                            newUser.setTitle(record.get("title"));
+
+                        if(!record.get("description").isEmpty())
+                            newUser.setDescription(record.get("description"));
+
+                        usersService.update(newUser);
+
+                        Notification notification = Notification.show("User '" + user.getDisplayName() + "' added");
+                        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    } catch (Exception ex) {
+                        Notification notification = Notification.show(ex.getMessage());
+                        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
+
+                onSearch.run();
+                dialog.close();
+            });
+
+            saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            saveButton.setEnabled(false);
 
             Button cancelButton = new Button("Cancel", e -> dialog.close());
 
