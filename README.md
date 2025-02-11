@@ -3,7 +3,7 @@
 Free web-based application revolutionizes Active Directory network administration by offering a unified tool that simplifies every task you need to perform.
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
-![Static Badge](https://img.shields.io/badge/version-1.0.0-blue)
+![Static Badge](https://img.shields.io/badge/version-1.1.0-blue)
 
 ![Sysadmin Screenshot](images/Screen02.png)
 
@@ -15,6 +15,7 @@ Free web-based application revolutionizes Active Directory network administratio
 - Add and delete objects from groups
 - Reset a user's password
 - Add photos
+- Import users from csv file
 - Restart and shutdown remote computers
 - Computers performance
 - Patterns for add new users
