@@ -1,7 +1,5 @@
 package com.sysadminanywhere.views.management.users;
 
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvValidationException;
 import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.entity.LoginEntity;
 import com.sysadminanywhere.model.DisplayNamePattern;
@@ -31,7 +29,6 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
@@ -45,11 +42,14 @@ import jakarta.persistence.criteria.*;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.data.domain.PageRequest;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -123,7 +123,7 @@ public class UsersView extends Div {
         private Optional<LoginEntity> loginEntity;
         private Settings settings;
 
-        Iterable<CSVRecord> records = null;
+        CSVParser csvParser = null;
 
         private final TextField cn = new TextField("CN");
         private final ComboBox<String> availability = new ComboBox<>("Filters");
@@ -349,27 +349,22 @@ public class UsersView extends Div {
                 String fileName = event.getFileName();
                 InputStream inputStream = buffer.getInputStream(fileName);
 
-                String[] HEADERS = {"firstName", "lastName", "accountName", "displayName", "company", "department", "title", "description", "password"};
-
-                CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
-                        .setHeader(HEADERS)
-                        .setSkipHeaderRecord(true)
-                        .build();
 
                 try {
-                    records = csvFormat.parse(new InputStreamReader(inputStream));
+                    csvParser = new CSVParser(new InputStreamReader(inputStream), CSVFormat.DEFAULT.withFirstRecordAsHeader());
                     saveButton.setEnabled(true);
                 } catch (IOException ex) {
                     Notification notification = Notification.show(ex.getMessage());
                     notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
+
             });
 
             formLayout.add(containerField, upload);
             dialog.add(formLayout);
 
             saveButton.addClickListener(e -> {
-                for (CSVRecord record : records) {
+                for (CSVRecord record : csvParser) {
                     UserEntry user = new UserEntry();
                     user.setCn(record.get("displayName"));
                     user.setDisplayName(record.get("displayName"));
@@ -386,16 +381,18 @@ public class UsersView extends Div {
                                 false,
                                 true);
 
-                        if(!record.get("company").isEmpty())
+                        Map<String, Integer> headerMap = csvParser.getHeaderMap();
+
+                        if(headerMap.containsKey("company") && !record.get("company").isEmpty())
                             newUser.setCompany(record.get("company"));
 
-                        if(!record.get("department").isEmpty())
+                        if(headerMap.containsKey("department") && !record.get("department").isEmpty())
                             newUser.setDepartment(record.get("department"));
 
-                        if(!record.get("title").isEmpty())
+                        if(headerMap.containsKey("title") && !record.get("title").isEmpty())
                             newUser.setTitle(record.get("title"));
 
-                        if(!record.get("description").isEmpty())
+                        if(headerMap.containsKey("description") && !record.get("description").isEmpty())
                             newUser.setDescription(record.get("description"));
 
                         usersService.update(newUser);
@@ -415,8 +412,8 @@ public class UsersView extends Div {
             saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             saveButton.setEnabled(false);
 
-            Button templateButton = new Button("Get template", e -> {
-                UI.getCurrent().getPage().open("https://github.com/sysadminanywhere/sysadminanywhere/blob/main/import_users_template.csv","_blank");
+            Button templateButton = new Button("Help", e -> {
+                UI.getCurrent().getPage().open("https://github.com/sysadminanywhere/sysadminanywhere/wiki/Import-users-from-csv-file","_blank");
             });
             templateButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
