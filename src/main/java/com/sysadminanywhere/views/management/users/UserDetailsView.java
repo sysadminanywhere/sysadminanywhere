@@ -137,7 +137,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
             updateDialog().open();
         });
         MenuHelper.createIconItem(menuBar, VaadinIcon.USER, "Photo", event -> {
-            updatePhotoForm().open();
+            updatePhotoDialog().open();
         });
         MenuHelper.createIconItem(menuBar, VaadinIcon.OPTIONS, "Options", event -> {
             optionsForm().open();
@@ -226,102 +226,8 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         return new UpdateUserDialog(usersService, user, updateRunnable());
     }
 
-    private Dialog updatePhotoForm() {
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Updating user photo");
-        dialog.setWidth("600px");
-
-        StreamResource resource = new StreamResource("", () -> new ByteArrayInputStream(user.getJpegPhoto()));
-        AtomicReference<Image> image = new AtomicReference<>(new Image(resource, ""));
-        image.get().setHeight("400px");
-
-        MemoryBuffer buffer = new MemoryBuffer();
-
-        Upload upload = new Upload(buffer);
-        upload.setMaxFiles(1);
-        upload.setAcceptedFileTypes("image/jpeg", ".jpg");
-
-        Button uploadButton = new Button("Upload photo...");
-        uploadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        upload.setUploadButton(uploadButton);
-
-        upload.addFileRejectedListener(event -> {
-            String errorMessage = event.getErrorMessage();
-
-            Notification notification = Notification.show(errorMessage, 5000,
-                    Notification.Position.MIDDLE);
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-        });
-
-        AtomicReference<InputStream> fileData = new AtomicReference<>();
-
-        upload.addSucceededListener(event -> {
-            fileData.set(buffer.getInputStream());
-
-            byte[] thumbnailPhoto = resizeImage(buffer.getInputStream(), 96, 96);
-            byte[] jpegPhoto = resizeImage(buffer.getInputStream(), 648, 648);
-
-            StreamResource resource2 = new StreamResource("", () -> {
-                user.setJpegPhoto(jpegPhoto);
-                user.setThumbnailPhoto(thumbnailPhoto);
-                return new ByteArrayInputStream(jpegPhoto);
-            });
-            image.get().setSrc(resource2);
-        });
-
-        VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.add(image.get(), upload);
-
-        dialog.add(verticalLayout);
-
-        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
-            UserEntry entry = user;
-
-            try {
-                user = usersService.update(entry);
-                updateView();
-
-                Notification notification = Notification.show("User photo updated");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            }
-
-            dialog.close();
-        });
-
-        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
-
-        com.vaadin.flow.component.button.Button deleteButton = new Button("Delete", e -> {
-            UserEntry entry = user;
-
-            try {
-                entry.setJpegPhoto(null);
-                entry.setThumbnailPhoto(null);
-
-                user = usersService.update(entry);
-                updateView();
-
-                Notification notification = Notification.show("User photo deleted");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            }
-
-            dialog.close();
-        });
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
-
-        dialog.getFooter().add(deleteButton);
-        dialog.getFooter().add(cancelButton);
-        dialog.getFooter().add(saveButton);
-
-
-        return dialog;
+    private Dialog updatePhotoDialog() {
+        return new UpdateUserPhotoDialog(usersService, user, updateRunnable());
     }
 
     private Dialog resetPasswordForm() {
@@ -438,22 +344,6 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         dialog.getFooter().add(saveButton);
 
         return dialog;
-    }
-
-    @SneakyThrows
-    byte[] resizeImage(InputStream originalImage, int targetWidth, int targetHeight)  {
-
-        BufferedImage image = ImageIO.read(originalImage);
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        Thumbnails.of(image)
-                .size(targetWidth, targetHeight)
-                .outputFormat("JPEG")
-                .outputQuality(1)
-                .toOutputStream(outputStream);
-        byte[] data = outputStream.toByteArray();
-
-        return data;
     }
 
 }
