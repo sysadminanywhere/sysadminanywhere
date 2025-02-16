@@ -68,7 +68,16 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
         updateView();
     }
 
-    private void updateView() {
+    private Runnable updateRunnable() {
+        return new Runnable() {
+            @Override
+            public void run() {
+                updateView();
+            }
+        };
+    }
+
+   private void updateView() {
         if (id != null) {
             contact = contactsService.getByCN(id);
 

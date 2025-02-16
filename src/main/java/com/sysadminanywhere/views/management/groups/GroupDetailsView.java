@@ -47,7 +47,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
     private String id;
     private final GroupsService groupsService;
-    GroupEntry group;
+    private GroupEntry group;
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
@@ -62,6 +62,15 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
                 orElse(null);
 
         updateView();
+    }
+
+    private Runnable updateRunnable() {
+        return new Runnable() {
+            @Override
+            public void run() {
+                updateView();
+            }
+        };
     }
 
     private void updateView() {
@@ -115,7 +124,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
         MenuBar menuBar = new MenuBar();
         MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
-            updateForm().open();
+            updateDialog().open();
         });
         MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
             deleteDialog().open();
@@ -175,46 +184,8 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
         return dialog;
     }
 
-    private Dialog updateForm() {
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Updating user");
-        dialog.setWidth("800px");
-
-        FormLayout formLayout = new FormLayout();
-
-        TextField txtDescription = new TextField("Description");
-        txtDescription.setValue(group.getDescription());
-        formLayout.setColspan(txtDescription, 2);
-
-        formLayout.add(txtDescription);
-        dialog.add(formLayout);
-
-        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
-            GroupEntry entry = group;
-            entry.setDescription(txtDescription.getValue());
-
-            try {
-                group = groupsService.update(entry);
-                updateView();
-
-                Notification notification = Notification.show("Group updated");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            }
-
-            dialog.close();
-        });
-
-        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
-
-        dialog.getFooter().add(cancelButton);
-        dialog.getFooter().add(saveButton);
-
-        return dialog;
+    private Dialog updateDialog() {
+        return new UpdateGroupDialog(groupsService, group, updateRunnable());
     }
 
 }
