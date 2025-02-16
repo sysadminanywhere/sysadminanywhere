@@ -3,7 +3,6 @@ package com.sysadminanywhere.views.management.computers;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.ComputerEntry;
-import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.ClickEvent;
@@ -27,8 +26,6 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.tabs.TabSheet;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -36,7 +33,6 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
-import org.springframework.scheduling.annotation.Async;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -77,6 +73,15 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         } catch (UnknownHostException e) {
 
         }
+    }
+
+    private Runnable updateRunnable() {
+        return new Runnable() {
+            @Override
+            public void run() {
+                updateView();
+            }
+        };
     }
 
     private void updateView() {
@@ -123,7 +128,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
 
         MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
-            updateForm().open();
+            updateDialog().open();
         });
 
         MenuItem menuManagement = menuBar.addItem("Management");
@@ -225,51 +230,8 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         return dialog;
     }
 
-    private Dialog updateForm() {
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Updating user");
-        dialog.setWidth("800px");
-
-        FormLayout formLayout = new FormLayout();
-
-        TextField txtDescription = new TextField("Description");
-        txtDescription.setValue(computer.getDescription());
-        formLayout.setColspan(txtDescription, 2);
-
-        TextField txtLocation = new TextField("Location");
-        txtLocation.setValue(computer.getLocation());
-        formLayout.setColspan(txtLocation, 2);
-
-        formLayout.add(txtDescription, txtLocation);
-        dialog.add(formLayout);
-
-        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
-            ComputerEntry entry = computer;
-            entry.setDescription(txtDescription.getValue());
-            entry.setLocation(txtLocation.getValue());
-
-            try {
-                computer = computersService.update(entry);
-                updateView();
-
-                Notification notification = Notification.show("Computer updated");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            }
-
-            dialog.close();
-        });
-
-        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
-
-        dialog.getFooter().add(cancelButton);
-        dialog.getFooter().add(saveButton);
-
-        return dialog;
+    private Dialog updateDialog() {
+        return new UpdateComputerDialog(computersService, computer, updateRunnable());
     }
 
     private ConfirmDialog rebootDialog() {
