@@ -133,63 +133,7 @@ public class ComputersView extends Div {
         }
 
         private Dialog addDialog(Runnable onSearch) {
-            Dialog dialog = new Dialog();
-
-            dialog.setHeaderTitle("New computer");
-            dialog.setMaxWidth("800px");
-
-            FormLayout formLayout = new FormLayout();
-
-            ContainerField containerField = new ContainerField(computersService.getLdapService());
-            containerField.setValue(computersService.getDefaultContainer());
-            formLayout.setColspan(containerField, 2);
-
-            TextField txtName = new TextField("Name");
-            txtName.setRequired(true);
-            formLayout.setColspan(txtName, 2);
-
-            TextField txtDescription = new TextField("Description");
-            formLayout.setColspan(txtDescription, 2);
-
-            TextField txtLocation = new TextField("Location");
-            formLayout.setColspan(txtLocation, 2);
-
-            VerticalLayout checkboxGroup = new VerticalLayout();
-            formLayout.setColspan(checkboxGroup, 2);
-            Checkbox chkAccountEnabled = new Checkbox("Account enabled");
-
-            checkboxGroup.add(chkAccountEnabled);
-
-            formLayout.add(containerField, txtName, txtDescription, txtLocation, checkboxGroup);
-            dialog.add(formLayout);
-
-            Button saveButton = new Button("Save", e -> {
-                ComputerEntry computer = new ComputerEntry();
-                computer.setCn(txtName.getValue());
-                computer.setDescription(txtDescription.getValue());
-                computer.setLocation(txtLocation.getValue());
-                try {
-                    ComputerEntry newComputer = computersService.add(containerField.getValue(), computer, chkAccountEnabled.getValue());
-
-                    onSearch.run();
-
-                    Notification notification = Notification.show("Computer added");
-                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                } catch (Exception ex) {
-                    Notification notification = Notification.show(ex.getMessage());
-                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
-
-                dialog.close();
-            });
-
-            saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            Button cancelButton = new Button("Cancel", e -> dialog.close());
-
-            dialog.getFooter().add(cancelButton);
-            dialog.getFooter().add(saveButton);
-
-            return dialog;
+            return new AddComputerDialog(computersService, onSearch);
         }
 
     }
