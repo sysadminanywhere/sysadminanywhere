@@ -129,59 +129,7 @@ public class ContactsView extends Div {
         }
 
         private Dialog addDialog(Runnable onSearch) {
-            Dialog dialog = new Dialog();
-
-            dialog.setHeaderTitle("New contact");
-            dialog.setMaxWidth("800px");
-
-            FormLayout formLayout = new FormLayout();
-
-            ContainerField containerField = new ContainerField(contactsService.getLdapService());
-            containerField.setValue(contactsService.getDefaultContainer());
-            formLayout.setColspan(containerField, 2);
-
-            TextField txtDisplayName = new TextField("Display name");
-            formLayout.setColspan(txtDisplayName, 2);
-            txtDisplayName.setRequired(true);
-
-            TextField txtFirstName = new TextField("First name");
-            txtFirstName.setRequired(true);
-            TextField txtInitials = new TextField("Initials");
-            TextField txtLastName = new TextField("Last name");
-            txtLastName.setRequired(true);
-
-            formLayout.add(containerField,txtDisplayName, txtFirstName, txtInitials, txtLastName);
-            dialog.add(formLayout);
-
-            Button saveButton = new Button("Save", e -> {
-                ContactEntry contact = new ContactEntry();
-                contact.setCn(txtDisplayName.getValue());
-                contact.setDisplayName(txtDisplayName.getValue());
-                contact.setFirstName(txtFirstName.getValue());
-                contact.setInitials(txtInitials.getValue());
-                contact.setLastName(txtLastName.getValue());
-                try {
-                    ContactEntry newContact = contactsService.add(containerField.getValue(), contact);
-
-                    onSearch.run();
-
-                    Notification notification = Notification.show("Contact added");
-                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                } catch (Exception ex) {
-                    Notification notification = Notification.show(ex.getMessage());
-                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
-
-                dialog.close();
-            });
-
-            saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-            Button cancelButton = new Button("Cancel", e -> dialog.close());
-            dialog.getFooter().add(cancelButton);
-            dialog.getFooter().add(saveButton);
-
-            return dialog;
+            return new AddContactDialog(contactsService, onSearch);
         }
 
     }
