@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 @PageTitle("Processes")
-@Route(value = "management/computers/:id?/processes", layout = MainLayout.class)
+@Route(value = "management/computers/:id?/processes")
 @PermitAll
 @Uses(Icon.class)
 public class ComputerProcessesView extends Div implements BeforeEnterObserver {

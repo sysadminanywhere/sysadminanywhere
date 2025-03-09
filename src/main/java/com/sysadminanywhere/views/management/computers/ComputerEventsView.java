@@ -36,7 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @PageTitle("Events")
-@Route(value = "management/computers/:id?/events", layout = MainLayout.class)
+@Route(value = "management/computers/:id?/events")
 @PermitAll
 @Uses(Icon.class)
 @Uses(DatePicker.class)

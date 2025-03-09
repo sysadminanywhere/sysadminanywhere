@@ -33,7 +33,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
 @PageTitle("Contact details")
-@Route(value = "management/contacts/:id?/details", layout = MainLayout.class)
+@Route(value = "management/contacts/:id?/details")
 @PermitAll
 @Uses(Upload.class)
 @Uses(Icon.class)

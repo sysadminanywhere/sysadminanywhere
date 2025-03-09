@@ -54,7 +54,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 @PageTitle("Users")
-@Route(value = "management/users", layout = MainLayout.class)
+@Route(value = "management/users")
 @PermitAll
 @Uses(Icon.class)
 @Uses(Upload.class)

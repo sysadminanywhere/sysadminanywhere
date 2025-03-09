@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PageTitle("Hardware")
-@Route(value = "management/computers/:id?/hardware", layout = MainLayout.class)
+@Route(value = "management/computers/:id?/hardware")
 @PermitAll
 @Uses(Icon.class)
 public class ComputerHardwareView extends Div implements BeforeEnterObserver {

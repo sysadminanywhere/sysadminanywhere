@@ -55,7 +55,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @PageTitle("Performance")
-@Route(value = "management/computers/:id?/performance", layout = MainLayout.class)
+@Route(value = "management/computers/:id?/performance")
 @PermitAll
 @Uses(Icon.class)
 public class ComputerPerformanceView extends Div implements BeforeEnterObserver {

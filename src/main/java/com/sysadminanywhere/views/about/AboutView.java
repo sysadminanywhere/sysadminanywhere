@@ -11,7 +11,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
 @PageTitle("About")
-@Route(value = "about", layout = MainLayout.class)
+@Route(value = "about")
 @PermitAll
 public class AboutView extends VerticalLayout {
 

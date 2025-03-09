@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @PageTitle("User details")
-@Route(value = "management/users/:id?/details", layout = MainLayout.class)
+@Route(value = "management/users/:id?/details")
 @PermitAll
 @Uses(Upload.class)
 @Uses(Icon.class)

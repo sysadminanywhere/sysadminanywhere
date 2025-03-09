@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 
 @PageTitle("Settings")
-@Route(value = "settings", layout = MainLayout.class)
+@Route(value = "settings")
 @PermitAll
 public class SettingsView extends VerticalLayout {
 

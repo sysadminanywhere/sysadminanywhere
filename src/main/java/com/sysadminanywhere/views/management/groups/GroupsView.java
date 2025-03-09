@@ -25,7 +25,7 @@ import jakarta.annotation.security.PermitAll;
 import org.springframework.data.domain.PageRequest;
 
 @PageTitle("Groups")
-@Route(value = "management/groups", layout = MainLayout.class)
+@Route(value = "management/groups")
 @PermitAll
 @Uses(Icon.class)
 public class GroupsView extends Div {

@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @PageTitle("Services")
-@Route(value = "management/computers/:id?/services", layout = MainLayout.class)
+@Route(value = "management/computers/:id?/services")
 @PermitAll
 @Uses(Icon.class)
 @Uses(TextArea.class)

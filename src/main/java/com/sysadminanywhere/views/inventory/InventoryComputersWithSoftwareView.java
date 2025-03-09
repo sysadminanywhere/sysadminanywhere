@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 @PageTitle("Software inventory")
-@Route(value = "inventory/software/:id?/computer", layout = MainLayout.class)
+@Route(value = "inventory/software/:id?/computer")
 @PermitAll
 @Uses(Icon.class)
 public class InventoryComputersWithSoftwareView  extends Div implements BeforeEnterObserver {

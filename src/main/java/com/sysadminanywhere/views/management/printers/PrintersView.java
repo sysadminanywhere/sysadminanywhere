@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PageTitle("Printers")
-@Route(value = "management/printers", layout = MainLayout.class)
+@Route(value = "management/printers")
 @PermitAll
 @Uses(Icon.class)
 public class PrintersView extends Div {

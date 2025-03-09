@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PageTitle("Group details")
-@Route(value = "management/groups/:id?/details", layout = MainLayout.class)
+@Route(value = "management/groups/:id?/details")
 @PermitAll
 @Uses(Icon.class)
 @Uses(ListBox.class)

@@ -30,7 +30,7 @@ import jakarta.annotation.security.PermitAll;
 import org.springframework.data.domain.PageRequest;
 
 @PageTitle("Computers")
-@Route(value = "management/computers", layout = MainLayout.class)
+@Route(value = "management/computers")
 @PermitAll
 @Uses(Icon.class)
 public class ComputersView extends Div {

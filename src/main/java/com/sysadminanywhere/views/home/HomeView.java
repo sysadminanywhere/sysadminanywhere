@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Map;
 
 @PageTitle("Home")
-@Route(value = "", layout = MainLayout.class)
-@RouteAlias(value = "home", layout = MainLayout.class)
-@RouteAlias(value = "dashboard", layout = MainLayout.class)
+@Route(value = "")
+@RouteAlias(value = "home")
+@RouteAlias(value = "dashboard")
 @PermitAll
 public class HomeView extends VerticalLayout {
 

@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PageTitle("Computer details")
-@Route(value = "management/computers/:id?/details", layout = MainLayout.class)
+@Route(value = "management/computers/:id?/details")
 @PermitAll
 @Uses(Icon.class)
 @Uses(ListBox.class)

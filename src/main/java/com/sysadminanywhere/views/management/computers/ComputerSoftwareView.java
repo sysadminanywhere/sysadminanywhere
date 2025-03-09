@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 @PageTitle("Software")
-@Route(value = "management/computers/:id?/software", layout = MainLayout.class)
+@Route(value = "management/computers/:id?/software")
 @PermitAll
 @Uses(Icon.class)
 public class ComputerSoftwareView extends Div implements BeforeEnterObserver {

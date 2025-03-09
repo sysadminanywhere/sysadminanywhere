@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PageTitle("Contacts")
-@Route(value = "management/contacts", layout = MainLayout.class)
+@Route(value = "management/contacts")
 @PermitAll
 @Uses(Icon.class)
 public class ContactsView extends Div {

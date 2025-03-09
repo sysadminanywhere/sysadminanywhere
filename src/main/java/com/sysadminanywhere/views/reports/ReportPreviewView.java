@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @PageTitle("Report")
-@Route(value = "reports/report", layout = MainLayout.class)
+@Route(value = "reports/report")
 @PermitAll
 @Uses(Icon.class)
 public class ReportPreviewView extends Div implements BeforeEnterObserver {

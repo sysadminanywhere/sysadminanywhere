@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @PageTitle("Software inventory")
-@Route(value = "inventory/software", layout = MainLayout.class)
+@Route(value = "inventory/software")
 @PermitAll
 @Uses(Icon.class)
 public class InventorySoftwareView extends Div {
