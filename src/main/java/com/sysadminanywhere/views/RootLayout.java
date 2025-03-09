@@ -33,11 +33,18 @@ import com.vaadin.flow.component.orderedlayout.*;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Optional;
 
 @Layout
@@ -102,14 +109,14 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
         Scroller scroller = new Scroller(drawerContent);
         scroller.setClassName(LumoUtility.Padding.SMALL);
 
-        VerticalLayout topMenu = new VerticalLayout(createSelectedMainButtonItem("Dashboard", DashboardView.class, VaadinIcon.DASHBOARD.create()),
-                createMainButtonItem("Management", UsersView.class, VaadinIcon.BRIEFCASE.create()),
-                createMainButtonItem("Inventory", InventorySoftwareView.class, VaadinIcon.CLIPBOARD.create()),
-                createMainButtonItem("Monitoring", MonitorsView.class, VaadinIcon.CHART.create()),
-                createMainButtonItem("Reports", UserReportsView.class, VaadinIcon.FILE_TABLE.create()));
+        VerticalLayout topMenu = new VerticalLayout(createSelectedMainButtonItem("Dashboard", DashboardView.class, "icons/dashboard.png"),
+                createMainButtonItem("Management", UsersView.class, "icons/management.png"),
+                createMainButtonItem("Inventory", InventorySoftwareView.class, "icons/inventory.png"),
+                createMainButtonItem("Monitoring", MonitorsView.class, "icons/monitoring.png"),
+                createMainButtonItem("Reports", UserReportsView.class, "icons/reports.png"));
         topMenu.setMargin(false);
 
-        VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Settings", SettingsView.class, VaadinIcon.COGS.create()));
+        VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Settings", SettingsView.class, "icons/settings.png"));
         bottomMenu.setHeightFull();
         bottomMenu.setMargin(false);
         bottomMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
@@ -208,16 +215,17 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
 
     }
 
-    private Button createMainButtonItem(String label, Class<? extends Component> navigationTarget, Icon icon) {
-        return createMainButtonItem(label, navigationTarget, icon, false);
+    private Button createMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath) {
+        return createMainButtonItem(label, navigationTarget, imgPath, false);
     }
 
-    private Button createSelectedMainButtonItem(String label, Class<? extends Component> navigationTarget, Icon icon) {
-        return createMainButtonItem(label, navigationTarget, icon, true);
+    private Button createSelectedMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath) {
+        return createMainButtonItem(label, navigationTarget, imgPath, true);
     }
 
-    private Button createMainButtonItem(String label, Class<? extends Component> navigationTarget, Icon icon, boolean isSelected) {
-        Button button = new Button(icon);
+    private Button createMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath, boolean isSelected) {
+        Image img = new Image(imgPath, "");
+        Button button = new Button(img);
 
         button.setWidth("48px");
         button.setHeight("48px");
@@ -225,7 +233,7 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
         button.getStyle().setMargin("0px");
         button.getStyle().setBorder("none");
         button.setClassName("teams-nav-button");
-        changeIconColor(button, "gray");
+        changeIconColor(button, false);
         button.getStyle().setBorderRadius("10px");
         button.getStyle().setBackground("transparent");
 
@@ -254,7 +262,7 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
                     if (item instanceof Button) {
                         Button button = (Button) item;
                         button.getStyle().setBorder("none");
-                        changeIconColor(button, "gray");
+                        changeIconColor(button, false);
                         button.getStyle().setBackground("transparent");
                         button.getElement().removeAttribute("active");
                     }
@@ -266,22 +274,21 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
     private void selectButton(Button button) {
         button.getStyle().setBorder("1px");
         button.getStyle().setBackground("#F6F8F9");
-        changeIconColor(button, "var(--lumo-primary-color)");
+        changeIconColor(button, true);
         button.getElement().setAttribute("active", true);
     }
 
-    private void changeIconColor(Button button, String color) {
-        Icon icon = (Icon) button.getChildren()
+    private void changeIconColor(Button button, boolean isSelected) {
+        Image image = (Image) button.getChildren()
                 .filter(component -> {
-                    return component instanceof Icon;
+                    return component instanceof Image;
                 })
                 .findFirst()
                 .orElse(null);
 
-        if (icon != null) {
-            icon.getStyle().set("color", color);
-            icon.getStyle().setWidth("24px");
-            icon.getStyle().setHeight("24px");
+        if(image != null) {
+//            Image img = new Image("", "");
+//            button.setIcon(img);
         }
     }
 
