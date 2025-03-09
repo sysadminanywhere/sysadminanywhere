@@ -8,6 +8,7 @@ import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.home.HomeView;
+import com.sysadminanywhere.views.login.LoginView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
 import com.sysadminanywhere.views.management.groups.GroupsView;
@@ -78,8 +79,9 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
         Optional<UserEntry> maybeUser = authenticatedUser.get();
         if (maybeUser.isPresent()) {
             UserEntry user = maybeUser.get();
-
             loginService.Login(user);
+        } else {
+            UI.getCurrent().navigate(LoginView.class);
         }
 
         setPrimarySection(Section.DRAWER);
@@ -111,13 +113,13 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
         Scroller scroller = new Scroller(drawerContent);
         scroller.setClassName(LumoUtility.Padding.SMALL);
 
-        VerticalLayout topMenu = new VerticalLayout(createSelectedMainButtonItem("Dashboard", HomeView.class, VaadinIcon.HOME.create()),
-                createMainButtonItem("Management", UsersView.class, VaadinIcon.USERS.create()),
-                createMainButtonItem("Monitoring", MonitorsView.class, VaadinIcon.CALENDAR.create()),
-                createMainButtonItem("Reports", UserReportsView.class, VaadinIcon.SUITCASE.create()));
+        VerticalLayout topMenu = new VerticalLayout(createSelectedMainButtonItem("Dashboard", HomeView.class, VaadinIcon.DASHBOARD.create()),
+                createMainButtonItem("Management", UsersView.class, VaadinIcon.BRIEFCASE.create()),
+                createMainButtonItem("Monitoring", MonitorsView.class, VaadinIcon.EYE.create()),
+                createMainButtonItem("Reports", UserReportsView.class, VaadinIcon.FILE_TEXT.create()));
         topMenu.setMargin(false);
 
-        VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Admin", SettingsView.class, VaadinIcon.COGS.create()));
+        VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Settings", SettingsView.class, VaadinIcon.COGS.create()));
         bottomMenu.setHeightFull();
         bottomMenu.setMargin(false);
         bottomMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
@@ -186,13 +188,13 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
 
             subNav.add(title, hr);
 
-            if (currentRoute.startsWith("admin")) {
+            if (currentRoute.startsWith("settings")) {
                 subNav.add(adminSubNavs);
-            } else if (currentRoute.startsWith("users")) {
+            } else if (currentRoute.startsWith("management")) {
                 subNav.add(managementSubNavs);
-            } else if (currentRoute.startsWith("support")) {
+            } else if (currentRoute.startsWith("monitoring")) {
                 subNav.add(monitoringSubNavs);
-            } else if (currentRoute.startsWith("booking")) {
+            } else if (currentRoute.startsWith("reports")) {
                 subNav.add(reportsSubNavs);
             } else if (currentRoute.startsWith("dashboard") || currentRoute.isEmpty()) {
                 subNav.add(dashboardSubNavs);
@@ -273,6 +275,8 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
 
         if (icon != null) {
             icon.getStyle().set("color", color);
+            icon.getStyle().setWidth("24px");
+            icon.getStyle().setHeight("24px");
         }
     }
 
