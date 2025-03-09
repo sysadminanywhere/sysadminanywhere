@@ -1,13 +1,12 @@
 package com.sysadminanywhere.views;
 
 import com.sysadminanywhere.control.MenuControl;
-import com.sysadminanywhere.domain.InventorySetting;
-import com.sysadminanywhere.domain.MonitoringSetting;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.views.about.AboutView;
-import com.sysadminanywhere.views.home.HomeView;
+import com.sysadminanywhere.views.dashboard.DashboardView;
+import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.login.LoginView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
@@ -33,11 +32,8 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.*;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
-import com.vaadin.flow.router.AfterNavigationEvent;
-import com.vaadin.flow.router.AfterNavigationObserver;
-import com.vaadin.flow.router.Layout;
+import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
@@ -46,7 +42,7 @@ import java.util.Optional;
 
 @Layout
 @PermitAll
-public class RootLayout extends AppLayout implements AfterNavigationObserver {
+public class RootLayout extends AppLayout implements AfterNavigationObserver, BeforeEnterObserver {
 
     private H1 viewTitle;
     private HorizontalLayout menuLayout;
@@ -58,6 +54,7 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
     SideNav dashboardSubNavs = new SideNav();
     SideNav managementSubNavs = new SideNav();
     SideNav adminSubNavs = new SideNav();
+    SideNav inventorySubNavs = new SideNav();
     SideNav monitoringSubNavs = new SideNav();
     SideNav reportsSubNavs = new SideNav();
 
@@ -75,14 +72,6 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
         this.authenticatedUser = authenticatedUser;
         this.accessChecker = accessChecker;
         this.loginService = loginService;
-
-        Optional<UserEntry> maybeUser = authenticatedUser.get();
-        if (maybeUser.isPresent()) {
-            UserEntry user = maybeUser.get();
-            loginService.Login(user);
-        } else {
-            UI.getCurrent().navigate(LoginView.class);
-        }
 
         setPrimarySection(Section.DRAWER);
         getElement().setAttribute("theme", "teams-nav");
@@ -113,10 +102,11 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
         Scroller scroller = new Scroller(drawerContent);
         scroller.setClassName(LumoUtility.Padding.SMALL);
 
-        VerticalLayout topMenu = new VerticalLayout(createSelectedMainButtonItem("Dashboard", HomeView.class, VaadinIcon.DASHBOARD.create()),
+        VerticalLayout topMenu = new VerticalLayout(createSelectedMainButtonItem("Dashboard", DashboardView.class, VaadinIcon.DASHBOARD.create()),
                 createMainButtonItem("Management", UsersView.class, VaadinIcon.BRIEFCASE.create()),
-                createMainButtonItem("Monitoring", MonitorsView.class, VaadinIcon.EYE.create()),
-                createMainButtonItem("Reports", UserReportsView.class, VaadinIcon.FILE_TEXT.create()));
+                createMainButtonItem("Inventory", InventorySoftwareView.class, VaadinIcon.CLIPBOARD.create()),
+                createMainButtonItem("Monitoring", MonitorsView.class, VaadinIcon.CHART.create()),
+                createMainButtonItem("Reports", UserReportsView.class, VaadinIcon.FILE_TABLE.create()));
         topMenu.setMargin(false);
 
         VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Settings", SettingsView.class, VaadinIcon.COGS.create()));
@@ -126,7 +116,7 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
 
         buttons.add(topMenu, bottomMenu);
 
-        dashboardSubNavs.addItem(createSideNavItem("Dashboard", HomeView.class));
+        dashboardSubNavs.addItem(createSideNavItem("Dashboard", DashboardView.class));
 
         managementSubNavs.addItem(createSideNavItem("Users", UsersView.class),
                 createSideNavItem("Computers", ComputersView.class),
@@ -136,6 +126,8 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
 
         adminSubNavs.addItem(createSideNavItem("Settings", SettingsView.class),
                 createSideNavItem("About", AboutView.class));
+
+        inventorySubNavs.addItem(createSideNavItem("Software inventory", InventorySoftwareView.class));
 
         monitoringSubNavs.addItem(createSideNavItem("Monitors", MonitorsView.class));
 
@@ -156,6 +148,17 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
 
         addToDrawer(scroller);
         addHeaderContent();
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        Optional<UserEntry> maybeUser = authenticatedUser.get();
+        if (maybeUser.isPresent()) {
+            UserEntry user = maybeUser.get();
+            loginService.Login(user);
+        } else {
+            UI.getCurrent().navigate(LoginView.class);
+        }
     }
 
     @Override
@@ -194,6 +197,8 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
                 subNav.add(managementSubNavs);
             } else if (currentRoute.startsWith("monitoring")) {
                 subNav.add(monitoringSubNavs);
+            } else if (currentRoute.startsWith("inventory")) {
+                subNav.add(inventorySubNavs);
             } else if (currentRoute.startsWith("reports")) {
                 subNav.add(reportsSubNavs);
             } else if (currentRoute.startsWith("dashboard") || currentRoute.isEmpty()) {
@@ -285,6 +290,7 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
         toggle.setAriaLabel("Menu toggle");
 
         viewTitle = new H1();
+        viewTitle.setWidthFull();
         viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
 
         menuLayout = new HorizontalLayout();

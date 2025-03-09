@@ -1,4 +1,4 @@
-package com.sysadminanywhere.views.home;
+package com.sysadminanywhere.views.dashboard;
 
 import com.github.appreciated.apexcharts.ApexCharts;
 import com.github.appreciated.apexcharts.ApexChartsBuilder;
@@ -10,7 +10,6 @@ import com.github.appreciated.apexcharts.helper.Series;
 import com.sysadminanywhere.model.*;
 import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.service.ResolveService;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -18,17 +17,15 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import jakarta.annotation.security.PermitAll;
-import org.apache.directory.api.ldap.model.entry.Entry;
 
 import java.util.List;
-import java.util.Map;
 
-@PageTitle("Home")
+@PageTitle("Dashboard")
 @Route(value = "")
 @RouteAlias(value = "home")
 @RouteAlias(value = "dashboard")
 @PermitAll
-public class HomeView extends VerticalLayout {
+public class DashboardView extends VerticalLayout {
 
     private final String ColumnWidth = "55%";
     private final String ChartHeight = "300px";
@@ -36,7 +33,7 @@ public class HomeView extends VerticalLayout {
 
     private final LdapService ldapService;
 
-    public HomeView(LdapService ldapService) {
+    public DashboardView(LdapService ldapService) {
         this.ldapService = ldapService;
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();

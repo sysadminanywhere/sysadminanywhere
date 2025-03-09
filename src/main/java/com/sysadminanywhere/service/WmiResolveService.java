@@ -41,6 +41,17 @@ public class WmiResolveService<T> {
     }
 
     @SneakyThrows
+    public List<T> GetValues(List<Map<String, Object>> list) {
+        List<T> content = new ArrayList<>();
+
+        for (int i = 0; i < list.size(); i++) {
+            content.add(getValue(list.get(i)));
+        }
+
+        return content;
+    }
+
+    @SneakyThrows
     public T getValue(Map<String, Object> item) {
         T result = typeArgumentClass.newInstance();
 

@@ -18,4 +18,7 @@ public class SoftwareEntity {
     @WMIAttribute(name = "Version")
     String version;
 
+    @WMIAttribute(name = "InstallDate")
+    String installDate;
+
 }

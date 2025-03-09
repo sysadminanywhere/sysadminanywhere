@@ -1,20 +1,17 @@
-package com.sysadminanywhere.client.dto;
+package com.sysadminanywhere.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SoftwareOnComputer {
+public class SoftwareDto {
 
+    private Long id;
     private String name;
     private String vendor;
     private String version;
-    private LocalDateTime installDate;
-    private LocalDateTime checkingDate;
 
 }

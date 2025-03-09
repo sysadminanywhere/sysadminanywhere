@@ -1,8 +1,7 @@
 package com.sysadminanywhere.views.inventory;
 
-import com.sysadminanywhere.client.dto.SoftwareCount;
+import com.sysadminanywhere.model.SoftwareCount;
 import com.sysadminanywhere.service.InventoryService;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -10,7 +9,6 @@ import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -42,17 +40,12 @@ public class InventorySoftwareView extends Div {
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        if (inventoryService.ping()) {
-            filters = new Filters(() -> refreshGrid());
-            VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
-            layout.setSizeFull();
-            layout.setPadding(false);
-            layout.setSpacing(false);
-            add(layout);
-        } else {
-            VerticalLayout layout = new VerticalLayout(new H4("Inventory service is unavailable!"));
-            add(layout);
-        }
+        filters = new Filters(() -> refreshGrid());
+        VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
+        layout.setSizeFull();
+        layout.setPadding(false);
+        layout.setSpacing(false);
+        add(layout);
     }
 
     private HorizontalLayout createMobileFilters() {

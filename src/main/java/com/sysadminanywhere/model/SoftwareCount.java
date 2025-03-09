@@ -1,4 +1,4 @@
-package com.sysadminanywhere.client.dto;
+package com.sysadminanywhere.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
