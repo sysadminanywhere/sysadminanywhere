@@ -1,4 +1,4 @@
-package com.sysadminanywhere.views.dashboard;
+package com.sysadminanywhere.views.domain;
 
 import com.github.appreciated.apexcharts.ApexCharts;
 import com.github.appreciated.apexcharts.ApexChartsBuilder;
@@ -22,7 +22,7 @@ import java.util.List;
 
 @PageTitle("Dashboard")
 @Route(value = "")
-@RouteAlias(value = "home")
+@RouteAlias(value = "domain/dashboard")
 @RouteAlias(value = "dashboard")
 @PermitAll
 public class DashboardView extends VerticalLayout {
@@ -37,14 +37,6 @@ public class DashboardView extends VerticalLayout {
         this.ldapService = ldapService;
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();
-
-        H3 lblDomain = new H3();
-        lblDomain.setText(ldapService.getDomainName().toUpperCase());
-        lblDomain.setWidth("100%");
-
-        H5 lblDistinguishedName = new H5();
-        lblDistinguishedName.setText(ldapService.getDefaultNamingContext().toUpperCase());
-        lblDistinguishedName.setWidth("100%");
 
         List<ComputerEntry> computers = new ResolveService<>(ComputerEntry.class).getADList(ldapService.search("(objectClass=computer)"));
         List<UserEntry> users = new ResolveService<>(UserEntry.class).getADList(ldapService.search("(&(objectClass=user)(objectCategory=person))"));
@@ -167,7 +159,7 @@ public class DashboardView extends VerticalLayout {
         line.setWrap(true);
         line.add(chartSummary, chartUsers, chartComputers, chartGroups);
 
-        verticalLayout.add(lblDomain, lblDistinguishedName, line);
+        verticalLayout.add(line);
 
         add(verticalLayout);
     }

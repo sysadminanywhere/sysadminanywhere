@@ -4,9 +4,12 @@ import com.sysadminanywhere.control.MenuButton;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
+import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.views.about.AboutView;
-import com.sysadminanywhere.views.dashboard.DashboardView;
+import com.sysadminanywhere.views.domain.AuditView;
+import com.sysadminanywhere.views.domain.DashboardView;
+import com.sysadminanywhere.views.domain.DomainView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.login.LoginView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
@@ -56,20 +59,24 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
     SideNav monitoringSubNavs = new SideNav();
     SideNav reportsSubNavs = new SideNav();
 
-    String currentTitle = "Dashboard";
+    String currentTitle = "Domain";
 
     private AuthenticatedUser authenticatedUser;
     private AccessAnnotationChecker accessChecker;
 
     private final LoginService loginService;
+    private final LdapService ldapService;
 
     public RootLayout(AuthenticatedUser authenticatedUser,
                       AccessAnnotationChecker accessChecker,
-                      LoginService loginService) {
+                      LoginService loginService, LdapService ldapService) {
 
         this.authenticatedUser = authenticatedUser;
         this.accessChecker = accessChecker;
         this.loginService = loginService;
+        this.ldapService = ldapService;
+
+        currentTitle = ldapService.getDomainName();
 
         setPrimarySection(Section.DRAWER);
         getElement().setAttribute("theme", "teams-nav");
@@ -100,7 +107,7 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
         Scroller scroller = new Scroller(drawerContent);
         scroller.setClassName(LumoUtility.Padding.SMALL);
 
-        VerticalLayout topMenu = new VerticalLayout(createSelectedMainButtonItem("Dashboard", DashboardView.class, "/icons/dashboard.svg"),
+        VerticalLayout topMenu = new VerticalLayout(createSelectedMainButtonItem(currentTitle, DashboardView.class, "/icons/dashboard.svg"),
                 createMainButtonItem("Management", UsersView.class, "/icons/management.svg"),
                 createMainButtonItem("Inventory", InventorySoftwareView.class, "/icons/inventory.svg"),
                 createMainButtonItem("Monitoring", MonitorsView.class, "/icons/monitoring.svg"),
@@ -116,7 +123,9 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
 
         buttons.add(topMenu, bottomMenu);
 
-        dashboardSubNavs.addItem(createSideNavItem("Dashboard", DashboardView.class));
+        dashboardSubNavs.addItem(createSideNavItem("Dashboard", DashboardView.class),
+                createSideNavItem("Domain", DomainView.class),
+                createSideNavItem("Audit", AuditView.class));
 
         managementSubNavs.addItem(createSideNavItem("Users", UsersView.class),
                 createSideNavItem("Computers", ComputersView.class),
@@ -202,7 +211,7 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
                 subNav.add(inventorySubNavs);
             } else if (currentRoute.startsWith("reports")) {
                 subNav.add(reportsSubNavs);
-            } else if (currentRoute.startsWith("dashboard") || currentRoute.isEmpty()) {
+            } else if (currentRoute.startsWith("dashboard") || currentRoute.startsWith("domain") || currentRoute.isEmpty()) {
                 subNav.add(dashboardSubNavs);
             }
         }

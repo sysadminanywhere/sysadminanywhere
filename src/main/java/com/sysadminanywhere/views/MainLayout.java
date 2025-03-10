@@ -5,7 +5,7 @@ import com.sysadminanywhere.domain.MonitoringSetting;
 import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LoginService;
-import com.sysadminanywhere.views.dashboard.DashboardView;
+import com.sysadminanywhere.views.domain.DashboardView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
