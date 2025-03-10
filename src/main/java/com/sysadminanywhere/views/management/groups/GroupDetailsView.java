@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.groups;
 
+import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.GroupEntry;
@@ -43,7 +44,7 @@ import java.util.List;
 @Uses(Icon.class)
 @Uses(ListBox.class)
 @Uses(TabSheet.class)
-public class GroupDetailsView extends Div implements BeforeEnterObserver {
+public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuControl {
 
     private String id;
     private final GroupsService groupsService;
@@ -122,16 +123,6 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        MenuBar menuBar = new MenuBar();
-        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
-            updateDialog().open();
-        });
-        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
-            deleteDialog().open();
-        });
-
-        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
-
         VerticalLayout verticalLayout2 = new VerticalLayout(lblName, lblDescription);
         verticalLayout2.setWidth("70%");
 
@@ -139,11 +130,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
         horizontalLayout.setWidthFull();
         horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        HorizontalLayout horizontalLayout2 = new HorizontalLayout(menuBar);
-        horizontalLayout2.setWidthFull();
-        horizontalLayout2.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-
-        horizontalLayout.add(verticalLayout2, horizontalLayout2);
+        horizontalLayout.add(verticalLayout2);
 
         verticalLayout.add(horizontalLayout);
 
@@ -188,4 +175,18 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
         return new UpdateGroupDialog(groupsService, group, updateRunnable());
     }
 
+    @Override
+    public MenuBar getMenu() {
+        MenuBar menuBar = new MenuBar();
+        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
+            updateDialog().open();
+        });
+        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
+            deleteDialog().open();
+        });
+
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
+
+        return menuBar;
+    }
 }

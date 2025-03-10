@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.contacts;
 
+import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.ContactEntry;
 import com.sysadminanywhere.service.ContactsService;
@@ -37,7 +38,7 @@ import jakarta.annotation.security.PermitAll;
 @PermitAll
 @Uses(Upload.class)
 @Uses(Icon.class)
-public class ContactDetailsView extends Div implements BeforeEnterObserver {
+public class ContactDetailsView extends Div implements BeforeEnterObserver, MenuControl {
 
     private String id;
     private final ContactsService contactsService;
@@ -99,16 +100,6 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        MenuBar menuBar = new MenuBar();
-        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
-            updateDialog().open();
-        });
-        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
-            deleteDialog().open();
-        });
-
-        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
-
         VerticalLayout verticalLayout2 = new VerticalLayout(lblName, lblDescription);
         verticalLayout2.setWidth("70%");
 
@@ -116,11 +107,7 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
         horizontalLayout.setWidthFull();
         horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        HorizontalLayout horizontalLayout2 = new HorizontalLayout(menuBar);
-        horizontalLayout2.setWidthFull();
-        horizontalLayout2.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-
-        horizontalLayout.add(avatar, verticalLayout2, horizontalLayout2);
+        horizontalLayout.add(avatar, verticalLayout2);
 
         verticalLayout.add(horizontalLayout);
 
@@ -182,4 +169,18 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver {
         return new UpdateContactDialog(contactsService, contact, updateRunnable());
     }
 
+    @Override
+    public MenuBar getMenu() {
+        MenuBar menuBar = new MenuBar();
+        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
+            updateDialog().open();
+        });
+        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
+            deleteDialog().open();
+        });
+
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
+
+        return menuBar;
+    }
 }
