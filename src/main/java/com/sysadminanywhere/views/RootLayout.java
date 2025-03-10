@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views;
 
+import com.sysadminanywhere.control.MenuButton;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
@@ -109,14 +110,14 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
         Scroller scroller = new Scroller(drawerContent);
         scroller.setClassName(LumoUtility.Padding.SMALL);
 
-        VerticalLayout topMenu = new VerticalLayout(createSelectedMainButtonItem("Dashboard", DashboardView.class, "icons/dashboard.png"),
-                createMainButtonItem("Management", UsersView.class, "icons/management.png"),
-                createMainButtonItem("Inventory", InventorySoftwareView.class, "icons/inventory.png"),
-                createMainButtonItem("Monitoring", MonitorsView.class, "icons/monitoring.png"),
-                createMainButtonItem("Reports", UserReportsView.class, "icons/reports.png"));
+        VerticalLayout topMenu = new VerticalLayout(createSelectedMainButtonItem("Dashboard", DashboardView.class, "/icons/dashboard.svg"),
+                createMainButtonItem("Management", UsersView.class, "/icons/management.svg"),
+                createMainButtonItem("Inventory", InventorySoftwareView.class, "/icons/inventory.svg"),
+                createMainButtonItem("Monitoring", MonitorsView.class, "/icons/monitoring.svg"),
+                createMainButtonItem("Reports", UserReportsView.class, "/icons/reports.svg"));
         topMenu.setMargin(false);
 
-        VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Settings", SettingsView.class, "icons/settings.png"));
+        VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Settings", SettingsView.class, "icons/settings.svg"));
         bottomMenu.setHeightFull();
         bottomMenu.setMargin(false);
         bottomMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
@@ -215,35 +216,24 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
 
     }
 
-    private Button createMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath) {
+    private MenuButton createMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath) {
         return createMainButtonItem(label, navigationTarget, imgPath, false);
     }
 
-    private Button createSelectedMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath) {
+    private MenuButton createSelectedMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath) {
         return createMainButtonItem(label, navigationTarget, imgPath, true);
     }
 
-    private Button createMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath, boolean isSelected) {
-        Image img = new Image(imgPath, "");
-        Button button = new Button(img);
-
-        button.setWidth("48px");
-        button.setHeight("48px");
-
-        button.getStyle().setMargin("0px");
-        button.getStyle().setBorder("none");
-        button.setClassName("teams-nav-button");
-        changeIconColor(button, false);
-        button.getStyle().setBorderRadius("10px");
-        button.getStyle().setBackground("transparent");
+    private MenuButton createMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath, boolean isSelected) {
+        MenuButton button = new MenuButton(label, imgPath);
 
         if (isSelected)
-            selectButton(button);
+            button.selected(true);
 
         button.addClickListener(e -> {
             currentTitle = label;
             unselectButtons();
-            selectButton(button);
+            button.selected(true);
             UI.getCurrent().navigate(navigationTarget);
         });
 
@@ -259,36 +249,12 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
             if (component instanceof VerticalLayout) {
                 VerticalLayout layout = (VerticalLayout) component;
                 for (Component item : layout.getChildren().toList()) {
-                    if (item instanceof Button) {
-                        Button button = (Button) item;
-                        button.getStyle().setBorder("none");
-                        changeIconColor(button, false);
-                        button.getStyle().setBackground("transparent");
-                        button.getElement().removeAttribute("active");
+                    if (item instanceof MenuButton) {
+                        MenuButton button = (MenuButton) item;
+                        button.selected(false);
                     }
                 }
             }
-        }
-    }
-
-    private void selectButton(Button button) {
-        button.getStyle().setBorder("1px");
-        button.getStyle().setBackground("#F6F8F9");
-        changeIconColor(button, true);
-        button.getElement().setAttribute("active", true);
-    }
-
-    private void changeIconColor(Button button, boolean isSelected) {
-        Image image = (Image) button.getChildren()
-                .filter(component -> {
-                    return component instanceof Image;
-                })
-                .findFirst()
-                .orElse(null);
-
-        if(image != null) {
-//            Image img = new Image("", "");
-//            button.setIcon(img);
         }
     }
 
