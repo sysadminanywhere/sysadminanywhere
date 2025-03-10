@@ -1,6 +1,7 @@
 package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.domain.DirectorySetting;
+import com.sysadminanywhere.model.AuditItem;
 import com.sysadminanywhere.model.Container;
 import com.sysadminanywhere.model.Containers;
 import lombok.SneakyThrows;
@@ -15,13 +16,11 @@ import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -274,6 +273,10 @@ public class LdapService {
                 getChild(containers, container);
             }
         }
+    }
+
+    public Page<AuditItem> getAudit(Pageable pageable, Map<String, String> filters) {
+        return new PageImpl<>(new ArrayList<>(), pageable, 0);
     }
 
 }

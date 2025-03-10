@@ -4,6 +4,7 @@ import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
@@ -11,7 +12,7 @@ import jakarta.annotation.security.PermitAll;
 @PageTitle("Domain")
 @Route(value = "domain/info")
 @PermitAll
-public class DomainView extends Div {
+public class DomainView extends VerticalLayout {
 
     private final LdapService ldapService;
 
