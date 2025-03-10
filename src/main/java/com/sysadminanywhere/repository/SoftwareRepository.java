@@ -15,6 +15,8 @@ import java.util.List;
 @Repository
 public interface SoftwareRepository extends JpaRepository<Software, Long> {
 
+    List<Software> findByNameAndVendor(String name, String vendor);
+
     List<Software> findByNameAndVendorAndVersion(String name, String vendor, String version);
 
     @Query("select new com.sysadminanywhere.model.SoftwareCount(s.id, s.name, s.vendor, s.version, count(i)) from Software s JOIN s.installations i WHERE s.name LIKE :name and s.vendor LIKE :vendor GROUP BY s.id, s.name, s.vendor, s.version order by s.name")

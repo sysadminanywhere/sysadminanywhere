@@ -159,7 +159,7 @@ public class InventoryService {
 
     @Transactional
     public Software checkSoftware(SoftwareEntity softwareEntity) {
-        List<Software> software = softwareRepository.findByNameAndVendorAndVersion(softwareEntity.getName(), softwareEntity.getVendor(), softwareEntity.getVersion());
+        List<Software> software = softwareRepository.findByNameAndVendor(softwareEntity.getName(), softwareEntity.getVendor());
         if (software.isEmpty()) {
             Software soft = new Software();
             soft.setName(softwareEntity.getName());
@@ -168,7 +168,13 @@ public class InventoryService {
 
             return softwareRepository.save(soft);
         } else {
-            return software.get(0);
+            Software soft = software.get(0);
+            if (!softwareEntity.getVersion().equalsIgnoreCase(soft.getVersion())) {
+                soft.setVersion(softwareEntity.getVersion());
+                return softwareRepository.save(soft);
+            } else {
+                return soft;
+            }
         }
     }
 
