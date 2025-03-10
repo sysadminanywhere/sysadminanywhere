@@ -3,13 +3,11 @@ package com.sysadminanywhere.views.management.computers;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.ComputerEntry;
+import com.sysadminanywhere.model.ad.ComputerEntry;
+import com.sysadminanywhere.model.wmi.ComputerSystemEntity;
 import com.sysadminanywhere.service.ComputersService;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
@@ -57,20 +55,22 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
 
     Binder<ComputerEntry> binder = new Binder<>(ComputerEntry.class);
     Binder<String> binder2 = new Binder<>(String.class);
+    Binder<ComputerSystemEntity> binder3 = new Binder<>(ComputerSystemEntity.class);
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         id = event.getRouteParameters().get("id").
                 orElse(null);
 
-        getIPAddress();
+        getComputerInfo();
         updateView();
     }
 
-    public void getIPAddress() {
+    public void getComputerInfo() {
         try {
             String address = InetAddress.getByName(id).getHostAddress();
             binder2.readBean(address);
+            binder3.readBean(computersService.getComputerSystem(id));
         } catch (UnknownHostException e) {
 
         }
@@ -160,10 +160,19 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
         binder.bind(txtServicePack, ComputerEntry::getOperatingSystemServicePack, null);
 
         TextField txtIPAddress = new TextField("IP address");
-        txtServicePack.setReadOnly(true);
+        txtIPAddress.setReadOnly(true);
         binder2.bind(txtIPAddress, String::toLowerCase, null);
 
-        formLayout.add(txtLocation, txtHostName, txtOperatingSystem, txtVersion, txtServicePack, txtIPAddress);
+
+        TextField txtManufacturer = new TextField("Manufacturer");
+        txtManufacturer.setReadOnly(true);
+        binder3.bind(txtManufacturer, ComputerSystemEntity::getManufacturer, null);
+
+        TextField txtModel = new TextField("Model");
+        txtModel.setReadOnly(true);
+        binder3.bind(txtModel, ComputerSystemEntity::getModel, null);
+
+        formLayout.add(txtLocation, txtHostName, txtOperatingSystem, txtVersion, txtServicePack, txtIPAddress, txtManufacturer, txtModel);
 
         verticalLayout.add(formLayout);
 

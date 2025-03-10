@@ -1,6 +1,6 @@
 package com.sysadminanywhere.views.inventory;
 
-import com.sysadminanywhere.model.ComputerDto;
+import com.sysadminanywhere.model.ComputerItem;
 import com.sysadminanywhere.service.InventoryService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -34,7 +34,7 @@ public class InventoryComputersWithSoftwareView  extends Div implements BeforeEn
 
     private Long id = 0L;
 
-    private Grid<ComputerDto> grid;
+    private Grid<ComputerItem> grid;
 
     private Filters filters;
     private final InventoryService inventoryService;
@@ -122,7 +122,7 @@ public class InventoryComputersWithSoftwareView  extends Div implements BeforeEn
     }
 
     private Component createGrid() {
-        grid = new Grid<>(ComputerDto.class, false);
+        grid = new Grid<>(ComputerItem.class, false);
         grid.addColumn("name").setAutoWidth(true);
         grid.addColumn("dns").setAutoWidth(true);
 

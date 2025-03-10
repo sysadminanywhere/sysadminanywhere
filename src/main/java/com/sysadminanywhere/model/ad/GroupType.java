@@ -1,4 +1,4 @@
-package com.sysadminanywhere.model;
+package com.sysadminanywhere.model.ad;
 
 public enum GroupType {
     GLOBAL(0x2),

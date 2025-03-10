@@ -1,26 +1,21 @@
 package com.sysadminanywhere.views.reports;
 
 import ar.com.fdvs.dj.domain.AutoText;
-import ar.com.fdvs.dj.domain.DJCrosstab;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sysadminanywhere.model.ComputerEntry;
-import com.sysadminanywhere.model.GroupEntry;
+import com.sysadminanywhere.model.ad.ComputerEntry;
+import com.sysadminanywhere.model.ad.GroupEntry;
 import com.sysadminanywhere.model.ReportItem;
-import com.sysadminanywhere.model.UserEntry;
+import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.service.*;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.dependency.Uses;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.function.SerializableSupplier;
 import com.vaadin.flow.router.*;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.core.io.ClassPathResource;
 import org.vaadin.reports.PrintPreviewReport;
-import com.vaadin.flow.server.StreamResource;
 
 import java.io.File;
 import java.io.IOException;

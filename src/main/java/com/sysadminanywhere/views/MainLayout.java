@@ -2,7 +2,7 @@ package com.sysadminanywhere.views;
 
 import com.sysadminanywhere.domain.InventorySetting;
 import com.sysadminanywhere.domain.MonitoringSetting;
-import com.sysadminanywhere.model.UserEntry;
+import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.views.dashboard.DashboardView;

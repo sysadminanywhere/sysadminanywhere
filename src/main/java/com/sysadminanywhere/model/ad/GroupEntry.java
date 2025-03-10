@@ -1,4 +1,4 @@
-package com.sysadminanywhere.model;
+package com.sysadminanywhere.model.ad;
 
 import com.sysadminanywhere.domain.ADHelper;
 import jakarta.validation.constraints.NotNull;

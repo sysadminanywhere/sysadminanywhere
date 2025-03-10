@@ -1,9 +1,7 @@
 package com.sysadminanywhere.service;
 
-import com.sysadminanywhere.model.*;
-import com.sysadminanywhere.model.hardware.DiskDriveEntity;
-import com.sysadminanywhere.model.hardware.HardwareEntity;
-import com.sysadminanywhere.model.hardware.OperatingSystemEntity;
+import com.sysadminanywhere.model.ad.*;
+import com.sysadminanywhere.model.wmi.*;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import lombok.SneakyThrows;
@@ -314,14 +312,14 @@ public class ComputersService {
         }
     }
 
-    public Page<SoftwareEntity> getComputerSystem(Pageable pageable, String hostName) {
+    public ComputerSystemEntity getComputerSystem(String hostName) {
         try {
-            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_ComputerSystem"), pageable);
+            WmiResolveService<ComputerSystemEntity> wmiResolveService = new WmiResolveService<>(ComputerSystemEntity.class);
+            return wmiResolveService.getValue(wmiService.execute(hostName, "SELECT * FROM Win32_ComputerSystem").get(0));
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            return null;
         }
     }
 

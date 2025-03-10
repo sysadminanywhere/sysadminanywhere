@@ -1,6 +1,6 @@
 package com.sysadminanywhere.views.management.contacts;
 
-import com.sysadminanywhere.model.ContactEntry;
+import com.sysadminanywhere.model.ad.ContactEntry;
 import com.sysadminanywhere.service.ContactsService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;

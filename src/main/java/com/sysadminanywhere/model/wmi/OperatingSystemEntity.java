@@ -1,6 +1,5 @@
-package com.sysadminanywhere.model.hardware;
+package com.sysadminanywhere.model.wmi;
 
-import com.sysadminanywhere.model.WMIAttribute;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

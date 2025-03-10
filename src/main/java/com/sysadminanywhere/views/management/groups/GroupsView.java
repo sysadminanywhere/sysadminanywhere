@@ -1,9 +1,8 @@
 package com.sysadminanywhere.views.management.groups;
 
 import com.sysadminanywhere.control.MenuControl;
-import com.sysadminanywhere.model.GroupEntry;
+import com.sysadminanywhere.model.ad.GroupEntry;
 import com.sysadminanywhere.service.GroupsService;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;

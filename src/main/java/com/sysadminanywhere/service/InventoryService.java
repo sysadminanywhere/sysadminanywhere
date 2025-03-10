@@ -1,13 +1,13 @@
 package com.sysadminanywhere.service;
 
-import com.sysadminanywhere.model.ComputerDto;
+import com.sysadminanywhere.model.ComputerItem;
 import com.sysadminanywhere.model.SoftwareCount;
 import com.sysadminanywhere.model.SoftwareOnComputer;
 import com.sysadminanywhere.entity.Computer;
 import com.sysadminanywhere.entity.Installation;
 import com.sysadminanywhere.entity.Software;
-import com.sysadminanywhere.model.ComputerEntry;
-import com.sysadminanywhere.model.SoftwareEntity;
+import com.sysadminanywhere.model.ad.ComputerEntry;
+import com.sysadminanywhere.model.wmi.SoftwareEntity;
 import com.sysadminanywhere.repository.ComputerRepository;
 import com.sysadminanywhere.repository.InstallationRepository;
 import com.sysadminanywhere.repository.SoftwareRepository;
@@ -209,7 +209,7 @@ public class InventoryService {
         return softwareRepository.getSoftwareInstallationCount(name, vendor, pageable);
     }
 
-    public Page<ComputerDto> getComputersWithSoftware(Long softwareId, Pageable pageable, Map<String, String> filters) {
+    public Page<ComputerItem> getComputersWithSoftware(Long softwareId, Pageable pageable, Map<String, String> filters) {
         String name = filters.get("name") + "%";
         return computerRepository.getComputersWithSoftware(softwareId, name, pageable);
     }

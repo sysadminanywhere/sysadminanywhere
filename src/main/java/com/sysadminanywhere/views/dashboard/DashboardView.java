@@ -7,7 +7,7 @@ import com.github.appreciated.apexcharts.config.chart.Type;
 import com.github.appreciated.apexcharts.config.chart.builder.ToolbarBuilder;
 import com.github.appreciated.apexcharts.config.plotoptions.builder.BarBuilder;
 import com.github.appreciated.apexcharts.helper.Series;
-import com.sysadminanywhere.model.*;
+import com.sysadminanywhere.model.ad.*;
 import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.service.ResolveService;
 import com.vaadin.flow.component.html.*;

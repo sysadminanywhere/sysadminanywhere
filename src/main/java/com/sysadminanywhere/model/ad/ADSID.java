@@ -1,4 +1,4 @@
-package com.sysadminanywhere.model;
+package com.sysadminanywhere.model.ad;
 
 public class ADSID {
 

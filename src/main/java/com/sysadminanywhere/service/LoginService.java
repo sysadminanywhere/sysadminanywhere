@@ -1,7 +1,7 @@
 package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.entity.LoginEntity;
-import com.sysadminanywhere.model.UserEntry;
+import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.repository.LoginRepository;
 import org.springframework.stereotype.Service;
 
