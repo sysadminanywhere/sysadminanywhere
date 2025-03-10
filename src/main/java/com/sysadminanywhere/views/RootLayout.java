@@ -23,6 +23,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H4;
@@ -118,6 +119,19 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
         topMenu.setMargin(false);
 
         VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Settings", SettingsView.class, "icons/settings.svg"));
+
+        Optional<UserEntry> maybeUser = authenticatedUser.get();
+        if (maybeUser.isPresent()) {
+            UserEntry user = maybeUser.get();
+            StreamResource resource = null;
+            if (user.getJpegPhoto() != null) {
+                resource = new StreamResource("profile-pic",
+                        () -> new ByteArrayInputStream(user.getThumbnailPhoto()));
+
+            }
+            bottomMenu.add(new MenuButton(user.getName(), resource));
+        }
+
         bottomMenu.setHeightFull();
         bottomMenu.setMargin(false);
         bottomMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
@@ -163,7 +177,8 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
         Optional<UserEntry> maybeUser = authenticatedUser.get();
         if (maybeUser.isPresent()) {
             UserEntry user = maybeUser.get();
-            loginService.Login(user);
+            if(!loginService.isLoggedIn())
+                loginService.Login(user);
         } else {
             UI.getCurrent().navigate(LoginView.class);
         }

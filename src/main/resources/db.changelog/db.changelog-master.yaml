@@ -6,4 +6,4 @@ databaseChangeLog:
   - include:
       file: db.changelog/changelogs/settings.yaml
   - include:
-      file: db.changelog/changelogs/inventory.xml
+      file: db.changelog/changelogs/inventory.yaml
