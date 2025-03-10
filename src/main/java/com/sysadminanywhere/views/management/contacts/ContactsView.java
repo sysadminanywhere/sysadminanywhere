@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.management.contacts;
 
 import com.sysadminanywhere.control.ContainerField;
+import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.FilterSpecification;
 import com.sysadminanywhere.model.ComputerEntry;
 import com.sysadminanywhere.model.ContactEntry;
@@ -18,6 +19,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -38,7 +40,7 @@ import java.util.List;
 @Route(value = "management/contacts")
 @PermitAll
 @Uses(Icon.class)
-public class ContactsView extends Div {
+public class ContactsView extends Div implements MenuControl {
 
     private Grid<ContactEntry> grid;
 
@@ -82,6 +84,21 @@ public class ContactsView extends Div {
         return mobileFilters;
     }
 
+    @Override
+    public MenuBar getMenu() {
+        MenuBar menuBar = new MenuBar();
+
+        menuBar.addItem("New", menuItemClickEvent -> {
+            addDialog(this::refreshGrid).open();
+        });
+
+        return menuBar;
+    }
+
+    private Dialog addDialog(Runnable onSearch) {
+        return new AddContactDialog(contactsService, onSearch);
+    }
+
     public static class Filters extends Div {
 
         private final ContactsService contactsService;
@@ -108,10 +125,7 @@ public class ContactsView extends Div {
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
-            Button plusButton = new Button("New");
-            plusButton.addClickListener(e -> addDialog(onSearch).open());
-
-            Div actions = new Div(plusButton, resetBtn, searchBtn);
+            Div actions = new Div(resetBtn, searchBtn);
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
@@ -126,10 +140,6 @@ public class ContactsView extends Div {
             }
 
             return searchFilters;
-        }
-
-        private Dialog addDialog(Runnable onSearch) {
-            return new AddContactDialog(contactsService, onSearch);
         }
 
     }

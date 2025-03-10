@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.groups;
 
+import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.model.GroupEntry;
 import com.sysadminanywhere.service.GroupsService;
 import com.sysadminanywhere.views.MainLayout;
@@ -14,6 +15,7 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -28,7 +30,7 @@ import org.springframework.data.domain.PageRequest;
 @Route(value = "management/groups")
 @PermitAll
 @Uses(Icon.class)
-public class GroupsView extends Div {
+public class GroupsView extends Div implements MenuControl {
 
     private Grid<GroupEntry> grid;
 
@@ -72,6 +74,21 @@ public class GroupsView extends Div {
         return mobileFilters;
     }
 
+    @Override
+    public MenuBar getMenu() {
+        MenuBar menuBar = new MenuBar();
+
+        menuBar.addItem("New", menuItemClickEvent -> {
+            addDialog(this::refreshGrid).open();
+        });
+
+        return menuBar;
+    }
+
+    private Dialog addDialog(Runnable onSearch) {
+        return new AddGroupDialog(groupsService, onSearch);
+    }
+
     public static class Filters extends Div {
 
         private final GroupsService groupsService;
@@ -100,10 +117,7 @@ public class GroupsView extends Div {
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
-            Button plusButton = new Button("New");
-            plusButton.addClickListener(e -> addDialog(onSearch).open());
-
-            Div actions = new Div(plusButton, resetBtn, searchBtn);
+            Div actions = new Div(resetBtn, searchBtn);
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
@@ -147,10 +161,6 @@ public class GroupsView extends Div {
             }
 
             return searchFilters;
-        }
-
-        private Dialog addDialog(Runnable onSearch) {
-            return new AddGroupDialog(groupsService, onSearch);
         }
 
     }

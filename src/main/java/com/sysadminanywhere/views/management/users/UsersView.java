@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.management.users;
 
 import com.sysadminanywhere.control.ContainerField;
+import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.entity.LoginEntity;
 import com.sysadminanywhere.model.DisplayNamePattern;
 import com.sysadminanywhere.model.LoginPattern;
@@ -25,6 +26,7 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -58,7 +60,7 @@ import java.util.regex.Pattern;
 @PermitAll
 @Uses(Icon.class)
 @Uses(Upload.class)
-public class UsersView extends Div {
+public class UsersView extends Div implements MenuControl {
 
     private Grid<UserEntry> grid;
 
@@ -113,6 +115,29 @@ public class UsersView extends Div {
         return mobileFilters;
     }
 
+    @Override
+    public MenuBar getMenu() {
+        MenuBar menuBar = new MenuBar();
+
+        menuBar.addItem("New", menuItemClickEvent -> {
+            addDialog(this::refreshGrid).open();
+        });
+
+        menuBar.addItem("Import", menuItemClickEvent -> {
+            importDialog(this::refreshGrid).open();
+        });
+
+        return menuBar;
+    }
+
+    private Dialog addDialog(Runnable onSearch) {
+        return new AddUserDialog(usersService, loginService, authenticatedUser, settingsService, onSearch);
+    }
+
+    private Dialog importDialog(Runnable onSearch) {
+        return new ImportUserDialog(usersService, onSearch);
+    }
+
     public static class Filters extends Div {
 
         private final UsersService usersService;
@@ -149,13 +174,7 @@ public class UsersView extends Div {
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
-            Button plusButton = new Button("New");
-            plusButton.addClickListener(e -> addDialog(onSearch).open());
-
-            Button importButton = new Button("Import");
-            importButton.addClickListener(e -> importDialog(onSearch).open());
-
-            Div actions = new Div(plusButton, importButton, resetBtn, searchBtn);
+            Div actions = new Div(resetBtn, searchBtn);
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
@@ -183,14 +202,6 @@ public class UsersView extends Div {
             }
 
             return searchFilters;
-        }
-
-        private Dialog addDialog(Runnable onSearch) {
-            return new AddUserDialog(usersService, loginService, authenticatedUser, settingsService, onSearch);
-        }
-
-        private Dialog importDialog(Runnable onSearch) {
-            return new ImportUserDialog(usersService, onSearch);
         }
 
     }
