@@ -234,7 +234,9 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
     }
 
     private SideNavItem createSideNavItem(String label, Class<? extends Component> navigationTarget) {
-        return new SideNavItem(label, navigationTarget);
+        SideNavItem sideNavItem = new SideNavItem(label, navigationTarget);
+        sideNavItem.setMatchNested(true);
+        return sideNavItem;
     }
 
     private void unselectButtons() {
