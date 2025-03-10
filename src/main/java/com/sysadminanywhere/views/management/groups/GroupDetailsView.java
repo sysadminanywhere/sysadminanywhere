@@ -173,10 +173,10 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
     @Override
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
-        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", "Update", event -> {
             updateDialog().open();
         });
-        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
             deleteDialog().open();
         });
 

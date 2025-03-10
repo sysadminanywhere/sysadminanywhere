@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.management.contacts;
 
 import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.ad.ContactEntry;
 import com.sysadminanywhere.service.ContactsService;
 import com.vaadin.flow.component.Component;
@@ -76,7 +77,7 @@ public class ContactsView extends Div implements MenuControl {
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
 
-        menuBar.addItem("New", menuItemClickEvent -> {
+        MenuHelper.createIconItem(menuBar, "/icons/plus.svg", "New", event -> {
             addDialog(this::refreshGrid).open();
         });
 

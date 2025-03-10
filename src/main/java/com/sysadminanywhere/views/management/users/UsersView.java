@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.management.users;
 
 import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.entity.LoginEntity;
 import com.sysadminanywhere.model.Settings;
 import com.sysadminanywhere.model.ad.UserEntry;
@@ -97,11 +98,11 @@ public class UsersView extends Div implements MenuControl {
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
 
-        menuBar.addItem("New", menuItemClickEvent -> {
+        MenuHelper.createIconItem(menuBar, "/icons/plus.svg", "New", event -> {
             addDialog(this::refreshGrid).open();
         });
 
-        menuBar.addItem("Import", menuItemClickEvent -> {
+        MenuHelper.createIconItem(menuBar, "/icons/import.svg", "Import", event -> {
             importDialog(this::refreshGrid).open();
         });
 

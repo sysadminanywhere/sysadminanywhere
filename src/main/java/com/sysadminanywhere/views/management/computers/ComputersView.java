@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.ad.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
 import com.vaadin.flow.component.Component;
@@ -78,7 +79,7 @@ public class ComputersView extends Div implements MenuControl {
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
 
-        menuBar.addItem("New", menuItemClickEvent -> {
+        MenuHelper.createIconItem(menuBar, "/icons/plus.svg", "New", event -> {
             addDialog(this::refreshGrid).open();
         });
 

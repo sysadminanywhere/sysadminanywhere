@@ -247,13 +247,13 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
         MenuBar menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
 
-        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", "Update", event -> {
             updateDialog().open();
         });
 
         MenuItem menuManagement = menuBar.addItem("Management");
 
-        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
             deleteDialog().open();
         });
 

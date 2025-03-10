@@ -319,19 +319,19 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
     @Override
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
-        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", "Update", event -> {
             updateDialog().open();
         });
-        MenuHelper.createIconItem(menuBar, VaadinIcon.USER, "Photo", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/portrait.svg", "Photo", event -> {
             updatePhotoDialog().open();
         });
-        MenuHelper.createIconItem(menuBar, VaadinIcon.OPTIONS, "Options", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/options.svg", "Options", event -> {
             optionsForm().open();
         });
-        MenuHelper.createIconItem(menuBar, VaadinIcon.PASSWORD, "Reset password", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/password.svg", "Reset password", event -> {
             resetPasswordForm().open();
         });
-        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
             deleteDialog().open();
         });
 

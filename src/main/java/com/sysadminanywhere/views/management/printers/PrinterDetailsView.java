@@ -68,7 +68,7 @@ public class PrinterDetailsView extends Div implements BeforeEnterObserver {
         MenuBar menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
-        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
             deleteDialog().open();
         });
 
