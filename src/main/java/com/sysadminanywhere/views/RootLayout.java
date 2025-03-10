@@ -118,19 +118,8 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
                 createMainButtonItem("Reports", UserReportsView.class, "/icons/reports.svg"));
         topMenu.setMargin(false);
 
-        VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Settings", SettingsView.class, "icons/settings.svg"));
-
-        Optional<UserEntry> maybeUser = authenticatedUser.get();
-        if (maybeUser.isPresent()) {
-            UserEntry user = maybeUser.get();
-            StreamResource resource = null;
-            if (user.getJpegPhoto() != null) {
-                resource = new StreamResource("profile-pic",
-                        () -> new ByteArrayInputStream(user.getThumbnailPhoto()));
-
-            }
-            bottomMenu.add(new MenuButton(user.getName(), resource));
-        }
+        VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Account", SettingsView.class, "/icons/user.svg"),
+                createMainButtonItem("Settings", SettingsView.class, "/icons/settings.svg"));
 
         bottomMenu.setHeightFull();
         bottomMenu.setMargin(false);

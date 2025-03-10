@@ -1,34 +1,12 @@
 package com.sysadminanywhere.control;
 
-import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.icon.SvgIcon;
-import com.vaadin.flow.server.AbstractStreamResource;
 
 public class MenuButton extends Button {
 
     boolean isSelected = false;
     SvgIcon svgIcon;
-
-    public MenuButton(String label, AbstractStreamResource resource) {
-        Avatar avatar = new Avatar(label);
-        if (resource != null)
-            avatar.setImageResource(resource);
-        avatar.setThemeName("xsmall");
-        avatar.getElement().setAttribute("tabindex", "-1");
-
-        this.setIcon(avatar);
-
-        this.setWidth("48px");
-        this.setHeight("48px");
-
-        this.getStyle().setBorderRadius("10px");
-        this.getStyle().setMargin("0px");
-        this.setClassName("teams-nav-button");
-
-        normalButton();
-    }
 
     public MenuButton(String label, String imagePath) {
         svgIcon = new SvgIcon(imagePath);
@@ -42,6 +20,8 @@ public class MenuButton extends Button {
         this.getStyle().setBorderRadius("10px");
         this.getStyle().setMargin("0px");
         this.setClassName("teams-nav-button");
+
+        this.setTooltipText(label);
 
         normalButton();
     }
