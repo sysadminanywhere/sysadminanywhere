@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.computers;
 
+import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.ComputerEntry;
@@ -44,7 +45,7 @@ import java.util.List;
 @PermitAll
 @Uses(Icon.class)
 @Uses(ListBox.class)
-public class ComputerDetailsView extends Div implements BeforeEnterObserver {
+public class ComputerDetailsView extends Div implements BeforeEnterObserver, MenuControl {
 
     private String id;
     private final ComputersService computersService;
@@ -124,44 +125,6 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        MenuBar menuBar = new MenuBar();
-        menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
-
-        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
-            updateDialog().open();
-        });
-
-        MenuItem menuManagement = menuBar.addItem("Management");
-
-        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
-            deleteDialog().open();
-        });
-
-        ComponentEventListener<ClickEvent<MenuItem>> listener = e -> {
-            if (computer != null) {
-                e.getSource().getUI().ifPresent(ui ->
-                        ui.navigate("management/computers/" + computer.getCn() + "/" + e.getSource().getText().toLowerCase()));
-            }
-        };
-
-        SubMenu subMenuManagement = menuManagement.getSubMenu();
-        subMenuManagement.addItem("Processes", listener);
-        subMenuManagement.addItem("Services", listener);
-        subMenuManagement.addItem("Events", listener);
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Software", listener);
-//        subMenuManagement.addItem("Hardware", listener);
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Performance", listener);
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Reboot", menuItemClickEvent -> {
-            rebootDialog().open();
-        });
-        subMenuManagement.addItem("Shutdown", menuItemClickEvent -> {
-            shutdownDialog().open();
-        });
-
-        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
         VerticalLayout verticalLayout2 = new VerticalLayout(lblName, lblDescription);
         verticalLayout2.setWidth("70%");
@@ -170,11 +133,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         horizontalLayout.setWidthFull();
         horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        HorizontalLayout horizontalLayout2 = new HorizontalLayout(menuBar);
-        horizontalLayout2.setWidthFull();
-        horizontalLayout2.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-
-        horizontalLayout.add(verticalLayout2, horizontalLayout2);
+        horizontalLayout.add(verticalLayout2);
 
         verticalLayout.add(horizontalLayout);
 
@@ -272,6 +231,50 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         });
 
         return dialog;
+    }
+
+    @Override
+    public MenuBar getMenu() {
+        MenuBar menuBar = new MenuBar();
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
+
+        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
+            updateDialog().open();
+        });
+
+        MenuItem menuManagement = menuBar.addItem("Management");
+
+        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
+            deleteDialog().open();
+        });
+
+        ComponentEventListener<ClickEvent<MenuItem>> listener = e -> {
+            if (computer != null) {
+                e.getSource().getUI().ifPresent(ui ->
+                        ui.navigate("management/computers/" + computer.getCn() + "/" + e.getSource().getText().toLowerCase()));
+            }
+        };
+
+        SubMenu subMenuManagement = menuManagement.getSubMenu();
+        subMenuManagement.addItem("Processes", listener);
+        subMenuManagement.addItem("Services", listener);
+        subMenuManagement.addItem("Events", listener);
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Software", listener);
+//        subMenuManagement.addItem("Hardware", listener);
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Performance", listener);
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Reboot", menuItemClickEvent -> {
+            rebootDialog().open();
+        });
+        subMenuManagement.addItem("Shutdown", menuItemClickEvent -> {
+            shutdownDialog().open();
+        });
+
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
+
+        return menuBar;
     }
 
 }
