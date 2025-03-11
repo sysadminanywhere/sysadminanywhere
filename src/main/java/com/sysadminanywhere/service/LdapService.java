@@ -20,6 +20,10 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -275,8 +279,49 @@ public class LdapService {
         }
     }
 
-    public Page<AuditItem> getAudit(Pageable pageable, Map<String, String> filters) {
-        return new PageImpl<>(new ArrayList<>(), pageable, 0);
+    @SneakyThrows
+    public Page<AuditItem> getAudit(Pageable pageable, Map<String, Object> filters) {
+
+        LocalDate date = (LocalDate) filters.get("date");
+
+        String startDate = date.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd000000.0Z"));
+        String endDate = date.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd235959.0Z"));
+
+        List<Entry> list = search(baseDn, "(&(whenChanged>=" + startDate + ")(whenChanged<=" + endDate + "))", SearchScope.SUBTREE);
+
+        if (list.isEmpty()) {
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        } else {
+            List<AuditItem> content = new ArrayList<>();
+            for (Entry entry : list) {
+                AuditItem item = new AuditItem();
+
+                item.setName(entry.get("name").getString());
+                item.setDistinguishedName(entry.getDn().getName());
+
+                Value whenCreatedValue = entry.get("whencreated") != null ? entry.get("whencreated").get() : null;
+                Value whenChangedValue = entry.get("whenchanged") != null ? entry.get("whenchanged").get() : null;
+
+                if (whenChangedValue != null && whenChangedValue != null) {
+
+                    String whenCreated = whenCreatedValue.getString();
+                    String whenChanged = whenChangedValue.getString();
+
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss'.0Z'");
+
+                    item.setWhenCreated(LocalDateTime.parse(whenCreated, formatter));
+                    item.setWhenChanged(LocalDateTime.parse(whenChanged, formatter));
+
+                    String action = item.getWhenChanged().isAfter(item.getWhenCreated()) ? "Changed" : "Created";
+                    item.setAction(action);
+
+                    content.add(item);
+                }
+
+            }
+            return new PageImpl<>(content, pageable, list.size());
+        }
+
     }
 
 }

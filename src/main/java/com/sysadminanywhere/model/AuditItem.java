@@ -13,7 +13,8 @@ public class AuditItem {
 
     private String name;
     private String action;
-    private LocalDateTime date;
+    private LocalDateTime whenCreated;
+    private LocalDateTime whenChanged;
     private String distinguishedName;
 
 }

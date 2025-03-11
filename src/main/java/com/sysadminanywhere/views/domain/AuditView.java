@@ -8,6 +8,8 @@ import com.sysadminanywhere.views.management.computers.ComputerSoftwareView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -26,6 +28,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -83,10 +86,16 @@ public class AuditView extends Div {
         private final LdapService ldapService;
 
         private final TextField name = new TextField("Name");
-        private final TextField action = new TextField("Action");
+        private final ComboBox<String> action = new ComboBox<>("Action");
+        private final DatePicker datePicker = new DatePicker("Date");
 
         public Filters(Runnable onSearch, LdapService ldapService) {
             this.ldapService = ldapService;
+
+            action.setItems("All", "Changed", "Created");
+            action.setValue("All");
+
+            datePicker.setValue(LocalDate.now());
 
             setWidthFull();
             addClassName("filter-layout");
@@ -98,7 +107,12 @@ public class AuditView extends Div {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 name.clear();
+
                 action.clear();
+                action.setValue("All");
+
+                datePicker.clear();
+                datePicker.setValue(LocalDate.now());
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -109,13 +123,14 @@ public class AuditView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(name, action, actions);
+            add(datePicker, actions);
         }
 
-        public Map<String, String> getFilters() {
-            Map<String, String> filters = new HashMap<>();
+        public Map<String, Object> getFilters() {
+            Map<String, Object> filters = new HashMap<>();
             filters.put("name", name.getValue());
             filters.put("action", action.getValue());
+            filters.put("date", datePicker.getValue());
             return filters;
         }
 
@@ -126,7 +141,7 @@ public class AuditView extends Div {
         grid.addColumn("name").setAutoWidth(true);
         grid.addColumn("distinguishedName").setAutoWidth(true);
         grid.addColumn("action").setAutoWidth(true);
-        grid.addColumn("date").setAutoWidth(true);
+        grid.addColumn("whenChanged").setAutoWidth(true);
 
         try {
             grid.setItems(query -> ldapService.getAudit(
