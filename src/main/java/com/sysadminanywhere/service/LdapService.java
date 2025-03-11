@@ -15,6 +15,7 @@ import org.apache.directory.api.ldap.model.message.controls.*;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -281,18 +282,36 @@ public class LdapService {
 
     @SneakyThrows
     public Page<AuditItem> getAudit(Pageable pageable, Map<String, Object> filters) {
-
-        LocalDate date = (LocalDate) filters.get("date");
-
-        String startDate = date.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd000000.0Z"));
-        String endDate = date.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd235959.0Z"));
-
-        List<Entry> list = search(baseDn, "(&(whenChanged>=" + startDate + ")(whenChanged<=" + endDate + "))", SearchScope.SUBTREE);
+        List<AuditItem> list = getAudit(filters);
 
         if (list.isEmpty()) {
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
-        } else {
-            List<AuditItem> content = new ArrayList<>();
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), list.size());
+
+        if (start >= list.size()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, list.size());
+        }
+
+        return new PageImpl<>(list.subList(start, end), pageable, list.size());
+    }
+
+    @SneakyThrows
+    @Cacheable(value = "ldap_audit", key = "{#filters}")
+    private List<AuditItem> getAudit(Map<String, Object> filters) {
+
+        LocalDate startDateFilter = filters.get("startDate") != null ? (LocalDate) filters.get("startDate") : LocalDate.now();
+        LocalDate endDateFilter = filters.get("endDate") != null ? (LocalDate) filters.get("endDate") : LocalDate.now();
+
+        String startDate = startDateFilter.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd000000.0Z"));
+        String endDate = endDateFilter.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd235959.0Z"));
+
+        List<Entry> list = search(baseDn, "(&(whenChanged>=" + startDate + ")(whenChanged<=" + endDate + "))", SearchScope.SUBTREE);
+        List<AuditItem> content = new ArrayList<>();
+
+        if (!list.isEmpty()) {
             for (Entry entry : list) {
                 AuditItem item = new AuditItem();
 
@@ -319,9 +338,8 @@ public class LdapService {
                 }
 
             }
-            return new PageImpl<>(content, pageable, list.size());
         }
-
+        return content;
     }
 
 }

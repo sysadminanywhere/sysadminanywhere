@@ -6,6 +6,7 @@ import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.views.management.computers.ComputerSoftwareView;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -17,6 +18,8 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -87,7 +90,8 @@ public class AuditView extends Div {
 
         private final TextField name = new TextField("Name");
         private final ComboBox<String> action = new ComboBox<>("Action");
-        private final DatePicker datePicker = new DatePicker("Date");
+        private final DatePicker startDate = new DatePicker("Date");
+        private final DatePicker endDate = new DatePicker();
 
         public Filters(Runnable onSearch, LdapService ldapService) {
             this.ldapService = ldapService;
@@ -95,7 +99,7 @@ public class AuditView extends Div {
             action.setItems("All", "Changed", "Created");
             action.setValue("All");
 
-            datePicker.setValue(LocalDate.now());
+            startDate.setValue(LocalDate.now());
 
             setWidthFull();
             addClassName("filter-layout");
@@ -111,8 +115,9 @@ public class AuditView extends Div {
                 action.clear();
                 action.setValue("All");
 
-                datePicker.clear();
-                datePicker.setValue(LocalDate.now());
+                startDate.clear();
+                startDate.setValue(LocalDate.now());
+
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -123,14 +128,29 @@ public class AuditView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(datePicker, actions);
+            add(createDateRangeFilter(), actions);
+        }
+
+        private Component createDateRangeFilter() {
+            startDate.setPlaceholder("From");
+            endDate.setPlaceholder("To");
+
+            startDate.setAriaLabel("From date");
+            endDate.setAriaLabel("To date");
+
+            FlexLayout dateRangeComponent = new FlexLayout(startDate, new Text(" – "), endDate);
+            dateRangeComponent.setAlignItems(FlexComponent.Alignment.BASELINE);
+            dateRangeComponent.addClassName(LumoUtility.Gap.XSMALL);
+
+            return dateRangeComponent;
         }
 
         public Map<String, Object> getFilters() {
             Map<String, Object> filters = new HashMap<>();
             filters.put("name", name.getValue());
             filters.put("action", action.getValue());
-            filters.put("date", datePicker.getValue());
+            filters.put("startDate", startDate.getValue());
+            filters.put("endDate", endDate.getValue());
             return filters;
         }
 
