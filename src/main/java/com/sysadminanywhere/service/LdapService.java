@@ -339,6 +339,7 @@ public class LdapService {
 
             }
         }
+        content.sort(Comparator.comparing(AuditItem::getWhenChanged).reversed());
         return content;
     }
 
