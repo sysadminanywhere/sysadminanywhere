@@ -1,5 +1,6 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.domain.DirectorySetting;
 import com.sysadminanywhere.model.ComputerItem;
 import com.sysadminanywhere.model.SoftwareCount;
 import com.sysadminanywhere.model.SoftwareOnComputer;
@@ -13,6 +14,8 @@ import com.sysadminanywhere.repository.InstallationRepository;
 import com.sysadminanywhere.repository.SoftwareRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.ldap.client.api.LdapConnection;
+import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,16 +42,21 @@ public class InventoryService {
 
     ResolveService<ComputerEntry> resolveService = new ResolveService<>(ComputerEntry.class);
 
-    private final LdapService ldapService;
-    private final WmiService wmiService;
+    private final LdapConnection connection;
+    private final LdapConnectionConfig ldapConnectionConfig;
+    private final DirectorySetting directorySetting;
+
+    private LdapService ldapService;
+    private WmiService wmiService;
 
     private final ComputerRepository computerRepository;
     private final SoftwareRepository softwareRepository;
     private final InstallationRepository installationRepository;
 
-    public InventoryService(LdapService ldapService, WmiService wmiService, ComputerRepository computerRepository, SoftwareRepository softwareRepository, InstallationRepository installationRepository) {
-        this.ldapService = ldapService;
-        this.wmiService = wmiService;
+    public InventoryService(LdapConnection connection, LdapConnectionConfig ldapConnectionConfig, DirectorySetting directorySetting, ComputerRepository computerRepository, SoftwareRepository softwareRepository, InstallationRepository installationRepository) {
+        this.connection = connection;
+        this.ldapConnectionConfig = ldapConnectionConfig;
+        this.directorySetting = directorySetting;
         this.computerRepository = computerRepository;
         this.softwareRepository = softwareRepository;
         this.installationRepository = installationRepository;
@@ -76,6 +84,12 @@ public class InventoryService {
 
         log.info("Scan started");
 
+        if (ldapService == null)
+            ldapService = new LdapService(connection, ldapConnectionConfig, directorySetting);
+
+        if (wmiService == null)
+            wmiService = new WmiService();
+
         Boolean result = ldapService.login(userName, password);
 
         if (!result) {
@@ -101,6 +115,9 @@ public class InventoryService {
                 checkForDeletedSoftware(computer, software);
             }
         }
+
+        ldapService = null;
+        wmiService = null;
 
         log.info("Scan stopped");
 
