@@ -6,11 +6,11 @@ import com.github.appreciated.apexcharts.config.builder.*;
 import com.github.appreciated.apexcharts.config.chart.Type;
 import com.github.appreciated.apexcharts.config.chart.builder.ToolbarBuilder;
 import com.github.appreciated.apexcharts.config.plotoptions.builder.BarBuilder;
+import com.github.appreciated.apexcharts.config.builder.XAxisBuilder;
 import com.github.appreciated.apexcharts.helper.Series;
 import com.sysadminanywhere.model.ad.*;
 import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.service.ResolveService;
-import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
@@ -35,6 +35,7 @@ public class DashboardView extends VerticalLayout {
 
     public DashboardView(LdapService ldapService) {
         this.ldapService = ldapService;
+
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();
 
@@ -44,7 +45,8 @@ public class DashboardView extends VerticalLayout {
         List<PrinterEntry> printers = new ResolveService<>(PrinterEntry.class).getADList(ldapService.search("(objectClass=printQueue)"));
         List<ContactEntry> contacts = new ResolveService<>(ContactEntry.class).getADList(ldapService.search("(&(objectClass=contact)(objectCategory=person))"));
 
-        ApexCharts chartSummary = ApexChartsBuilder.get().withChart(ChartBuilder.get()
+        ApexCharts chartSummary = ApexChartsBuilder.get()
+                .withChart(ChartBuilder.get()
                         .withType(Type.BAR)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .build())
@@ -72,7 +74,8 @@ public class DashboardView extends VerticalLayout {
         chartSummary.setWidth(ChartWidth);
         chartSummary.setTitle(TitleSubtitleBuilder.get().withText("Summary").build());
 
-        ApexCharts chartUsers = ApexChartsBuilder.get().withChart(ChartBuilder.get()
+        ApexCharts chartUsers = ApexChartsBuilder.get()
+                .withChart(ChartBuilder.get()
                         .withType(Type.BAR)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .build())
@@ -100,7 +103,8 @@ public class DashboardView extends VerticalLayout {
         chartUsers.setWidth(ChartWidth);
         chartUsers.setTitle(TitleSubtitleBuilder.get().withText("Users").build());
 
-        ApexCharts chartComputers = ApexChartsBuilder.get().withChart(ChartBuilder.get()
+        ApexCharts chartComputers = ApexChartsBuilder.get()
+                .withChart(ChartBuilder.get()
                         .withType(Type.BAR)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .build())
@@ -128,7 +132,8 @@ public class DashboardView extends VerticalLayout {
         chartComputers.setWidth(ChartWidth);
         chartComputers.setTitle(TitleSubtitleBuilder.get().withText("Computers").build());
 
-        ApexCharts chartGroups = ApexChartsBuilder.get().withChart(ChartBuilder.get()
+        ApexCharts chartGroups = ApexChartsBuilder.get()
+                .withChart(ChartBuilder.get()
                         .withType(Type.BAR)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .build())
