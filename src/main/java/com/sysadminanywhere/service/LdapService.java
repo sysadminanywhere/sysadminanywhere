@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 public class LdapService {
 
     private final LdapConnection connection;
-    private final LdapConnectionConfig ldapConnectionConfig;
     private final DirectorySetting directorySetting;
 
     private String domainName;
@@ -54,9 +53,8 @@ public class LdapService {
 
 
     @SneakyThrows
-    public LdapService(LdapConnection connection, LdapConnectionConfig ldapConnectionConfig, DirectorySetting directorySetting) {
+    public LdapService(LdapConnection connection, DirectorySetting directorySetting) {
         this.connection = connection;
-        this.ldapConnectionConfig = ldapConnectionConfig;
         this.directorySetting = directorySetting;
 
         Entry entry = connection.getRootDse();

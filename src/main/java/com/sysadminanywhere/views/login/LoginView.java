@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.login;
 
 import com.sysadminanywhere.security.AuthenticatedUser;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.login.LoginOverlay;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -31,6 +32,11 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
 
         setForgotPasswordButtonVisible(false);
         setOpened(true);
+
+        addLoginListener(event -> {
+            setOpened(false);
+            UI.getCurrent().navigate("");
+        });
     }
 
     @Override
@@ -43,4 +49,5 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
 
         setError(event.getLocation().getQueryParameters().getParameters().containsKey("error"));
     }
+
 }

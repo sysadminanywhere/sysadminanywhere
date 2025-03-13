@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
+import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,7 +43,6 @@ public class InventoryService {
 
     ResolveService<ComputerEntry> resolveService = new ResolveService<>(ComputerEntry.class);
 
-    private final LdapConnection connection;
     private final LdapConnectionConfig ldapConnectionConfig;
     private final DirectorySetting directorySetting;
 
@@ -53,8 +53,7 @@ public class InventoryService {
     private final SoftwareRepository softwareRepository;
     private final InstallationRepository installationRepository;
 
-    public InventoryService(LdapConnection connection, LdapConnectionConfig ldapConnectionConfig, DirectorySetting directorySetting, ComputerRepository computerRepository, SoftwareRepository softwareRepository, InstallationRepository installationRepository) {
-        this.connection = connection;
+    public InventoryService(LdapConnectionConfig ldapConnectionConfig, DirectorySetting directorySetting, ComputerRepository computerRepository, SoftwareRepository softwareRepository, InstallationRepository installationRepository) {
         this.ldapConnectionConfig = ldapConnectionConfig;
         this.directorySetting = directorySetting;
         this.computerRepository = computerRepository;
@@ -84,11 +83,9 @@ public class InventoryService {
 
         log.info("Scan started");
 
-        if (ldapService == null)
-            ldapService = new LdapService(connection, ldapConnectionConfig, directorySetting);
-
-        if (wmiService == null)
-            wmiService = new WmiService();
+        LdapConnection connection = new LdapNetworkConnection(ldapConnectionConfig);
+        ldapService = new LdapService(connection, directorySetting);
+        wmiService = new WmiService();
 
         Boolean result = ldapService.login(userName, password);
 
