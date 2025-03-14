@@ -10,6 +10,7 @@ Free web-based application revolutionizes Active Directory network administratio
 ### Features
 
 - Add, edit and delete objects in Active Directory
+- Audit
 - View software and hardware
 - Events, processes, services on computers
 - Add and delete objects from groups
