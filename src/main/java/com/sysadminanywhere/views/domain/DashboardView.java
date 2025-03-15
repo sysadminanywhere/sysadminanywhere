@@ -11,6 +11,7 @@ import com.github.appreciated.apexcharts.helper.Series;
 import com.sysadminanywhere.model.ad.*;
 import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.service.ResolveService;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
@@ -45,9 +46,18 @@ public class DashboardView extends VerticalLayout {
         List<PrinterEntry> printers = new ResolveService<>(PrinterEntry.class).getADList(ldapService.search("(objectClass=printQueue)"));
         List<ContactEntry> contacts = new ResolveService<>(ContactEntry.class).getADList(ldapService.search("(&(objectClass=contact)(objectCategory=person))"));
 
+        boolean isDarkTheme = UI.getCurrent().getElement().getThemeList().contains("dark");
+
+        String theme = isDarkTheme ? "dark" : "light";
+        String foreColor = isDarkTheme ? "white" : "black";
+
         ApexCharts chartSummary = ApexChartsBuilder.get()
+                .withTooltip(TooltipBuilder.get()
+                        .withFillSeriesColor(false)
+                        .withTheme(theme).build())
                 .withChart(ChartBuilder.get()
                         .withType(Type.BAR)
+                        .withForeColor(foreColor)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .build())
                 .withPlotOptions(PlotOptionsBuilder.get()
@@ -75,8 +85,12 @@ public class DashboardView extends VerticalLayout {
         chartSummary.setTitle(TitleSubtitleBuilder.get().withText("Summary").build());
 
         ApexCharts chartUsers = ApexChartsBuilder.get()
+                .withTooltip(TooltipBuilder.get()
+                        .withFillSeriesColor(false)
+                        .withTheme(theme).build())
                 .withChart(ChartBuilder.get()
                         .withType(Type.BAR)
+                        .withForeColor(foreColor)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .build())
                 .withPlotOptions(PlotOptionsBuilder.get()
@@ -104,8 +118,12 @@ public class DashboardView extends VerticalLayout {
         chartUsers.setTitle(TitleSubtitleBuilder.get().withText("Users").build());
 
         ApexCharts chartComputers = ApexChartsBuilder.get()
+                .withTooltip(TooltipBuilder.get()
+                        .withFillSeriesColor(false)
+                        .withTheme(theme).build())
                 .withChart(ChartBuilder.get()
                         .withType(Type.BAR)
+                        .withForeColor(foreColor)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .build())
                 .withPlotOptions(PlotOptionsBuilder.get()
@@ -133,8 +151,12 @@ public class DashboardView extends VerticalLayout {
         chartComputers.setTitle(TitleSubtitleBuilder.get().withText("Computers").build());
 
         ApexCharts chartGroups = ApexChartsBuilder.get()
+                .withTooltip(TooltipBuilder.get()
+                        .withFillSeriesColor(false)
+                        .withTheme(theme).build())
                 .withChart(ChartBuilder.get()
                         .withType(Type.BAR)
+                        .withForeColor(foreColor)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .build())
                 .withPlotOptions(PlotOptionsBuilder.get()

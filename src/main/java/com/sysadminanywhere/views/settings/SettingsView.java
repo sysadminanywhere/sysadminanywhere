@@ -9,6 +9,7 @@ import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.service.SettingsService;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -18,7 +19,6 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.button.Button;
-import org.vaadin.addons.themeselect.ThemeRadioGroup;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -44,7 +44,33 @@ public class SettingsView extends VerticalLayout {
         this.authenticatedUser = authenticatedUser;
         this.settingsService = settingsService;
 
-        add(new ThemeRadioGroup("Color Mode"), getUserPatterns());
+        add(themeSelect(), getUserPatterns());
+    }
+
+    private ComboBox<String> themeSelect(){
+        ComboBox<String> themeSelect = new ComboBox<>("Select Theme");
+        themeSelect.setItems("Light", "Dark");
+
+        boolean isDarkTheme = UI.getCurrent().getElement().getThemeList().contains("dark");
+
+        if (isDarkTheme) {
+            themeSelect.setValue("Dark");
+        } else {
+            themeSelect.setValue("Light");
+        }
+
+        themeSelect.addValueChangeListener(event -> {
+            String selectedTheme = event.getValue();
+            if ("Dark".equals(selectedTheme)) {
+                UI.getCurrent().getElement().getThemeList().add("dark");
+                UI.getCurrent().getElement().getThemeList().remove("light");
+            } else {
+                UI.getCurrent().getElement().getThemeList().add("light");
+                UI.getCurrent().getElement().getThemeList().remove("dark");
+            }
+        });
+
+        return themeSelect;
     }
 
     private Card getUserPatterns() {
