@@ -7,6 +7,7 @@ import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.views.about.AboutView;
+import com.sysadminanywhere.views.account.MeView;
 import com.sysadminanywhere.views.domain.AuditView;
 import com.sysadminanywhere.views.domain.DashboardView;
 import com.sysadminanywhere.views.domain.DomainView;
@@ -54,10 +55,11 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
 
     SideNav dashboardSubNavs = new SideNav();
     SideNav managementSubNavs = new SideNav();
-    SideNav adminSubNavs = new SideNav();
+    SideNav settingsSubNavs = new SideNav();
     SideNav inventorySubNavs = new SideNav();
     SideNav monitoringSubNavs = new SideNav();
     SideNav reportsSubNavs = new SideNav();
+    SideNav accountSubNavs = new SideNav();
 
     String currentTitle = "Domain";
 
@@ -114,7 +116,7 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
                 createMainButtonItem("Reports", UserReportsView.class, "/icons/reports.svg"));
         topMenu.setMargin(false);
 
-        VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Account", SettingsView.class, "/icons/user.svg"),
+        VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Account", MeView.class, "/icons/user.svg"),
                 createMainButtonItem("Settings", SettingsView.class, "/icons/settings.svg"));
 
         bottomMenu.setHeightFull();
@@ -133,7 +135,7 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
                 createSideNavItem("Printers", PrintersView.class),
                 createSideNavItem("Contacts", ContactsView.class));
 
-        adminSubNavs.addItem(createSideNavItem("Settings", SettingsView.class),
+        settingsSubNavs.addItem(createSideNavItem("Settings", SettingsView.class),
                 createSideNavItem("About", AboutView.class));
 
         inventorySubNavs.addItem(createSideNavItem("Software inventory", InventorySoftwareView.class));
@@ -143,6 +145,8 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
         reportsSubNavs.addItem(createSideNavItem("Users reports", UserReportsView.class),
                 createSideNavItem("Computer Reports", ComputerReportsView.class),
                 createSideNavItem("Group Reports", GroupReportsView.class));
+
+        accountSubNavs.addItem(createSideNavItem("Me", MeView.class));
 
         drawerContent.add(buttons, subNav);
 
@@ -202,7 +206,9 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
             subNav.add(title, hr);
 
             if (currentRoute.startsWith("settings")) {
-                subNav.add(adminSubNavs);
+                subNav.add(settingsSubNavs);
+            } else if (currentRoute.startsWith("account")) {
+                subNav.add(accountSubNavs);
             } else if (currentRoute.startsWith("management")) {
                 subNav.add(managementSubNavs);
             } else if (currentRoute.startsWith("monitoring")) {
