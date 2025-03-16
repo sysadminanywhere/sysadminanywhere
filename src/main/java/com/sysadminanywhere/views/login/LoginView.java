@@ -32,11 +32,6 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
 
         setForgotPasswordButtonVisible(false);
         setOpened(true);
-
-        addLoginListener(event -> {
-            setOpened(false);
-            UI.getCurrent().navigate("");
-        });
     }
 
     @Override
