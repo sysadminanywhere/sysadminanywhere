@@ -3,13 +3,11 @@ package com.sysadminanywhere;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.theme.Theme;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -21,7 +19,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @SpringBootApplication()
 @Theme(value = "sysadminanywhere")
-@EnableFeignClients
 @EnableCaching
 @EnableScheduling
 @PageTitle("Sysadmin Anywhere")
