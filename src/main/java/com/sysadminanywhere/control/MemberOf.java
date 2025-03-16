@@ -20,6 +20,15 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
 
     ListBox<String> listMemberOf = new ListBox<>();
     Div div = new Div();
+    private boolean showTitle = true;
+
+    public MemberOf(boolean showTitle) {
+        this.showTitle = showTitle;
+    }
+
+    public MemberOf() {
+        this.showTitle = true;
+    }
 
     public void update(LdapService ldapService, String cn) {
         List<Entry> list = ldapService.search("(cn=" + cn + ")");
@@ -45,8 +54,12 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
 
     @Override
     public Div initContent() {
-        H5 title = new H5("Member of");
-        div.add(title, listMemberOf);
+        if (showTitle) {
+            H5 title = new H5("Member of");
+            div.add(title, listMemberOf);
+        } else {
+            div.add(listMemberOf);
+        }
         return div;
     }
 

@@ -48,7 +48,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
-    MemberOf memberOf = new MemberOf();
+    MemberOf memberOf = new MemberOf(false);
     ListBox<String> listMembers = new ListBox<>();
 
     Binder<GroupEntry> binder = new Binder<>(GroupEntry.class);
