@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.computers;
 
+import com.sysadminanywhere.control.MemberOf;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
@@ -51,7 +52,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
-    ListBox<String> listMemberOf = new ListBox<>();
+    MemberOf memberOf = new MemberOf();
 
     Binder<ComputerEntry> binder = new Binder<>(ComputerEntry.class);
     Binder<String> binder2 = new Binder<>(String.class);
@@ -95,16 +96,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
                 lblName.setText(computer.getCn());
                 lblDescription.setText(computer.getDescription());
 
-                listMemberOf.clear();
-                if (computer.getMemberOf() != null) {
-                    List<String> items = new ArrayList<>();
-                    if (computer.getPrimaryGroupId() != 0)
-                        items.add(ADHelper.getPrimaryGroup(computer.getPrimaryGroupId()));
-                    for (String item : computer.getMemberOf()) {
-                        items.add(ADHelper.ExtractCN(item));
-                    }
-                    listMemberOf.setItems(items);
-                }
+                memberOf.update(computersService.getLdapService(), id);
             }
         }
     }
@@ -176,7 +168,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
 
         verticalLayout.add(formLayout);
 
-        verticalLayout.add(new Hr(), new H5("Member of"), listMemberOf);
+        verticalLayout.add(new Hr(), memberOf);
     }
 
     private ConfirmDialog deleteDialog() {

@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views.management.users;
 
+import com.sysadminanywhere.control.MemberOf;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
@@ -54,7 +55,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
     H3 lblName = new H3();
     H5 lblDescription = new H5();
     Avatar avatar = new Avatar();
-    ListBox<String> listMemberOf = new ListBox<>();
+    MemberOf memberOf = new MemberOf();
 
     Binder<UserEntry> binder = new Binder<>(UserEntry.class);
 
@@ -92,16 +93,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
                     avatar.setImageResource(resource);
                 }
 
-                listMemberOf.clear();
-                if (user.getMemberOf() != null) {
-                    List<String> items = new ArrayList<>();
-                    if (user.getPrimaryGroupId() != 0)
-                        items.add(ADHelper.getPrimaryGroup(user.getPrimaryGroupId()));
-                    for (String item : user.getMemberOf()) {
-                        items.add(ADHelper.ExtractCN(item));
-                    }
-                    listMemberOf.setItems(items);
-                }
+                memberOf.update(usersService.getLdapService(), id);
             }
         }
     }
@@ -170,7 +162,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
 
         verticalLayout.add(formLayout);
 
-        verticalLayout.add(new Hr(), new H5("Member of"), listMemberOf);
+        verticalLayout.add(new Hr(), memberOf);
     }
 
     private ConfirmDialog deleteDialog() {
