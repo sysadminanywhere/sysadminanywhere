@@ -19,6 +19,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.button.Button;
+import org.vaadin.addons.themeselect.ThemeRadioGroup;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -44,39 +45,6 @@ public class SettingsView extends VerticalLayout {
         this.authenticatedUser = authenticatedUser;
         this.settingsService = settingsService;
 
-        add(themeSelect(), getUserPatterns());
-    }
-
-    private ComboBox<String> themeSelect(){
-        ComboBox<String> themeSelect = new ComboBox<>("Select Theme");
-        themeSelect.setItems("Light", "Dark");
-
-        boolean isDarkTheme = UI.getCurrent().getElement().getThemeList().contains("dark");
-
-        if (isDarkTheme) {
-            themeSelect.setValue("Dark");
-        } else {
-            themeSelect.setValue("Light");
-        }
-
-        themeSelect.addValueChangeListener(event -> {
-            String selectedTheme = event.getValue();
-            if ("Dark".equals(selectedTheme)) {
-                UI.getCurrent().getElement().getThemeList().add("dark");
-                UI.getCurrent().getElement().getThemeList().remove("light");
-            } else {
-                UI.getCurrent().getElement().getThemeList().add("light");
-                UI.getCurrent().getElement().getThemeList().remove("dark");
-            }
-        });
-
-        return themeSelect;
-    }
-
-    private Card getUserPatterns() {
-        Card card = new Card("User patterns");
-        card.setWidthFull();
-
         Optional<UserEntry> maybeUser = authenticatedUser.get();
         if (maybeUser.isPresent()) {
             UserEntry user = maybeUser.get();
@@ -85,6 +53,13 @@ public class SettingsView extends VerticalLayout {
                 settings = settingsService.getSettings(loginEntity.get());
             }
         }
+
+        add(new ThemeRadioGroup("Color Mode"), getUserPatterns());
+    }
+
+    private Card getUserPatterns() {
+        Card card = new Card("User patterns");
+        card.setWidthFull();
 
         ComboBox<String> cmbDisplayNamePattern = new ComboBox<>("Display name pattern");
         cmbDisplayNamePattern.setMinWidth("400px");
@@ -124,7 +99,7 @@ public class SettingsView extends VerticalLayout {
             settings.setLoginPattern(loginPattern);
             settings.setDefaultPassword(defaultPassword);
 
-            if(loginEntity.isPresent()) {
+            if (loginEntity.isPresent()) {
                 settingsService.setSettings(loginEntity.get(), settings);
 
                 Notification notification = Notification.show("Settings saved");
