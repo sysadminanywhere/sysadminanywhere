@@ -124,7 +124,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
 
         verticalLayout.add(formLayout);
 
-        HorizontalLayout memberLayout = new HorizontalLayout(memberOf, members);
+        HorizontalLayout memberLayout = new HorizontalLayout(memberOf /*, members */);
         memberLayout.setWidthFull();
         memberLayout.setSpacing(false);
         memberLayout.getThemeList().add("spacing-xl");

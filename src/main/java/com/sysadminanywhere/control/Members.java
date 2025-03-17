@@ -80,7 +80,7 @@ public class Members extends Composite<Div> implements HasComponents, HasSize {
         layoutWithoutSpacing.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         layoutWithoutSpacing.setWidth("50%");
 
-        HorizontalLayout layout = new HorizontalLayout(title, layoutWithoutSpacing);
+        HorizontalLayout layout = new HorizontalLayout(title /*, layoutWithoutSpacing*/ );
         layout.setWidthFull();
 
         div.add(layout, listMembers);

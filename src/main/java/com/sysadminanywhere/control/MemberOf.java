@@ -2,6 +2,9 @@ package com.sysadminanywhere.control;
 
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
+import com.sysadminanywhere.model.Container;
+import com.sysadminanywhere.model.Containers;
+import com.sysadminanywhere.model.GroupItem;
 import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
@@ -10,6 +13,7 @@ import com.vaadin.flow.component.HasSize;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
@@ -19,10 +23,12 @@ import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.data.renderer.TextRenderer;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.vaadin.tatu.Tree;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,23 +39,27 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
 
     LdapService ldapService;
 
-    ListBox<String> listMemberOf = new ListBox<>();
-    Div div = new Div();
+    ListBox<GroupItem> listMemberOf = new ListBox<>();
+    List<GroupItem> items;
 
-    List<String> items;
-    Map<String, String> map;
+    Div div = new Div();
 
     Button plusButton = new Button(new Icon(VaadinIcon.PLUS));
     Button minusButton = new Button(new Icon(VaadinIcon.MINUS));
 
     Entry entry;
+    private String selected = "";
 
     public MemberOf() {
         setMinWidth("300px");
 
+        listMemberOf.setRenderer(new TextRenderer<>(GroupItem::getName));
+
         listMemberOf.addValueChangeListener(event -> {
-            if (event != null)
+            if (event != null && event.getValue() != null && !event.getValue().getDistinguishedName().isEmpty())
                 minusButton.setEnabled(true);
+            else
+                minusButton.setEnabled(false);
         });
     }
 
@@ -58,8 +68,6 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
 
         List<Entry> list = this.ldapService.search("(cn=" + cn + ")");
         listMemberOf.clear();
-
-        map = new HashMap<>();
 
         if (!list.isEmpty()) {
             entry = list.get(0);
@@ -72,14 +80,13 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
             items = new ArrayList<>();
 
             if (primaryGroupId != 0)
-                items.add(ADHelper.getPrimaryGroup(primaryGroupId));
+                items.add(new GroupItem(ADHelper.getPrimaryGroup(primaryGroupId), ""));
 
             if (attribute != null) {
                 for (Value v : attribute) {
                     String value = v.getString();
                     String key = ADHelper.ExtractCN(value);
-                    map.put(key, value);
-                    items.add(key);
+                    items.add(new GroupItem(key, value));
                 }
             }
 
@@ -99,7 +106,7 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
         minusButton.setEnabled(false);
 
         plusButton.addClickListener(event -> {
-
+            addDialog().open();
         });
 
         minusButton.addClickListener(event -> {
@@ -124,10 +131,10 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
         return div;
     }
 
-    private ConfirmDialog deleteDialog(String group) {
+    private ConfirmDialog deleteDialog(GroupItem group) {
         ConfirmDialog dialog = new ConfirmDialog();
         dialog.setHeader("Delete");
-        dialog.setText("Are you sure?");
+        dialog.setText("Are you sure you want to remove from this group?");
 
         dialog.setCancelable(true);
 
@@ -135,15 +142,62 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {
-            ldapService.deleteMember(entry, map.get(group));
+            boolean result = ldapService.deleteMember(entry, group.getDistinguishedName());
 
-            map.remove(group);
-            items.remove(group);
-            listMemberOf.setItems(items);
+            if (result) {
+                items.remove(group);
+                listMemberOf.setItems(items);
+            }
         });
 
         return dialog;
     }
 
+    private Dialog addDialog() {
+        Dialog dialog = new Dialog();
+
+        dialog.setHeaderTitle("Groups");
+        dialog.setWidth("600px");
+        dialog.setHeight("500px");
+
+        ListBox<GroupItem> groups = new ListBox<>();
+        List<GroupItem> groupItems = new ArrayList<>();
+
+        groups.setRenderer(new TextRenderer<>(GroupItem::getName));
+
+        Button saveButton = new Button("Add", e -> {
+            boolean result = ldapService.addMember(entry, groups.getValue().getDistinguishedName());
+
+            if (result) {
+                items.add(new GroupItem(groups.getValue().getName(), groups.getValue().getDistinguishedName()));
+                listMemberOf.setItems(items);
+                minusButton.setEnabled(false);
+                dialog.close();
+            }
+        });
+        saveButton.setEnabled(false);
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        Button cancelButton = new Button("Cancel", e -> dialog.close());
+
+        List<Entry> result = ldapService.search("(objectClass=group)");
+
+        for (Entry group : result) {
+            groupItems.add(new GroupItem(group.get("name").get().getString(), group.getDn().getName()));
+        }
+
+        groups.addValueChangeListener(event -> {
+            if (event != null)
+                saveButton.setEnabled(true);
+        });
+
+        groups.setItems(groupItems);
+        dialog.add(groups);
+
+        dialog.getFooter().add(cancelButton);
+        dialog.getFooter().add(saveButton);
+
+        return dialog;
+    }
 
 }

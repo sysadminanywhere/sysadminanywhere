@@ -343,7 +343,7 @@ public class LdapService {
         return content;
     }
 
-    public void deleteMember(Entry entry, String group) {
+    public boolean deleteMember(Entry entry, String group) {
         try {
             Modification removeMember = new DefaultModification(
                     ModificationOperation.REMOVE_ATTRIBUTE, "member", entry.getDn().getName()
@@ -355,10 +355,33 @@ public class LdapService {
             modifyRequest.addModification(removeMember);
             ModifyResponse response = connection.modify(modifyRequest);
 
+            return true;
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+
+            return false;
         }
     }
 
+    public boolean addMember(Entry entry, String group) {
+        try {
+            Modification removeMember = new DefaultModification(
+                    ModificationOperation.ADD_ATTRIBUTE, "member", entry.getDn().getName()
+            );
+
+            ModifyRequest modifyRequest = new ModifyRequestImpl();
+            modifyRequest.setName(new Dn(group));
+
+            modifyRequest.addModification(removeMember);
+            ModifyResponse response = connection.modify(modifyRequest);
+
+            return true;
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+
+            return false;
+        }
+    }
 }

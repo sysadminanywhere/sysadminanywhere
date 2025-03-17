@@ -10,18 +10,20 @@ Domain
 Management
     Users
         - Crop image
-        - Organizations/Countries
-        - Member of
+        - Organizations tree view
+        - Countries tree view
+        - Managers tree view
+        + Member of
 
     Computers
         - Hardware
-        - Member of
+        + Member of
         ? Terminal
         ? Performance
 
     Groups
-        - Member of
-        - Members
+        + Member of
+        ? Members
 
 Inventory
     Software
