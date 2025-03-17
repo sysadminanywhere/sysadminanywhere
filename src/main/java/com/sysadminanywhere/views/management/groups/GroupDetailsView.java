@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.management.groups;
 
 import com.sysadminanywhere.control.MemberOf;
+import com.sysadminanywhere.control.Members;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
@@ -49,7 +50,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
     H3 lblName = new H3();
     H5 lblDescription = new H5();
     MemberOf memberOf = new MemberOf(false);
-    ListBox<String> listMembers = new ListBox<>();
+    Members members = new Members(false);
 
     Binder<GroupEntry> binder = new Binder<>(GroupEntry.class);
 
@@ -81,15 +82,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
                 lblDescription.setText(group.getDescription());
 
                 memberOf.update(groupsService.getLdapService(), id);
-
-                listMembers.clear();
-                if (group.getMembers() != null) {
-                    List<String> items = new ArrayList<>();
-                    for (String item : group.getMembers()) {
-                        items.add(ADHelper.ExtractCN(item));
-                    }
-                    listMembers.setItems(items);
-                }
+                members.update(groupsService.getLdapService(), id);
             }
         }
     }
@@ -133,7 +126,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
 
         TabSheet tabSheet = new TabSheet();
         tabSheet.add("Member of", memberOf);
-        tabSheet.add("Members", listMembers);
+        tabSheet.add("Members", members);
         add(tabSheet);
 
         verticalLayout.add(new Hr(), tabSheet);
@@ -176,4 +169,5 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
 
         return menuBar;
     }
+
 }
