@@ -1,6 +1,6 @@
 
 https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/enable-psremoting?view=powershell-7.4
-============================================================================
+===================================================================================================================
 
 Domain
     + Dashboard
@@ -19,7 +19,7 @@ Management
         - Hardware
         + Member of
         ? Terminal
-        ? Performance
+        ? Performance refactoring
 
     Groups
         + Member of
@@ -30,7 +30,7 @@ Inventory
 
     Hardware
         - Scan
-        - Hardware installations count
+        - Hardware installation
         - List of hardware on selected computer
 
 Monitoring
