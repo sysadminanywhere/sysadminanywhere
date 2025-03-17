@@ -29,8 +29,16 @@ public class Members extends Composite<Div> implements HasComponents, HasSize {
     ListBox<String> listMembers = new ListBox<>();
     Div div = new Div();
 
+    Button plusButton = new Button(new Icon(VaadinIcon.PLUS));
+    Button minusButton = new Button(new Icon(VaadinIcon.MINUS));
+
     public Members() {
         setMinWidth("300px");
+
+        listMembers.addValueChangeListener(event -> {
+            if (event != null)
+                minusButton.setEnabled(true);
+        });
     }
 
     public void update(LdapService ldapService, String cn) {
@@ -55,11 +63,12 @@ public class Members extends Composite<Div> implements HasComponents, HasSize {
     public Div initContent() {
         listMembers.getStyle().setMarginTop("10px");
 
-        Button plusButton = new Button(new Icon(VaadinIcon.PLUS));
+        plusButton = new Button(new Icon(VaadinIcon.PLUS));
         plusButton.addThemeVariants(ButtonVariant.LUMO_ICON);
 
-        Button minusButton = new Button(new Icon(VaadinIcon.MINUS));
+        minusButton = new Button(new Icon(VaadinIcon.MINUS));
         minusButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+        minusButton.setEnabled(false);
 
         H5 title = new H5("Members");
         title.getStyle().setMarginTop("10px");

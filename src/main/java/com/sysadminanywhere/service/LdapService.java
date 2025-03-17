@@ -4,6 +4,8 @@ import com.sysadminanywhere.domain.DirectorySetting;
 import com.sysadminanywhere.model.AuditItem;
 import com.sysadminanywhere.model.Container;
 import com.sysadminanywhere.model.Containers;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
@@ -339,6 +341,24 @@ public class LdapService {
         }
         content.sort(Comparator.comparing(AuditItem::getWhenChanged).reversed());
         return content;
+    }
+
+    public void deleteMember(Entry entry, String group) {
+        try {
+            Modification removeMember = new DefaultModification(
+                    ModificationOperation.REMOVE_ATTRIBUTE, "member", entry.getDn().getName()
+            );
+
+            ModifyRequest modifyRequest = new ModifyRequestImpl();
+            modifyRequest.setName(new Dn(group));
+
+            modifyRequest.addModification(removeMember);
+            ModifyResponse response = connection.modify(modifyRequest);
+
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
 
 }
