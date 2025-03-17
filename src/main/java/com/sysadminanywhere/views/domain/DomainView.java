@@ -8,6 +8,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
+import org.apache.directory.api.ldap.model.entry.Entry;
 
 @PageTitle("Domain")
 @Route(value = "domain/info")
@@ -26,6 +27,8 @@ public class DomainView extends VerticalLayout {
         H5 lblDistinguishedName = new H5();
         lblDistinguishedName.setText(ldapService.getDefaultNamingContext().toUpperCase());
         lblDistinguishedName.setWidth("100%");
+
+        //Entry entry = ldapService.getDomainEntry();
 
         add(lblDomain, lblDistinguishedName);
     }

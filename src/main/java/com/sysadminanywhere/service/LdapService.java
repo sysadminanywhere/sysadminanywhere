@@ -74,6 +74,11 @@ public class LdapService {
     }
 
     @SneakyThrows
+    public Entry getDomainEntry() {
+        return connection.lookup(defaultNamingContext);
+    }
+
+    @SneakyThrows
     public List<Entry> search(String filter, Sort sort) {
         return search(baseDn, filter, SearchScope.SUBTREE, sort);
     }
@@ -384,4 +389,6 @@ public class LdapService {
             return false;
         }
     }
+
+
 }
