@@ -49,8 +49,8 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
-    MemberOf memberOf = new MemberOf(false);
-    Members members = new Members(false);
+    MemberOf memberOf = new MemberOf();
+    Members members = new Members();
 
     Binder<GroupEntry> binder = new Binder<>(GroupEntry.class);
 
@@ -124,12 +124,12 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
 
         verticalLayout.add(formLayout);
 
-        TabSheet tabSheet = new TabSheet();
-        tabSheet.add("Member of", memberOf);
-        tabSheet.add("Members", members);
-        add(tabSheet);
+        HorizontalLayout memberLayout = new HorizontalLayout(memberOf, members);
+        memberLayout.setWidthFull();
+        memberLayout.setSpacing(false);
+        memberLayout.getThemeList().add("spacing-xl");
 
-        verticalLayout.add(new Hr(), tabSheet);
+        verticalLayout.add(new Hr(), memberLayout);
     }
 
     private ConfirmDialog deleteDialog() {
