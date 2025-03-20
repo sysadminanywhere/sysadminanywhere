@@ -1,6 +1,6 @@
 package com.sysadminanywhere.service;
 
-import com.sysadminanywhere.model.WMIAttribute;
+import com.sysadminanywhere.model.wmi.WMIAttribute;
 import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -38,6 +38,17 @@ public class WmiResolveService<T> {
         }
 
         return new PageImpl<>(content, pageable, list.size());
+    }
+
+    @SneakyThrows
+    public List<T> GetValues(List<Map<String, Object>> list) {
+        List<T> content = new ArrayList<>();
+
+        for (int i = 0; i < list.size(); i++) {
+            content.add(getValue(list.get(i)));
+        }
+
+        return content;
     }
 
     @SneakyThrows

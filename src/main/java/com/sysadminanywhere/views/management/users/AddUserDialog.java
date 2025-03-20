@@ -5,7 +5,7 @@ import com.sysadminanywhere.entity.LoginEntity;
 import com.sysadminanywhere.model.DisplayNamePattern;
 import com.sysadminanywhere.model.LoginPattern;
 import com.sysadminanywhere.model.Settings;
-import com.sysadminanywhere.model.UserEntry;
+import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.service.SettingsService;

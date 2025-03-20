@@ -11,7 +11,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
 @PageTitle("About")
-@Route(value = "about", layout = MainLayout.class)
+@Route(value = "settings/about")
 @PermitAll
 public class AboutView extends VerticalLayout {
 
@@ -22,7 +22,7 @@ public class AboutView extends VerticalLayout {
     private Card getAbout() {
         Card card = new Card("Sysadmin Anywhere");
         card.setWidthFull();
-        Span version = new Span("Version: 1.2.0");
+        Span version = new Span("Version: 2.0.0");
         Anchor homePage = new Anchor("https://sysadminanywhere.com/", "Home page", AnchorTarget.BLANK);
         Anchor sourceCode = new Anchor("https://github.com/sysadminanywhere/sysadminanywhere/", "Source code", AnchorTarget.BLANK);
 

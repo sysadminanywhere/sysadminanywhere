@@ -2,10 +2,10 @@ package com.sysadminanywhere.views;
 
 import com.sysadminanywhere.domain.InventorySetting;
 import com.sysadminanywhere.domain.MonitoringSetting;
-import com.sysadminanywhere.model.UserEntry;
+import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LoginService;
-import com.sysadminanywhere.views.home.HomeView;
+import com.sysadminanywhere.views.domain.DashboardView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
@@ -25,7 +25,6 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
-import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.RouterLayout;
 import com.vaadin.flow.server.StreamResource;
@@ -34,12 +33,10 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import java.io.ByteArrayInputStream;
 import java.util.Optional;
 
-import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 @Slf4j
-@Layout
 public class MainLayout extends AppLayout implements RouterLayout {
 
     private H1 viewTitle;
@@ -107,9 +104,9 @@ public class MainLayout extends AppLayout implements RouterLayout {
         SideNav nav = new SideNav();
         nav.setWidth("100%");
 
-        if (accessChecker.hasAccess(HomeView.class)) {
+        if (accessChecker.hasAccess(DashboardView.class)) {
             nav.addItem(
-                    new SideNavItem("Home", HomeView.class, LineAwesomeIcon.HOME_SOLID.create()));
+                    new SideNavItem("Home", DashboardView.class, LineAwesomeIcon.HOME_SOLID.create()));
         }
 
         return nav;
@@ -153,7 +150,7 @@ public class MainLayout extends AppLayout implements RouterLayout {
         nav.setCollapsible(true);
         nav.setWidth("100%");
 
-        if (accessChecker.hasAccess(HomeView.class)) {
+        if (accessChecker.hasAccess(DashboardView.class)) {
             nav.addItem(
                     new SideNavItem("Monitors", MonitorsView.class, LineAwesomeIcon.CHART_AREA_SOLID.create()));
         }
@@ -166,7 +163,7 @@ public class MainLayout extends AppLayout implements RouterLayout {
         nav.setCollapsible(true);
         nav.setWidth("100%");
 
-        if (accessChecker.hasAccess(HomeView.class)) {
+        if (accessChecker.hasAccess(DashboardView.class)) {
             nav.addItem(
                     new SideNavItem("Software", InventorySoftwareView.class, LineAwesomeIcon.CLIPBOARD.create()));
         }
@@ -179,17 +176,17 @@ public class MainLayout extends AppLayout implements RouterLayout {
         nav.setCollapsible(true);
         nav.setWidth("100%");
 
-        if (accessChecker.hasAccess(HomeView.class)) {
+        if (accessChecker.hasAccess(DashboardView.class)) {
             nav.addItem(
                     new SideNavItem("Users", UserReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
         }
 
-        if (accessChecker.hasAccess(HomeView.class)) {
+        if (accessChecker.hasAccess(DashboardView.class)) {
             nav.addItem(
                     new SideNavItem("Computers", ComputerReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
         }
 
-        if (accessChecker.hasAccess(HomeView.class)) {
+        if (accessChecker.hasAccess(DashboardView.class)) {
             nav.addItem(
                     new SideNavItem("Groups", GroupReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
         }

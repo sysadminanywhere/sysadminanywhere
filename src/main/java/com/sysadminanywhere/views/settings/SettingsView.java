@@ -5,15 +5,12 @@ import com.sysadminanywhere.entity.LoginEntity;
 import com.sysadminanywhere.model.DisplayNamePattern;
 import com.sysadminanywhere.model.LoginPattern;
 import com.sysadminanywhere.model.Settings;
-import com.sysadminanywhere.model.UserEntry;
+import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.service.SettingsService;
-import com.sysadminanywhere.views.MainLayout;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.AnchorTarget;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -23,7 +20,6 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.button.Button;
 import org.vaadin.addons.themeselect.ThemeRadioGroup;
-import org.vaadin.addons.themeselect.ThemeSelect;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -31,7 +27,7 @@ import java.util.stream.Collectors;
 
 
 @PageTitle("Settings")
-@Route(value = "settings", layout = MainLayout.class)
+@Route(value = "settings/settings")
 @PermitAll
 public class SettingsView extends VerticalLayout {
 
@@ -49,13 +45,6 @@ public class SettingsView extends VerticalLayout {
         this.authenticatedUser = authenticatedUser;
         this.settingsService = settingsService;
 
-        add(new ThemeRadioGroup("Color Mode"), getUserPatterns());
-    }
-
-    private Card getUserPatterns() {
-        Card card = new Card("User patterns");
-        card.setWidthFull();
-
         Optional<UserEntry> maybeUser = authenticatedUser.get();
         if (maybeUser.isPresent()) {
             UserEntry user = maybeUser.get();
@@ -64,6 +53,13 @@ public class SettingsView extends VerticalLayout {
                 settings = settingsService.getSettings(loginEntity.get());
             }
         }
+
+        add(new ThemeRadioGroup("Color Mode"), getUserPatterns());
+    }
+
+    private Card getUserPatterns() {
+        Card card = new Card("User patterns");
+        card.setWidthFull();
 
         ComboBox<String> cmbDisplayNamePattern = new ComboBox<>("Display name pattern");
         cmbDisplayNamePattern.setMinWidth("400px");
@@ -103,7 +99,7 @@ public class SettingsView extends VerticalLayout {
             settings.setLoginPattern(loginPattern);
             settings.setDefaultPassword(defaultPassword);
 
-            if(loginEntity.isPresent()) {
+            if (loginEntity.isPresent()) {
                 settingsService.setSettings(loginEntity.get(), settings);
 
                 Notification notification = Notification.show("Settings saved");

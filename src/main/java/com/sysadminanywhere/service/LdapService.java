@@ -1,8 +1,11 @@
 package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.domain.DirectorySetting;
+import com.sysadminanywhere.model.AuditItem;
 import com.sysadminanywhere.model.Container;
 import com.sysadminanywhere.model.Containers;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
@@ -14,14 +17,17 @@ import org.apache.directory.api.ldap.model.message.controls.*;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,7 +35,6 @@ import java.util.stream.Collectors;
 public class LdapService {
 
     private final LdapConnection connection;
-    private final LdapConnectionConfig ldapConnectionConfig;
     private final DirectorySetting directorySetting;
 
     private String domainName;
@@ -50,9 +55,8 @@ public class LdapService {
 
 
     @SneakyThrows
-    public LdapService(LdapConnection connection, LdapConnectionConfig ldapConnectionConfig, DirectorySetting directorySetting) {
+    public LdapService(LdapConnection connection, DirectorySetting directorySetting) {
         this.connection = connection;
-        this.ldapConnectionConfig = ldapConnectionConfig;
         this.directorySetting = directorySetting;
 
         Entry entry = connection.getRootDse();
@@ -67,6 +71,11 @@ public class LdapService {
 
     public String getDomainName() {
         return domainName;
+    }
+
+    @SneakyThrows
+    public Entry getDomainEntry() {
+        return connection.lookup(defaultNamingContext);
     }
 
     @SneakyThrows
@@ -275,5 +284,111 @@ public class LdapService {
             }
         }
     }
+
+    @SneakyThrows
+    public Page<AuditItem> getAudit(Pageable pageable, Map<String, Object> filters) {
+        List<AuditItem> list = getAudit(filters);
+
+        if (list.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), list.size());
+
+        if (start >= list.size()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, list.size());
+        }
+
+        return new PageImpl<>(list.subList(start, end), pageable, list.size());
+    }
+
+    @SneakyThrows
+    @Cacheable(value = "ldap_audit", key = "{#filters}")
+    private List<AuditItem> getAudit(Map<String, Object> filters) {
+
+        LocalDate startDateFilter = filters.get("startDate") != null ? (LocalDate) filters.get("startDate") : LocalDate.now();
+        LocalDate endDateFilter = filters.get("endDate") != null ? (LocalDate) filters.get("endDate") : LocalDate.now();
+
+        String startDate = startDateFilter.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd000000.0Z"));
+        String endDate = endDateFilter.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd235959.0Z"));
+
+        List<Entry> list = search(baseDn, "(&(whenChanged>=" + startDate + ")(whenChanged<=" + endDate + "))", SearchScope.SUBTREE);
+        List<AuditItem> content = new ArrayList<>();
+
+        if (!list.isEmpty()) {
+            for (Entry entry : list) {
+                AuditItem item = new AuditItem();
+
+                item.setName(entry.get("name").getString());
+                item.setDistinguishedName(entry.getDn().getName());
+
+                Value whenCreatedValue = entry.get("whencreated") != null ? entry.get("whencreated").get() : null;
+                Value whenChangedValue = entry.get("whenchanged") != null ? entry.get("whenchanged").get() : null;
+
+                if (whenChangedValue != null && whenChangedValue != null) {
+
+                    String whenCreated = whenCreatedValue.getString();
+                    String whenChanged = whenChangedValue.getString();
+
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss'.0Z'");
+
+                    item.setWhenCreated(LocalDateTime.parse(whenCreated, formatter));
+                    item.setWhenChanged(LocalDateTime.parse(whenChanged, formatter));
+
+                    String action = item.getWhenChanged().isAfter(item.getWhenCreated()) ? "Changed" : "Created";
+                    item.setAction(action);
+
+                    content.add(item);
+                }
+
+            }
+        }
+        content.sort(Comparator.comparing(AuditItem::getWhenChanged).reversed());
+        return content;
+    }
+
+    public boolean deleteMember(Entry entry, String group) {
+        try {
+            Modification removeMember = new DefaultModification(
+                    ModificationOperation.REMOVE_ATTRIBUTE, "member", entry.getDn().getName()
+            );
+
+            ModifyRequest modifyRequest = new ModifyRequestImpl();
+            modifyRequest.setName(new Dn(group));
+
+            modifyRequest.addModification(removeMember);
+            ModifyResponse response = connection.modify(modifyRequest);
+
+            return true;
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+
+            return false;
+        }
+    }
+
+    public boolean addMember(Entry entry, String group) {
+        try {
+            Modification removeMember = new DefaultModification(
+                    ModificationOperation.ADD_ATTRIBUTE, "member", entry.getDn().getName()
+            );
+
+            ModifyRequest modifyRequest = new ModifyRequestImpl();
+            modifyRequest.setName(new Dn(group));
+
+            modifyRequest.addModification(removeMember);
+            ModifyResponse response = connection.modify(modifyRequest);
+
+            return true;
+        } catch (Exception ex) {
+            Notification notification = Notification.show(ex.getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+
+            return false;
+        }
+    }
+
 
 }

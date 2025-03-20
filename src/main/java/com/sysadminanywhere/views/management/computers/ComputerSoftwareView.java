@@ -1,11 +1,7 @@
 package com.sysadminanywhere.views.management.computers;
 
-import com.sysadminanywhere.domain.FilterSpecification;
-import com.sysadminanywhere.model.ComputerEntry;
-import com.sysadminanywhere.model.ProcessEntity;
-import com.sysadminanywhere.model.SoftwareEntity;
+import com.sysadminanywhere.model.wmi.SoftwareEntity;
 import com.sysadminanywhere.service.ComputersService;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -27,19 +23,13 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import org.springframework.data.domain.PageRequest;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @PageTitle("Software")
-@Route(value = "management/computers/:id?/software", layout = MainLayout.class)
+@Route(value = "management/computers/:id?/software")
 @PermitAll
 @Uses(Icon.class)
 public class ComputerSoftwareView extends Div implements BeforeEnterObserver {

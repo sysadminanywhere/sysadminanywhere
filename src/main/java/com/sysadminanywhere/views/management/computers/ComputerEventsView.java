@@ -1,8 +1,7 @@
 package com.sysadminanywhere.views.management.computers;
 
-import com.sysadminanywhere.model.EventEntity;
+import com.sysadminanywhere.model.wmi.EventEntity;
 import com.sysadminanywhere.service.ComputersService;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -30,13 +29,11 @@ import jakarta.annotation.security.PermitAll;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
 @PageTitle("Events")
-@Route(value = "management/computers/:id?/events", layout = MainLayout.class)
+@Route(value = "management/computers/:id?/events")
 @PermitAll
 @Uses(Icon.class)
 @Uses(DatePicker.class)

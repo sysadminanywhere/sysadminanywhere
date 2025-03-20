@@ -1,8 +1,7 @@
 package com.sysadminanywhere.views.management.computers;
 
-import com.sysadminanywhere.model.ServiceEntity;
+import com.sysadminanywhere.model.wmi.ServiceEntity;
 import com.sysadminanywhere.service.ComputersService;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -33,7 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @PageTitle("Services")
-@Route(value = "management/computers/:id?/services", layout = MainLayout.class)
+@Route(value = "management/computers/:id?/services")
 @PermitAll
 @Uses(Icon.class)
 @Uses(TextArea.class)

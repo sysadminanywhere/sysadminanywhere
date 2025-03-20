@@ -1,9 +1,7 @@
 package com.sysadminanywhere.views.inventory;
 
-import com.sysadminanywhere.client.dto.ComputerDto;
-import com.sysadminanywhere.client.dto.SoftwareCount;
+import com.sysadminanywhere.model.ComputerItem;
 import com.sysadminanywhere.service.InventoryService;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -23,24 +21,20 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
-import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @PageTitle("Software inventory")
-@Route(value = "inventory/software/:id?/computer", layout = MainLayout.class)
+@Route(value = "inventory/software/:id?/computer")
 @PermitAll
 @Uses(Icon.class)
 public class InventoryComputersWithSoftwareView  extends Div implements BeforeEnterObserver {
 
     private Long id = 0L;
 
-    private Grid<ComputerDto> grid;
+    private Grid<ComputerItem> grid;
 
     private Filters filters;
     private final InventoryService inventoryService;
@@ -128,7 +122,7 @@ public class InventoryComputersWithSoftwareView  extends Div implements BeforeEn
     }
 
     private Component createGrid() {
-        grid = new Grid<>(ComputerDto.class, false);
+        grid = new Grid<>(ComputerItem.class, false);
         grid.addColumn("name").setAutoWidth(true);
         grid.addColumn("dns").setAutoWidth(true);
 

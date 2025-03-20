@@ -8,6 +8,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @EnableWebSecurity
@@ -25,12 +27,18 @@ public class SecurityConfiguration extends VaadinWebSecurity {
         http.authorizeHttpRequests(
                 authorize -> authorize.requestMatchers(new AntPathRequestMatcher("/images/*.png")).permitAll());
 
-        // Icons from the line-awesome addon
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(new AntPathRequestMatcher("/line-awesome/**/*.svg")).permitAll());
 
-        super.configure(http);
         setLoginView(http, LoginView.class);
+
+        http.formLogin(login -> login
+                .loginPage("/login")
+                .defaultSuccessUrl("/", true)
+                .permitAll()
+        );
+
+        super.configure(http);
     }
 
 }

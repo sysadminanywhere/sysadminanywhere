@@ -9,7 +9,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
 @PageTitle("Monitors")
-@Route(value = "monitoring/monitors", layout = MainLayout.class)
+@Route(value = "monitoring/monitors")
 @PermitAll
 @Uses(Icon.class)
 public class MonitorsView extends Div {

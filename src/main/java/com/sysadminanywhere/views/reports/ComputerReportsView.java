@@ -24,7 +24,7 @@ import java.io.File;
 import java.nio.file.Files;
 
 @PageTitle("Computer Reports")
-@Route(value = "reports/computers", layout = MainLayout.class)
+@Route(value = "reports/computers")
 @PermitAll
 @Uses(Icon.class)
 public class ComputerReportsView extends Div {

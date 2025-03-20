@@ -1,24 +1,21 @@
 package com.sysadminanywhere.views.management.computers;
 
-import com.sysadminanywhere.control.ContainerField;
-import com.sysadminanywhere.model.ComputerEntry;
+import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.domain.MenuHelper;
+import com.sysadminanywhere.model.ad.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -30,10 +27,10 @@ import jakarta.annotation.security.PermitAll;
 import org.springframework.data.domain.PageRequest;
 
 @PageTitle("Computers")
-@Route(value = "management/computers", layout = MainLayout.class)
+@Route(value = "management/computers")
 @PermitAll
 @Uses(Icon.class)
-public class ComputersView extends Div {
+public class ComputersView extends Div implements MenuControl {
 
     private Grid<ComputerEntry> grid;
 
@@ -78,6 +75,21 @@ public class ComputersView extends Div {
         return mobileFilters;
     }
 
+    @Override
+    public MenuBar getMenu() {
+        MenuBar menuBar = new MenuBar();
+
+        MenuHelper.createIconItem(menuBar, "/icons/plus.svg", "New", event -> {
+            addDialog(this::refreshGrid).open();
+        });
+
+        return menuBar;
+    }
+
+    private Dialog addDialog(Runnable onSearch) {
+        return new AddComputerDialog(computersService, onSearch);
+    }
+
     public static class Filters extends Div {
 
         private final ComputersService computersService;
@@ -105,10 +117,7 @@ public class ComputersView extends Div {
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
-            Button plusButton = new Button("New");
-            plusButton.addClickListener(e -> addDialog(onSearch).open());
-
-            Div actions = new Div(plusButton, resetBtn, searchBtn);
+            Div actions = new Div(resetBtn, searchBtn);
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
@@ -130,10 +139,6 @@ public class ComputersView extends Div {
             }
 
             return searchFilters;
-        }
-
-        private Dialog addDialog(Runnable onSearch) {
-            return new AddComputerDialog(computersService, onSearch);
         }
 
     }

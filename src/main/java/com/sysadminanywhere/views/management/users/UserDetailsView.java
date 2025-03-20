@@ -1,10 +1,11 @@
 package com.sysadminanywhere.views.management.users;
 
+import com.sysadminanywhere.control.MemberOf;
+import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.UserEntry;
+import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.service.UsersService;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -26,7 +27,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -35,25 +35,18 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.dialog.Dialog;
-import lombok.SneakyThrows;
-import net.coobird.thumbnailator.Thumbnails;
 
-import javax.imageio.ImageIO;
-import java.awt.image.*;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 @PageTitle("User details")
-@Route(value = "management/users/:id?/details", layout = MainLayout.class)
+@Route(value = "management/users/:id?/details")
 @PermitAll
 @Uses(Upload.class)
 @Uses(Icon.class)
 @Uses(ListBox.class)
-public class UserDetailsView extends Div implements BeforeEnterObserver {
+public class UserDetailsView extends Div implements BeforeEnterObserver, MenuControl {
 
     private String id;
     private final UsersService usersService;
@@ -62,7 +55,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
     H3 lblName = new H3();
     H5 lblDescription = new H5();
     Avatar avatar = new Avatar();
-    ListBox<String> listMemberOf = new ListBox<>();
+    MemberOf memberOf = new MemberOf();
 
     Binder<UserEntry> binder = new Binder<>(UserEntry.class);
 
@@ -100,16 +93,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
                     avatar.setImageResource(resource);
                 }
 
-                listMemberOf.clear();
-                if (user.getMemberOf() != null) {
-                    List<String> items = new ArrayList<>();
-                    if (user.getPrimaryGroupId() != 0)
-                        items.add(ADHelper.getPrimaryGroup(user.getPrimaryGroupId()));
-                    for (String item : user.getMemberOf()) {
-                        items.add(ADHelper.ExtractCN(item));
-                    }
-                    listMemberOf.setItems(items);
-                }
+                memberOf.update(usersService.getLdapService(), id);
             }
         }
     }
@@ -132,24 +116,6 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        MenuBar menuBar = new MenuBar();
-        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
-            updateDialog().open();
-        });
-        MenuHelper.createIconItem(menuBar, VaadinIcon.USER, "Photo", event -> {
-            updatePhotoDialog().open();
-        });
-        MenuHelper.createIconItem(menuBar, VaadinIcon.OPTIONS, "Options", event -> {
-            optionsForm().open();
-        });
-        MenuHelper.createIconItem(menuBar, VaadinIcon.PASSWORD, "Reset password", event -> {
-            resetPasswordForm().open();
-        });
-        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
-            deleteDialog().open();
-        });
-
-        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
         VerticalLayout verticalLayout2 = new VerticalLayout(lblName, lblDescription);
         verticalLayout2.setWidth("70%");
@@ -158,11 +124,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         horizontalLayout.setWidthFull();
         horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        HorizontalLayout horizontalLayout2 = new HorizontalLayout(menuBar);
-        horizontalLayout2.setWidthFull();
-        horizontalLayout2.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-
-        horizontalLayout.add(avatar, verticalLayout2, horizontalLayout2);
+        horizontalLayout.add(avatar, verticalLayout2);
 
         verticalLayout.add(horizontalLayout);
 
@@ -200,7 +162,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
 
         verticalLayout.add(formLayout);
 
-        verticalLayout.add(new Hr(), new H5("Member of"), listMemberOf);
+        verticalLayout.add(new Hr(), memberOf);
     }
 
     private ConfirmDialog deleteDialog() {
@@ -346,4 +308,27 @@ public class UserDetailsView extends Div implements BeforeEnterObserver {
         return dialog;
     }
 
+    @Override
+    public MenuBar getMenu() {
+        MenuBar menuBar = new MenuBar();
+        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", "Update", event -> {
+            updateDialog().open();
+        });
+        MenuHelper.createIconItem(menuBar, "/icons/portrait.svg", "Photo", event -> {
+            updatePhotoDialog().open();
+        });
+        MenuHelper.createIconItem(menuBar, "/icons/options.svg", "Options", event -> {
+            optionsForm().open();
+        });
+        MenuHelper.createIconItem(menuBar, "/icons/password.svg", "Reset password", event -> {
+            resetPasswordForm().open();
+        });
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
+            deleteDialog().open();
+        });
+
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
+
+        return menuBar;
+    }
 }

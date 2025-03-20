@@ -1,14 +1,14 @@
 package com.sysadminanywhere.views.management.computers;
 
+import com.sysadminanywhere.control.MemberOf;
+import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.ComputerEntry;
+import com.sysadminanywhere.model.ad.ComputerEntry;
+import com.sysadminanywhere.model.wmi.ComputerSystemEntity;
 import com.sysadminanywhere.service.ComputersService;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
@@ -40,11 +40,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PageTitle("Computer details")
-@Route(value = "management/computers/:id?/details", layout = MainLayout.class)
+@Route(value = "management/computers/:id?/details")
 @PermitAll
 @Uses(Icon.class)
 @Uses(ListBox.class)
-public class ComputerDetailsView extends Div implements BeforeEnterObserver {
+public class ComputerDetailsView extends Div implements BeforeEnterObserver, MenuControl {
 
     private String id;
     private final ComputersService computersService;
@@ -52,24 +52,26 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
-    ListBox<String> listMemberOf = new ListBox<>();
+    MemberOf memberOf = new MemberOf();
 
     Binder<ComputerEntry> binder = new Binder<>(ComputerEntry.class);
     Binder<String> binder2 = new Binder<>(String.class);
+    Binder<ComputerSystemEntity> binder3 = new Binder<>(ComputerSystemEntity.class);
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         id = event.getRouteParameters().get("id").
                 orElse(null);
 
-        getIPAddress();
+        getComputerInfo();
         updateView();
     }
 
-    public void getIPAddress() {
+    public void getComputerInfo() {
         try {
             String address = InetAddress.getByName(id).getHostAddress();
             binder2.readBean(address);
+            binder3.readBean(computersService.getComputerSystem(id));
         } catch (UnknownHostException e) {
 
         }
@@ -94,16 +96,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
                 lblName.setText(computer.getCn());
                 lblDescription.setText(computer.getDescription());
 
-                listMemberOf.clear();
-                if (computer.getMemberOf() != null) {
-                    List<String> items = new ArrayList<>();
-                    if (computer.getPrimaryGroupId() != 0)
-                        items.add(ADHelper.getPrimaryGroup(computer.getPrimaryGroupId()));
-                    for (String item : computer.getMemberOf()) {
-                        items.add(ADHelper.ExtractCN(item));
-                    }
-                    listMemberOf.setItems(items);
-                }
+                memberOf.update(computersService.getLdapService(), id);
             }
         }
     }
@@ -124,44 +117,6 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        MenuBar menuBar = new MenuBar();
-        menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
-
-        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
-            updateDialog().open();
-        });
-
-        MenuItem menuManagement = menuBar.addItem("Management");
-
-        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
-            deleteDialog().open();
-        });
-
-        ComponentEventListener<ClickEvent<MenuItem>> listener = e -> {
-            if (computer != null) {
-                e.getSource().getUI().ifPresent(ui ->
-                        ui.navigate("management/computers/" + computer.getCn() + "/" + e.getSource().getText().toLowerCase()));
-            }
-        };
-
-        SubMenu subMenuManagement = menuManagement.getSubMenu();
-        subMenuManagement.addItem("Processes", listener);
-        subMenuManagement.addItem("Services", listener);
-        subMenuManagement.addItem("Events", listener);
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Software", listener);
-//        subMenuManagement.addItem("Hardware", listener);
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Performance", listener);
-        subMenuManagement.add(new Hr());
-        subMenuManagement.addItem("Reboot", menuItemClickEvent -> {
-            rebootDialog().open();
-        });
-        subMenuManagement.addItem("Shutdown", menuItemClickEvent -> {
-            shutdownDialog().open();
-        });
-
-        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
         VerticalLayout verticalLayout2 = new VerticalLayout(lblName, lblDescription);
         verticalLayout2.setWidth("70%");
@@ -170,11 +125,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         horizontalLayout.setWidthFull();
         horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        HorizontalLayout horizontalLayout2 = new HorizontalLayout(menuBar);
-        horizontalLayout2.setWidthFull();
-        horizontalLayout2.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-
-        horizontalLayout.add(verticalLayout2, horizontalLayout2);
+        horizontalLayout.add(verticalLayout2);
 
         verticalLayout.add(horizontalLayout);
 
@@ -201,14 +152,23 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         binder.bind(txtServicePack, ComputerEntry::getOperatingSystemServicePack, null);
 
         TextField txtIPAddress = new TextField("IP address");
-        txtServicePack.setReadOnly(true);
+        txtIPAddress.setReadOnly(true);
         binder2.bind(txtIPAddress, String::toLowerCase, null);
 
-        formLayout.add(txtLocation, txtHostName, txtOperatingSystem, txtVersion, txtServicePack, txtIPAddress);
+
+        TextField txtManufacturer = new TextField("Manufacturer");
+        txtManufacturer.setReadOnly(true);
+        binder3.bind(txtManufacturer, ComputerSystemEntity::getManufacturer, null);
+
+        TextField txtModel = new TextField("Model");
+        txtModel.setReadOnly(true);
+        binder3.bind(txtModel, ComputerSystemEntity::getModel, null);
+
+        formLayout.add(txtLocation, txtHostName, txtOperatingSystem, txtVersion, txtServicePack, txtIPAddress, txtManufacturer, txtModel);
 
         verticalLayout.add(formLayout);
 
-        verticalLayout.add(new Hr(), new H5("Member of"), listMemberOf);
+        verticalLayout.add(new Hr(), memberOf);
     }
 
     private ConfirmDialog deleteDialog() {
@@ -272,6 +232,50 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver {
         });
 
         return dialog;
+    }
+
+    @Override
+    public MenuBar getMenu() {
+        MenuBar menuBar = new MenuBar();
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
+
+        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", "Update", event -> {
+            updateDialog().open();
+        });
+
+        MenuItem menuManagement = menuBar.addItem("Management");
+
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
+            deleteDialog().open();
+        });
+
+        ComponentEventListener<ClickEvent<MenuItem>> listener = e -> {
+            if (computer != null) {
+                e.getSource().getUI().ifPresent(ui ->
+                        ui.navigate("management/computers/" + computer.getCn() + "/" + e.getSource().getText().toLowerCase()));
+            }
+        };
+
+        SubMenu subMenuManagement = menuManagement.getSubMenu();
+        subMenuManagement.addItem("Processes", listener);
+        subMenuManagement.addItem("Services", listener);
+        subMenuManagement.addItem("Events", listener);
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Software", listener);
+//        subMenuManagement.addItem("Hardware", listener);
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Performance", listener);
+        subMenuManagement.add(new Hr());
+        subMenuManagement.addItem("Reboot", menuItemClickEvent -> {
+            rebootDialog().open();
+        });
+        subMenuManagement.addItem("Shutdown", menuItemClickEvent -> {
+            shutdownDialog().open();
+        });
+
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
+
+        return menuBar;
     }
 
 }

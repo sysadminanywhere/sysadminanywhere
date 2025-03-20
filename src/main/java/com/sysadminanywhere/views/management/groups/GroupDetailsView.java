@@ -1,12 +1,12 @@
 package com.sysadminanywhere.views.management.groups;
 
+import com.sysadminanywhere.control.MemberOf;
+import com.sysadminanywhere.control.Members;
+import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.GroupEntry;
+import com.sysadminanywhere.model.ad.GroupEntry;
 import com.sysadminanywhere.service.GroupsService;
-import com.sysadminanywhere.views.MainLayout;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -20,8 +20,6 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -38,12 +36,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PageTitle("Group details")
-@Route(value = "management/groups/:id?/details", layout = MainLayout.class)
+@Route(value = "management/groups/:id?/details")
 @PermitAll
 @Uses(Icon.class)
 @Uses(ListBox.class)
 @Uses(TabSheet.class)
-public class GroupDetailsView extends Div implements BeforeEnterObserver {
+public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuControl {
 
     private String id;
     private final GroupsService groupsService;
@@ -51,8 +49,8 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
-    ListBox<String> listMemberOf = new ListBox<>();
-    ListBox<String> listMembers = new ListBox<>();
+    MemberOf memberOf = new MemberOf();
+    Members members = new Members();
 
     Binder<GroupEntry> binder = new Binder<>(GroupEntry.class);
 
@@ -83,25 +81,8 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
                 lblName.setText(group.getCn());
                 lblDescription.setText(group.getDescription());
 
-                listMemberOf.clear();
-                if (group.getMemberOf() != null) {
-                    List<String> items = new ArrayList<>();
-                    if (group.getPrimaryGroupId() != 0)
-                        items.add(ADHelper.getPrimaryGroup(group.getPrimaryGroupId()));
-                    for (String item : group.getMemberOf()) {
-                        items.add(ADHelper.ExtractCN(item));
-                    }
-                    listMemberOf.setItems(items);
-                }
-
-                listMembers.clear();
-                if (group.getMembers() != null) {
-                    List<String> items = new ArrayList<>();
-                    for (String item : group.getMembers()) {
-                        items.add(ADHelper.ExtractCN(item));
-                    }
-                    listMembers.setItems(items);
-                }
+                memberOf.update(groupsService.getLdapService(), id);
+                members.update(groupsService.getLdapService(), id);
             }
         }
     }
@@ -122,16 +103,6 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
         add(verticalLayout);
 
-        MenuBar menuBar = new MenuBar();
-        MenuHelper.createIconItem(menuBar, VaadinIcon.EDIT, "Update", event -> {
-            updateDialog().open();
-        });
-        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
-            deleteDialog().open();
-        });
-
-        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
-
         VerticalLayout verticalLayout2 = new VerticalLayout(lblName, lblDescription);
         verticalLayout2.setWidth("70%");
 
@@ -139,11 +110,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
         horizontalLayout.setWidthFull();
         horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        HorizontalLayout horizontalLayout2 = new HorizontalLayout(menuBar);
-        horizontalLayout2.setWidthFull();
-        horizontalLayout2.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-
-        horizontalLayout.add(verticalLayout2, horizontalLayout2);
+        horizontalLayout.add(verticalLayout2);
 
         verticalLayout.add(horizontalLayout);
 
@@ -157,12 +124,12 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
         verticalLayout.add(formLayout);
 
-        TabSheet tabSheet = new TabSheet();
-        tabSheet.add("Member of", listMemberOf);
-        tabSheet.add("Members", listMembers);
-        add(tabSheet);
+        HorizontalLayout memberLayout = new HorizontalLayout(memberOf /*, members */);
+        memberLayout.setWidthFull();
+        memberLayout.setSpacing(false);
+        memberLayout.getThemeList().add("spacing-xl");
 
-        verticalLayout.add(new Hr(), tabSheet);
+        verticalLayout.add(new Hr(), memberLayout);
     }
 
     private ConfirmDialog deleteDialog() {
@@ -186,6 +153,21 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver {
 
     private Dialog updateDialog() {
         return new UpdateGroupDialog(groupsService, group, updateRunnable());
+    }
+
+    @Override
+    public MenuBar getMenu() {
+        MenuBar menuBar = new MenuBar();
+        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", "Update", event -> {
+            updateDialog().open();
+        });
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
+            deleteDialog().open();
+        });
+
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
+
+        return menuBar;
     }
 
 }

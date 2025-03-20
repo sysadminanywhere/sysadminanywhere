@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db.changelog/changelogs/logins.yaml
   - include:
       file: db.changelog/changelogs/settings.yaml
+  - include:
+      file: db.changelog/changelogs/inventory.yaml

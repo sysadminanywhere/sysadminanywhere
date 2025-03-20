@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.entity.LoginEntity;
 import com.sysadminanywhere.entity.SettingEntity;
 import com.sysadminanywhere.model.Settings;
-import com.sysadminanywhere.model.UserEntry;
 import com.sysadminanywhere.repository.SettingsRepository;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;

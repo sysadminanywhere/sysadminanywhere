@@ -1,9 +1,8 @@
 package com.sysadminanywhere.views.management.printers;
 
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.PrinterEntry;
+import com.sysadminanywhere.model.ad.PrinterEntry;
 import com.sysadminanywhere.service.PrintersService;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
@@ -23,7 +22,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
 @PageTitle("Printer details")
-@Route(value = "management/printers/:id?/details", layout = MainLayout.class)
+@Route(value = "management/printers/:id?/details")
 @PermitAll
 @Uses(Icon.class)
 public class PrinterDetailsView extends Div implements BeforeEnterObserver {
@@ -69,7 +68,7 @@ public class PrinterDetailsView extends Div implements BeforeEnterObserver {
         MenuBar menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
-        MenuHelper.createIconItem(menuBar, VaadinIcon.TRASH, "Delete", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
             deleteDialog().open();
         });
 

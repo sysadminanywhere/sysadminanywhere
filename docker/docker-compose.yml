@@ -4,7 +4,7 @@ services:
     image: ghcr.io/danielptv/postgres-multiple-databases:latest
     container_name: postgres
     environment:
-      POSTGRES_MULTIPLE_DATABASES: sysadminanywhere:sysadminanywhere:sysadminanywhere, inventory:inventory:inventory, monitoring:monitoring:monitoring
+      POSTGRES_MULTIPLE_DATABASES: sysadminanywhere:sysadminanywhere:sysadminanywhere
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123456
       POSTGRES_DB: postgres
@@ -19,19 +19,3 @@ services:
       - "8080:8080"
     depends_on:
       - postgres
-
-  inventory:
-    image: sysadminanywhere/inventory:latest
-    container_name: inventory
-    env_file: inventory.env
-    depends_on:
-      - postgres
-
-#  monitoring:
-#    image: sysadminanywhere/monitoring:latest
-#    container_name: monitoring
-#    env_file: monitoring.env
-#    ports:
-#      - "8082:8082"
-#    depends_on:
-#      - postgres

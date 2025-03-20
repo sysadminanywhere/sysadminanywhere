@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PageTitle("User Reports")
-@Route(value = "reports/users", layout = MainLayout.class)
+@Route(value = "reports/users")
 @PermitAll
 @Uses(Icon.class)
 public class UserReportsView extends Div {

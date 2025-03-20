@@ -1,9 +1,7 @@
 package com.sysadminanywhere.views.management.printers;
 
-import com.sysadminanywhere.domain.FilterSpecification;
-import com.sysadminanywhere.model.PrinterEntry;
+import com.sysadminanywhere.model.ad.PrinterEntry;
 import com.sysadminanywhere.service.PrintersService;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -13,7 +11,6 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -22,14 +19,10 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
-import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.PageRequest;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @PageTitle("Printers")
-@Route(value = "management/printers", layout = MainLayout.class)
+@Route(value = "management/printers")
 @PermitAll
 @Uses(Icon.class)
 public class PrintersView extends Div {
