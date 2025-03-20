@@ -4,7 +4,7 @@ https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/en
 
 Domain
     + Dashboard
-    - Domain
+    + Domain
     + Audit
 
 Management
