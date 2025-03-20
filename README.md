@@ -38,10 +38,11 @@ This software is distributed under the terms of the MIT License (MIT).
 - DB_USER=sysadminanywhere
 - DB_PASSWORD=sysadminanywhere
 - LDAP_SERVER=192.168.1.1
-- LDAP_PORT=636
+- LDAP_PORT=389
+- LDAP_USE_SSL=false
 - LDAP_GROUPS_ALLOWED=CN=Domain Admins,CN=Users,DC=example,DC=com
 
-- LDAP_USERNAME=<domain>\<username>
+- LDAP_USERNAME=<username>
 - LDAP_PASSWORD=<password>
 - SCAN.CRON=0 0 * * * *
 ```

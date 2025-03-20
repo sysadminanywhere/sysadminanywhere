@@ -24,6 +24,9 @@ public class LdapConfiguration {
     @Value("${ldap.host.groups.allowed:}")
     private String groupsAllowed;
 
+    @Value("${ldap.host.use.ssl}")
+    boolean useSSL;
+
     @SneakyThrows
     @Bean
     public LdapConnection createConnection(LdapConnectionConfig sslConfig) {
@@ -35,7 +38,7 @@ public class LdapConfiguration {
     public LdapConnectionConfig sslConfig() {
         LdapConnectionConfig sslConfig = new LdapConnectionConfig();
         sslConfig.setLdapHost(server);
-        sslConfig.setUseSsl(true);
+        sslConfig.setUseSsl(useSSL);
         sslConfig.setLdapPort(port);
         sslConfig.setTrustManagers(new NoVerificationTrustManager());
         return sslConfig;
