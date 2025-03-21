@@ -1,9 +1,7 @@
 package com.sysadminanywhere.views.reports;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.sysadminanywhere.model.ReportItem;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -22,8 +20,6 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
 
 @PageTitle("User Reports")
 @Route(value = "reports/users")

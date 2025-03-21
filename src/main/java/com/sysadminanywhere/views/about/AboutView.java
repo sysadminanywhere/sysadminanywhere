@@ -1,7 +1,6 @@
 package com.sysadminanywhere.views.about;
 
 import com.sysadminanywhere.control.Card;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.AnchorTarget;
 import com.vaadin.flow.component.html.Span;

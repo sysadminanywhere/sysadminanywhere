@@ -1,6 +1,5 @@
 package com.sysadminanywhere.views.monitoring;
 
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
