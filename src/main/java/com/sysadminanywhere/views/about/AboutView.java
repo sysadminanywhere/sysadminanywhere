@@ -22,7 +22,7 @@ public class AboutView extends VerticalLayout {
     private Card getAbout() {
         Card card = new Card("Sysadmin Anywhere");
         card.setWidthFull();
-        Span version = new Span("Version: 2.0.0");
+        Span version = new Span("Version: 2.1.0");
         Anchor homePage = new Anchor("https://sysadminanywhere.com/", "Home page", AnchorTarget.BLANK);
         Anchor sourceCode = new Anchor("https://github.com/sysadminanywhere/sysadminanywhere/", "Source code", AnchorTarget.BLANK);
 
