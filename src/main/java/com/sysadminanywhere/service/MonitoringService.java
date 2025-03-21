@@ -14,7 +14,6 @@ import java.util.concurrent.Executors;
 public class MonitoringService {
 
     private final List<Rule> rules;
-    private final ExecutorService executor = Executors.newFixedThreadPool(5);
     private final ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 
     public MonitoringService(List<Rule> rules) {
