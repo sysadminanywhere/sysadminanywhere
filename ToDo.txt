@@ -5,6 +5,9 @@ https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/en
 Domain
     + Dashboard
     + Domain
+        + Controllers
+            - Go to controller
+        ? More info
     + Audit
 
 Management
