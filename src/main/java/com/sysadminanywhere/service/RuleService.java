@@ -3,6 +3,8 @@ package com.sysadminanywhere.service;
 import com.sysadminanywhere.entity.RuleEntity;
 import com.sysadminanywhere.model.monitoring.Rule;
 import com.sysadminanywhere.repository.RuleRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,6 +29,10 @@ public class RuleService {
 
     public List<RuleEntity> getAllRules() {
         return ruleRepository.findAll();
+    }
+
+    public Page<RuleEntity> getAllRules(Pageable pageable) {
+        return ruleRepository.findAll(pageable);
     }
 
     public RuleEntity addRule(RuleEntity rule) {
