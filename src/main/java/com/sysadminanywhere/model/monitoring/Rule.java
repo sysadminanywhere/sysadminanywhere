@@ -4,9 +4,6 @@ import java.util.Map;
 
 public interface Rule {
 
-    void setParameters(Map<String, Object>parameters);
-    String getName();
-    void execute();
-    String getCronExpression();
+    void execute(Map<String, Object>parameters);
 
 }
