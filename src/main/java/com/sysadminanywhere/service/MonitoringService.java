@@ -6,6 +6,7 @@ import com.sysadminanywhere.entity.RuleEntity;
 import com.sysadminanywhere.model.monitoring.Rule;
 import com.sysadminanywhere.repository.RuleRepository;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,6 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 
 @Service
+@Slf4j
 public class MonitoringService {
 
     private final RuleService ruleService;
@@ -62,7 +64,7 @@ public class MonitoringService {
         parameters.put("ruleName", ruleEntity.getName());
         parameters.put("executionTime", LocalDateTime.now());
         rule.execute(parameters);
-        System.out.println("Executed rule: " + ruleEntity.getName() + " at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        log.info("Executed rule: {} at {}", ruleEntity.getName(), LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     public Page<RuleEntity> getAllRules(Pageable pageable, Map<String, String> filters) {
