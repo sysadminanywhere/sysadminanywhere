@@ -45,7 +45,7 @@ import java.util.Optional;
 
 @Layout
 @PermitAll
-public class RootLayout extends AppLayout implements AfterNavigationObserver, BeforeEnterObserver {
+public class MainLayout extends AppLayout implements AfterNavigationObserver, BeforeEnterObserver {
 
     private H1 viewTitle;
     private HorizontalLayout menuLayout;
@@ -71,7 +71,7 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
     private final LdapService ldapService;
     private final MonitoringService monitoringService;
 
-    public RootLayout(AuthenticatedUser authenticatedUser,
+    public MainLayout(AuthenticatedUser authenticatedUser,
                       AccessAnnotationChecker accessChecker,
                       LoginService loginService, LdapService ldapService, MonitoringService monitoringService) {
 
@@ -181,6 +181,7 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
     @Override
     public void afterNavigation(AfterNavigationEvent event) {
         super.afterNavigation();
+
         viewTitle.setText(getCurrentPageTitle());
 
         menuLayout.removeAll();
