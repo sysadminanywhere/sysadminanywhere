@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 1
+      id: rules
       author: Igor Markin
       changes:
         - createTable:
@@ -33,3 +33,7 @@ databaseChangeLog:
                   type: varchar(255)
                   constraints:
                     nullable: true
+              - column:
+                  name: active
+                  type: boolean
+                  defaultValueBoolean: false

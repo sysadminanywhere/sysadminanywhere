@@ -18,5 +18,6 @@ public class RuleEntity {
     private String cronExpression;
     private String type;
     private String parameters;
+    private boolean active;
 
 }

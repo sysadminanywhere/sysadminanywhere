@@ -41,7 +41,7 @@ public class MonitoringService {
     }
 
     private void scheduleRule(RuleEntity ruleEntity) {
-        if (ruleEntity.getCronExpression() != null) {
+        if (ruleEntity.getCronExpression() != null && ruleEntity.isActive()) {
             ScheduledFuture<?> future = scheduler.schedule(() -> executeRule(ruleEntity), new CronTrigger(ruleEntity.getCronExpression()));
             scheduledTasks.put(ruleEntity.getId(), future);
         }
@@ -71,6 +71,12 @@ public class MonitoringService {
 
     public void addRule(RuleEntity ruleEntity) {
         RuleEntity newRule = ruleService.addRule(ruleEntity);
+        scheduleRule(newRule);
+    }
+
+    public void updateRule(RuleEntity ruleEntity) {
+        removeScheduledRule(ruleEntity.getId());
+        RuleEntity newRule = ruleService.updateRule(ruleEntity.getId(), ruleEntity);
         scheduleRule(newRule);
     }
 

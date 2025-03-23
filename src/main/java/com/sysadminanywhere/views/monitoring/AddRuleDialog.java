@@ -52,6 +52,7 @@ public class AddRuleDialog extends Dialog {
                 rule.setName(txtName.getValue());
                 rule.setType("ScheduledRule");
                 rule.setParameters("{}");
+                rule.setActive(true);
                 rule.setCronExpression(txtCron.getValue());
                 monitoringService.addRule(rule);
 
