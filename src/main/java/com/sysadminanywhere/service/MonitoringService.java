@@ -3,6 +3,8 @@ package com.sysadminanywhere.service;
 import com.sysadminanywhere.entity.RuleEntity;
 import com.sysadminanywhere.model.monitoring.Rule;
 import com.sysadminanywhere.repository.RuleRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -35,14 +37,14 @@ public class MonitoringService {
         }
     }
 
-    public void scheduleRule(RuleEntity ruleEntity) {
+    private void scheduleRule(RuleEntity ruleEntity) {
         if (ruleEntity.getCronExpression() != null) {
             ScheduledFuture<?> future = scheduler.schedule(() -> executeRule(ruleEntity), new CronTrigger(ruleEntity.getCronExpression()));
             scheduledTasks.put(ruleEntity.getId(), future);
         }
     }
 
-    public void removeScheduledRule(Long ruleId) {
+    private void removeScheduledRule(Long ruleId) {
         ScheduledFuture<?> future = scheduledTasks.remove(ruleId);
         if (future != null) {
             future.cancel(false);
@@ -55,6 +57,20 @@ public class MonitoringService {
         parameters.put("ruleName", ruleEntity.getName());
         parameters.put("executionTime", LocalDateTime.now());
         rule.execute(parameters);
+    }
+
+    public Page<RuleEntity> getAllRules(Pageable pageable, Map<String, String> filters) {
+        return ruleService.getAllRules(pageable);
+    }
+
+    public void addRule(RuleEntity ruleEntity) {
+        RuleEntity newRule = ruleService.addRule(ruleEntity);
+        scheduleRule(newRule);
+    }
+
+    public void deleteRule(Long ruleId) {
+        removeScheduledRule(ruleId);
+        ruleService.deleteRule(ruleId);
     }
 
 }
