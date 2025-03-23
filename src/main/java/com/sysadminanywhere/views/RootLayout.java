@@ -6,6 +6,7 @@ import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.service.LoginService;
+import com.sysadminanywhere.service.MonitoringService;
 import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.account.MeView;
 import com.sysadminanywhere.views.domain.AuditView;
@@ -68,10 +69,11 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
 
     private final LoginService loginService;
     private final LdapService ldapService;
+    private final MonitoringService monitoringService;
 
     public RootLayout(AuthenticatedUser authenticatedUser,
                       AccessAnnotationChecker accessChecker,
-                      LoginService loginService, LdapService ldapService) {
+                      LoginService loginService, LdapService ldapService, MonitoringService monitoringService) {
 
         this.authenticatedUser = authenticatedUser;
         this.accessChecker = accessChecker;
@@ -79,6 +81,7 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver, Be
         this.ldapService = ldapService;
 
         currentTitle = ldapService.getDomainName();
+        this.monitoringService = monitoringService;
 
         setPrimarySection(Section.DRAWER);
         getElement().setAttribute("theme", "teams-nav");

@@ -17,7 +17,6 @@ public class RuleEntity {
     private String name;
     private String cronExpression;
     private String type;
-    @ElementCollection
-    private Map<String, String> parameters = new HashMap<>();
+    private String parameters;
 
 }

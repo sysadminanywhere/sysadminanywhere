@@ -1,9 +1,12 @@
 package com.sysadminanywhere.model.monitoring;
 
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
+@NoArgsConstructor
 public class ScheduledRule implements Rule {
 
     Map<String, Object> parameters;

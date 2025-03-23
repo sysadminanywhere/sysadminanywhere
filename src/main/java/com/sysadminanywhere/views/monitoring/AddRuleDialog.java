@@ -1,6 +1,8 @@
 package com.sysadminanywhere.views.monitoring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.control.ContainerField;
+import com.sysadminanywhere.control.CronEditor;
 import com.sysadminanywhere.entity.RuleEntity;
 import com.sysadminanywhere.model.ad.ComputerEntry;
 import com.sysadminanywhere.service.MonitoringService;
@@ -13,6 +15,9 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class AddRuleDialog extends Dialog {
 
@@ -33,12 +38,22 @@ public class AddRuleDialog extends Dialog {
         TextField txtDescription = new TextField("Description");
         formLayout.setColspan(txtDescription, 2);
 
-        formLayout.add(txtName, txtDescription);
+        TextField txtCron = new TextField("Cron");
+        txtCron.setValue("0 * * * * *");
+        formLayout.setColspan(txtDescription, 2);
+
+        formLayout.add(txtName, txtDescription, txtCron);
         add(formLayout);
 
         Button saveButton = new Button("Save", e -> {
             try {
-                monitoringService.addRule(new RuleEntity());
+                ObjectMapper objectMapper = new ObjectMapper();
+                RuleEntity rule = new RuleEntity();
+                rule.setName(txtName.getValue());
+                rule.setType("ScheduledRule");
+                rule.setParameters("{}");
+                rule.setCronExpression(txtCron.getValue());
+                monitoringService.addRule(rule);
 
                 onSearch.run();
 

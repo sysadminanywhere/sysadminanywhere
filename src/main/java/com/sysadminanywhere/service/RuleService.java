@@ -51,4 +51,13 @@ public class RuleService {
         ruleRepository.deleteById(id);
     }
 
+    public Rule createRuleInstance(String className) {
+        try {
+            Class<?> clazz = Class.forName("com.sysadminanywhere.model.monitoring." + className);
+            return (Rule) clazz.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create rule instance for class: " + className, e);
+        }
+    }
+
 }

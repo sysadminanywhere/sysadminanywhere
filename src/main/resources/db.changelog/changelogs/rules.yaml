@@ -30,6 +30,6 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: parameters
-                  type: json
+                  type: varchar(255)
                   constraints:
                     nullable: true

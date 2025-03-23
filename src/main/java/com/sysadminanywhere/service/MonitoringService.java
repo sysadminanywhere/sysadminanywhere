@@ -1,8 +1,11 @@
 package com.sysadminanywhere.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.entity.RuleEntity;
 import com.sysadminanywhere.model.monitoring.Rule;
 import com.sysadminanywhere.repository.RuleRepository;
+import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -51,12 +54,15 @@ public class MonitoringService {
         }
     }
 
+    @SneakyThrows
     private void executeRule(RuleEntity ruleEntity) {
-        Rule rule = ruleService.getRules(ruleEntity.getType());
-        Map<String, Object> parameters = new HashMap<>(ruleEntity.getParameters());
+        ObjectMapper objectMapper = new ObjectMapper();
+        Rule rule = ruleService.createRuleInstance(ruleEntity.getType());
+        Map<String, Object> parameters = objectMapper.readValue(ruleEntity.getParameters(), new TypeReference<Map<String, Object>>() {});
         parameters.put("ruleName", ruleEntity.getName());
         parameters.put("executionTime", LocalDateTime.now());
         rule.execute(parameters);
+        System.out.println("Executed rule: " + ruleEntity.getName() + " at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     public Page<RuleEntity> getAllRules(Pageable pageable, Map<String, String> filters) {
