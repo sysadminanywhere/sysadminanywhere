@@ -15,6 +15,7 @@ public class RuleEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+    private String description;
     private String cronExpression;
     private String type;
     private String parameters;

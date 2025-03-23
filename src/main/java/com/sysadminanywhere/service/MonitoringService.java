@@ -7,6 +7,7 @@ import com.sysadminanywhere.model.monitoring.Rule;
 import com.sysadminanywhere.repository.RuleRepository;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -32,8 +33,12 @@ public class MonitoringService {
     private final ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
     private final Map<Long, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
 
-    public MonitoringService(RuleService ruleService) {
+    private final List<Rule> ruleImplementations;
+
+    @Autowired
+    public MonitoringService(RuleService ruleService, List<Rule> ruleImplementations) {
         this.ruleService = ruleService;
+        this.ruleImplementations = ruleImplementations;
 
         scheduler.initialize();
         List<RuleEntity> rules = ruleService.getAllRules();
@@ -60,9 +65,8 @@ public class MonitoringService {
     private void executeRule(RuleEntity ruleEntity) {
         ObjectMapper objectMapper = new ObjectMapper();
         Rule rule = ruleService.createRuleInstance(ruleEntity.getType());
-        Map<String, Object> parameters = objectMapper.readValue(ruleEntity.getParameters(), new TypeReference<Map<String, Object>>() {});
-        parameters.put("ruleName", ruleEntity.getName());
-        parameters.put("executionTime", LocalDateTime.now());
+        Map<String, String> parameters = objectMapper.readValue(ruleEntity.getParameters(), new TypeReference<Map<String, String>>() {
+        });
         rule.execute(parameters);
         log.info("Executed rule: {} at {}", ruleEntity.getName(), LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
@@ -85,6 +89,10 @@ public class MonitoringService {
     public void deleteRule(Long ruleId) {
         removeScheduledRule(ruleId);
         ruleService.deleteRule(ruleId);
+    }
+
+    public List<Rule> getRuleImplementations() {
+        return this.ruleImplementations;
     }
 
 }

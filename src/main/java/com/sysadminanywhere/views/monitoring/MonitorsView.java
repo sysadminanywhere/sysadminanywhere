@@ -4,6 +4,7 @@ import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.entity.RuleEntity;
 import com.sysadminanywhere.model.SoftwareCount;
+import com.sysadminanywhere.model.monitoring.Rule;
 import com.sysadminanywhere.service.InventoryService;
 import com.sysadminanywhere.service.MonitoringService;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
@@ -27,9 +28,11 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @PageTitle("Monitors")
@@ -45,6 +48,7 @@ public class MonitorsView extends Div implements MenuControl {
 
     public MonitorsView(MonitoringService monitoringService) {
         this.monitoringService = monitoringService;
+
         setSizeFull();
         addClassNames("gridwith-filters-view");
 

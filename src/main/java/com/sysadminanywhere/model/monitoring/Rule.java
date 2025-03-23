@@ -4,6 +4,8 @@ import java.util.Map;
 
 public interface Rule {
 
-    void execute(Map<String, Object>parameters);
+    String getName();
+    Map<String, String> getParameters();
+    void execute(Map<String, String>parameters);
 
 }
