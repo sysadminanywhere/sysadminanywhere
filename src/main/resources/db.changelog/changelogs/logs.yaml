@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: logs
+      author: Igor Markin
+      changes:
+        - createTable:
+            tableName: logs
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: rule_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_at
+                  type: datetime
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: message
+                  type: text
+                  constraints:
+                    nullable: true
+
+        - createIndex:
+            indexName: idx_logs_rule_created
+            tableName: logs
+            columns:
+              - column:
+                  name: rule_id
+              - column:
+                  name: created_at
+            unique: false

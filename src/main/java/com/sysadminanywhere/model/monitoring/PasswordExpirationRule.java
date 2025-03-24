@@ -33,9 +33,11 @@ public class PasswordExpirationRule implements Rule {
     }
 
     @Override
-    public void execute(Map<String, String> parameters) {
+    public String execute(Map<String, String> parameters) {
         this.parameters = parameters;
         log.info("Executing PasswordExpirationRule at {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+        return "";
     }
 
     @Override

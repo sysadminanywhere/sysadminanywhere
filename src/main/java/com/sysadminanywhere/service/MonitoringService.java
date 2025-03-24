@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,14 +31,16 @@ import java.util.concurrent.ScheduledFuture;
 public class MonitoringService {
 
     private final RuleService ruleService;
+    private final LogsService logsService;
     private final ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
     private final Map<Long, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
 
     private final List<Rule> ruleImplementations;
 
     @Autowired
-    public MonitoringService(RuleService ruleService, List<Rule> ruleImplementations) {
+    public MonitoringService(RuleService ruleService, LogsService logsService, List<Rule> ruleImplementations) {
         this.ruleService = ruleService;
+        this.logsService = logsService;
         this.ruleImplementations = ruleImplementations;
 
         scheduler.initialize();
@@ -67,7 +70,12 @@ public class MonitoringService {
         Rule rule = createRuleInstance(ruleEntity.getType());
         Map<String, String> parameters = objectMapper.readValue(ruleEntity.getParameters(), new TypeReference<Map<String, String>>() {
         });
-        rule.execute(parameters);
+
+        String result = rule.execute(parameters);
+        if (!result.isEmpty()) {
+            logsService.addToLog(ruleEntity.getId(), result);
+        }
+
         log.info("Executed rule: {} at {}", ruleEntity.getName(), LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
@@ -104,4 +112,7 @@ public class MonitoringService {
         }
     }
 
+    public Optional<RuleEntity> getRule(Long id) {
+        return ruleService.getRule(id);
+    }
 }

@@ -33,9 +33,10 @@ public class ChangedObjectRule implements Rule {
     }
 
     @Override
-    public void execute(Map<String, String> parameters) {
+    public String execute(Map<String, String> parameters) {
         this.parameters = parameters;
         log.info("Executing ChangedObjectRule at {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        return "";
     }
 
     @Override

@@ -9,3 +9,5 @@ databaseChangeLog:
       file: db.changelog/changelogs/inventory.yaml
   - include:
       file: db.changelog/changelogs/rules.yaml
+  - include:
+      file: db.changelog/changelogs/logs.yaml

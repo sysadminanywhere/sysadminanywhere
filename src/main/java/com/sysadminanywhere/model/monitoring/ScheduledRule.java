@@ -38,8 +38,10 @@ public class ScheduledRule implements Rule {
     }
 
     @Override
-    public void execute(Map<String, String> parameters) {
+    public String execute(Map<String, String> parameters) {
         log.info("Executing ScheduledRule at {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+        return "Executing ScheduledRule at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
     @Override
