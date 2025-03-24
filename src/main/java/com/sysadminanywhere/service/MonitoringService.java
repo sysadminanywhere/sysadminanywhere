@@ -64,7 +64,7 @@ public class MonitoringService {
     @SneakyThrows
     private void executeRule(RuleEntity ruleEntity) {
         ObjectMapper objectMapper = new ObjectMapper();
-        Rule rule = ruleService.createRuleInstance(ruleEntity.getType());
+        Rule rule = createRuleInstance(ruleEntity.getType());
         Map<String, String> parameters = objectMapper.readValue(ruleEntity.getParameters(), new TypeReference<Map<String, String>>() {
         });
         rule.execute(parameters);
@@ -93,6 +93,15 @@ public class MonitoringService {
 
     public List<Rule> getRuleImplementations() {
         return this.ruleImplementations;
+    }
+
+    public Rule createRuleInstance(String className) {
+        try {
+            Class<?> clazz = Class.forName("com.sysadminanywhere.model.monitoring." + className);
+            return (Rule) clazz.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create rule instance for class: " + className, e);
+        }
     }
 
 }

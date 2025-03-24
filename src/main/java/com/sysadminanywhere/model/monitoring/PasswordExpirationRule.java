@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -35,6 +36,16 @@ public class PasswordExpirationRule implements Rule {
     public void execute(Map<String, String> parameters) {
         this.parameters = parameters;
         log.info("Executing PasswordExpirationRule at {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+    }
+
+    @Override
+    public List<com.vaadin.flow.component.Component> getControls(Map<String, String> parameters) {
+        return List.of();
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return parameters;
     }
 
 }

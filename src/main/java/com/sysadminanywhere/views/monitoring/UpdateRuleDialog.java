@@ -1,23 +1,33 @@
 package com.sysadminanywhere.views.monitoring;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.entity.RuleEntity;
 import com.sysadminanywhere.model.ad.UserEntry;
+import com.sysadminanywhere.model.monitoring.Rule;
 import com.sysadminanywhere.service.MonitoringService;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
+import lombok.SneakyThrows;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class UpdateRuleDialog extends Dialog {
 
     private final MonitoringService monitoringService;
 
+    @SneakyThrows
     public UpdateRuleDialog(MonitoringService monitoringService, RuleEntity rule, Runnable onSearch) {
         this.monitoringService = monitoringService;
+        ObjectMapper objectMapper = new ObjectMapper();
 
         setHeaderTitle("Update rule");
         setMaxWidth("800px");
@@ -25,30 +35,42 @@ public class UpdateRuleDialog extends Dialog {
         FormLayout formLayout = new FormLayout();
 
         TextField txtName = new TextField("Name");
+        txtName.setValue(rule.getName());
         txtName.setRequired(true);
         formLayout.setColspan(txtName, 2);
 
         TextField txtDescription = new TextField("Description");
+        txtDescription.setValue(rule.getDescription());
         formLayout.setColspan(txtDescription, 2);
 
         TextField txtCron = new TextField("Cron");
-        txtCron.setValue("0 * * * * *");
+        txtCron.setValue(rule.getCronExpression());
         formLayout.setColspan(txtDescription, 2);
 
-        formLayout.add(txtName, txtDescription, txtCron);
+        Checkbox chkActive = new Checkbox("Active");
+        chkActive.setValue(rule.isActive());
+
+        formLayout.add(txtName, txtDescription, txtCron, chkActive);
+
+        Rule ruleInstance = monitoringService.createRuleInstance(rule.getType());
+
+        for (Component item : ruleInstance.getControls(objectMapper.readValue(rule.getParameters(), new TypeReference<Map<String, String>>() {
+        }))) {
+            formLayout.add(item);
+        }
+
         add(formLayout);
 
         Button saveButton = new Button("Save", e -> {
             try {
-                ObjectMapper objectMapper = new ObjectMapper();
                 rule.setName(txtName.getValue());
                 rule.setDescription(txtDescription.getValue());
 
-                rule.setParameters("{}");
+                rule.setParameters(objectMapper.writeValueAsString(ruleInstance.getParameters()));
 
-                rule.setActive(true);
+                rule.setActive(chkActive.getValue());
                 rule.setCronExpression(txtCron.getValue());
-                monitoringService.addRule(rule);
+                monitoringService.updateRule(rule);
 
                 onSearch.run();
 

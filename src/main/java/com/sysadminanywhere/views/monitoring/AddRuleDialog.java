@@ -8,17 +8,14 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 
-import java.util.List;
-import java.util.Map;
+import java.util.HashMap;
 
 public class AddRuleDialog extends Dialog {
 
@@ -41,13 +38,18 @@ public class AddRuleDialog extends Dialog {
         TextField txtDescription = new TextField("Description");
         txtDescription.setValue(rule.getDescription());
 
-        Checkbox chkActive = new Checkbox("Active");
-        chkActive.setValue(true);
-
         TextField txtCron = new TextField("Cron");
         txtCron.setValue("0 * * * * *");
 
+        Checkbox chkActive = new Checkbox("Active");
+        chkActive.setValue(true);
+
         formLayout.add(txtName, txtDescription, txtCron, chkActive);
+
+        for(Component item : rule.getControls(new HashMap<>())) {
+            formLayout.add(item);
+        }
+
         add(formLayout);
 
         Button saveButton = new Button("Save", e -> {
@@ -58,7 +60,7 @@ public class AddRuleDialog extends Dialog {
                 ruleEntity.setDescription(txtDescription.getValue());
                 ruleEntity.setType(rule.getType());
 
-                ruleEntity.setParameters("{}");
+                ruleEntity.setParameters(objectMapper.writeValueAsString(rule.getParameters()));
 
                 ruleEntity.setActive(chkActive.getValue());
                 ruleEntity.setCronExpression(txtCron.getValue());

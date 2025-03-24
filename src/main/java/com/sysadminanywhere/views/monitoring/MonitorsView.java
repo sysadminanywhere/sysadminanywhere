@@ -59,8 +59,10 @@ public class MonitorsView extends Div implements MenuControl {
         layout.setSpacing(false);
 
         grid.addItemClickListener(item -> {
-            RuleEntity selectedRule = item.getItem();
-            new UpdateRuleDialog(monitoringService, selectedRule, () -> refreshGrid()).open();
+            if (item.getItem() != null) {
+                RuleEntity selectedRule = item.getItem();
+                new UpdateRuleDialog(monitoringService, selectedRule, this::refreshGrid).open();
+            }
         });
 
         add(layout);
