@@ -5,7 +5,8 @@ import java.util.Map;
 public interface Rule {
 
     String getName();
-    Map<String, String> getParameters();
+    String getType();
+    String getDescription();
     void execute(Map<String, String>parameters);
 
 }

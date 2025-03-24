@@ -26,7 +26,7 @@ public class AddRuleDialog extends Dialog {
 
     private VerticalLayout parametersLayout;
 
-    public AddRuleDialog(MonitoringService monitoringService, Runnable onSearch) {
+    public AddRuleDialog(MonitoringService monitoringService, Rule rule, Runnable onSearch) {
         this.monitoringService = monitoringService;
 
         setHeaderTitle("New rule");
@@ -34,13 +34,12 @@ public class AddRuleDialog extends Dialog {
 
         FormLayout formLayout = new FormLayout();
 
-        ComboBox<Rule> cmbRules = getRuleImplementations(monitoringService.getRuleImplementations());
-        formLayout.setColspan(cmbRules, 2);
-
         TextField txtName = new TextField("Name");
+        txtName.setValue(rule.getName());
         txtName.setRequired(true);
 
         TextField txtDescription = new TextField("Description");
+        txtDescription.setValue(rule.getDescription());
 
         Checkbox chkActive = new Checkbox("Active");
         chkActive.setValue(true);
@@ -48,24 +47,22 @@ public class AddRuleDialog extends Dialog {
         TextField txtCron = new TextField("Cron");
         txtCron.setValue("0 * * * * *");
 
-        parametersLayout = new VerticalLayout();
-        parametersLayout.setWidthFull();
-        formLayout.setColspan(parametersLayout, 2);
-
-        formLayout.add(cmbRules, txtName, txtDescription, parametersLayout, txtCron, chkActive);
+        formLayout.add(txtName, txtDescription, txtCron, chkActive);
         add(formLayout);
 
         Button saveButton = new Button("Save", e -> {
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
-                RuleEntity rule = new RuleEntity();
-                rule.setName(txtName.getValue());
-                rule.setDescription(txtDescription.getValue());
-                rule.setType(cmbRules.getValue().getName());
-                rule.setParameters("{}");
-                rule.setActive(chkActive.getValue());
-                rule.setCronExpression(txtCron.getValue());
-                monitoringService.addRule(rule);
+                RuleEntity ruleEntity = new RuleEntity();
+                ruleEntity.setName(txtName.getValue());
+                ruleEntity.setDescription(txtDescription.getValue());
+                ruleEntity.setType(rule.getType());
+
+                ruleEntity.setParameters("{}");
+
+                ruleEntity.setActive(chkActive.getValue());
+                ruleEntity.setCronExpression(txtCron.getValue());
+                monitoringService.addRule(ruleEntity);
 
                 onSearch.run();
 
@@ -85,35 +82,6 @@ public class AddRuleDialog extends Dialog {
         getFooter().add(cancelButton);
         getFooter().add(saveButton);
 
-    }
-
-    private void setParameters(Map<String, String> parameters) {
-        parametersLayout.removeAll();
-
-        parametersLayout.add(new H4("Parameters"));
-
-        for (Map.Entry<String, String> entry : parameters.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-
-            TextField txt = new TextField(key);
-            txt.setWidthFull();
-            parametersLayout.add(txt);
-        }
-    }
-
-    private ComboBox<Rule> getRuleImplementations(List<Rule> rules) {
-        ComboBox<Rule> comboBox = new ComboBox<>();
-
-        comboBox.setItems(rules);
-        comboBox.setItemLabelGenerator(Rule::getName);
-
-        comboBox.addValueChangeListener(event -> {
-            Rule selectedValue = event.getValue();
-            setParameters(selectedValue.getParameters());
-        });
-
-        return comboBox;
     }
 
 }

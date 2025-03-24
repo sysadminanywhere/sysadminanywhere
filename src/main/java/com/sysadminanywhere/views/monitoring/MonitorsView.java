@@ -96,7 +96,7 @@ public class MonitorsView extends Div implements MenuControl {
     }
 
     private Dialog addDialog(Runnable onSearch) {
-        return new AddRuleDialog(monitoringService, onSearch);
+        return new SelectRuleDialog(monitoringService, onSearch);
     }
 
     public static class Filters extends Div {
