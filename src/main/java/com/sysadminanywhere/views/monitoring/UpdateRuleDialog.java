@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.monitoring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.entity.RuleEntity;
+import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.service.MonitoringService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -15,7 +16,7 @@ public class UpdateRuleDialog extends Dialog {
 
     private final MonitoringService monitoringService;
 
-    public UpdateRuleDialog(MonitoringService monitoringService, Runnable onSearch) {
+    public UpdateRuleDialog(MonitoringService monitoringService, RuleEntity rule, Runnable onSearch) {
         this.monitoringService = monitoringService;
 
         setHeaderTitle("Update rule");
@@ -40,10 +41,11 @@ public class UpdateRuleDialog extends Dialog {
         Button saveButton = new Button("Save", e -> {
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
-                RuleEntity rule = new RuleEntity();
                 rule.setName(txtName.getValue());
-                rule.setType("ScheduledRule");
+                rule.setDescription(txtDescription.getValue());
+
                 rule.setParameters("{}");
+
                 rule.setActive(true);
                 rule.setCronExpression(txtCron.getValue());
                 monitoringService.addRule(rule);
@@ -63,6 +65,24 @@ public class UpdateRuleDialog extends Dialog {
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button cancelButton = new Button("Cancel", e -> close());
 
+        Button deleteButton = new Button("Delete", e -> {
+            try {
+                monitoringService.deleteRule(rule.getId());
+
+                onSearch.run();
+
+                Notification notification = Notification.show("Rule deleted");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception ex) {
+                Notification notification = Notification.show(ex.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+
+            close();
+        });
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
+
+        getFooter().add(deleteButton);
         getFooter().add(cancelButton);
         getFooter().add(saveButton);
 

@@ -57,6 +57,12 @@ public class MonitorsView extends Div implements MenuControl {
         layout.setSizeFull();
         layout.setPadding(false);
         layout.setSpacing(false);
+
+        grid.addItemClickListener(item -> {
+            RuleEntity selectedRule = item.getItem();
+            new UpdateRuleDialog(monitoringService, selectedRule, () -> refreshGrid()).open();
+        });
+
         add(layout);
     }
 
@@ -139,12 +145,9 @@ public class MonitorsView extends Div implements MenuControl {
     private Component createGrid() {
         grid = new Grid<>(RuleEntity.class, false);
         grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("type").setAutoWidth(true);
-
-//        grid.addItemClickListener(item -> {
-//            grid.getUI().ifPresent(ui ->
-//                    ui.navigate("inventory/software/" + item.getItem().getId() + "/computer"));
-//        });
+        grid.addColumn("description").setAutoWidth(true);
+        grid.addColumn("cronExpression").setAutoWidth(true);
+        grid.addColumn("active").setAutoWidth(true);
 
         grid.setItems(query -> monitoringService.getAllRules(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
