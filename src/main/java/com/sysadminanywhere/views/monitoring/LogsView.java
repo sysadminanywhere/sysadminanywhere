@@ -112,8 +112,9 @@ public class LogsView extends Div implements BeforeEnterObserver, MenuControl {
             id = Long.valueOf(idParam);
 
             Optional<RuleEntity> entity = monitoringService.getRule(id);
-            if (entity.isPresent())
+            if (entity.isPresent()) {
                 ruleEntity = entity.get();
+            }
 
             this.refreshGrid();
         }
