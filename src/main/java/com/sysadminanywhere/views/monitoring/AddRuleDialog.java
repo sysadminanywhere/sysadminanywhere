@@ -39,7 +39,7 @@ public class AddRuleDialog extends Dialog {
         txtDescription.setValue(rule.getDescription());
 
         TextField txtCron = new TextField("Cron");
-        txtCron.setValue("0 * * * * *");
+        txtCron.setValue(rule.getDefaultCron());
 
         Checkbox chkActive = new Checkbox("Active");
         chkActive.setValue(true);

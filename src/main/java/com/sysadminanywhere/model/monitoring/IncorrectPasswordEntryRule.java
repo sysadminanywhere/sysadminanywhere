@@ -41,6 +41,11 @@ public class IncorrectPasswordEntryRule implements Rule {
     }
 
     @Override
+    public String getDefaultCron() {
+        return "0 * * * * *";
+    }
+
+    @Override
     public List<com.vaadin.flow.component.Component> getControls(Map<String, String> parameters) {
         return List.of();
     }

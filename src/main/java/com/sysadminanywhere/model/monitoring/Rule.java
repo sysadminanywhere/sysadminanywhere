@@ -12,6 +12,8 @@ public interface Rule {
     String getDescription();
     String execute(Map<String, String>parameters);
 
+    String getDefaultCron();
+
     List<Component> getControls(Map<String, String>parameters);
     Map<String, String> getParameters();
 

@@ -41,7 +41,13 @@ public class ScheduledRule implements Rule {
     public String execute(Map<String, String> parameters) {
         log.info("Executing ScheduledRule at {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
-        return "Executing ScheduledRule at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        return "";
+        //return "Executing ScheduledRule at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    }
+
+    @Override
+    public String getDefaultCron() {
+        return "0 * * * * *";
     }
 
     @Override
