@@ -1,7 +1,12 @@
 package com.sysadminanywhere.model.monitoring;
 
+import com.sysadminanywhere.service.EmailService;
 import com.vaadin.flow.component.textfield.TextField;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
@@ -16,7 +21,11 @@ import java.util.Map;
 @Slf4j
 public class PingRule implements Rule {
 
+    @Autowired
+    private JavaMailSender emailSender;
+
     TextField txtAddress = new TextField("Address");
+    TextField txtEmail = new TextField("E-mail");
 
     public PingRule() {
     }
@@ -40,14 +49,17 @@ public class PingRule implements Rule {
     public String execute(Map<String, String> parameters) {
         log.info("Executing PingRule at {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
-        if (!parameters.isEmpty() && parameters.containsKey("address")) {
+        if (!parameters.isEmpty() && parameters.containsKey("address") && parameters.containsKey("email")) {
             try {
                 String host = parameters.get("address");
+                String email = parameters.get("email");
                 InetAddress address = InetAddress.getByName(host);
                 boolean reachable = address.isReachable(1000);
 
-                if (!reachable)
+                if (!reachable) {
+                    sendEmail(email, "Host '" + host + "' is not reachable");
                     return "Host '" + host + "' is not reachable";
+                }
 
             } catch (Exception e) {
                 return "Error: " + e.getMessage();
@@ -55,6 +67,16 @@ public class PingRule implements Rule {
         }
 
         return "";
+    }
+
+    private void sendEmail(String to, String text) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("info@ria-media.net");
+        message.setTo(to);
+        message.setSubject("Alarm");
+        message.setText(text);
+
+        emailSender.send(message);
     }
 
     @Override
@@ -68,9 +90,11 @@ public class PingRule implements Rule {
 
         if (!parameters.isEmpty()) {
             if (parameters.containsKey("address")) txtAddress.setValue(parameters.get("address"));
+            if (parameters.containsKey("email")) txtEmail.setValue(parameters.get("email"));
         }
 
         components.add(txtAddress);
+        components.add(txtEmail);
 
         return components;
     }
@@ -80,6 +104,7 @@ public class PingRule implements Rule {
         Map<String, String> map = new HashMap<>();
 
         map.put("address", txtAddress.getValue());
+        map.put("email", txtEmail.getValue());
 
         return map;
     }

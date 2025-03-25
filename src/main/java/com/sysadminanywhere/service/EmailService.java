@@ -22,4 +22,8 @@ public class EmailService {
         emailSender.send(message);
     }
 
+    public void sendMessage(SimpleMailMessage message) {
+        emailSender.send(message);
+    }
+
 }
