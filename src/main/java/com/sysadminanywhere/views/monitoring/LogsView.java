@@ -10,6 +10,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
@@ -18,6 +19,8 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -100,7 +103,38 @@ public class LogsView extends Div implements BeforeEnterObserver, MenuControl {
             new UpdateRuleDialog(monitoringService, ruleEntity, this::refreshGrid).open();
         });
 
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete rule", event -> {
+            deleteDialog().open();
+        });
+
         return menuBar;
+    }
+
+    private ConfirmDialog deleteDialog() {
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Delete");
+        dialog.setText("Are you sure you want to permanently delete this rule with logs?");
+
+        dialog.setCancelable(true);
+
+        dialog.setConfirmText("Delete");
+        dialog.setConfirmButtonTheme("error primary");
+
+        dialog.addConfirmListener(item -> {
+            try {
+                Long ruleId = ruleEntity.getId();
+                logsService.deleteByRuleId(ruleId);
+                monitoringService.deleteRule(ruleId);
+
+                dialog.getUI().ifPresent(ui ->
+                        ui.getPage().getHistory().back());
+            } catch (Exception ex) {
+                Notification notification = Notification.show(ex.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+        });
+
+        return dialog;
     }
 
     @Override

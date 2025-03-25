@@ -5,6 +5,7 @@ import com.sysadminanywhere.repository.LogsRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,6 +39,11 @@ public class LogsService {
 
         LogEntity result = logsRepository.save(log);
         return result;
+    }
+
+    @Transactional
+    public void deleteByRuleId(Long ruleId) {
+        logsRepository.deleteByRuleId(ruleId);
     }
 
 }

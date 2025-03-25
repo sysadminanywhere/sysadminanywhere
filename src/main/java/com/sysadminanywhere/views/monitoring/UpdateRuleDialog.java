@@ -87,24 +87,6 @@ public class UpdateRuleDialog extends Dialog {
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button cancelButton = new Button("Cancel", e -> close());
 
-        Button deleteButton = new Button("Delete", e -> {
-            try {
-                monitoringService.deleteRule(rule.getId());
-
-                onSearch.run();
-
-                Notification notification = Notification.show("Rule deleted");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            }
-
-            close();
-        });
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
-
-        getFooter().add(deleteButton);
         getFooter().add(cancelButton);
         getFooter().add(saveButton);
 

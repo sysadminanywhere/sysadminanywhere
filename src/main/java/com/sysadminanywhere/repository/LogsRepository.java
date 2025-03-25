@@ -14,5 +14,6 @@ import java.time.LocalDateTime;
 public interface LogsRepository  extends JpaRepository<LogEntity, Long> {
 
     Page<LogEntity> findByRuleIdAndCreatedAtBetween(Long id, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+    void deleteByRuleId(Long ruleId);
 
 }
