@@ -23,6 +23,8 @@ import java.util.Map;
 @Slf4j
 public class PingRule implements Rule {
 
+    private boolean isOk = true;
+
     @Autowired
     private EmailService emailService;
 
@@ -59,8 +61,20 @@ public class PingRule implements Rule {
                 boolean reachable = address.isReachable(1000);
 
                 if (!reachable) {
-                    emailService.sendEmail(email, "Attention!", "<h1>Attention!</h1><p>Host '" + host + "' is not reachable</p>");
+                    if (isOk) {
+                        isOk = false;
+                        emailService.sendEmail(email,
+                                "Service Unavailable: " + host,
+                                "<h1>Attention!</h1><p>Host '" + host + "' is not reachable</p>");
+                    }
                     return "Host '" + host + "' is not reachable";
+                } else {
+                    if (!isOk) {
+                        isOk = true;
+                        emailService.sendEmail(email,
+                                "Service is Back Online: " + host,
+                                "<h1>Service online</h1><p>Host '" + host + "' is reachable now</p>");
+                    }
                 }
 
             } catch (Exception e) {
