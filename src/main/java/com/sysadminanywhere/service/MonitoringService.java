@@ -8,6 +8,7 @@ import com.sysadminanywhere.repository.RuleRepository;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -36,6 +37,9 @@ public class MonitoringService {
     private final Map<Long, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
 
     private final List<Rule> ruleImplementations;
+
+    @Autowired
+    private ApplicationContext context;
 
     @Autowired
     public MonitoringService(RuleService ruleService, LogsService logsService, List<Rule> ruleImplementations) {
@@ -103,13 +107,9 @@ public class MonitoringService {
         return this.ruleImplementations;
     }
 
-    public Rule createRuleInstance(String className) {
-        try {
-            Class<?> clazz = Class.forName("com.sysadminanywhere.model.monitoring." + className);
-            return (Rule) clazz.getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create rule instance for class: " + className, e);
-        }
+    public Rule createRuleInstance(String type) {
+        Rule rule = ruleImplementations.stream().filter(c -> c.getType().equalsIgnoreCase(type)).findFirst().orElseThrow();
+        return context.getBean(rule.getClass());
     }
 
     public Optional<RuleEntity> getRule(Long id) {

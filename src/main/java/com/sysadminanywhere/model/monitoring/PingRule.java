@@ -4,6 +4,7 @@ import com.sysadminanywhere.service.EmailService;
 import com.vaadin.flow.component.textfield.TextField;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -18,11 +19,12 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@Scope("prototype")
 @Slf4j
 public class PingRule implements Rule {
 
     @Autowired
-    private JavaMailSender emailSender;
+    private EmailService emailService;
 
     TextField txtAddress = new TextField("Address");
     TextField txtEmail = new TextField("E-mail");
@@ -57,7 +59,7 @@ public class PingRule implements Rule {
                 boolean reachable = address.isReachable(1000);
 
                 if (!reachable) {
-                    sendEmail(email, "Host '" + host + "' is not reachable");
+                    emailService.sendEmail(email, "Attention!", "<h1>Attention!</h1><p>Host '" + host + "' is not reachable</p>");
                     return "Host '" + host + "' is not reachable";
                 }
 
@@ -67,16 +69,6 @@ public class PingRule implements Rule {
         }
 
         return "";
-    }
-
-    private void sendEmail(String to, String text) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("info@ria-media.net");
-        message.setTo(to);
-        message.setSubject("Alarm");
-        message.setText(text);
-
-        emailSender.send(message);
     }
 
     @Override

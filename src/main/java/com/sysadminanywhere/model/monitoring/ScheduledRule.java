@@ -2,6 +2,7 @@ package com.sysadminanywhere.model.monitoring;
 
 import com.vaadin.flow.component.textfield.TextField;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@Scope("prototype")
 @Slf4j
 public class ScheduledRule implements Rule {
 
