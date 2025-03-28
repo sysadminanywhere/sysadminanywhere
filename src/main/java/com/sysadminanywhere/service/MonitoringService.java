@@ -38,14 +38,14 @@ public class MonitoringService {
 
     private final List<Rule> ruleImplementations;
 
-    @Autowired
-    private ApplicationContext context;
+    private final ApplicationContext context;
 
     @Autowired
-    public MonitoringService(RuleService ruleService, LogsService logsService, List<Rule> ruleImplementations) {
+    public MonitoringService(RuleService ruleService, LogsService logsService, List<Rule> ruleImplementations, ApplicationContext context) {
         this.ruleService = ruleService;
         this.logsService = logsService;
         this.ruleImplementations = ruleImplementations;
+        this.context = context;
 
         scheduler.initialize();
         List<RuleEntity> rules = ruleService.getAllRules();
@@ -56,7 +56,8 @@ public class MonitoringService {
 
     private void scheduleRule(RuleEntity ruleEntity) {
         if (ruleEntity.getCronExpression() != null && ruleEntity.isActive()) {
-            ScheduledFuture<?> future = scheduler.schedule(() -> executeRule(ruleEntity), new CronTrigger(ruleEntity.getCronExpression()));
+            Rule rule = createRuleInstance(ruleEntity.getType());
+            ScheduledFuture<?> future = scheduler.schedule(() -> executeRule(ruleEntity, rule), new CronTrigger(ruleEntity.getCronExpression()));
             scheduledTasks.put(ruleEntity.getId(), future);
         }
     }
@@ -69,9 +70,8 @@ public class MonitoringService {
     }
 
     @SneakyThrows
-    private void executeRule(RuleEntity ruleEntity) {
+    private void executeRule(RuleEntity ruleEntity, Rule rule) {
         ObjectMapper objectMapper = new ObjectMapper();
-        Rule rule = createRuleInstance(ruleEntity.getType());
         Map<String, String> parameters = objectMapper.readValue(ruleEntity.getParameters(), new TypeReference<Map<String, String>>() {
         });
 
@@ -80,7 +80,7 @@ public class MonitoringService {
             logsService.addToLog(ruleEntity.getId(), result);
         }
 
-        log.info("Executed rule: {} at {}", ruleEntity.getName(), LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        log.info("Executed rule: {} at {}", rule.getName(), LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     public Page<RuleEntity> getAllRules(Pageable pageable, Map<String, String> filters) {

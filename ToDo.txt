@@ -40,7 +40,7 @@ Inventory
 Monitoring
     Alerts
         - Rules for alerts
-            - Ping
+            + Ping
             - Password expiration notifier
             - Changed selected object
             - Incorrect password entry more than... for user?
