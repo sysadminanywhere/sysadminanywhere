@@ -6,27 +6,23 @@ import com.sysadminanywhere.service.WmiResolveService;
 import com.sysadminanywhere.service.WmiService;
 import com.vaadin.flow.component.textfield.TextField;
 import lombok.extern.slf4j.Slf4j;
-import org.sentrysoftware.wmi.exceptions.WmiComException;
-import org.sentrysoftware.wmi.exceptions.WqlQuerySyntaxException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 @Component
 @Scope("prototype")
 @Slf4j
 public class IncorrectPasswordEntryRule implements Rule {
-
-    private LocalDateTime date = LocalDateTime.now();
 
     @Value("${ldap.host.username:}")
     String userName;
@@ -39,6 +35,7 @@ public class IncorrectPasswordEntryRule implements Rule {
 
     private WmiService wmiService;
 
+    TextField txtHost = new TextField("Host");
     TextField txtUser = new TextField("User");
     TextField txtEmail = new TextField("E-mail");
 
@@ -64,9 +61,10 @@ public class IncorrectPasswordEntryRule implements Rule {
     public String execute(Map<String, String> parameters) {
         log.info("Executing IncorrectPasswordEntryRule at {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
-        if (!parameters.isEmpty() && parameters.containsKey("address") && parameters.containsKey("email")) {
+        if (!parameters.isEmpty() && parameters.containsKey("user") && parameters.containsKey("email") && parameters.containsKey("host")) {
             String user = parameters.get("user");
             String email = parameters.get("email");
+            String host = parameters.get("host");
 
             try {
 
@@ -75,16 +73,13 @@ public class IncorrectPasswordEntryRule implements Rule {
 
                 WmiResolveService<EventEntity> wmiResolveService = new WmiResolveService<>(EventEntity.class);
 
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss.SSSSSSXXX");
+                LocalDate date = LocalDate.now();
 
-                LocalDateTime dateTime = LocalDateTime.now();
+                String startDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "000000.000000000";
+                String endDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "235959.000000000";
 
-                String startDate = date.format(formatter);
-                String endDate = dateTime.format(formatter);
-
-                List<EventEntity> result = wmiResolveService.GetValues(wmiService.execute("", "SELECT * FROM Win32_NTLogEvent WHERE Logfile = 'Security' AND EventCode = '4625' AND Message LIKE '" + user + "' Where TimeGenerated >= '" + startDate + "' AND TimeGenerated <= '" + endDate + "'"));
-
-                date = dateTime;
+                List<EventEntity> result = wmiResolveService.GetValues(wmiService.execute(host,
+                        "SELECT * FROM Win32_NTLogEvent WHERE Logfile = 'Security' AND EventCode = '4625' AND TimeGenerated >= '" + startDate + "' AND TimeGenerated <= '" + endDate + "'"));
 
                 if (!result.isEmpty()) {
                     EventEntity entity = result.get(0);
@@ -118,8 +113,10 @@ public class IncorrectPasswordEntryRule implements Rule {
         if (!parameters.isEmpty()) {
             if (parameters.containsKey("user")) txtUser.setValue(parameters.get("user"));
             if (parameters.containsKey("email")) txtEmail.setValue(parameters.get("email"));
+            if (parameters.containsKey("host")) txtHost.setValue(parameters.get("host"));
         }
 
+        components.add(txtHost);
         components.add(txtUser);
         components.add(txtEmail);
 
@@ -132,6 +129,7 @@ public class IncorrectPasswordEntryRule implements Rule {
 
         map.put("user", txtUser.getValue());
         map.put("email", txtEmail.getValue());
+        map.put("host", txtHost.getValue());
 
         return map;
     }

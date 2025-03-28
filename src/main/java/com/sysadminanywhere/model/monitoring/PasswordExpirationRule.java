@@ -116,7 +116,8 @@ public class PasswordExpirationRule implements Rule {
 
             ldapService = null;
 
-            return "Sent " + n + " password expiration notifications";
+            if (n > 0)
+                return "Sent " + n + " password expiration notifications";
         }
 
         return "";
