@@ -12,6 +12,7 @@ import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +30,12 @@ import java.util.Map;
 @Scope("prototype")
 @Slf4j
 public class PasswordExpirationRule implements Rule {
+
+    @Value("${ldap.host.username:}")
+    String userName;
+
+    @Value("${ldap.host.password:}")
+    String password;
 
     @Autowired
     private LdapConnectionConfig ldapConnectionConfig;
@@ -75,6 +82,13 @@ public class PasswordExpirationRule implements Rule {
             LdapConnection connection = new LdapNetworkConnection(ldapConnectionConfig);
             ldapService = new LdapService(connection, directorySetting);
 
+            Boolean result = ldapService.login(userName, password);
+
+            if (!result) {
+                return "Unknown user: " + userName;
+            }
+
+
             double doubleValue = Double.parseDouble(parameters.get("days"));
             Long warningDays = (long) doubleValue;
             String subject = parameters.get("subject");
@@ -83,17 +97,17 @@ public class PasswordExpirationRule implements Rule {
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime warningDate = now.plusDays(warningDays);
 
-            List<Entry> list = ldapService.search("(msDS-UserPasswordExpiryTimeComputed=*)");
+            List<Entry> list = ldapService.search("(&(objectClass=user)(objectCategory=person))");
 
             long n = 0;
 
             for (Entry entry : list) {
-                if (entry.containsAttribute("msDS-UserPasswordExpiryTimeComputed")) {
-                    long expiryFileTime = Long.parseLong(entry.get("msDS-UserPasswordExpiryTimeComputed").get().getString());
+                if (entry.containsAttribute("accountExpires")) {
+                    long expiryFileTime = Long.parseLong(entry.get("accountExpires").get().getString());
                     LocalDateTime expiryDate = fileTimeToLocalDateTime(expiryFileTime);
 
                     if (expiryDate.isBefore(warningDate)) {
-                        String email = entry.get("mail").get().getString();
+                        String email = entry.get("userPrincipalName").get().getString();
                         sendEmail(email, subject, message, expiryDate);
                         n++;
                     }
