@@ -44,8 +44,23 @@ public class ScheduledRule implements Rule {
         log.info("Executing ScheduledRule at {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
         return "";
-        //return "Executing ScheduledRule at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
+
+        /*
+
+     ┌───────────── second (0-59)
+     │ ┌───────────── minute (0 - 59)
+     │ │ ┌───────────── hour (0 - 23)
+     │ │ │ ┌───────────── day of the month (1 - 31)
+     │ │ │ │ ┌───────────── month (1 - 12) (or JAN-DEC)
+     │ │ │ │ │ ┌───────────── day of the week (0 - 7)
+     │ │ │ │ │ │          (0 or 7 is Sunday, or MON-SUN)
+     │ │ │ │ │ │
+     * * * * * *
+
+    "0 0 12 * * *" every day at 12:00
+
+    */
 
     @Override
     public String getDefaultCron() {
