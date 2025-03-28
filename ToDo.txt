@@ -43,7 +43,7 @@ Monitoring
             + Ping
             + Password expiration notifier
             - Changed selected object
-            - Incorrect password entry more than... for user?
+            + Incorrect password entry more than... for user?
 
 Reports
     Report
