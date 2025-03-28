@@ -13,6 +13,9 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
 
 import java.util.HashMap;
@@ -27,7 +30,7 @@ public class AddRuleDialog extends Dialog {
         this.monitoringService = monitoringService;
 
         setHeaderTitle("New rule");
-        setMaxWidth("800px");
+        setWidth("800px");
 
         FormLayout formLayout = new FormLayout();
 
@@ -46,11 +49,17 @@ public class AddRuleDialog extends Dialog {
 
         formLayout.add(txtName, txtDescription, txtCron, chkActive);
 
+        FormLayout formParameters = new FormLayout();
+
         for(Component item : rule.getControls(new HashMap<>())) {
-            formLayout.add(item);
+            formParameters.add(item);
         }
 
-        add(formLayout);
+        TabSheet tabSheet = new TabSheet();
+        tabSheet.add("Rule", formLayout);
+        tabSheet.add("Parameters", formParameters);
+
+        add(tabSheet);
 
         Button saveButton = new Button("Save", e -> {
             try {
