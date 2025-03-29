@@ -65,9 +65,33 @@ public class WmiResolveService<T> {
                 if (item.containsKey(property.name())) {
                     var value = item.get(property.name());
                     if ((value != null)) {
-                        field.set(result, item.get(property.name()).toString());
+
+                        String fieldType = field.getType().getName();
+
+                        switch (fieldType) {
+                            case "java.lang.String":
+                                field.set(result, item.get(property.name()).toString());
+                                break;
+                            case "int":
+                                field.set(result, Integer.parseInt(item.get(property.name()).toString()));
+                                break;
+                            case "long":
+                                field.set(result, Long.parseLong(item.get(property.name()).toString()));
+                                break;
+                            case "[Ljava.lang.String;":
+                                Object[] objects = (Object[]) item.get(property.name());
+                                String[] list = new String[objects.length];
+
+                                for (int i = 0; i < objects.length; i++) {
+                                    list[i] = objects[i].toString();
+                                }
+
+                                field.set(result, list);
+                                break;
+                        }
                     }
                 }
+
             }
         }
 

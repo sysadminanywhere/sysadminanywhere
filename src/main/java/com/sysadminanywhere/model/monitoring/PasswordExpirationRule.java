@@ -181,7 +181,7 @@ public class PasswordExpirationRule implements Rule {
         return map;
     }
 
-    private static LocalDateTime fileTimeToLocalDateTime(long fileTime) {
+    private LocalDateTime fileTimeToLocalDateTime(long fileTime) {
         long unixTime = (fileTime - 116444736000000000L) / 10000000L;
         return Instant.ofEpochSecond(unixTime).atZone(ZoneOffset.UTC).toLocalDateTime();
     }

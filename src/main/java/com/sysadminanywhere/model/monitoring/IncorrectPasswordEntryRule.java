@@ -14,10 +14,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Scope("prototype")
@@ -29,6 +26,8 @@ public class IncorrectPasswordEntryRule implements Rule {
 
     @Value("${ldap.host.password:}")
     String password;
+
+    Long lastRecordNumber = 0L;
 
     @Autowired
     private EmailService emailService;
@@ -82,11 +81,21 @@ public class IncorrectPasswordEntryRule implements Rule {
                         "SELECT * FROM Win32_NTLogEvent WHERE Logfile = 'Security' AND EventCode = '4625' AND TimeGenerated >= '" + startDate + "' AND TimeGenerated <= '" + endDate + "'"));
 
                 if (!result.isEmpty()) {
-                    EventEntity entity = result.get(0);
+                    result.sort(Comparator.comparing(EventEntity::getRecordNumber).reversed());
+                    for (EventEntity event : result) {
+                        if (event.getRecordNumber() > lastRecordNumber) {
 
-                    emailService.sendEmail(email,
-                            "Failed Login Attempt",
-                            "<h1>Incorrect password entry!</h1><p>User " + user + " entered an incorrect password.</p><p>Details: <br>" + entity.getMessage() + "</p>");
+                            for (String value : event.getInsertionStrings()) {
+                                if (value.equalsIgnoreCase(user)){
+                                    emailService.sendEmail(email,
+                                            "Failed Login Attempt",
+                                            "<h1>Incorrect password entry!</h1><p>User " + user + " entered an incorrect password.</p><p>Details: <br><pre>" + event.getMessage() + "</pre></p>");
+                                }
+                            }
+                        }
+
+                    }
+                    lastRecordNumber = result.get(0).getRecordNumber();
                 }
 
             } catch (Exception e) {
@@ -94,8 +103,6 @@ public class IncorrectPasswordEntryRule implements Rule {
             } finally {
                 wmiService = null;
             }
-
-            return "";
         }
 
         return "";

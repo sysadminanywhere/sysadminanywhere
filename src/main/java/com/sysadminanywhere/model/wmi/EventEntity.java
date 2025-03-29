@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class EventEntity {
 
     @WMIAttribute(name = "RecordNumber")
-    String recordNumber;
+    long recordNumber;
 
     @WMIAttribute(name = "EventType")
     String eventType;
@@ -38,5 +38,8 @@ public class EventEntity {
 
     @WMIAttribute(name = "Logfile")
     String logfile;
+
+    @WMIAttribute(name = "InsertionStrings")
+    String[] insertionStrings;
 
 }
