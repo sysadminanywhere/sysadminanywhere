@@ -6,6 +6,7 @@ import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.ldap.client.api.LdapConnection;
@@ -29,6 +30,7 @@ import java.util.Map;
 @Component
 @Scope("prototype")
 @Slf4j
+@NoArgsConstructor
 public class PasswordExpirationRule implements Rule {
 
     @Value("${ldap.host.username:}")
@@ -51,9 +53,6 @@ public class PasswordExpirationRule implements Rule {
     NumberField numberField = new NumberField("Start notifying for");
     TextField txtSubject = new TextField("Subject");
     TextArea txtMessage = new TextArea("Message");
-
-    public PasswordExpirationRule() {
-    }
 
     @Override
     public String getName() {

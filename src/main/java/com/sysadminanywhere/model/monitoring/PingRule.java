@@ -2,6 +2,7 @@ package com.sysadminanywhere.model.monitoring;
 
 import com.sysadminanywhere.service.EmailService;
 import com.vaadin.flow.component.textfield.TextField;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -21,6 +22,7 @@ import java.util.Map;
 @Component
 @Scope("prototype")
 @Slf4j
+@NoArgsConstructor
 public class PingRule implements Rule {
 
     private boolean isOk = true;
@@ -30,9 +32,6 @@ public class PingRule implements Rule {
 
     TextField txtAddress = new TextField("Address");
     TextField txtEmail = new TextField("E-mail");
-
-    public PingRule() {
-    }
 
     @Override
     public String getName() {

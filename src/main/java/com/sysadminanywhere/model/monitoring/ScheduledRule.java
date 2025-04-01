@@ -1,6 +1,7 @@
 package com.sysadminanywhere.model.monitoring;
 
 import com.vaadin.flow.component.textfield.TextField;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -15,14 +16,12 @@ import java.util.Map;
 @Component
 @Scope("prototype")
 @Slf4j
+@NoArgsConstructor
 public class ScheduledRule implements Rule {
 
     TextField txt1 = new TextField("Test 1");
     TextField txt2 = new TextField("Test 2");
     TextField txt3 = new TextField("Test 3");
-
-    public ScheduledRule() {
-    }
 
     @Override
     public String getName() {

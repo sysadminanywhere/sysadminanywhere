@@ -5,6 +5,7 @@ import com.sysadminanywhere.service.EmailService;
 import com.sysadminanywhere.service.WmiResolveService;
 import com.sysadminanywhere.service.WmiService;
 import com.vaadin.flow.component.textfield.TextField;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,7 @@ import java.util.*;
 @Component
 @Scope("prototype")
 @Slf4j
+@NoArgsConstructor
 public class IncorrectPasswordEntryRule implements Rule {
 
     @Value("${ldap.host.username:}")
@@ -37,9 +39,6 @@ public class IncorrectPasswordEntryRule implements Rule {
     TextField txtHost = new TextField("Host");
     TextField txtUser = new TextField("User");
     TextField txtEmail = new TextField("E-mail");
-
-    public IncorrectPasswordEntryRule() {
-    }
 
     @Override
     public String getName() {

@@ -1,5 +1,6 @@
 package com.sysadminanywhere.model.monitoring;
 
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -12,12 +13,10 @@ import java.util.Map;
 @Component
 @Scope("prototype")
 @Slf4j
+@NoArgsConstructor
 public class ChangedObjectRule implements Rule {
 
     Map<String, String> parameters;
-
-    public ChangedObjectRule() {
-    }
 
     @Override
     public String getName() {
