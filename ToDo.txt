@@ -6,7 +6,7 @@ Domain
     + Dashboard
     + Domain
         + Controllers
-            - Go to controller
+            + Go to controller
         ? More info
     + Audit
 

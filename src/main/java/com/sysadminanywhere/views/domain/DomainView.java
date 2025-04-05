@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.domain;
 
 import com.sysadminanywhere.control.Table;
 import com.sysadminanywhere.service.LdapService;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -42,7 +43,8 @@ public class DomainView extends VerticalLayout {
 
         Table domainControllers = new Table("Domain controllers");
         for (Entry entry : controllers) {
-            domainControllers.add(entry.get("name").getString(), entry.getDn().getName());
+            String href = "management/computers/" + entry.get("name").getString() + "/details";
+            domainControllers.add(entry.get("name").getString(), new Anchor(href, entry.getDn().getName()));
         }
 
         add(lblDomain, lblDistinguishedName, domainControllers);
