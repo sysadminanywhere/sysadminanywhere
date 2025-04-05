@@ -39,7 +39,7 @@ Inventory
 
 Monitoring
     Alerts
-        - Cron UI
+        + Cron UI
         + Rules for alerts
             + Ping
             + Password expiration notifier
