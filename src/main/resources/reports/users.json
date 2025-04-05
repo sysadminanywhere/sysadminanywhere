@@ -58,4 +58,10 @@
   "description" : "Users with last logon dates",
   "filter" : "",
   "columns" : ["cn","description","lastLogon"]
+}, {
+  "id" : "didntchangepassword",
+  "name" : "Users didn't change password",
+  "description" : "Users didn't change password last 180 days",
+  "filter" : "(&(objectCategory=person)(objectClass=user)(pwdLastSet<={days:180}))",
+  "columns" : ["cn","description"]
 } ]

@@ -20,10 +20,15 @@ import org.vaadin.reports.PrintPreviewReport;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @PageTitle("Report")
 @Route(value = "reports/report")
@@ -115,6 +120,27 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
 
         report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
 
+        if (reportItem.getFilter().contains("{")) {
+            Pattern pattern = Pattern.compile("\\{([^:}]+):([^}]+)\\}");
+            Matcher matcher = pattern.matcher(reportItem.getFilter());
+
+            StringBuffer result = new StringBuffer();
+
+            while (matcher.find()) {
+                String key = matcher.group(1).trim();
+                String value = matcher.group(2).trim();
+
+                switch (key) {
+                    case "days":
+                        String replacement = getFileTime(Integer.parseInt(value)).toString();
+                        matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+                        break;
+                }
+            }
+            matcher.appendTail(result);
+            reportItem.setFilter(result.toString());
+        }
+
         SerializableSupplier<List<? extends UserEntry>> itemsSupplier = () -> usersService.getAll(reportItem.getFilter());
         report.setItems(itemsSupplier.get());
 
@@ -142,6 +168,23 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
                 .addAutoText(AutoText.AUTOTEXT_PAGE_X, AutoText.POSITION_FOOTER, AutoText.ALIGNMENT_RIGHT);
 
         return report;
+    }
+
+    private Long getFileTime(int days) {
+        ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+        ZonedDateTime targetDate = now.minusDays(180);
+
+        // 2. Windows FileTime начинается с 1601-01-01
+        ZonedDateTime windowsEpoch = ZonedDateTime.of(1601, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+
+        // 3. Вычисляем разницу в 100-наносекундных интервалах
+        long secondsBetween = ChronoUnit.SECONDS.between(windowsEpoch, targetDate);
+        long nanosPart = ChronoUnit.NANOS.between(windowsEpoch.plusSeconds(secondsBetween), targetDate);
+
+        // 4. Конвертируем в 100-нс интервалы
+        long fileTime = secondsBetween * 10_000_000 + nanosPart / 100;
+
+        return fileTime;
     }
 
 }
