@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.monitoring;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sysadminanywhere.control.CronEditor;
 import com.sysadminanywhere.entity.RuleEntity;
 import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.model.monitoring.Rule;
@@ -44,14 +45,16 @@ public class UpdateRuleDialog extends Dialog {
         txtDescription.setValue(rule.getDescription());
         formLayout.setColspan(txtDescription, 2);
 
-        TextField txtCron = new TextField("Cron");
-        txtCron.setValue(rule.getCronExpression());
-        formLayout.setColspan(txtDescription, 2);
+        CronEditor cronEditor = new CronEditor("Cron");
+        cronEditor.getStyle().setMarginTop("10px");
+        cronEditor.getStyle().setMarginBottom("10px");
+        cronEditor.setValue(rule.getCronExpression());
+        formLayout.setColspan(cronEditor, 2);
 
         Checkbox chkActive = new Checkbox("Active");
         chkActive.setValue(rule.isActive());
 
-        formLayout.add(txtName, txtDescription, txtCron, chkActive);
+        formLayout.add(txtName, txtDescription, cronEditor, chkActive);
 
         Rule ruleInstance = monitoringService.createRuleInstance(rule.getType());
 
@@ -76,7 +79,7 @@ public class UpdateRuleDialog extends Dialog {
                 rule.setParameters(objectMapper.writeValueAsString(ruleInstance.getParameters()));
 
                 rule.setActive(chkActive.getValue());
-                rule.setCronExpression(txtCron.getValue());
+                rule.setCronExpression(cronEditor.getValue());
                 monitoringService.updateRule(rule);
 
                 onSearch.run();

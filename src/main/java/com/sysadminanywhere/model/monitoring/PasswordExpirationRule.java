@@ -66,7 +66,7 @@ public class PasswordExpirationRule implements Rule {
 
     @Override
     public String getDescription() {
-        return "Password expiration notifier";
+        return "Notifies a user that their password will expire on the specified date and that they need to change it.";
     }
 
     @Override

@@ -1,10 +1,7 @@
 package com.sysadminanywhere.views.domain;
 
 import com.sysadminanywhere.model.AuditItem;
-import com.sysadminanywhere.model.wmi.SoftwareEntity;
-import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.service.LdapService;
-import com.sysadminanywhere.views.management.computers.ComputerSoftwareView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
@@ -23,7 +20,6 @@ import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;

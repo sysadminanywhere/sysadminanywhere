@@ -45,7 +45,7 @@ public class PingRule implements Rule {
 
     @Override
     public String getDescription() {
-        return "Ping";
+        return "Checks the availability of the resource and sends an email notification if it becomes unavailable.";
     }
 
     @Override

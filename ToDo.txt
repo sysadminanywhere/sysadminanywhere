@@ -39,12 +39,13 @@ Inventory
 
 Monitoring
     Alerts
-        - Rules for alerts
+        - Cron UI
+        + Rules for alerts
             + Ping
             + Password expiration notifier
-            - Changed selected object
+            + Changed selected object
             + Incorrect password entry for user
-            - Descriptions for rules
+            + Descriptions for rules
 
 Reports
     Report

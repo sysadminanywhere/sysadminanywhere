@@ -16,8 +16,6 @@ import org.apache.directory.api.ldap.model.message.*;
 import org.apache.directory.api.ldap.model.message.controls.*;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.ldap.client.api.LdapConnection;
-import org.apache.directory.ldap.client.api.LdapConnectionConfig;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -287,7 +285,7 @@ public class LdapService {
 
     @SneakyThrows
     public Page<AuditItem> getAudit(Pageable pageable, Map<String, Object> filters) {
-        List<AuditItem> list = getAudit(filters);
+        List<AuditItem> list = getAuditList(filters);
 
         if (list.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
@@ -305,7 +303,7 @@ public class LdapService {
 
     @SneakyThrows
     @Cacheable(value = "ldap_audit", key = "{#filters}")
-    private List<AuditItem> getAudit(Map<String, Object> filters) {
+    public List<AuditItem> getAuditList(Map<String, Object> filters) {
 
         LocalDate startDateFilter = filters.get("startDate") != null ? (LocalDate) filters.get("startDate") : LocalDate.now();
         LocalDate endDateFilter = filters.get("endDate") != null ? (LocalDate) filters.get("endDate") : LocalDate.now();

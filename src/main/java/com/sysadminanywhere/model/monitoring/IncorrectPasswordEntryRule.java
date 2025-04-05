@@ -37,7 +37,7 @@ public class IncorrectPasswordEntryRule implements Rule {
     private WmiService wmiService;
 
     TextField txtHost = new TextField("Host");
-    TextField txtUser = new TextField("User");
+    TextField txtUser = new TextField("CN");
     TextField txtEmail = new TextField("E-mail");
 
     @Override
@@ -52,7 +52,7 @@ public class IncorrectPasswordEntryRule implements Rule {
 
     @Override
     public String getDescription() {
-        return "Incorrect password entry";
+        return "Notifies that the specified user entered an incorrect password. Relevant for system passwords.";
     }
 
     @Override

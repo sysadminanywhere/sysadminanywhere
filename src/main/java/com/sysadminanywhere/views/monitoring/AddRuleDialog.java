@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.monitoring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sysadminanywhere.control.CronEditor;
 import com.sysadminanywhere.entity.RuleEntity;
 import com.sysadminanywhere.model.monitoring.Rule;
 import com.sysadminanywhere.service.MonitoringService;
@@ -41,13 +42,16 @@ public class AddRuleDialog extends Dialog {
         TextField txtDescription = new TextField("Description");
         txtDescription.setValue(rule.getDescription());
 
-        TextField txtCron = new TextField("Cron");
-        txtCron.setValue(rule.getDefaultCron());
+        CronEditor cronEditor = new CronEditor("Cron");
+        cronEditor.getStyle().setMarginTop("10px");
+        cronEditor.getStyle().setMarginBottom("10px");
+        cronEditor.setValue(rule.getDefaultCron());
+        formLayout.setColspan(cronEditor, 2);
 
         Checkbox chkActive = new Checkbox("Active");
         chkActive.setValue(true);
 
-        formLayout.add(txtName, txtDescription, txtCron, chkActive);
+        formLayout.add(txtName, txtDescription, cronEditor, chkActive);
 
         FormLayout formParameters = new FormLayout();
 
@@ -72,7 +76,7 @@ public class AddRuleDialog extends Dialog {
                 ruleEntity.setParameters(objectMapper.writeValueAsString(rule.getParameters()));
 
                 ruleEntity.setActive(chkActive.getValue());
-                ruleEntity.setCronExpression(txtCron.getValue());
+                ruleEntity.setCronExpression(cronEditor.getValue());
                 monitoringService.addRule(ruleEntity);
 
                 onSearch.run();
