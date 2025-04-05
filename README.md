@@ -44,6 +44,8 @@ This software is distributed under the terms of the MIT License (MIT).
 
 - LDAP_USERNAME=<username>
 - LDAP_PASSWORD=<password>
-- SCAN.CRON=0 0 * * * *
+- 
+- INVENTORY_ENABLED=true
+- INVENTORY_SCAN_CRON=0 0 * * * *
 ```
 Use the "username" and "password' of a user who has rights to read from the Active Directory and from the WMI service on domain computers.

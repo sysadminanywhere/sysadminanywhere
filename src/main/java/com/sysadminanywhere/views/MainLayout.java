@@ -19,7 +19,7 @@ import com.sysadminanywhere.views.management.contacts.ContactsView;
 import com.sysadminanywhere.views.management.groups.GroupsView;
 import com.sysadminanywhere.views.management.printers.PrintersView;
 import com.sysadminanywhere.views.management.users.UsersView;
-import com.sysadminanywhere.views.monitoring.RulesView;
+import com.sysadminanywhere.views.monitoring.NotificationsView;
 import com.sysadminanywhere.views.reports.ComputerReportsView;
 import com.sysadminanywhere.views.reports.GroupReportsView;
 import com.sysadminanywhere.views.reports.UserReportsView;
@@ -115,7 +115,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         VerticalLayout topMenu = new VerticalLayout(createSelectedMainButtonItem(currentTitle, DashboardView.class, "/icons/dashboard.svg"),
                 createMainButtonItem("Management", UsersView.class, "/icons/management.svg"),
                 createMainButtonItem("Inventory", InventorySoftwareView.class, "/icons/inventory.svg"),
-                createMainButtonItem("Monitoring", RulesView.class, "/icons/monitoring.svg"),
+                createMainButtonItem("Monitoring", NotificationsView.class, "/icons/monitoring.svg"),
                 createMainButtonItem("Reports", UserReportsView.class, "/icons/reports.svg"));
         topMenu.setMargin(false);
 
@@ -143,7 +143,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
         inventorySubNavs.addItem(createSideNavItem("Software inventory", InventorySoftwareView.class));
 
-        monitoringSubNavs.addItem(createSideNavItem("Rules", RulesView.class));
+        monitoringSubNavs.addItem(createSideNavItem("Notifications", NotificationsView.class));
 
         reportsSubNavs.addItem(createSideNavItem("Users reports", UserReportsView.class),
                 createSideNavItem("Computer Reports", ComputerReportsView.class),

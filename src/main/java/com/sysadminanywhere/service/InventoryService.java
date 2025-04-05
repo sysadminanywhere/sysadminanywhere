@@ -41,6 +41,9 @@ public class InventoryService {
     @Value("${ldap.host.password:}")
     String password;
 
+    @Value("${inventory.enabled:false}")
+    boolean isEnabled;
+
     ResolveService<ComputerEntry> resolveService = new ResolveService<>(ComputerEntry.class);
 
     private final LdapConnectionConfig ldapConnectionConfig;
@@ -78,8 +81,11 @@ public class InventoryService {
     */
 
     @Transactional
-    @Scheduled(cron = "${cron.expression}")
+    @Scheduled(cron = "${inventory.cron.expression}")
     public void scan() {
+
+        if(!isEnabled)
+            return;
 
         log.info("Scan started");
 

@@ -28,24 +28,24 @@ import org.springframework.data.domain.PageRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-@PageTitle("Rules")
-@Route(value = "monitoring/rules")
+@PageTitle("Notifications")
+@Route(value = "monitoring/notifications")
 @PermitAll
 @Uses(Icon.class)
-public class RulesView extends Div implements MenuControl {
+public class NotificationsView extends Div implements MenuControl {
 
     private Grid<RuleEntity> grid;
 
-    private RulesView.Filters filters;
+    private NotificationsView.Filters filters;
     private final MonitoringService monitoringService;
 
-    public RulesView(MonitoringService monitoringService) {
+    public NotificationsView(MonitoringService monitoringService) {
         this.monitoringService = monitoringService;
 
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new RulesView.Filters(() -> refreshGrid());
+        filters = new NotificationsView.Filters(() -> refreshGrid());
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);

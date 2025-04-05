@@ -43,7 +43,8 @@ Monitoring
             + Ping
             + Password expiration notifier
             - Changed selected object
-            + Incorrect password entry for user?
+            + Incorrect password entry for user
+            - Descriptions for rules
 
 Reports
     Report
@@ -51,3 +52,4 @@ Reports
             - Select computer
             - Select user
         - Password expiration
+        - Users didn't change password last 180 days
