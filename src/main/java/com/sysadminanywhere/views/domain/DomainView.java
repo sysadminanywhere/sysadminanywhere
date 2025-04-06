@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.domain;
 
 import com.sysadminanywhere.control.Table;
+import com.sysadminanywhere.model.FunctionalLevel;
 import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
@@ -10,12 +11,19 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.SneakyThrows;
+import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.api.ldap.model.name.Dn;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @PageTitle("Domain")
 @Route(value = "domain/info")
@@ -47,7 +55,32 @@ public class DomainView extends VerticalLayout {
             domainControllers.add(entry.get("name").getString(), new Anchor(href, entry.getDn().getName()));
         }
 
-        add(lblDomain, lblDistinguishedName, domainControllers);
+        Entry domainEntry = ldapService.getDomainEntry();
+
+        String ldapTime = domainEntry.get("currentTime").get().getString();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss.SX").withZone(ZoneId.of("UTC"));
+        ZonedDateTime dateTime = ZonedDateTime.parse(ldapTime, formatter);
+
+        Table domainProperties = new Table("Properties");
+        domainProperties.add("Forest functionality", FunctionalLevel.fromValue(domainEntry.get("forestFunctionality").get().getString()));
+        domainProperties.add("Supported SASL mechanisms", getAttributeAsCommaSeparated(domainEntry,"supportedSASLMechanisms"));
+        domainProperties.add("Supported LDAP version", getAttributeAsCommaSeparated(domainEntry, "supportedLDAPVersion"));
+        domainProperties.add("Domain functionality", FunctionalLevel.fromValue(domainEntry.get("domainFunctionality").get().getString()));
+        domainProperties.add("Domain controller functionality", FunctionalLevel.fromValue((domainEntry.get("domainControllerFunctionality").get().getString())));
+        domainProperties.add("Current time", dateTime.toString());
+        domainProperties.add("Max password age", String.valueOf(ldapService.getMaxPwdAgeDays()) + " days");
+
+        add(lblDomain, lblDistinguishedName, domainControllers, domainProperties);
+    }
+
+    private String getAttributeAsCommaSeparated(Entry entry, String attributeName) {
+        if (!entry.containsAttribute(attributeName)) return "";
+
+        Attribute attr = entry.get(attributeName);
+
+        return StreamSupport.stream(attr.spliterator(), false)
+                .map(Value::getString)
+                .collect(Collectors.joining(", "));
     }
 
 }

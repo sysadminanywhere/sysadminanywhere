@@ -73,7 +73,26 @@ public class LdapService {
 
     @SneakyThrows
     public Entry getDomainEntry() {
-        return connection.lookup(defaultNamingContext);
+        //return connection.lookup(defaultNamingContext);
+        return connection.getRootDse();
+    }
+
+    @Cacheable(value = "maxPwdAge")
+    public long getMaxPwdAge() {
+        List<Entry> list = search("(objectclass=*)", SearchScope.ONELEVEL);
+        Optional<Entry> entry = list.stream().filter(c -> c.get("cn").get().getString().equalsIgnoreCase("Builtin")).findFirst();
+        if (entry.isPresent()) {
+            long result = Long.parseLong(entry.get().get("maxPwdAge").get().getString());
+            return result;
+        }
+        return 0;
+    }
+
+    public long getMaxPwdAgeDays() {
+        long maxPwdAgeIntervals = getMaxPwdAge();
+        long maxPwdAgeSeconds = Math.abs(maxPwdAgeIntervals) / 10_000_000L;
+        long maxPwdAgeDays = maxPwdAgeSeconds / (60 * 60 * 24);
+        return maxPwdAgeDays;
     }
 
     @SneakyThrows

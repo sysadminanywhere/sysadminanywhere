@@ -130,9 +130,25 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
                 String key = matcher.group(1).trim();
                 String value = matcher.group(2).trim();
 
+                String replacement;
+
                 switch (key) {
                     case "days":
-                        String replacement = getFileTime(Integer.parseInt(value)).toString();
+                        replacement = getFileTime(Integer.parseInt(value)).toString();
+                        matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+                        break;
+                    case "maxPwdAgeDays":
+                        long maxPwdAgeDays = usersService.getLdapService().getMaxPwdAgeDays();
+                        long thresholdDays = maxPwdAgeDays - Integer.parseInt(value);
+
+                        ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+                        ZonedDateTime cutoffDate = now.minusDays(thresholdDays);
+
+                        ZonedDateTime windowsEpoch = ZonedDateTime.of(1601, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+                        long seconds = ChronoUnit.SECONDS.between(windowsEpoch, cutoffDate);
+                        Long pwdLastSetCutoff = seconds * 10_000_000L;
+
+                        replacement = pwdLastSetCutoff.toString();
                         matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
                         break;
                 }

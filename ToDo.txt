@@ -7,7 +7,7 @@ Domain
     + Domain
         + Controllers
             + Go to controller
-        ? More info
+        + More info
     + Audit
 
 Management
@@ -27,7 +27,6 @@ Management
 
     Groups
         + Member of
-        ? Members
 
 Inventory
     Software
@@ -52,5 +51,5 @@ Reports
         - New reports:
             - Select computer
             - Select user
-        - Password expiration
+        + Password expiration less than 7 days
         + Users didn't change password last 180 days

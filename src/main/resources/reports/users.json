@@ -62,6 +62,12 @@
   "id" : "didntchangepassword",
   "name" : "Users didn't change password",
   "description" : "Users didn't change password last 180 days",
-  "filter" : "(&(objectCategory=person)(objectClass=user)(pwdLastSet<={days:180}))",
+  "filter" : "(&(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=65536)(pwdLastSet<={days:180}))",
+  "columns" : ["cn","description"]
+}, {
+  "id" : "passwordexpiration",
+  "name" : "Password expiration",
+  "description" : "Password expiration less than 7 days",
+  "filter" : "(&(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=65536)(pwdLastSet<={maxPwdAgeDays:7}))",
   "columns" : ["cn","description"]
 } ]
