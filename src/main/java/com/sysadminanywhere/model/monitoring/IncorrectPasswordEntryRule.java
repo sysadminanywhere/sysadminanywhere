@@ -76,7 +76,7 @@ public class IncorrectPasswordEntryRule implements Rule {
                 String startDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "000000.000000000";
                 String endDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "235959.000000000";
 
-                List<EventEntity> result = wmiResolveService.GetValues(wmiService.execute(host,
+                List<EventEntity> result = wmiResolveService.getValues(wmiService.execute(host,
                         "SELECT * FROM Win32_NTLogEvent WHERE Logfile = 'Security' AND EventCode = '4625' AND TimeGenerated >= '" + startDate + "' AND TimeGenerated <= '" + endDate + "'"));
 
                 if (!result.isEmpty()) {

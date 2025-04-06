@@ -20,7 +20,7 @@ public class WmiResolveService<T> {
     }
 
     @SneakyThrows
-    public Page<T> GetValues(List<Map<String, Object>> list, Pageable pageable) {
+    public Page<T> getValues(List<Map<String, Object>> list, Pageable pageable) {
         List<T> content = new ArrayList<>();
 
         if (!list.isEmpty()) {
@@ -41,7 +41,7 @@ public class WmiResolveService<T> {
     }
 
     @SneakyThrows
-    public List<T> GetValues(List<Map<String, Object>> list) {
+    public List<T> getValues(List<Map<String, Object>> list) {
         List<T> content = new ArrayList<>();
 
         for (int i = 0; i < list.size(); i++) {

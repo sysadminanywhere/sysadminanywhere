@@ -12,7 +12,7 @@ Domain
 
 Management
     Users
-        - Crop image
+        ? Crop image
         - Organizations tree view
         - Countries tree view
         - Managers tree view
