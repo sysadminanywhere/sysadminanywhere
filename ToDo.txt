@@ -20,7 +20,7 @@ Management
         - Password expiration filter
 
     Computers
-        - Hardware
+        + Hardware
         + Member of
         ? Terminal
         ? Performance refactoring
