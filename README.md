@@ -22,6 +22,7 @@ Free web-based application revolutionizes Active Directory network administratio
 - Patterns for add new users
 - Reports (20+)
 - No limitation on the number of objects
+- Monitoring system with alert rules - including Ping, password expiration notifier, object change detection, incorrect password attempts
 
 ### License
 
