@@ -10,9 +10,11 @@ import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -60,20 +62,28 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver {
                     createTable(event.getValue(), convert(computersService.getBIOS(id)));
                     break;
                 case "Base board":
+                    createTable(event.getValue(), convert(computersService.getBaseBoard(id)));
                     break;
                 case "Disk drive":
+                    createTabs(event.getValue(), convertList(computersService.getDiskDrive(id)));
                     break;
                 case "Operating system":
+                    createTable(event.getValue(), convert(computersService.getOperatingSystem(id)));
                     break;
                 case "Disk partition":
+                    createTabs(event.getValue(), convertList(computersService.getDiskPartition(id)));
                     break;
                 case "Processor":
+                    createTabs(event.getValue(), convertList(computersService.getProcessor(id)));
                     break;
                 case "Video controller":
+                    createTabs(event.getValue(), convertList(computersService.getVideoController(id)));
                     break;
                 case "Physical memory":
+                    createTabs(event.getValue(), convertList(computersService.getPhysicalMemory(id)));
                     break;
                 case "Logical disk":
+                    createTabs(event.getValue(), convertList(computersService.getLogicalDisk(id)));
                     break;
             }
         });
@@ -113,6 +123,21 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver {
         return result;
     }
 
+    private List<List<HardwareEntity>> convertList(Object obj) {
+        List<List<HardwareEntity>> result = new ArrayList<>();
+
+        if (obj == null) return result;
+
+        if (obj instanceof List) {
+            List<Object> list = (List) obj;
+            for (Object o : list) {
+                result.add(convert(o));
+            }
+        }
+
+        return result;
+    }
+
     private void createTable(String name, List<HardwareEntity> items) {
         Table table = new Table(name);
 
@@ -121,6 +146,27 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver {
         }
 
         divTable.add(table);
+    }
+
+    private void createTabs(String name, List<List<HardwareEntity>> list) {
+        TabSheet tabSheet = new TabSheet();
+        H4 title = new H4(name);
+        title.getStyle().setMarginTop("10px");
+
+        Integer n = 0;
+
+        for (List<HardwareEntity> lst : list) {
+            Table table = new Table("");
+
+            for (HardwareEntity entity : lst) {
+                table.add(pascalToSpaced(entity.getName()), entity.getValue());
+            }
+
+            tabSheet.add(n.toString(), table);
+            n++;
+        }
+
+        divTable.add(title, tabSheet);
     }
 
     public String pascalToSpaced(String input) {
