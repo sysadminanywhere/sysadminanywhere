@@ -98,9 +98,9 @@ public class UpdateUserPhotoDialog extends Dialog {
 
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> close());
+        Button cancelButton = new Button("Cancel", e -> close());
 
-        com.vaadin.flow.component.button.Button deleteButton = new Button("Delete", e -> {
+        Button deleteButton = new Button("Delete", e -> {
             UserEntry entry = user;
 
             try {

@@ -8,6 +8,7 @@ import com.sysadminanywhere.entity.Computer;
 import com.sysadminanywhere.entity.Installation;
 import com.sysadminanywhere.entity.Software;
 import com.sysadminanywhere.model.ad.ComputerEntry;
+import com.sysadminanywhere.model.wmi.HardwareEntity;
 import com.sysadminanywhere.model.wmi.SoftwareEntity;
 import com.sysadminanywhere.repository.ComputerRepository;
 import com.sysadminanywhere.repository.InstallationRepository;
@@ -41,10 +42,14 @@ public class InventoryService {
     @Value("${ldap.host.password:}")
     String password;
 
+    @Value("${inventory.enabled:false}")
+    boolean isEnabled;
+
     ResolveService<ComputerEntry> resolveService = new ResolveService<>(ComputerEntry.class);
 
     private final LdapConnectionConfig ldapConnectionConfig;
     private final DirectorySetting directorySetting;
+    private final ComputersService computersService;
 
     private LdapService ldapService;
     private WmiService wmiService;
@@ -53,9 +58,10 @@ public class InventoryService {
     private final SoftwareRepository softwareRepository;
     private final InstallationRepository installationRepository;
 
-    public InventoryService(LdapConnectionConfig ldapConnectionConfig, DirectorySetting directorySetting, ComputerRepository computerRepository, SoftwareRepository softwareRepository, InstallationRepository installationRepository) {
+    public InventoryService(LdapConnectionConfig ldapConnectionConfig, DirectorySetting directorySetting, ComputersService computersService, ComputerRepository computerRepository, SoftwareRepository softwareRepository, InstallationRepository installationRepository) {
         this.ldapConnectionConfig = ldapConnectionConfig;
         this.directorySetting = directorySetting;
+        this.computersService = computersService;
         this.computerRepository = computerRepository;
         this.softwareRepository = softwareRepository;
         this.installationRepository = installationRepository;
@@ -78,8 +84,11 @@ public class InventoryService {
     */
 
     @Transactional
-    @Scheduled(cron = "${cron.expression}")
+    @Scheduled(cron = "${inventory.cron.expression}")
     public void scan() {
+
+        if(!isEnabled)
+            return;
 
         log.info("Scan started");
 
@@ -103,13 +112,8 @@ public class InventoryService {
         for (ComputerEntry computerEntry : computers) {
             if (!computerEntry.isDisabled()) {
                 Computer computer = checkComputer(computerEntry);
-                List<SoftwareEntity> software = getSoftware(computerEntry.getCn());
-                log.info("On computer {} found {} applications", computer.getName(), software.size());
-                for (SoftwareEntity softwareEntity : software) {
-                    checkSoftware(computer, softwareEntity);
-                }
-
-                checkForDeletedSoftware(computer, software);
+                scanSoftware(computer);
+                scanHardware(computer);
             }
         }
 
@@ -117,6 +121,33 @@ public class InventoryService {
         wmiService = null;
 
         log.info("Scan stopped");
+
+    }
+
+    private void scanSoftware(Computer computer) {
+        List<SoftwareEntity> software = getSoftware(computer.getName());
+        log.info("On computer {} found {} applications", computer.getName(), software.size());
+        for (SoftwareEntity softwareEntity : software) {
+            checkSoftware(computer, softwareEntity);
+        }
+
+        checkForDeletedSoftware(computer, software);
+    }
+
+    private void scanHardware(Computer computer) {
+        List<HardwareEntity> hardware = getHardware(computer.getName());
+        for (HardwareEntity hardwareEntity : hardware) {
+            checkHardware(computer, hardwareEntity);
+        }
+
+        checkForDeletedHardware(computer, hardware);
+    }
+
+    private void checkHardware(Computer computer, HardwareEntity hardwareEntity) {
+        
+    }
+
+    private void checkForDeletedHardware(Computer computer, List<HardwareEntity> hardware) {
 
     }
 
@@ -195,7 +226,7 @@ public class InventoryService {
     private List<SoftwareEntity> getSoftware(String hostName) {
         try {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Product"));
+            return wmiResolveService.getValues(wmiService.execute(hostName, "Select * From Win32_Product"));
         } catch (Exception ex) {
             log.error("Error: {}", ex.getMessage());
             return new ArrayList<>();
@@ -226,6 +257,10 @@ public class InventoryService {
     public Page<ComputerItem> getComputersWithSoftware(Long softwareId, Pageable pageable, Map<String, String> filters) {
         String name = filters.get("name") + "%";
         return computerRepository.getComputersWithSoftware(softwareId, name, pageable);
+    }
+
+    private List<HardwareEntity> getHardware(String hostName) {
+        return new ArrayList<>();
     }
 
 }

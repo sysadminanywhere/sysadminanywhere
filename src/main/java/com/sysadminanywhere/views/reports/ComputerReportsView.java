@@ -2,7 +2,6 @@ package com.sysadminanywhere.views.reports;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.model.ReportItem;
-import com.sysadminanywhere.views.MainLayout;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -18,7 +17,6 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.SneakyThrows;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import java.io.File;
 import java.nio.file.Files;

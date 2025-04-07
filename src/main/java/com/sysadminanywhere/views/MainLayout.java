@@ -1,68 +1,275 @@
 package com.sysadminanywhere.views;
 
-import com.sysadminanywhere.domain.InventorySetting;
-import com.sysadminanywhere.domain.MonitoringSetting;
+import com.sysadminanywhere.control.MenuButton;
+import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
+import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.service.LoginService;
+import com.sysadminanywhere.service.MonitoringService;
+import com.sysadminanywhere.views.about.AboutView;
+import com.sysadminanywhere.views.account.MeView;
+import com.sysadminanywhere.views.domain.AuditView;
 import com.sysadminanywhere.views.domain.DashboardView;
+import com.sysadminanywhere.views.domain.DomainView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
+import com.sysadminanywhere.views.login.LoginView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
 import com.sysadminanywhere.views.management.groups.GroupsView;
 import com.sysadminanywhere.views.management.printers.PrintersView;
 import com.sysadminanywhere.views.management.users.UsersView;
-import com.sysadminanywhere.views.monitoring.MonitorsView;
-import com.sysadminanywhere.views.reports.*;
+import com.sysadminanywhere.views.monitoring.NotificationsView;
+import com.sysadminanywhere.views.reports.ComputerReportsView;
+import com.sysadminanywhere.views.reports.GroupReportsView;
+import com.sysadminanywhere.views.reports.UserReportsView;
+import com.sysadminanywhere.views.settings.SettingsView;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
-import com.vaadin.flow.component.avatar.Avatar;
-import com.vaadin.flow.component.contextmenu.MenuItem;
-import com.vaadin.flow.component.html.*;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.menubar.MenuBar;
-import com.vaadin.flow.component.orderedlayout.Scroller;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.orderedlayout.*;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.RouterLayout;
-import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
+import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import java.io.ByteArrayInputStream;
+import jakarta.annotation.security.PermitAll;
+
 import java.util.Optional;
 
-import lombok.extern.slf4j.Slf4j;
-import org.vaadin.lineawesome.LineAwesomeIcon;
-
-@Slf4j
-public class MainLayout extends AppLayout implements RouterLayout {
+@Layout
+@PermitAll
+public class MainLayout extends AppLayout implements AfterNavigationObserver, BeforeEnterObserver {
 
     private H1 viewTitle;
+    private HorizontalLayout menuLayout;
+
+    HorizontalLayout drawerContent = new HorizontalLayout();
+    FlexLayout buttons = new FlexLayout();
+    FlexLayout subNav = new FlexLayout();
+
+    SideNav dashboardSubNavs = new SideNav();
+    SideNav managementSubNavs = new SideNav();
+    SideNav settingsSubNavs = new SideNav();
+    SideNav inventorySubNavs = new SideNav();
+    SideNav monitoringSubNavs = new SideNav();
+    SideNav reportsSubNavs = new SideNav();
+    SideNav accountSubNavs = new SideNav();
+
+    String currentTitle = "Domain";
 
     private AuthenticatedUser authenticatedUser;
     private AccessAnnotationChecker accessChecker;
 
-    private final InventorySetting inventorySetting;
-    private final MonitoringSetting monitoringSetting;
-
     private final LoginService loginService;
+    private final LdapService ldapService;
+    private final MonitoringService monitoringService;
 
     public MainLayout(AuthenticatedUser authenticatedUser,
                       AccessAnnotationChecker accessChecker,
-                      InventorySetting inventorySetting,
-                      MonitoringSetting monitoringSetting,
-                      LoginService loginService) {
+                      LoginService loginService, LdapService ldapService, MonitoringService monitoringService) {
+
         this.authenticatedUser = authenticatedUser;
         this.accessChecker = accessChecker;
-        this.inventorySetting = inventorySetting;
-        this.monitoringSetting = monitoringSetting;
         this.loginService = loginService;
+        this.ldapService = ldapService;
+
+        currentTitle = ldapService.getDomainName();
+        this.monitoringService = monitoringService;
 
         setPrimarySection(Section.DRAWER);
-        addDrawerContent();
+        getElement().setAttribute("theme", "teams-nav");
+
+        buttons.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
+        subNav.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
+
+        buttons.getStyle().setBackground("#D6DBE0");
+
+        buttons.setWidth("90px");
+        buttons.setHeightFull();
+        buttons.setAlignContent(FlexLayout.ContentAlignment.CENTER);
+
+        subNav.setWidthFull();
+        subNav.getStyle().setMargin("5px");
+        subNav.getStyle().setMarginRight("10px");
+
+        Image logo = new Image("images/sa-logo.png", "Sysadmin Anywhere");
+        logo.setWidth("48px");
+        logo.setHeight("48px");
+        logo.getStyle().setBorderRadius("10px");
+        logo.getStyle().setMargin("10px");
+        buttons.add(logo);
+
+        drawerContent.getStyle().setMargin("0px");
+        drawerContent.getStyle().setPadding("0px");
+
+        Scroller scroller = new Scroller(drawerContent);
+        scroller.setClassName(LumoUtility.Padding.SMALL);
+
+        VerticalLayout topMenu = new VerticalLayout(createSelectedMainButtonItem(currentTitle, DashboardView.class, "/icons/dashboard.svg"),
+                createMainButtonItem("Management", UsersView.class, "/icons/management.svg"),
+                createMainButtonItem("Inventory", InventorySoftwareView.class, "/icons/inventory.svg"),
+                createMainButtonItem("Monitoring", NotificationsView.class, "/icons/monitoring.svg"),
+                createMainButtonItem("Reports", UserReportsView.class, "/icons/reports.svg"));
+        topMenu.setMargin(false);
+
+        VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Account", MeView.class, "/icons/user.svg"),
+                createMainButtonItem("Settings", SettingsView.class, "/icons/settings.svg"));
+
+        bottomMenu.setHeightFull();
+        bottomMenu.setMargin(false);
+        bottomMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+
+        buttons.add(topMenu, bottomMenu);
+
+        dashboardSubNavs.addItem(createSideNavItem("Dashboard", DashboardView.class),
+                createSideNavItem("Domain", DomainView.class),
+                createSideNavItem("Audit", AuditView.class));
+
+        managementSubNavs.addItem(createSideNavItem("Users", UsersView.class),
+                createSideNavItem("Computers", ComputersView.class),
+                createSideNavItem("Groups", GroupsView.class),
+                createSideNavItem("Printers", PrintersView.class),
+                createSideNavItem("Contacts", ContactsView.class));
+
+        settingsSubNavs.addItem(createSideNavItem("Settings", SettingsView.class),
+                createSideNavItem("About", AboutView.class));
+
+        inventorySubNavs.addItem(createSideNavItem("Software inventory", InventorySoftwareView.class));
+
+        monitoringSubNavs.addItem(createSideNavItem("Notifications", NotificationsView.class));
+
+        reportsSubNavs.addItem(createSideNavItem("Users reports", UserReportsView.class),
+                createSideNavItem("Computer Reports", ComputerReportsView.class),
+                createSideNavItem("Group Reports", GroupReportsView.class));
+
+        accountSubNavs.addItem(createSideNavItem("Me", MeView.class));
+
+        drawerContent.add(buttons, subNav);
+
+        drawerContent.setHeightFull();
+        scroller.setHeightFull();
+
+        scroller.getStyle().setMargin("0px");
+        scroller.getStyle().setPadding("0px");
+
+        AboutView view = new AboutView();
+        setContent(view);
+
+        addToDrawer(scroller);
         addHeaderContent();
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        Optional<UserEntry> maybeUser = authenticatedUser.get();
+        if (maybeUser.isPresent()) {
+            UserEntry user = maybeUser.get();
+            if(!loginService.isLoggedIn())
+                loginService.Login(user);
+        } else {
+            UI.getCurrent().navigate(LoginView.class);
+        }
+    }
+
+    @Override
+    public void afterNavigation(AfterNavigationEvent event) {
+        super.afterNavigation();
+
+        viewTitle.setText(getCurrentPageTitle());
+
+        menuLayout.removeAll();
+
+        Component view = getContent();
+        if (view instanceof MenuControl) {
+            menuLayout.add(((MenuControl) view).getMenu());
+        }
+
+        updateSubNavBasedOnRoute();
+    }
+
+    private void updateSubNavBasedOnRoute() {
+        if (getUI().isPresent()) {
+
+            subNav.removeAll();
+            String currentRoute = getUI().get().getInternals().getActiveViewLocation().getPath();
+
+            H4 title = new H4(currentTitle);
+            title.getStyle().setMarginTop("10px");
+            title.getStyle().setMarginBottom("10px");
+
+            Hr hr = new Hr();
+            hr.getStyle().setMarginBottom("10px");
+
+            subNav.add(title, hr);
+
+            if (currentRoute.startsWith("settings")) {
+                subNav.add(settingsSubNavs);
+            } else if (currentRoute.startsWith("account")) {
+                subNav.add(accountSubNavs);
+            } else if (currentRoute.startsWith("management")) {
+                subNav.add(managementSubNavs);
+            } else if (currentRoute.startsWith("monitoring")) {
+                subNav.add(monitoringSubNavs);
+            } else if (currentRoute.startsWith("inventory")) {
+                subNav.add(inventorySubNavs);
+            } else if (currentRoute.startsWith("reports")) {
+                subNav.add(reportsSubNavs);
+            } else if (currentRoute.startsWith("dashboard") || currentRoute.startsWith("domain") || currentRoute.isEmpty()) {
+                subNav.add(dashboardSubNavs);
+            }
+        }
+
+    }
+
+    private MenuButton createMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath) {
+        return createMainButtonItem(label, navigationTarget, imgPath, false);
+    }
+
+    private MenuButton createSelectedMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath) {
+        return createMainButtonItem(label, navigationTarget, imgPath, true);
+    }
+
+    private MenuButton createMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath, boolean isSelected) {
+        MenuButton button = new MenuButton(label, imgPath);
+
+        if (isSelected)
+            button.selected(true);
+
+        button.addClickListener(e -> {
+            currentTitle = label;
+            unselectButtons();
+            button.selected(true);
+            UI.getCurrent().navigate(navigationTarget);
+        });
+
+        return button;
+    }
+
+    private SideNavItem createSideNavItem(String label, Class<? extends Component> navigationTarget) {
+        SideNavItem sideNavItem = new SideNavItem(label, navigationTarget);
+        sideNavItem.setMatchNested(true);
+        return sideNavItem;
+    }
+
+    private void unselectButtons() {
+        for (Component component : buttons.getChildren().toList()) {
+            if (component instanceof VerticalLayout) {
+                VerticalLayout layout = (VerticalLayout) component;
+                for (Component item : layout.getChildren().toList()) {
+                    if (item instanceof MenuButton) {
+                        MenuButton button = (MenuButton) item;
+                        button.selected(false);
+                    }
+                }
+            }
+        }
     }
 
     private void addHeaderContent() {
@@ -70,195 +277,20 @@ public class MainLayout extends AppLayout implements RouterLayout {
         toggle.setAriaLabel("Menu toggle");
 
         viewTitle = new H1();
+        viewTitle.setWidthFull();
         viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
 
-        addToNavbar(true, toggle, viewTitle);
-    }
+        menuLayout = new HorizontalLayout();
+        menuLayout.setWidthFull();
+        menuLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        menuLayout.getStyle().setMarginRight("20px");
+        menuLayout.getStyle().setMarginLeft("20px");
 
-    private void addDrawerContent() {
-        Span appName = new Span("Sysadmin Anywhere");
-        appName.addClassNames(LumoUtility.FontWeight.SEMIBOLD, LumoUtility.FontSize.LARGE);
-        Header header = new Header(appName);
-
-        VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.setSpacing(false);
-        verticalLayout.setPadding(false);
-
-        verticalLayout.add(createNavigation());
-        verticalLayout.add(createManagementNavigation());
-
-        if (inventorySetting.getAvailable())
-            verticalLayout.add(createInventoryNavigation());
-
-        if (monitoringSetting.getAvailable())
-            verticalLayout.add(createMonitoringNavigation());
-
-        verticalLayout.add(createReportingNavigation());
-
-        Scroller scroller = new Scroller(verticalLayout);
-
-        addToDrawer(header, scroller, createFooter());
-    }
-
-    private SideNav createNavigation() {
-        SideNav nav = new SideNav();
-        nav.setWidth("100%");
-
-        if (accessChecker.hasAccess(DashboardView.class)) {
-            nav.addItem(
-                    new SideNavItem("Home", DashboardView.class, LineAwesomeIcon.HOME_SOLID.create()));
-        }
-
-        return nav;
-    }
-
-    private SideNav createManagementNavigation() {
-        SideNav nav = new SideNav("Management");
-        nav.setCollapsible(true);
-        nav.setWidth("100%");
-
-        if (accessChecker.hasAccess(UsersView.class)) {
-            nav.addItem(new SideNavItem("Users", UsersView.class,
-                    LineAwesomeIcon.USER_SOLID.create()));
-        }
-
-        if (accessChecker.hasAccess(ComputersView.class)) {
-            nav.addItem(new SideNavItem("Computers", ComputersView.class,
-                    LineAwesomeIcon.DESKTOP_SOLID.create()));
-        }
-
-        if (accessChecker.hasAccess(GroupsView.class)) {
-            nav.addItem(new SideNavItem("Groups", GroupsView.class,
-                    LineAwesomeIcon.USERS_SOLID.create()));
-        }
-
-        if (accessChecker.hasAccess(PrintersView.class)) {
-            nav.addItem(new SideNavItem("Printers", PrintersView.class,
-                    LineAwesomeIcon.PRINT_SOLID.create()));
-        }
-
-        if (accessChecker.hasAccess(ContactsView.class)) {
-            nav.addItem(new SideNavItem("Contacts", ContactsView.class,
-                    LineAwesomeIcon.ADDRESS_CARD_SOLID.create()));
-        }
-
-        return nav;
-    }
-
-    private SideNav createMonitoringNavigation() {
-        SideNav nav = new SideNav("Monitoring");
-        nav.setCollapsible(true);
-        nav.setWidth("100%");
-
-        if (accessChecker.hasAccess(DashboardView.class)) {
-            nav.addItem(
-                    new SideNavItem("Monitors", MonitorsView.class, LineAwesomeIcon.CHART_AREA_SOLID.create()));
-        }
-
-        return nav;
-    }
-
-    private SideNav createInventoryNavigation() {
-        SideNav nav = new SideNav("Inventory");
-        nav.setCollapsible(true);
-        nav.setWidth("100%");
-
-        if (accessChecker.hasAccess(DashboardView.class)) {
-            nav.addItem(
-                    new SideNavItem("Software", InventorySoftwareView.class, LineAwesomeIcon.CLIPBOARD.create()));
-        }
-
-        return nav;
-    }
-
-    private SideNav createReportingNavigation() {
-        SideNav nav = new SideNav("Reports");
-        nav.setCollapsible(true);
-        nav.setWidth("100%");
-
-        if (accessChecker.hasAccess(DashboardView.class)) {
-            nav.addItem(
-                    new SideNavItem("Users", UserReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
-        }
-
-        if (accessChecker.hasAccess(DashboardView.class)) {
-            nav.addItem(
-                    new SideNavItem("Computers", ComputerReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
-        }
-
-        if (accessChecker.hasAccess(DashboardView.class)) {
-            nav.addItem(
-                    new SideNavItem("Groups", GroupReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
-        }
-
-//        if (accessChecker.hasAccess(HomeView.class)) {
-//            nav.addItem(
-//                    new SideNavItem("Others", OtherReportsView.class, LineAwesomeIcon.FILE_ALT_SOLID.create()));
-//        }
-
-        return nav;
-    }
-
-    private Footer createFooter() {
-        Footer layout = new Footer();
-
-        Optional<UserEntry> maybeUser = authenticatedUser.get();
-        if (maybeUser.isPresent()) {
-            UserEntry user = maybeUser.get();
-
-            loginService.Login(user);
-
-            Avatar avatar = new Avatar(user.getName());
-            if (user.getJpegPhoto() != null) {
-                StreamResource resource = new StreamResource("profile-pic",
-                        () -> new ByteArrayInputStream(user.getThumbnailPhoto()));
-                avatar.setImageResource(resource);
-            }
-            avatar.setThemeName("xsmall");
-            avatar.getElement().setAttribute("tabindex", "-1");
-
-            MenuBar userMenu = new MenuBar();
-            userMenu.setThemeName("tertiary-inline contrast");
-
-            MenuItem userName = userMenu.addItem("");
-            Div div = new Div();
-            div.add(avatar);
-            div.add(user.getName());
-            div.add(new Icon("lumo", "dropdown"));
-            div.getElement().getStyle().set("display", "flex");
-            div.getElement().getStyle().set("align-items", "center");
-            div.getElement().getStyle().set("gap", "var(--lumo-space-s)");
-            userName.add(div);
-            userName.getSubMenu().addItem("About", e -> {
-                e.getSource().getUI().ifPresent(ui ->
-                        ui.navigate("about"));
-            });
-            userName.getSubMenu().addItem("Settings", e -> {
-                e.getSource().getUI().ifPresent(ui ->
-                        ui.navigate("settings"));
-            });
-            userName.getSubMenu().addItem("Sign out", e -> {
-                authenticatedUser.logout();
-            });
-
-            layout.add(userMenu);
-        } else {
-            Anchor loginLink = new Anchor("login", "Sign in");
-            layout.add(loginLink);
-        }
-
-        return layout;
-    }
-
-    @Override
-    protected void afterNavigation() {
-        super.afterNavigation();
-        viewTitle.setText(getCurrentPageTitle());
+        addToNavbar(true, toggle, viewTitle, menuLayout);
     }
 
     private String getCurrentPageTitle() {
-        PageTitle title = getContent().getClass().getAnnotation(PageTitle.class);
-        return title == null ? "" : title.value();
+        return MenuConfiguration.getPageHeader(getContent()).orElse("");
     }
 
 }

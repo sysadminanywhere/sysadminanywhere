@@ -123,7 +123,7 @@ public class ComputersService {
             if (pageable.getPageNumber() == 0)
                 wmiService.clearExecuteCache(hostName, query);
             WmiResolveService<ProcessEntity> wmiResolveService = new WmiResolveService<>(ProcessEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, query), pageable);
+            return wmiResolveService.getValues(wmiService.execute(hostName, query), pageable);
         } catch (WmiComException | WqlQuerySyntaxException | TimeoutException ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -137,7 +137,7 @@ public class ComputersService {
             if (pageable.getPageNumber() == 0)
                 wmiService.clearExecuteCache(hostName, query);
             WmiResolveService<ServiceEntity> wmiResolveService = new WmiResolveService<>(ServiceEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, query), pageable);
+            return wmiResolveService.getValues(wmiService.execute(hostName, query), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -149,7 +149,7 @@ public class ComputersService {
         try {
             String query = "Select * From Win32_Product" + getWmiQueryFromFilters(filters);
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, query), pageable);
+            return wmiResolveService.getValues(wmiService.execute(hostName, query), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -195,7 +195,7 @@ public class ComputersService {
             if (pageable.getPageNumber() == 0)
                 wmiService.clearExecuteCache(hostName, queryString);
 
-            return wmiResolveService.GetValues(wmiService.execute(hostName, queryString), pageable);
+            return wmiResolveService.getValues(wmiService.execute(hostName, queryString), pageable);
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -203,112 +203,112 @@ public class ComputersService {
         }
     }
 
-    public Page<HardwareEntity> getHardware(Pageable pageable, String hostName) {
-        try {
-            return null;
-        } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
-        }
-    }
+//    public Page<HardwareEntity> getHardware(Pageable pageable, String hostName) {
+//        try {
+//            return null;
+//        } catch (Exception ex) {
+//            Notification notification = Notification.show(ex.getMessage());
+//            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+//            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+//        }
+//    }
 
-    public Page<DiskDriveEntity> getDiskDrive(Pageable pageable, String hostName) {
+    public List<DiskDriveEntity> getDiskDrive(String hostName) {
         try {
             WmiResolveService<DiskDriveEntity> wmiResolveService = new WmiResolveService<>(DiskDriveEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_DiskDrive"), pageable);
+            return wmiResolveService.getValues(wmiService.execute(hostName, "SELECT * FROM Win32_DiskDrive"));
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            return null;
         }
     }
 
-    public Page<OperatingSystemEntity> getOperatingSystem(Pageable pageable, String hostName) {
+    public OperatingSystemEntity getOperatingSystem(String hostName) {
         try {
             WmiResolveService<OperatingSystemEntity> wmiResolveService = new WmiResolveService<>(OperatingSystemEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_OperatingSystem"), pageable);
+            return wmiResolveService.getValue(wmiService.execute(hostName, "SELECT * FROM Win32_OperatingSystem").get(0));
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            return null;
         }
     }
 
-    public Page<SoftwareEntity> getDiskPartition(Pageable pageable, String hostName) {
+    public List<DiskPartitionEntity> getDiskPartition(String hostName) {
         try {
-            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_DiskPartition"), pageable);
+            WmiResolveService<DiskPartitionEntity> wmiResolveService = new WmiResolveService<>(DiskPartitionEntity.class);
+            return wmiResolveService.getValues(wmiService.execute(hostName, "SELECT * FROM Win32_DiskPartition"));
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            return null;
         }
     }
 
-    public Page<SoftwareEntity> getProcessor(Pageable pageable, String hostName) {
+    public List<ProcessorEntity> getProcessor(String hostName) {
         try {
-            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_Processor"), pageable);
+            WmiResolveService<ProcessorEntity> wmiResolveService = new WmiResolveService<>(ProcessorEntity.class);
+            return wmiResolveService.getValues(wmiService.execute(hostName, "SELECT * FROM Win32_Processor"));
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            return null;
         }
     }
 
-    public Page<SoftwareEntity> getVideoController(Pageable pageable, String hostName) {
+    public List<VideoControllerEntity> getVideoController(String hostName) {
         try {
-            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_VideoController"), pageable);
+            WmiResolveService<VideoControllerEntity> wmiResolveService = new WmiResolveService<>(VideoControllerEntity.class);
+            return wmiResolveService.getValues(wmiService.execute(hostName, "SELECT * FROM Win32_VideoController"));
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            return null;
         }
     }
 
-    public Page<SoftwareEntity> getPhysicalMemory(Pageable pageable, String hostName) {
+    public List<PhysicalMemoryEntity> getPhysicalMemory(String hostName) {
         try {
-            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_PhysicalMemory"), pageable);
+            WmiResolveService<PhysicalMemoryEntity> wmiResolveService = new WmiResolveService<>(PhysicalMemoryEntity.class);
+            return wmiResolveService.getValues(wmiService.execute(hostName, "SELECT * FROM Win32_PhysicalMemory"));
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            return null;
         }
     }
 
-    public Page<SoftwareEntity> getLogicalDisk(Pageable pageable, String hostName) {
+    public List<LogicalDiskEntity> getLogicalDisk(String hostName) {
         try {
-            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_LogicalDisk"), pageable);
+            WmiResolveService<LogicalDiskEntity> wmiResolveService = new WmiResolveService<>(LogicalDiskEntity.class);
+            return wmiResolveService.getValues(wmiService.execute(hostName, "SELECT * FROM Win32_LogicalDisk"));
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            return null;
         }
     }
 
-    public Page<SoftwareEntity> getBaseBoard(Pageable pageable, String hostName) {
+    public BaseboardEntity getBaseBoard(String hostName) {
         try {
-            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_BaseBoard"), pageable);
+            WmiResolveService<BaseboardEntity> wmiResolveService = new WmiResolveService<>(BaseboardEntity.class);
+            return wmiResolveService.getValue(wmiService.execute(hostName, "SELECT * FROM Win32_BaseBoard").get(0));
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            return null;
         }
     }
 
-    public Page<SoftwareEntity> getBIOS(Pageable pageable, String hostName) {
+    public BIOSEntity getBIOS(String hostName) {
         try {
-            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "SELECT * FROM Win32_BIOS"), pageable);
+            WmiResolveService<BIOSEntity> wmiResolveService = new WmiResolveService<>(BIOSEntity.class);
+            return wmiResolveService.getValue(wmiService.execute(hostName, "SELECT * FROM Win32_BIOS").get(0));
         } catch (Exception ex) {
             Notification notification = Notification.show(ex.getMessage());
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            return null;
         }
     }
 

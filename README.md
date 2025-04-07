@@ -3,7 +3,7 @@
 Free web-based application revolutionizes Active Directory network administration by offering a unified tool that simplifies every task you need to perform.
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
-![Static Badge](https://img.shields.io/badge/version-2.0.0-blue)
+![Static Badge](https://img.shields.io/badge/version-2.1.0-blue)
 
 ![Sysadmin Screenshot](images/Screen02.png)
 
@@ -22,6 +22,7 @@ Free web-based application revolutionizes Active Directory network administratio
 - Patterns for add new users
 - Reports (20+)
 - No limitation on the number of objects
+- Monitoring system with alert rules - including Ping, password expiration notifier, object change detection, incorrect password attempts
 
 ### License
 
@@ -44,6 +45,8 @@ This software is distributed under the terms of the MIT License (MIT).
 
 - LDAP_USERNAME=<username>
 - LDAP_PASSWORD=<password>
-- SCAN.CRON=0 0 * * * *
+- 
+- INVENTORY_ENABLED=true
+- INVENTORY_SCAN_CRON=0 0 * * * *
 ```
 Use the "username" and "password' of a user who has rights to read from the Active Directory and from the WMI service on domain computers.

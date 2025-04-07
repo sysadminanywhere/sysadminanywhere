@@ -20,7 +20,7 @@ public class WmiResolveService<T> {
     }
 
     @SneakyThrows
-    public Page<T> GetValues(List<Map<String, Object>> list, Pageable pageable) {
+    public Page<T> getValues(List<Map<String, Object>> list, Pageable pageable) {
         List<T> content = new ArrayList<>();
 
         if (!list.isEmpty()) {
@@ -41,7 +41,7 @@ public class WmiResolveService<T> {
     }
 
     @SneakyThrows
-    public List<T> GetValues(List<Map<String, Object>> list) {
+    public List<T> getValues(List<Map<String, Object>> list) {
         List<T> content = new ArrayList<>();
 
         for (int i = 0; i < list.size(); i++) {
@@ -65,9 +65,33 @@ public class WmiResolveService<T> {
                 if (item.containsKey(property.name())) {
                     var value = item.get(property.name());
                     if ((value != null)) {
-                        field.set(result, item.get(property.name()).toString());
+
+                        String fieldType = field.getType().getName();
+
+                        switch (fieldType) {
+                            case "java.lang.String":
+                                field.set(result, item.get(property.name()).toString());
+                                break;
+                            case "int":
+                                field.set(result, Integer.parseInt(item.get(property.name()).toString()));
+                                break;
+                            case "long":
+                                field.set(result, Long.parseLong(item.get(property.name()).toString()));
+                                break;
+                            case "[Ljava.lang.String;":
+                                Object[] objects = (Object[]) item.get(property.name());
+                                String[] list = new String[objects.length];
+
+                                for (int i = 0; i < objects.length; i++) {
+                                    list[i] = objects[i].toString();
+                                }
+
+                                field.set(result, list);
+                                break;
+                        }
                     }
                 }
+
             }
         }
 

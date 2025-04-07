@@ -1,22 +1,20 @@
-package com.sysadminanywhere.views.domain;
+package com.sysadminanywhere.views.monitoring;
 
-import com.sysadminanywhere.model.AuditItem;
-import com.sysadminanywhere.service.LdapService;
+import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.domain.MenuHelper;
+import com.sysadminanywhere.entity.RuleEntity;
+import com.sysadminanywhere.service.MonitoringService;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.FlexLayout;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -27,32 +25,32 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.data.domain.PageRequest;
 
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
-@PageTitle("Audit")
-@Route(value = "domain/audit")
+@PageTitle("Notifications")
+@Route(value = "monitoring/notifications")
 @PermitAll
-public class AuditView extends Div {
+@Uses(Icon.class)
+public class NotificationsView extends Div implements MenuControl {
 
-    private String id;
+    private Grid<RuleEntity> grid;
 
-    private Grid<AuditItem> grid;
+    private NotificationsView.Filters filters;
+    private final MonitoringService monitoringService;
 
-    private AuditView.Filters filters;
-    private final LdapService ldapService;
+    public NotificationsView(MonitoringService monitoringService) {
+        this.monitoringService = monitoringService;
 
-    public AuditView(LdapService ldapService) {
-        this.ldapService = ldapService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new AuditView.Filters(() -> refreshGrid(), ldapService);
+        filters = new NotificationsView.Filters(() -> refreshGrid());
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
         layout.setSpacing(false);
+
         add(layout);
     }
 
@@ -80,22 +78,26 @@ public class AuditView extends Div {
         return mobileFilters;
     }
 
+    @Override
+    public MenuBar getMenu() {
+        MenuBar menuBar = new MenuBar();
+
+        MenuHelper.createIconItem(menuBar, "/icons/plus.svg", "New rule", event -> {
+            addDialog(this::refreshGrid).open();
+        });
+
+        return menuBar;
+    }
+
+    private Dialog addDialog(Runnable onSearch) {
+        return new SelectRuleDialog(monitoringService, onSearch);
+    }
+
     public static class Filters extends Div {
 
-        private final LdapService ldapService;
-
         private final TextField name = new TextField("Name");
-        private final ComboBox<String> action = new ComboBox<>("Action");
-        private final DatePicker startDate = new DatePicker("Date");
-        private final DatePicker endDate = new DatePicker();
 
-        public Filters(Runnable onSearch, LdapService ldapService) {
-            this.ldapService = ldapService;
-
-            action.setItems("All", "Changed", "Created");
-            action.setValue("All");
-
-            startDate.setValue(LocalDate.now());
+        public Filters(Runnable onSearch) {
 
             setWidthFull();
             addClassName("filter-layout");
@@ -107,15 +109,6 @@ public class AuditView extends Div {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 name.clear();
-
-                action.clear();
-                action.setValue("All");
-
-                startDate.clear();
-                startDate.setValue(LocalDate.now());
-
-                endDate.clear();
-
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -126,50 +119,32 @@ public class AuditView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(createDateRangeFilter(), actions);
+            add(name, actions);
         }
 
-        private Component createDateRangeFilter() {
-            startDate.setPlaceholder("From");
-            endDate.setPlaceholder("To");
-
-            startDate.setAriaLabel("From date");
-            endDate.setAriaLabel("To date");
-
-            FlexLayout dateRangeComponent = new FlexLayout(startDate, new Text(" – "), endDate);
-            dateRangeComponent.setAlignItems(FlexComponent.Alignment.BASELINE);
-            dateRangeComponent.addClassName(LumoUtility.Gap.XSMALL);
-
-            return dateRangeComponent;
-        }
-
-        public Map<String, Object> getFilters() {
-            Map<String, Object> filters = new HashMap<>();
+        public Map<String, String> getFilters() {
+            Map<String, String> filters = new HashMap<>();
             filters.put("name", name.getValue());
-            filters.put("action", action.getValue());
-            filters.put("startDate", startDate.getValue());
-            filters.put("endDate", endDate.getValue());
             return filters;
         }
 
     }
 
     private Component createGrid() {
-        grid = new Grid<>(AuditItem.class, false);
+        grid = new Grid<>(RuleEntity.class, false);
         grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("distinguishedName").setAutoWidth(true);
-        grid.addColumn("action").setAutoWidth(true);
-        grid.addColumn("whenChanged").setAutoWidth(true);
+        grid.addColumn("description").setAutoWidth(true);
+        grid.addColumn("cronExpression").setAutoWidth(true);
+        grid.addColumn("active").setAutoWidth(true);
 
-        try {
-            grid.setItems(query -> ldapService.getAudit(
-                    PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                    filters.getFilters()).stream());
-        } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-        }
+        grid.addItemClickListener(item -> {
+            grid.getUI().ifPresent(ui ->
+                    ui.navigate("monitoring/rules/" + item.getItem().getId() + "/logs"));
+        });
 
+        grid.setItems(query -> monitoringService.getAllRules(
+                PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
+                filters.getFilters()).stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 

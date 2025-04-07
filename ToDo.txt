@@ -5,25 +5,28 @@ https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/en
 Domain
     + Dashboard
     + Domain
+        + Controllers
+            + Go to controller
+        + More info
     + Audit
 
 Management
     Users
-        - Crop image
+        ? Crop image
         - Organizations tree view
         - Countries tree view
         - Managers tree view
         + Member of
+        - Password expiration filter
 
     Computers
-        - Hardware
+        + Hardware
         + Member of
         ? Terminal
         ? Performance refactoring
 
     Groups
         + Member of
-        ? Members
 
 Inventory
     Software
@@ -35,10 +38,18 @@ Inventory
 
 Monitoring
     Alerts
-        - Rules for alerts
+        + Cron UI
+        + Rules for alerts
+            + Ping
+            + Password expiration notifier
+            + Changed selected object
+            + Incorrect password entry for user
+            + Descriptions for rules
 
 Reports
     Report
         - New reports:
             - Select computer
             - Select user
+        + Password expiration less than 7 days
+        + Users didn't change password last 180 days

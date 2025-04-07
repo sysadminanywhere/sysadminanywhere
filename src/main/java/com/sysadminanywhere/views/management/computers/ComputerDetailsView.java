@@ -262,7 +262,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
         subMenuManagement.addItem("Events", listener);
         subMenuManagement.add(new Hr());
         subMenuManagement.addItem("Software", listener);
-//        subMenuManagement.addItem("Hardware", listener);
+        subMenuManagement.addItem("Hardware", listener);
         subMenuManagement.add(new Hr());
         subMenuManagement.addItem("Performance", listener);
         subMenuManagement.add(new Hr());
