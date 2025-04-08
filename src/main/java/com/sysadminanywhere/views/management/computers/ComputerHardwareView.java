@@ -1,14 +1,9 @@
 package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.control.Table;
-import com.sysadminanywhere.model.wmi.ComputerSystemEntity;
 import com.sysadminanywhere.model.wmi.HardwareEntity;
-import com.sysadminanywhere.model.wmi.SoftwareEntity;
 import com.sysadminanywhere.service.ComputersService;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.dependency.Uses;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.icon.Icon;
@@ -19,12 +14,15 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.Arrays.stream;
 
 @PageTitle("Hardware")
 @Route(value = "management/computers/:id?/hardware")
@@ -93,7 +91,7 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver {
         layout.setPadding(false);
         layout.setSpacing(false);
 
-        divTable.getStyle().setMarginLeft("50px");
+        divTable.getStyle().setMarginLeft("25px");
 
         layout.add(listBox, divTable);
 
@@ -113,7 +111,15 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver {
             try {
                 String name = field.getName();
                 Object value = field.get(obj);
-                String valueStr = value != null ? value.toString() : "-";
+                String valueStr = "-";
+
+                if (value instanceof String[]) {
+                    String[] array = (String[]) value;
+                    valueStr = Arrays.stream(array)
+                            .collect(Collectors.joining(", "));
+                } else {
+                    valueStr = value != null ? value.toString() : "-";
+                }
 
                 result.add(new HardwareEntity(name, valueStr));
             } catch (IllegalAccessException e) {

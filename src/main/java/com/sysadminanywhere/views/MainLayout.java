@@ -159,9 +159,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         scroller.getStyle().setMargin("0px");
         scroller.getStyle().setPadding("0px");
 
-        AboutView view = new AboutView();
-        setContent(view);
-
         addToDrawer(scroller);
         addHeaderContent();
     }

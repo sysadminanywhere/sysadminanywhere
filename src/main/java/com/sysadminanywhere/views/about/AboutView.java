@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.about;
 
 import com.sysadminanywhere.control.Card;
+import com.sysadminanywhere.service.VersionService;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.AnchorTarget;
 import com.vaadin.flow.component.html.Span;
@@ -14,14 +15,17 @@ import jakarta.annotation.security.PermitAll;
 @PermitAll
 public class AboutView extends VerticalLayout {
 
-    public AboutView() {
+    private final VersionService versionService;
+
+    public AboutView(VersionService versionService) {
+        this.versionService = versionService;
         add(getAbout(), getFeedback());
     }
 
     private Card getAbout() {
         Card card = new Card("Sysadmin Anywhere");
         card.setWidthFull();
-        Span version = new Span("Version: 2.1.0");
+        Span version = new Span("Version: " + versionService.getVersion());
         Anchor homePage = new Anchor("https://sysadminanywhere.com/", "Home page", AnchorTarget.BLANK);
         Anchor sourceCode = new Anchor("https://github.com/sysadminanywhere/sysadminanywhere/", "Source code", AnchorTarget.BLANK);
 
