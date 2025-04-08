@@ -33,6 +33,6 @@ jobs:
       - name: Docker Build and Push to DockerHub
         run: |
           mvn clean package -Pproduction
-          docker build -t your/image:${{ env.VERSION }} -t your/image:latest .
-          docker push your/image:${{ env.VERSION }}
-          docker push your/image:latest
+          docker build -t sysadminanywhere/sysadminanywhere:${{ env.VERSION }} -t sysadminanywhere/sysadminanywhere:latest .
+          docker push sysadminanywhere/sysadminanywhere:${{ env.VERSION }}
+          docker push sysadminanywhere/sysadminanywhere:latest
