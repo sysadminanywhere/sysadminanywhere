@@ -1,5 +1,12 @@
 package com.sysadminanywhere.domain;
 
+import org.apache.directory.api.ldap.model.entry.Attribute;
+import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.Value;
+
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 public class ADHelper {
 
     public static String ExtractCN(String dn)
@@ -80,6 +87,16 @@ public class ADHelper {
             default:
                 return "";
         }
+    }
+
+    public static String getAttributeAsCommaSeparated(Entry entry, String attributeName) {
+        if (!entry.containsAttribute(attributeName)) return "";
+
+        Attribute attr = entry.get(attributeName);
+
+        return StreamSupport.stream(attr.spliterator(), false)
+                .map(Value::getString)
+                .collect(Collectors.joining(", "));
     }
 
 }

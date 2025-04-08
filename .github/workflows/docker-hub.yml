@@ -10,7 +10,12 @@ jobs:
     name: Build & Push to DockerHub
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Read version
+        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
@@ -28,5 +33,6 @@ jobs:
       - name: Docker Build and Push to DockerHub
         run: |
           mvn clean package -Pproduction
-          docker build -t sysadminanywhere/sysadminanywhere:latest .
-          docker push sysadminanywhere/sysadminanywhere:latest
+          docker build -t your/image:${{ env.VERSION }} -t your/image:latest .
+          docker push your/image:${{ env.VERSION }}
+          docker push your/image:latest

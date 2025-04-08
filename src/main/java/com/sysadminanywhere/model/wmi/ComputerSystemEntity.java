@@ -34,7 +34,7 @@ public class ComputerSystemEntity {
     private String bootupState;
 
     @WMIAttribute(name = "BootStatus")
-    private String bootStatus;  // []
+    private String[] bootStatus;  // []
 
     @WMIAttribute(name = "Caption")
     private String caption;
@@ -79,7 +79,7 @@ public class ComputerSystemEntity {
     private String infraredSupported;
 
     @WMIAttribute(name = "InitialLoadInfo")
-    private String initialLoadInfo;     // []
+    private String[] initialLoadInfo;     // []
 
     @WMIAttribute(name = "InstallDate")
     private String installDate;
@@ -112,10 +112,10 @@ public class ComputerSystemEntity {
     private String numberOfProcessors;
 
     @WMIAttribute(name = "OEMLogoBitmap")
-    private String oEMLogoBitmap;       // []
+    private String[] oEMLogoBitmap;       // []
 
     @WMIAttribute(name = "OEMStringArray")
-    private String oEMStringArray;    // []
+    private String[] oEMStringArray;    // []
 
     @WMIAttribute(name = "PartOfDomain")
     private String partOfDomain;
@@ -130,7 +130,7 @@ public class ComputerSystemEntity {
     private String pCSystemTypeEx;
 
     @WMIAttribute(name = "PowerManagementCapabilities")
-    private String powerManagementCapabilities;   // []
+    private String[] powerManagementCapabilities;   // []
 
     @WMIAttribute(name = "PowerManagementSupported")
     private String powerManagementSupported;
@@ -160,13 +160,13 @@ public class ComputerSystemEntity {
     private String resetLimit;
 
     @WMIAttribute(name = "Roles")
-    private String Roles;                 // []
+    private String[] Roles;                 // []
 
     @WMIAttribute(name = "Status")
     private String status;
 
     @WMIAttribute(name = "SupportContactDescription")
-    private String supportContactDescription; // []
+    private String[] supportContactDescription; // []
 
     @WMIAttribute(name = "SystemFamily")
     private String systemFamily;
@@ -178,7 +178,7 @@ public class ComputerSystemEntity {
     private String systemStartupDelay;
 
     @WMIAttribute(name = "SystemStartupOptions")
-    private String systemStartupOptions;    // []
+    private String[] systemStartupOptions;    // []
 
     @WMIAttribute(name = "SystemStartupSetting")
     private String systemStartupSetting;
