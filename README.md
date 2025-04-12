@@ -1,6 +1,6 @@
 # Sysadmin Anywhere
 
-Free web-based application revolutionizes Active Directory network administration by offering a unified tool that simplifies every task you need to perform.
+Free Web-based and Desktop application revolutionizes Active Directory network administration by offering a unified tool that simplifies every task you need to perform.
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
 ![Static Badge](https://img.shields.io/badge/version-2.1.4-blue)
