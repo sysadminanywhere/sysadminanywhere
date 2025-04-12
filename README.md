@@ -28,25 +28,7 @@ Free Web-based and Desktop application revolutionizes Active Directory network a
 
 This software is distributed under the terms of the MIT License (MIT).
 
+### Settings
 
-**[Docker compose file examle](docker/docker-compose.yml)**
-
-**Sysadmin Anywhere environment variables:**
-```
-- DB_ADDRESS=postgres
-- DB_PORT=5432
-- DB_BASE=sysadminanywhere
-- DB_USER=sysadminanywhere
-- DB_PASSWORD=sysadminanywhere
-- LDAP_SERVER=192.168.1.1
-- LDAP_PORT=389
-- LDAP_USE_SSL=false
-- LDAP_GROUPS_ALLOWED=CN=Domain Admins,CN=Users,DC=example,DC=com
-
-- LDAP_USERNAME=<username>
-- LDAP_PASSWORD=<password>
-- 
-- INVENTORY_ENABLED=true
-- INVENTORY_SCAN_CRON=0 0 * * * *
-```
-Use the "username" and "password' of a user who has rights to read from the Active Directory and from the WMI service on domain computers.
+* [Docker settings](https://github.com/sysadminanywhere/sysadminanywhere/wiki/Docker-settings)
+* [Desktop applicaton settings](https://github.com/sysadminanywhere/sysadminanywhere/wiki/Desktop-settings)
