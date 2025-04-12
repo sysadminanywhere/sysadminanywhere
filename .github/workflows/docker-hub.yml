@@ -29,7 +29,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
-          
+
       - name: Docker Build and Push to DockerHub
         run: |
           mvn clean package -Pproduction

@@ -57,10 +57,12 @@ public class LdapService {
         this.connection = connection;
         this.directorySetting = directorySetting;
 
-        Entry entry = connection.getRootDse();
-        baseDn = new Dn(entry.get("rootdomainnamingcontext").get().getString());
-        defaultNamingContext = baseDn.getName();
-        domainName = defaultNamingContext.toUpperCase().replace("DC=", "").replace(",", ".").toLowerCase();
+        if(this.connection.isConnected()) {
+            Entry entry = connection.getRootDse();
+            baseDn = new Dn(entry.get("rootdomainnamingcontext").get().getString());
+            defaultNamingContext = baseDn.getName();
+            domainName = defaultNamingContext.toUpperCase().replace("DC=", "").replace(",", ".").toLowerCase();
+        }
     }
 
     public String getDefaultNamingContext() {
@@ -75,6 +77,10 @@ public class LdapService {
     public Entry getDomainEntry() {
         //return connection.lookup(defaultNamingContext);
         return connection.getRootDse();
+    }
+
+    public LdapConnection getConnection() {
+        return connection;
     }
 
     @Cacheable(value = "maxPwdAge")

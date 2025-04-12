@@ -15,10 +15,10 @@ import com.vaadin.flow.function.SerializableSupplier;
 import com.vaadin.flow.router.*;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.vaadin.reports.PrintPreviewReport;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @PageTitle("Report")
 @Route(value = "reports/report")
@@ -73,8 +74,12 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
         ReportItem reportItem = null;
 
         try {
-            File resource = new ClassPathResource("reports/" + entry.toLowerCase() + ".json").getFile();
-            String json = new String(Files.readAllBytes(resource.toPath()));
+            Resource resource = new ClassPathResource("reports/" + entry.toLowerCase() + ".json");
+            InputStream inputStream = resource.getInputStream();
+            String json = new BufferedReader(new InputStreamReader(inputStream))
+                    .lines()
+                    .collect(Collectors.joining("\n"));
+
             ReportItem[] reports = new ObjectMapper().readValue(json, ReportItem[].class);
 
             Optional<ReportItem> item = Arrays.stream(reports).filter(c -> c.getId().equalsIgnoreCase(id)).findFirst();
