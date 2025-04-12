@@ -24,11 +24,17 @@ Free Web-based and Desktop application revolutionizes Active Directory network a
 - No limitation on the number of objects
 - Monitoring system with alert rules - including Ping, password expiration notifier, object change detection, incorrect password attempts
 
-### License
-
-This software is distributed under the terms of the MIT License (MIT).
-
 ### Settings
 
 * [Docker settings](https://github.com/sysadminanywhere/sysadminanywhere/wiki/Docker-settings)
 * [Desktop applicaton settings](https://github.com/sysadminanywhere/sysadminanywhere/wiki/Desktop-settings)
+
+### License
+
+This software is distributed under the terms of the MIT License (MIT).
+
+### Authors
+
+Igor Markin / [LinkedIn](https://www.linkedin.com/in/igor-markin/)
+
+Contributions and bugs reports are welcome.
