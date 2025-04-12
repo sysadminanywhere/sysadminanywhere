@@ -31,7 +31,8 @@ public class AuthenticatedUser {
             return Optional.ofNullable(usersService.getByCN(userDetails.getUsername()));
         }
         // Anonymous or no authentication.
-        return Optional.empty();    }
+        return Optional.empty();
+    }
 
     public void logout() {
         authenticationContext.logout();

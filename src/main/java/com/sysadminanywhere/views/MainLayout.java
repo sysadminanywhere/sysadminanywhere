@@ -165,13 +165,15 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<UserEntry> maybeUser = authenticatedUser.get();
-        if (maybeUser.isPresent()) {
-            UserEntry user = maybeUser.get();
-            if(!loginService.isLoggedIn())
-                loginService.Login(user);
-        } else {
-            UI.getCurrent().navigate(LoginView.class);
+        if (ldapService.getConnection().isConnected()) {
+            Optional<UserEntry> maybeUser = authenticatedUser.get();
+            if (maybeUser.isPresent()) {
+                UserEntry user = maybeUser.get();
+                if (!loginService.isLoggedIn())
+                    loginService.Login(user);
+            } else {
+                UI.getCurrent().navigate(LoginView.class);
+            }
         }
     }
 

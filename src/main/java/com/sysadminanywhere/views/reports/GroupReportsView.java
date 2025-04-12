@@ -17,9 +17,14 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.SneakyThrows;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.util.stream.Collectors;
 
 @PageTitle("Group Reports")
 @Route(value = "reports/groups")
@@ -67,8 +72,12 @@ public class GroupReportsView extends Div {
     private void addReports() {
         listBox.clear();
 
-        File resource = new ClassPathResource("reports/groups.json").getFile();
-        String json = new String(Files.readAllBytes(resource.toPath()));
+        Resource resource = new ClassPathResource("reports/groups.json");
+        InputStream inputStream = resource.getInputStream();
+        String json = new BufferedReader(new InputStreamReader(inputStream))
+                .lines()
+                .collect(Collectors.joining("\n"));
+
         ReportItem[] reports = new ObjectMapper().readValue(json, ReportItem[].class);
 
         listBox.setItems(reports);

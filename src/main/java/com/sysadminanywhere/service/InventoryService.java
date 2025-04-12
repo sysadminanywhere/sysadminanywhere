@@ -103,7 +103,7 @@ public class InventoryService {
             return;
         }
 
-        wmiService.init(userName, password);
+        wmiService.init(ldapService.getDomainName() + "\\" + userName, password);
 
         List<ComputerEntry> computers = getComputers();
 

@@ -24,7 +24,7 @@ public class LdapConfiguration {
     @Value("${ldap.host.groups.allowed:}")
     private String groupsAllowed;
 
-    @Value("${ldap.host.use.ssl}")
+    @Value("${ldap.host.use.ssl:false}")
     boolean useSSL;
 
     @SneakyThrows
