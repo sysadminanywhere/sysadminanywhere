@@ -57,6 +57,8 @@ public class LdapService {
         this.connection = connection;
         this.directorySetting = directorySetting;
 
+        this.connection.bind();
+
         if(this.connection.isConnected()) {
             Entry entry = connection.getRootDse();
             baseDn = new Dn(entry.get("rootdomainnamingcontext").get().getString());
