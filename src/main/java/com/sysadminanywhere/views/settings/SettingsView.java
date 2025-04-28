@@ -1,6 +1,5 @@
 package com.sysadminanywhere.views.settings;
 
-import com.sysadminanywhere.control.Card;
 import com.sysadminanywhere.entity.LoginEntity;
 import com.sysadminanywhere.model.DisplayNamePattern;
 import com.sysadminanywhere.model.LoginPattern;
@@ -9,7 +8,6 @@ import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.service.SettingsService;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -20,11 +18,11 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.button.Button;
 import org.vaadin.addons.themeselect.ThemeRadioGroup;
+import com.vaadin.flow.component.card.Card;
 
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 
 @PageTitle("Settings")
 @Route(value = "settings/settings")
@@ -54,11 +52,22 @@ public class SettingsView extends VerticalLayout {
             }
         }
 
-        add(new ThemeRadioGroup("Color Mode"), getUserPatterns());
+        add(getColorMode(), getUserPatterns());
+    }
+
+    private Card getColorMode() {
+        Card card = new Card();
+        card.setTitle("Theme");
+        card.setWidthFull();
+
+        card.add(new ThemeRadioGroup("Color Mode"));
+
+        return card;
     }
 
     private Card getUserPatterns() {
-        Card card = new Card("User patterns");
+        Card card = new Card();
+        card.setTitle("User patterns");
         card.setWidthFull();
 
         ComboBox<String> cmbDisplayNamePattern = new ComboBox<>("Display name pattern");
