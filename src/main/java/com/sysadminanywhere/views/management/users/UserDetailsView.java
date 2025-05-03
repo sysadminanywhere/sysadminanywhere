@@ -9,6 +9,7 @@ import com.sysadminanywhere.service.UsersService;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
@@ -162,7 +163,9 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
 
         verticalLayout.add(formLayout);
 
-        verticalLayout.add(new Hr(), memberOf);
+        Card card = new Card();
+        card.add(memberOf);
+        verticalLayout.add(card);
     }
 
     private ConfirmDialog deleteDialog() {
