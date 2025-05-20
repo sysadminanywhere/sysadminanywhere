@@ -36,8 +36,11 @@ public class UpdateUserPhotoDialog extends Dialog {
         setHeaderTitle("Updating user photo");
         setWidth("600px");
 
-        StreamResource resource = new StreamResource("", () -> new ByteArrayInputStream(user.getJpegPhoto()));
-        AtomicReference<Image> image = new AtomicReference<>(new Image(resource, ""));
+        AtomicReference<Image> image = new AtomicReference<>(new Image());
+        if (user.getJpegPhoto() != null) {
+            StreamResource resource = new StreamResource("", () -> new ByteArrayInputStream(user.getJpegPhoto()));
+            image = new AtomicReference<>(new Image(resource, ""));
+        }
         image.get().setHeight("400px");
 
         MemoryBuffer buffer = new MemoryBuffer();
@@ -60,6 +63,7 @@ public class UpdateUserPhotoDialog extends Dialog {
 
         AtomicReference<InputStream> fileData = new AtomicReference<>();
 
+        AtomicReference<Image> finalImage = image;
         upload.addSucceededListener(event -> {
             fileData.set(buffer.getInputStream());
 
@@ -71,7 +75,7 @@ public class UpdateUserPhotoDialog extends Dialog {
                 user.setThumbnailPhoto(thumbnailPhoto);
                 return new ByteArrayInputStream(jpegPhoto);
             });
-            image.get().setSrc(resource2);
+            finalImage.get().setSrc(resource2);
         });
 
         VerticalLayout verticalLayout = new VerticalLayout();
@@ -128,7 +132,7 @@ public class UpdateUserPhotoDialog extends Dialog {
     }
 
     @SneakyThrows
-    byte[] resizeImage(InputStream originalImage, int targetWidth, int targetHeight)  {
+    byte[] resizeImage(InputStream originalImage, int targetWidth, int targetHeight) {
 
         BufferedImage image = ImageIO.read(originalImage);
 

@@ -47,6 +47,7 @@ public class UpdateContactDialog extends Dialog {
         txtFirstName.setValue(contact.getFirstName());
         txtFirstName.setRequired(true);
         TextField txtInitials = new TextField("Initials");
+        txtInitials.setValue(contact.getInitials());
         TextField txtLastName = new TextField("Last name");
         txtLastName.setValue(contact.getLastName());
         txtLastName.setRequired(true);

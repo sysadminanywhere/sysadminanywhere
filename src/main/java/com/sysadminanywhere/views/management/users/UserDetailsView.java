@@ -88,6 +88,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
                 lblDescription.setText(user.getDescription());
 
                 avatar.setName(user.getName());
+                avatar.setImageResource(null);
                 if (user.getJpegPhoto() != null) {
                     StreamResource resource = new StreamResource("profile-pic",
                             () -> new ByteArrayInputStream(user.getJpegPhoto()));
@@ -157,7 +158,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
 
         TextField txtHomePhone = new TextField("Home phone");
         txtHomePhone.setReadOnly(true);
-        binder.bind(txtHomePhone, UserEntry::getOfficePhone, null);
+        binder.bind(txtHomePhone, UserEntry::getHomePhone, null);
 
         formLayout.add(txtDisplayName, txtCompany, txtTitle, txtEmail, txtMobilePhone, txtOfficePhone, txtHomePhone);
 
