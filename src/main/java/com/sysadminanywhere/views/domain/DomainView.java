@@ -4,6 +4,7 @@ import com.sysadminanywhere.control.Table;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.model.FunctionalLevel;
 import com.sysadminanywhere.service.LdapService;
+import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
@@ -42,14 +43,32 @@ public class DomainView extends VerticalLayout {
         H5 lblDistinguishedName = new H5();
         lblDistinguishedName.setText(ldapService.getDefaultNamingContext().toUpperCase());
         lblDistinguishedName.setWidth("100%");
+        lblDistinguishedName.getStyle().setMarginBottom("20px");
+
+        add(lblDomain, lblDistinguishedName, getControllers(), getProperties());
+    }
+
+    @SneakyThrows
+    private Card getControllers(){
+        Card card = new Card();
+        card.setTitle("Domain controllers");
 
         List<Entry> controllers = ldapService.search(new Dn("CN=Sites,CN=Configuration," + ldapService.getDefaultNamingContext()), "(objectClass=server)", SearchScope.SUBTREE);
 
-        Table domainControllers = new Table("Domain controllers");
+        Table domainControllers = new Table("");
         for (Entry entry : controllers) {
             String href = "management/computers/" + entry.get("name").getString() + "/details";
             domainControllers.add(entry.get("name").getString(), new Anchor(href, entry.getDn().getName()));
         }
+
+        card.add(domainControllers);
+
+        return card;
+    }
+
+    private Card getProperties(){
+        Card card = new Card();
+        card.setTitle("Properties");
 
         Entry domainEntry = ldapService.getDomainEntry();
 
@@ -57,7 +76,7 @@ public class DomainView extends VerticalLayout {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss.SX").withZone(ZoneId.of("UTC"));
         ZonedDateTime dateTime = ZonedDateTime.parse(ldapTime, formatter);
 
-        Table domainProperties = new Table("Properties");
+        Table domainProperties = new Table("");
         domainProperties.add("Forest functionality", FunctionalLevel.fromValue(domainEntry.get("forestFunctionality").get().getString()));
         domainProperties.add("Supported SASL mechanisms", ADHelper.getAttributeAsCommaSeparated(domainEntry,"supportedSASLMechanisms"));
         domainProperties.add("Supported LDAP version", ADHelper.getAttributeAsCommaSeparated(domainEntry, "supportedLDAPVersion"));
@@ -66,7 +85,9 @@ public class DomainView extends VerticalLayout {
         domainProperties.add("Current time", dateTime.toString());
         domainProperties.add("Max password age", String.valueOf(ldapService.getMaxPwdAgeDays()) + " days");
 
-        add(lblDomain, lblDistinguishedName, domainControllers, domainProperties);
+        card.add(domainProperties);
+
+        return card;
     }
 
 }

@@ -47,6 +47,7 @@ public class UpdateUserDialog extends Dialog {
         txtFirstName.setValue(user.getFirstName());
         txtFirstName.setRequired(true);
         TextField txtInitials = new TextField("Initials");
+        txtInitials.setValue(user.getInitials());
         TextField txtLastName = new TextField("Last name");
         txtLastName.setValue(user.getLastName());
         txtLastName.setRequired(true);

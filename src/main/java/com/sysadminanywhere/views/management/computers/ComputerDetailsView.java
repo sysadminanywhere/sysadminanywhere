@@ -9,6 +9,7 @@ import com.sysadminanywhere.model.wmi.ComputerSystemEntity;
 import com.sysadminanywhere.service.ComputersService;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
@@ -168,7 +169,9 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
 
         verticalLayout.add(formLayout);
 
-        verticalLayout.add(new Hr(), memberOf);
+        Card card = new Card();
+        card.add(memberOf);
+        verticalLayout.add(card);
     }
 
     private ConfirmDialog deleteDialog() {

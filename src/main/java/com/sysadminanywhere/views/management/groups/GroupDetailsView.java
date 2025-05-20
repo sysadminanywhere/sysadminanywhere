@@ -7,6 +7,7 @@ import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.ad.GroupEntry;
 import com.sysadminanywhere.service.GroupsService;
+import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -124,12 +125,9 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
 
         verticalLayout.add(formLayout);
 
-        HorizontalLayout memberLayout = new HorizontalLayout(memberOf /*, members */);
-        memberLayout.setWidthFull();
-        memberLayout.setSpacing(false);
-        memberLayout.getThemeList().add("spacing-xl");
-
-        verticalLayout.add(new Hr(), memberLayout);
+        Card card = new Card();
+        card.add(memberOf);
+        verticalLayout.add(card);
     }
 
     private ConfirmDialog deleteDialog() {

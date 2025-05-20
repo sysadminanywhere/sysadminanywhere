@@ -132,7 +132,7 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver, Menu
 
         TextField txtHomePhone = new TextField("Home phone");
         txtHomePhone.setReadOnly(true);
-        binder.bind(txtHomePhone, ContactEntry::getOfficePhone, null);
+        binder.bind(txtHomePhone, ContactEntry::getHomePhone, null);
 
         formLayout.add(txtDisplayName, txtCompany, txtTitle, txtEmail, txtMobilePhone, txtOfficePhone, txtHomePhone);
 
