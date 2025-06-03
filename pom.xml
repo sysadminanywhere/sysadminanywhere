@@ -6,7 +6,7 @@
     <groupId>com.sysadminanywhere</groupId>
     <artifactId>sysadminanywhere</artifactId>
     <name>sysadminanywhere</name>
-    <version>2.1.7</version>
+    <version>2.1.8</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -52,7 +52,7 @@
             <dependency>
                 <groupId>commons-beanutils</groupId>
                 <artifactId>commons-beanutils</artifactId>
-                <version>1.9.4</version>
+                <version>1.11.0</version>
             </dependency>
             <dependency>
                 <groupId>ar.com.fdvs</groupId>
