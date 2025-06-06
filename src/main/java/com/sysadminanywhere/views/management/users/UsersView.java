@@ -98,6 +98,10 @@ public class UsersView extends Div implements MenuControl {
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
 
+        MenuHelper.createIconItem(menuBar,"/icons/refresh.svg", menuItemClickEvent -> {
+            refreshGrid();
+        });
+
         MenuHelper.createIconItem(menuBar, "/icons/plus.svg", "New", event -> {
             addDialog(this::refreshGrid).open();
         });
