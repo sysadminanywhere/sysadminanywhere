@@ -120,8 +120,6 @@ public class ComputersService {
     public Page<ProcessEntity> getProcesses(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
             String query = "Select * From Win32_Process" + getWmiQueryFromFilters(filters);
-            if (pageable.getPageNumber() == 0)
-                wmiService.clearExecuteCache(hostName, query);
             WmiResolveService<ProcessEntity> wmiResolveService = new WmiResolveService<>(ProcessEntity.class);
             return wmiResolveService.getValues(wmiService.execute(hostName, query), pageable);
         } catch (WmiComException | WqlQuerySyntaxException | TimeoutException ex) {
@@ -131,11 +129,14 @@ public class ComputersService {
         }
     }
 
+    public void clearProcesses(Map<String, String> filters, String hostName) {
+        String query = "Select * From Win32_Process" + getWmiQueryFromFilters(filters);
+        wmiService.clearExecuteCache(hostName, query);
+    }
+
     public Page<ServiceEntity> getServices(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
             String query = "Select * From Win32_Service" + getWmiQueryFromFilters(filters);
-            if (pageable.getPageNumber() == 0)
-                wmiService.clearExecuteCache(hostName, query);
             WmiResolveService<ServiceEntity> wmiResolveService = new WmiResolveService<>(ServiceEntity.class);
             return wmiResolveService.getValues(wmiService.execute(hostName, query), pageable);
         } catch (Exception ex) {
@@ -143,6 +144,11 @@ public class ComputersService {
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
+    }
+
+    public void clearServices(Map<String, String> filters, String hostName) {
+        String query = "Select * From Win32_Service" + getWmiQueryFromFilters(filters);
+        wmiService.clearExecuteCache(hostName, query);
     }
 
     public Page<SoftwareEntity> getSoftware(Pageable pageable, Map<String, String> filters, String hostName) {
@@ -161,39 +167,7 @@ public class ComputersService {
         try {
             WmiResolveService<EventEntity> wmiResolveService = new WmiResolveService<>(EventEntity.class);
 
-            LocalDate date = (LocalDate) filters.get("date");
-
-            String startDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "000000.000000000";
-            String endDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "235959.000000000";
-
-            String queryString = "Select RecordNumber, EventType, EventCode, Type, TimeGenerated, SourceName, Category, Logfile, Message From Win32_NTLogEvent";
-
-            queryString += " Where TimeGenerated >= '" + startDate + "' AND TimeGenerated <= '" + endDate + "'";
-
-            if (!filters.get("sourceName").toString().isEmpty())
-                queryString += " AND sourceName LIKE '" + filters.get("sourceName").toString() + "%'";
-
-            String eventType = filters.get("eventType").toString();
-            switch (eventType) {
-                case "Error":
-                    queryString += " And EventType = 1";
-                    break;
-                case "Warning":
-                    queryString += " And EventType = 2";
-                    break;
-                case "Information":
-                    queryString += " And EventType = 3";
-                    break;
-                case "Audit Success":
-                    queryString += " And EventType = 4";
-                    break;
-                case "Audit Failure":
-                    queryString += " And EventType = 5";
-                    break;
-            }
-
-            if (pageable.getPageNumber() == 0)
-                wmiService.clearExecuteCache(hostName, queryString);
+            String queryString = getEventQueryString(filters);
 
             return wmiResolveService.getValues(wmiService.execute(hostName, queryString), pageable);
         } catch (Exception ex) {
@@ -201,6 +175,45 @@ public class ComputersService {
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
+    }
+
+    private String getEventQueryString(Map<String, Object> filters) {
+        LocalDate date = (LocalDate) filters.get("date");
+
+        String startDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "000000.000000000";
+        String endDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "235959.000000000";
+
+        String queryString = "Select RecordNumber, EventType, EventCode, Type, TimeGenerated, SourceName, Category, Logfile, Message From Win32_NTLogEvent";
+
+        queryString += " Where TimeGenerated >= '" + startDate + "' AND TimeGenerated <= '" + endDate + "'";
+
+        if (!filters.get("sourceName").toString().isEmpty())
+            queryString += " AND sourceName LIKE '" + filters.get("sourceName").toString() + "%'";
+
+        String eventType = filters.get("eventType").toString();
+        switch (eventType) {
+            case "Error":
+                queryString += " And EventType = 1";
+                break;
+            case "Warning":
+                queryString += " And EventType = 2";
+                break;
+            case "Information":
+                queryString += " And EventType = 3";
+                break;
+            case "Audit Success":
+                queryString += " And EventType = 4";
+                break;
+            case "Audit Failure":
+                queryString += " And EventType = 5";
+                break;
+        }
+
+        return queryString;
+    }
+
+    public void clearEvents(Map<String, Object> filters, String hostName) {
+        wmiService.clearExecuteCache(hostName, getEventQueryString(filters));
     }
 
 //    public Page<HardwareEntity> getHardware(Pageable pageable, String hostName) {
