@@ -7,15 +7,19 @@ import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.apache.directory.ldap.client.api.NoVerificationTrustManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Arrays;
-import java.util.List;
+import org.springframework.vault.core.VaultKeyValueOperationsSupport;
+import org.springframework.vault.core.VaultTemplate;
+import org.springframework.vault.support.VaultResponse;
 
 @Configuration
 public class LdapConfig {
+
+    @Autowired
+    private VaultTemplate vaultTemplate;
 
     @Value("${ldap.host.server:localhost}")
     private String server;
@@ -23,24 +27,18 @@ public class LdapConfig {
     @Value("${ldap.host.port:389}")
     private int port;
 
-    @Value("${ldap.host.username:}")
-    private String userName;
-
-    @Value("${ldap.host.password:}")
-    private String password;
-
-    @Value("${ldap.host.groups.allowed:}")
-    private String groupsAllowed;
-
     @SneakyThrows
     @Bean
     public LdapConnection createConnection(LdapConnectionConfig sslConfig) {
         LdapConnection connection = new LdapNetworkConnection(sslConfig);
 
+        VaultResponse response = vaultTemplate
+                .opsForKeyValue("secret", VaultKeyValueOperationsSupport.KeyValueBackend.KV_2).get("SysadminAnywhere");
+
         BindRequest bindRequest = new BindRequestImpl();
-        bindRequest.setCredentials(password);
+        bindRequest.setCredentials(response.getData().get("Password").toString());
         bindRequest.setSimple(true);
-        bindRequest.setName(userName);
+        bindRequest.setName(response.getData().get("UserName").toString());
 
         connection.bind(bindRequest);
 
@@ -61,8 +59,8 @@ public class LdapConfig {
     public DirectoryConfig directoryConfig() {
         DirectoryConfig directoryConfig = new DirectoryConfig();
 
-        if(!groupsAllowed.isEmpty())
-            directoryConfig.setGroupsAllowed(Arrays.asList(groupsAllowed.split(";")));
+//        if(!groupsAllowed.isEmpty())
+//            directoryConfig.setGroupsAllowed(Arrays.asList(groupsAllowed.split(";")));
 
         return directoryConfig;
     }

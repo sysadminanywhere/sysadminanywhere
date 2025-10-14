@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+
+  vault-dev:
+    image: hashicorp/vault:latest
+    container_name: vault-dev
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=myroottoken
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+    ports:
+      - "8200:8200"
+    command: >
+      sh -c "
+        # Запускаем Vault в фоновом режиме
+        vault server -dev -dev-listen-address=0.0.0.0:8200 -dev-root-token-id=myroottoken &
+      
+        # Ждем запуска
+        sleep 5
+      
+        # Устанавливаем переменные окружения для CLI
+        export VAULT_ADDR='http://127.0.0.1:8200'
+        export VAULT_TOKEN='myroottoken'
+      
+        # Записываем секреты
+        vault kv put secret/SysadminAnywhere UserName=admin Password='Secret2#'
+      
+        # Возвращаем управление основному процессу
+        wait
+      "
