@@ -28,3 +28,31 @@ services:
         # Возвращаем управление основному процессу
         wait
       "
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak-dev
+    ports:
+      - "8880:8080"
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+      KC_HOSTNAME: localhost
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+    command:
+      - start-dev
+      - --import-realm
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    container_name: keycloak_db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
