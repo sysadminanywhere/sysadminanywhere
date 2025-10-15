@@ -1,7 +1,7 @@
 package com.sysadminanywhere.directory.controller;
 
-import com.sysadminanywhere.directory.controller.dto.AddGroupDto;
-import com.sysadminanywhere.directory.model.GroupEntry;
+import com.sysadminanywhere.common.directory.dto.AddGroupDto;
+import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.directory.service.GroupsService;
 import lombok.NonNull;
 import org.springdoc.core.annotations.ParameterObject;

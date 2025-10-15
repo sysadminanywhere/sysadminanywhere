@@ -1,7 +1,7 @@
 package com.sysadminanywhere.directory.service;
 
-import com.sysadminanywhere.directory.model.AD;
-import com.sysadminanywhere.directory.model.ADSID;
+import com.sysadminanywhere.common.directory.model.AD;
+import com.sysadminanywhere.common.directory.model.ADSID;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.*;
 import org.apache.directory.api.ldap.model.message.ModifyRequest;

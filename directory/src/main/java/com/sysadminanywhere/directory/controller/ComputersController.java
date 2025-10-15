@@ -1,7 +1,7 @@
 package com.sysadminanywhere.directory.controller;
 
-import com.sysadminanywhere.directory.controller.dto.AddComputerDto;
-import com.sysadminanywhere.directory.model.ComputerEntry;
+import com.sysadminanywhere.common.directory.dto.AddComputerDto;
+import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.directory.service.ComputersService;
 import lombok.NonNull;
 import org.springdoc.core.annotations.ParameterObject;

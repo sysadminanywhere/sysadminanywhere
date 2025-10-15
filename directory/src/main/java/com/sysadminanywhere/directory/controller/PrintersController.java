@@ -1,7 +1,6 @@
 package com.sysadminanywhere.directory.controller;
 
-import com.sysadminanywhere.directory.model.PrinterEntry;
-import com.sysadminanywhere.directory.model.UserEntry;
+import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import com.sysadminanywhere.directory.service.PrintersService;
 import lombok.NonNull;
 import org.springdoc.core.annotations.ParameterObject;

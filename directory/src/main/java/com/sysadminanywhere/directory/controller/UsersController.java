@@ -1,7 +1,7 @@
 package com.sysadminanywhere.directory.controller;
 
-import com.sysadminanywhere.directory.controller.dto.AddUserDto;
-import com.sysadminanywhere.directory.model.UserEntry;
+import com.sysadminanywhere.common.directory.dto.AddUserDto;
+import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.directory.service.UsersService;
 import lombok.NonNull;
 import org.springdoc.core.annotations.ParameterObject;

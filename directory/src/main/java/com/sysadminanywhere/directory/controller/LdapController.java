@@ -1,6 +1,6 @@
 package com.sysadminanywhere.directory.controller;
 
-import com.sysadminanywhere.directory.model.UserEntry;
+import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.directory.service.LdapService;
 import com.sysadminanywhere.directory.service.UsersService;
 import org.springframework.http.HttpStatus;

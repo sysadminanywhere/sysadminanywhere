@@ -1,7 +1,7 @@
 package com.sysadminanywhere.directory.controller;
 
-import com.sysadminanywhere.directory.controller.dto.AddContactDto;
-import com.sysadminanywhere.directory.model.ContactEntry;
+import com.sysadminanywhere.common.directory.dto.AddContactDto;
+import com.sysadminanywhere.common.directory.model.ContactEntry;
 import com.sysadminanywhere.directory.service.ContactsService;
 import lombok.NonNull;
 import org.springdoc.core.annotations.ParameterObject;

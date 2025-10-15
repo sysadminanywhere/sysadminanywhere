@@ -1,6 +1,6 @@
 package com.sysadminanywhere.directory.service;
 
-import com.sysadminanywhere.directory.model.PrinterEntry;
+import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;

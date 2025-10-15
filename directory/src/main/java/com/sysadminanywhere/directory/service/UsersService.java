@@ -1,7 +1,7 @@
 package com.sysadminanywhere.directory.service;
 
-import com.sysadminanywhere.directory.model.UserAccountControls;
-import com.sysadminanywhere.directory.model.UserEntry;
+import com.sysadminanywhere.common.directory.model.UserAccountControls;
+import com.sysadminanywhere.common.directory.model.UserEntry;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
