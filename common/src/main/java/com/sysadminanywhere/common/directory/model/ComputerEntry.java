@@ -1,4 +1,4 @@
-package com.sysadminanywhere.directory.model;
+package com.sysadminanywhere.common.directory.model;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

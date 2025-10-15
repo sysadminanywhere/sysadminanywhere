@@ -1,4 +1,4 @@
-package com.sysadminanywhere.directory.model;
+package com.sysadminanywhere.common.directory.model;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -12,7 +12,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ContactEntry {
+public class UserEntry {
 
     @NotNull
     @AD(name = "cn", IsReadOnly = true)
@@ -46,6 +46,24 @@ public class ContactEntry {
     @AD(name = "objectsid", IsReadOnly = true)
     private ADSID sid;
 
+    @AD(name = "samaccountname")
+    private String samAccountName;
+
+    @AD(name = "accountexpires")
+    private LocalDateTime accountExpirationDate;
+
+    @AD(name = "badpwdcount", IsReadOnly = true)
+    private int badLogonCount;
+
+    @AD(name = "badpasswordtime", IsReadOnly = true)
+    private LocalDateTime lastBadPasswordAttempt;
+
+    @AD(name = "lastlogon", IsReadOnly = true)
+    private LocalDateTime lastLogon;
+
+    @AD(name = "lockouttime")
+    private LocalDateTime accountLockoutTime;
+
     @AD(name = "l")
     private String city;
 
@@ -76,6 +94,12 @@ public class ContactEntry {
     @AD(name = "givenName")
     private String firstName;
 
+    @AD(name = "homedirectory")
+    private String homeDirectory;
+
+    @AD(name = "homedrive")
+    private String homeDrive;
+
     @AD(name = "wwwhomepage")
     private String homePage;
 
@@ -84,6 +108,15 @@ public class ContactEntry {
 
     @AD(name = "initials")
     private String initials;
+
+    @AD(name = "userworkstations")
+    private String logonWorkstations;
+
+    @AD(name = "manager")
+    private String manager;
+
+    @AD(name = "memberof", IsReadOnly = true)
+    private List<String> memberOf;
 
     @AD(name = "mobile")
     private String mobilePhone;
@@ -100,11 +133,20 @@ public class ContactEntry {
     @AD(name = "middlename")
     private String otherName;
 
+    @AD(name = "pwdlastset")
+    private LocalDateTime passwordLastSet;
+
     @AD(name = "postofficebox")
     private String pOBox;
 
     @AD(name = "postalcode")
     private String postalCode;
+
+    @AD(name = "profilepath")
+    private String profilePath;
+
+    @AD(name = "scriptpath")
+    private String scriptPath;
 
     @AD(name = "st")
     private String state;
@@ -118,8 +160,26 @@ public class ContactEntry {
     @AD(name = "title")
     private String title;
 
+    @AD(name = "userprincipalname")
+    private String userPrincipalName;
+
+    @AD(name = "primarygroupid")
+    private int primaryGroupId;
+
+    @AD(name = "useraccountcontrol")
+    private int userAccountControl;
+
+    @AD(name = "iscriticalsystemobject")
+    private boolean isCriticalSystemObject;
+
+    @AD(name = "samaccounttype")
+    private int samAccountType;
+
     @AD(name = "countrycode")
     private int countryCode;
+
+    @AD(name = "logoncount")
+    private int logonCount;
 
     @AD(name = "adspath")
     private String adsPath;
@@ -127,7 +187,28 @@ public class ContactEntry {
     @AD(name = "name")
     private String name;
 
+    @AD(name = "lastlogoff")
+    private int lastLogoff;
+
     @AD(name = "instancetype")
     private int instanceType;
+
+    @AD(name = "codepage")
+    private int codepage;
+
+    @AD(name = "admincount")
+    private int adminCount;
+
+    @AD(name = "managedobjects")
+    private List<String> managedObjects;
+
+    @AD(name = "serviceprincipalname")
+    private String servicePrincipalName;
+
+    @AD(name = "logonhours")
+    private byte[] logonHours;
+
+    @AD(name = "jpegphoto")
+    private byte[] jpegPhoto;
 
 }

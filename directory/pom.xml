@@ -72,6 +72,11 @@
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.sysadminanywhere</groupId>
+            <artifactId>common</artifactId>
+            <version>3.0.0</version>
+        </dependency>
     </dependencies>
 
 	<build>

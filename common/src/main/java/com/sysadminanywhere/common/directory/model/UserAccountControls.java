@@ -1,6 +1,4 @@
-package com.sysadminanywhere.directory.model;
-
-import java.util.EnumSet;
+package com.sysadminanywhere.common.directory.model;
 
 public enum UserAccountControls {
     SCRIPT(0x00000001),
