@@ -2,7 +2,6 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.directory.controller.dto.AddGroupDto;
 import com.sysadminanywhere.directory.model.GroupEntry;
-import com.sysadminanywhere.directory.model.UserEntry;
 import com.sysadminanywhere.directory.service.GroupsService;
 import lombok.NonNull;
 import org.springdoc.core.annotations.ParameterObject;
@@ -11,8 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 
 @RestController
