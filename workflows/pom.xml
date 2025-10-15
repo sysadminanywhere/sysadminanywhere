@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.sysadminanywhere</groupId>
 	<artifactId>workflows</artifactId>
-	<version>1.0.0</version>
+	<version>3.0.0</version>
 	<name>workflows</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>

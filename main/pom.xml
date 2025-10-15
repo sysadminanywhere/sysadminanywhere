@@ -6,7 +6,7 @@
     <groupId>com.sysadminanywhere</groupId>
     <artifactId>main</artifactId>
     <name>sysadminanywhere</name>
-    <version>2.2.0</version>
+    <version>3.0.0</version>
     <packaging>jar</packaging>
 
     <properties>
