@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <!-- Project from https://start.vaadin.com/project/ba723ba2-c52c-4210-93b9-e4b18af09dc0 -->
+
     <groupId>com.sysadminanywhere</groupId>
     <artifactId>main</artifactId>
     <name>sysadminanywhere</name>
@@ -11,7 +11,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <vaadin.version>24.7.2</vaadin.version>
+        <vaadin.version>24.9.2</vaadin.version>
     </properties>
 
     <parent>
