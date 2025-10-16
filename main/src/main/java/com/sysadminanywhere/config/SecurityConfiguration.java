@@ -1,42 +1,31 @@
 package com.sysadminanywhere.config;
 
-import com.sysadminanywhere.views.login.LoginView;
-import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.SecurityFilterChain;
 
-@EnableWebSecurity
 @Configuration
-public class SecurityConfiguration extends VaadinWebSecurity {
+@EnableMethodSecurity
+public class SecurityConfiguration {
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/public/**").permitAll()
+                        .requestMatchers("/oauth2/**", "/login**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/oauth2/authorization/keycloak")
+                )
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/")
+                )
+                .csrf(csrf -> csrf.disable());
+
+        return http.build();
     }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-
-        http.authorizeHttpRequests(
-                authorize -> authorize.requestMatchers(new AntPathRequestMatcher("/images/*.png")).permitAll());
-
-        http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(new AntPathRequestMatcher("/line-awesome/**/*.svg")).permitAll());
-
-        setLoginView(http, LoginView.class);
-
-        http.formLogin(login -> login
-                .loginPage("/login")
-                .defaultSuccessUrl("/", true)
-                .permitAll()
-        );
-
-        super.configure(http);
-    }
-
 }
