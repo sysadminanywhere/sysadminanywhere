@@ -40,6 +40,8 @@ import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
@@ -165,16 +167,22 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        if (ldapService.getConnection().isConnected()) {
-            Optional<UserEntry> maybeUser = authenticatedUser.get();
-            if (maybeUser.isPresent()) {
-                UserEntry user = maybeUser.get();
-                if (!loginService.isLoggedIn())
-                    loginService.Login(user);
-            } else {
-                UI.getCurrent().navigate(LoginView.class);
-            }
-        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        var principal = authentication.getPrincipal();
+
+        authentication.isAuthenticated();
+
+//        if (ldapService.getConnection().isConnected()) {
+//            Optional<UserEntry> maybeUser = authenticatedUser.get();
+//            if (maybeUser.isPresent()) {
+//                UserEntry user = maybeUser.get();
+//                if (!loginService.isLoggedIn())
+//                    loginService.Login(user);
+//            } else {
+//                UI.getCurrent().navigate(LoginView.class);
+//            }
+//        }
     }
 
     @Override
