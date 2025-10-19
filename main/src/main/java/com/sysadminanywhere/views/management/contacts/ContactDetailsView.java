@@ -2,7 +2,7 @@ package com.sysadminanywhere.views.management.contacts;
 
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.ad.ContactEntry;
+import com.sysadminanywhere.common.directory.model.ContactEntry;
 import com.sysadminanywhere.service.ContactsService;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;

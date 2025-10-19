@@ -1,10 +1,9 @@
 package com.sysadminanywhere.views.management.users;
 
+import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.control.MemberOf;
 import com.sysadminanywhere.control.MenuControl;
-import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.service.UsersService;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
@@ -16,7 +15,6 @@ import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
@@ -38,8 +36,6 @@ import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.dialog.Dialog;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 @PageTitle("User details")
 @Route(value = "management/users/:id?/details")
@@ -246,16 +242,16 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
         VerticalLayout checkboxGroup = new VerticalLayout();
         formLayout.setColspan(checkboxGroup, 2);
         Checkbox chkUserMustChangePassword = new Checkbox("User must change password at next logon");
-        chkUserMustChangePassword.setValue(user.isUserMustChangePassword());
+        //chkUserMustChangePassword.setValue(user.isUserMustChangePassword());
 
         Checkbox chkUserCannotChangePassword = new Checkbox("User cannot change password");
-        chkUserCannotChangePassword.setValue(user.isUserCannotChangePassword());
+        //chkUserCannotChangePassword.setValue(user.isUserCannotChangePassword());
 
         Checkbox chkPasswordNeverExpires = new Checkbox("Password never expires");
-        chkPasswordNeverExpires.setValue(user.isNeverExpires());
+        //chkPasswordNeverExpires.setValue(user.isNeverExpires());
 
         Checkbox chkAccountDisabled = new Checkbox("Account disabled");
-        chkAccountDisabled.setValue(user.isDisabled());
+        //chkAccountDisabled.setValue(user.isDisabled());
 
         checkboxGroup.add(chkUserMustChangePassword, chkUserCannotChangePassword, chkPasswordNeverExpires, chkAccountDisabled);
 

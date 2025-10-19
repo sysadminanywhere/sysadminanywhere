@@ -7,7 +7,7 @@ import com.sysadminanywhere.model.SoftwareOnComputer;
 import com.sysadminanywhere.entity.Computer;
 import com.sysadminanywhere.entity.Installation;
 import com.sysadminanywhere.entity.Software;
-import com.sysadminanywhere.model.ad.ComputerEntry;
+import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.model.wmi.HardwareEntity;
 import com.sysadminanywhere.model.wmi.SoftwareEntity;
 import com.sysadminanywhere.repository.ComputerRepository;
@@ -109,13 +109,13 @@ public class InventoryService {
 
         log.info("Found {} computers", computers.size());
 
-        for (ComputerEntry computerEntry : computers) {
-            if (!computerEntry.isDisabled()) {
-                Computer computer = checkComputer(computerEntry);
-                scanSoftware(computer);
-                scanHardware(computer);
-            }
-        }
+//        for (ComputerEntry computerEntry : computers) {
+//            if (!computerEntry.isDisabled()) {
+//                Computer computer = checkComputer(computerEntry);
+//                scanSoftware(computer);
+//                scanHardware(computer);
+//            }
+//        }
 
         ldapService = null;
         wmiService = null;

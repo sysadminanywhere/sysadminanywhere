@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.control.CronEditor;
 import com.sysadminanywhere.entity.RuleEntity;
-import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.model.monitoring.Rule;
 import com.sysadminanywhere.service.MonitoringService;
 import com.vaadin.flow.component.Component;
@@ -19,7 +18,6 @@ import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextField;
 import lombok.SneakyThrows;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class UpdateRuleDialog extends Dialog {

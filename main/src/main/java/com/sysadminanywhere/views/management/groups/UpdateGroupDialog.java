@@ -1,6 +1,6 @@
 package com.sysadminanywhere.views.management.groups;
 
-import com.sysadminanywhere.model.ad.GroupEntry;
+import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.service.GroupsService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;

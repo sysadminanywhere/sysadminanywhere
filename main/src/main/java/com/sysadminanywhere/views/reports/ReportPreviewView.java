@@ -2,10 +2,10 @@ package com.sysadminanywhere.views.reports;
 
 import ar.com.fdvs.dj.domain.AutoText;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sysadminanywhere.model.ad.ComputerEntry;
-import com.sysadminanywhere.model.ad.GroupEntry;
+import com.sysadminanywhere.common.directory.model.UserEntry;
+import com.sysadminanywhere.common.directory.model.ComputerEntry;
+import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.model.ReportItem;
-import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.service.*;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
@@ -19,7 +19,6 @@ import org.springframework.core.io.Resource;
 import org.vaadin.reports.PrintPreviewReport;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;

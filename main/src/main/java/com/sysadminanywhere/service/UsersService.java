@@ -1,7 +1,8 @@
 package com.sysadminanywhere.service;
 
-import com.sysadminanywhere.model.ad.UserAccountControls;
-import com.sysadminanywhere.model.ad.UserEntry;
+import com.sysadminanywhere.client.directory.UsersServiceClient;
+import com.sysadminanywhere.common.directory.model.UserEntry;
+import com.sysadminanywhere.common.directory.model.UserAccountControls;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -16,17 +17,20 @@ import java.util.Optional;
 public class UsersService {
 
     private final LdapService ldapService;
+    private final UsersServiceClient usersServiceClient;
 
     ResolveService<UserEntry> resolveService = new ResolveService<>(UserEntry.class);
 
-    public UsersService(LdapService ldapService) {
+    public UsersService(LdapService ldapService, UsersServiceClient usersServiceClient) {
         this.ldapService = ldapService;
+        this.usersServiceClient = usersServiceClient;
     }
 
     @SneakyThrows
     public Page<UserEntry> getAll(Pageable pageable, String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=user)(objectCategory=person)" + filters + ")", pageable.getSort());
-        return resolveService.getADPage(result, pageable);
+//        List<Entry> result = ldapService.search("(&(objectClass=user)(objectCategory=person)" + filters + ")", pageable.getSort());
+//        return resolveService.getADPage(result, pageable);
+        return usersServiceClient.getUsers(pageable, filters);
     }
 
     public List<UserEntry> getAll(String filters) {

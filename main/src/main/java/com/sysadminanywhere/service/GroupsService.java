@@ -1,8 +1,8 @@
 package com.sysadminanywhere.service;
 
-import com.sysadminanywhere.model.ad.GroupEntry;
-import com.sysadminanywhere.model.ad.GroupScope;
-import com.sysadminanywhere.model.ad.GroupType;
+import com.sysadminanywhere.common.directory.model.GroupEntry;
+import com.sysadminanywhere.common.directory.model.GroupScope;
+import com.sysadminanywhere.common.directory.model.GroupType;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;

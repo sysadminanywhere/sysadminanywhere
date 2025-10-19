@@ -2,7 +2,7 @@ package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.ad.ComputerEntry;
+import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;

@@ -2,7 +2,6 @@ package com.sysadminanywhere.views;
 
 import com.sysadminanywhere.control.MenuButton;
 import com.sysadminanywhere.control.MenuControl;
-import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.service.LoginService;
@@ -13,7 +12,6 @@ import com.sysadminanywhere.views.domain.AuditView;
 import com.sysadminanywhere.views.domain.DashboardView;
 import com.sysadminanywhere.views.domain.DomainView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
-import com.sysadminanywhere.views.login.LoginView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
 import com.sysadminanywhere.views.management.groups.GroupsView;
@@ -42,8 +40,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Optional;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 @Layout
 @PermitAll
@@ -168,11 +165,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        var principal = authentication.getPrincipal();
-
-        authentication.isAuthenticated();
-
+        if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
+            String userName = jwt.getClaim("preferred_username");
+        }
 //        if (ldapService.getConnection().isConnected()) {
 //            Optional<UserEntry> maybeUser = authenticatedUser.get();
 //            if (maybeUser.isPresent()) {

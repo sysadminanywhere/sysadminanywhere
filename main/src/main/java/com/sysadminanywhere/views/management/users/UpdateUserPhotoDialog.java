@@ -1,6 +1,6 @@
 package com.sysadminanywhere.views.management.users;
 
-import com.sysadminanywhere.model.ad.UserEntry;
+import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.service.UsersService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -72,7 +72,7 @@ public class UpdateUserPhotoDialog extends Dialog {
 
             StreamResource resource2 = new StreamResource("", () -> {
                 user.setJpegPhoto(jpegPhoto);
-                user.setThumbnailPhoto(thumbnailPhoto);
+                //user.setThumbnailPhoto(thumbnailPhoto);
                 return new ByteArrayInputStream(jpegPhoto);
             });
             finalImage.get().setSrc(resource2);
@@ -109,7 +109,7 @@ public class UpdateUserPhotoDialog extends Dialog {
 
             try {
                 entry.setJpegPhoto(null);
-                entry.setThumbnailPhoto(null);
+                //entry.setThumbnailPhoto(null);
 
                 usersService.update(entry);
                 updateView.run();

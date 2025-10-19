@@ -5,7 +5,7 @@ import com.sysadminanywhere.control.Members;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.ad.GroupEntry;
+import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.service.GroupsService;
 import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
@@ -118,7 +118,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
         FormLayout formLayout = new FormLayout();
 
         TextField txtGroupType = new TextField("Group type");
-        binder.bind(txtGroupType, GroupEntry::getADGroupType, null);
+        //binder.bind(txtGroupType, GroupEntry::getADGroupType, null);
         txtGroupType.setReadOnly(true);
 
         formLayout.add(txtGroupType);

@@ -1,14 +1,13 @@
 package com.sysadminanywhere.views.account;
 
+import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.ad.UserEntry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.management.users.UpdateUserDialog;
 import com.sysadminanywhere.views.management.users.UpdateUserPhotoDialog;
 import com.vaadin.flow.component.avatar.Avatar;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H3;

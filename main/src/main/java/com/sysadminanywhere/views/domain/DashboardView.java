@@ -8,7 +8,8 @@ import com.github.appreciated.apexcharts.config.chart.builder.ToolbarBuilder;
 import com.github.appreciated.apexcharts.config.plotoptions.builder.BarBuilder;
 import com.github.appreciated.apexcharts.config.builder.XAxisBuilder;
 import com.github.appreciated.apexcharts.helper.Series;
-import com.sysadminanywhere.model.ad.*;
+import com.sysadminanywhere.common.directory.model.UserEntry;
+import com.sysadminanywhere.common.directory.model.*;
 import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.service.ResolveService;
 import com.vaadin.flow.component.UI;
@@ -111,11 +112,11 @@ public class DashboardView extends VerticalLayout {
                             .withWidth(2.0)
                             .withColors("transparent")
                             .build())
-                    .withSeries(new Series<>("Number of users", users.size()),
-                            new Series<>("Disabled", users.stream().filter(c -> c.isDisabled()).count()),
-                            new Series<>("Locked", users.stream().filter(c -> c.isLocked()).count()),
-                            new Series<>("Expired", users.stream().filter(c -> c.isExpired()).count()),
-                            new Series<>("Never expires", users.stream().filter(c -> c.isNeverExpires()).count()))
+//                    .withSeries(new Series<>("Number of users", users.size()),
+//                            new Series<>("Disabled", users.stream().filter(c -> c.isDisabled()).count()),
+//                            new Series<>("Locked", users.stream().filter(c -> c.isLocked()).count()),
+//                            new Series<>("Expired", users.stream().filter(c -> c.isExpired()).count()),
+//                            new Series<>("Never expires", users.stream().filter(c -> c.isNeverExpires()).count()))
                     .withXaxis(XAxisBuilder.get().withCategories("Count").build())
                     .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
             chartUsers.setHeight(ChartHeight);
@@ -144,11 +145,11 @@ public class DashboardView extends VerticalLayout {
                             .withWidth(2.0)
                             .withColors("transparent")
                             .build())
-                    .withSeries(new Series<>("Number of computers", computers.size()),
-                            new Series<>("Disabled", computers.stream().filter(c -> c.isDisabled()).count()),
-                            new Series<>("Workstations", computers.stream().filter(c -> c.isWorkstation()).count()),
-                            new Series<>("Servers", computers.stream().filter(c -> c.isServer()).count()),
-                            new Series<>("Domain controllers", computers.stream().filter(c -> c.isDomainController()).count()))
+//                    .withSeries(new Series<>("Number of computers", computers.size()),
+//                            new Series<>("Disabled", computers.stream().filter(c -> c.isDisabled()).count()),
+//                            new Series<>("Workstations", computers.stream().filter(c -> c.isWorkstation()).count()),
+//                            new Series<>("Servers", computers.stream().filter(c -> c.isServer()).count()),
+//                            new Series<>("Domain controllers", computers.stream().filter(c -> c.isDomainController()).count()))
                     .withXaxis(XAxisBuilder.get().withCategories("Count").build())
                     .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
             chartComputers.setHeight(ChartHeight);
@@ -177,10 +178,10 @@ public class DashboardView extends VerticalLayout {
                             .withWidth(2.0)
                             .withColors("transparent")
                             .build())
-                    .withSeries(new Series<>("Number of groups", groups.size()),
-                            new Series<>("Security", groups.stream().filter(c -> c.isSecurity()).count()),
-                            new Series<>("Distribution", groups.stream().filter(c -> c.isDistribution()).count()),
-                            new Series<>("BuiltIn", groups.stream().filter(c -> c.isBuiltIn()).count()))
+//                    .withSeries(new Series<>("Number of groups", groups.size()),
+//                            new Series<>("Security", groups.stream().filter(c -> c.isSecurity()).count()),
+//                            new Series<>("Distribution", groups.stream().filter(c -> c.isDistribution()).count()),
+//                            new Series<>("BuiltIn", groups.stream().filter(c -> c.isBuiltIn()).count()))
                     .withXaxis(XAxisBuilder.get().withCategories("Count").build())
                     .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
             chartGroups.setHeight(ChartHeight);

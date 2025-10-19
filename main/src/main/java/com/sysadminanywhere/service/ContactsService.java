@@ -1,6 +1,6 @@
 package com.sysadminanywhere.service;
 
-import com.sysadminanywhere.model.ad.ContactEntry;
+import com.sysadminanywhere.common.directory.model.ContactEntry;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;

@@ -1,6 +1,6 @@
 package com.sysadminanywhere.views.management.users;
 
-import com.sysadminanywhere.model.ad.UserEntry;
+import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.service.UsersService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;

@@ -1,6 +1,6 @@
 package com.sysadminanywhere.views.management.printers;
 
-import com.sysadminanywhere.model.ad.PrinterEntry;
+import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import com.sysadminanywhere.service.PrintersService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;

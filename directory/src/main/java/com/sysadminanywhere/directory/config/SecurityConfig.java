@@ -18,7 +18,6 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
-                        // Разрешаем доступ к Swagger и публичным API
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",

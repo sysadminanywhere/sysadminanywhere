@@ -1,7 +1,7 @@
 package com.sysadminanywhere.service;
 
-import com.sysadminanywhere.model.ad.AD;
-import com.sysadminanywhere.model.ad.ADSID;
+import com.sysadminanywhere.common.directory.model.AD;
+import com.sysadminanywhere.common.directory.model.ADSID;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.entry.*;

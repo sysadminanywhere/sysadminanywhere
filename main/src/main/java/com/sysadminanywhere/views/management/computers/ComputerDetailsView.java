@@ -4,7 +4,7 @@ import com.sysadminanywhere.control.MemberOf;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.ad.ComputerEntry;
+import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.model.wmi.ComputerSystemEntity;
 import com.sysadminanywhere.service.ComputersService;
 import com.vaadin.flow.component.ClickEvent;

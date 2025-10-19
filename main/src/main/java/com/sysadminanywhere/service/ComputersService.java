@@ -1,6 +1,6 @@
 package com.sysadminanywhere.service;
 
-import com.sysadminanywhere.model.ad.*;
+import com.sysadminanywhere.common.directory.model.*;
 import com.sysadminanywhere.model.wmi.*;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;

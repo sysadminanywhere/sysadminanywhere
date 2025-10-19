@@ -12,7 +12,7 @@ import com.github.appreciated.apexcharts.config.plotoptions.radialbar.builder.Ho
 import com.github.appreciated.apexcharts.config.stroke.Curve;
 import com.github.appreciated.apexcharts.config.xaxis.TickPlacement;
 import com.github.appreciated.apexcharts.helper.Series;
-import com.sysadminanywhere.model.ad.ComputerEntry;
+import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
