@@ -2,8 +2,8 @@ package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.domain.DirectorySetting;
 import com.sysadminanywhere.model.AuditItem;
-import com.sysadminanywhere.model.Container;
-import com.sysadminanywhere.model.Containers;
+import com.sysadminanywhere.common.directory.model.Container;
+import com.sysadminanywhere.common.directory.model.Containers;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import lombok.SneakyThrows;

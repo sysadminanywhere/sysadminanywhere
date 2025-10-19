@@ -1,12 +1,8 @@
 package com.sysadminanywhere.control;
 
 import com.sysadminanywhere.domain.ADHelper;
-import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.Container;
-import com.sysadminanywhere.model.Containers;
 import com.sysadminanywhere.model.GroupItem;
 import com.sysadminanywhere.service.LdapService;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.HasComponents;
 import com.vaadin.flow.component.HasSize;
@@ -19,21 +15,15 @@ import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.listbox.ListBox;
-import com.vaadin.flow.component.menubar.MenuBar;
-import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Value;
-import org.apache.directory.api.ldap.model.exception.LdapException;
-import org.vaadin.tatu.Tree;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
 

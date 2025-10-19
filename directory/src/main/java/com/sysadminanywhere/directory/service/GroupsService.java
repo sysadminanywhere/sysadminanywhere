@@ -31,6 +31,11 @@ public class GroupsService {
         return resolveService.getADPage(result, pageable);
     }
 
+    public List<GroupEntry> getAll(String filters) {
+        List<Entry> result = ldapService.search("(&(objectClass=group)" + filters + ")");
+        return resolveService.getADList(result);
+    }
+
     public GroupEntry getByCN(String cn) {
         List<Entry> result = ldapService.search("(&(objectClass=group)(cn=" + cn + "))");
         Optional<Entry> entry = result.stream().findFirst();
@@ -45,7 +50,7 @@ public class GroupsService {
     public GroupEntry add(String distinguishedName, GroupEntry group, GroupScope groupScope, boolean isSecurity) {
         String dn;
 
-        if(distinguishedName.isEmpty()) {
+        if (distinguishedName == null || distinguishedName.isEmpty()) {
             dn = "cn=" + group.getCn() + "," + ldapService.getUsersContainer();
         } else {
             dn = "cn=" + group.getCn() + "," + distinguishedName;
@@ -58,7 +63,6 @@ public class GroupsService {
 
         Entry entry = new DefaultEntry(
                 dn,
-                "description", group.getDescription(),
                 "sAMAccountName", group.getSamAccountName(),
                 "objectClass:group",
                 "groupType", String.valueOf(group.getGroupType()),
@@ -66,7 +70,13 @@ public class GroupsService {
         );
 
         ldapService.add(entry);
-        return getByCN(group.getCn());
+
+        GroupEntry newGroup = getByCN(group.getCn());
+
+        if (group.getDescription() != null && !group.getDescription().isEmpty())
+            ldapService.updateProperty(newGroup.getDistinguishedName(), "location", group.getDescription());
+
+        return newGroup;
     }
 
     public GroupEntry update(GroupEntry group) {
@@ -121,6 +131,14 @@ public class GroupsService {
                 groupType = GroupType.UNIVERSAL.getValue();
         }
         return groupType;
+    }
+
+    public String getDefaultContainer() {
+        return ldapService.getUsersContainer();
+    }
+
+    public LdapService getLdapService() {
+        return ldapService;
     }
 
 }

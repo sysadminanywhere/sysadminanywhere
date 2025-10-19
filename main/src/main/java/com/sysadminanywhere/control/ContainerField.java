@@ -1,7 +1,7 @@
 package com.sysadminanywhere.control;
 
-import com.sysadminanywhere.model.Container;
-import com.sysadminanywhere.model.Containers;
+import com.sysadminanywhere.common.directory.model.Container;
+import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;

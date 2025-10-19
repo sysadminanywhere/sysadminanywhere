@@ -1,4 +1,4 @@
-package com.sysadminanywhere.model;
+package com.sysadminanywhere.common.directory.model;
 
 import java.util.ArrayList;
 import java.util.Comparator;

@@ -43,7 +43,7 @@ public class ContactsService {
     public ContactEntry add(String distinguishedName, ContactEntry contact) {
         String dn;
 
-        if(distinguishedName.isEmpty()) {
+        if (distinguishedName == null || distinguishedName.isEmpty()) {
             dn = "cn=" + contact.getCn() + "," + ldapService.getUsersContainer();
         } else {
             dn = "cn=" + contact.getCn() + "," + distinguishedName;
@@ -52,7 +52,6 @@ public class ContactsService {
         Entry entry = new DefaultEntry(
                 dn,
                 "displayName", contact.getDisplayName(),
-                "initials", contact.getInitials(),
                 "givenName", contact.getFirstName(),
                 "sn", contact.getLastName(),
                 "objectClass:contact",
@@ -62,7 +61,12 @@ public class ContactsService {
 
         ldapService.add(entry);
 
-        return getByCN(contact.getCn());
+        ContactEntry newContact = getByCN(contact.getCn());
+
+        if (contact.getInitials() != null && !contact.getInitials().isEmpty())
+            ldapService.updateProperty(newContact.getDistinguishedName(), "initials", contact.getInitials());
+
+        return newContact;
     }
 
     public ContactEntry update(ContactEntry contact) {
@@ -76,6 +80,14 @@ public class ContactsService {
     public void delete(String distinguishedName) {
         Entry entry = new DefaultEntry(distinguishedName);
         ldapService.delete(entry);
+    }
+
+    public String getDefaultContainer() {
+        return ldapService.getUsersContainer();
+    }
+
+    public LdapService getLdapService() {
+        return ldapService;
     }
 
 }

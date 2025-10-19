@@ -5,7 +5,6 @@ import com.sysadminanywhere.common.directory.model.UserEntry;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
-import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,9 +24,14 @@ public class UsersService {
     }
 
     @SneakyThrows
-    public Page<UserEntry> getAll(@ParameterObject Pageable pageable, String filters) {
+    public Page<UserEntry> getAll(Pageable pageable, String filters) {
         List<Entry> result = ldapService.search("(&(objectClass=user)(objectCategory=person)" + filters + ")", pageable.getSort());
         return resolveService.getADPage(result, pageable);
+    }
+
+    public List<UserEntry> getAll(String filters) {
+        List<Entry> result = ldapService.search("(&(objectClass=user)(objectCategory=person)" + filters + ")");
+        return resolveService.getADList(result);
     }
 
     public UserEntry getByCN(String cn) {
@@ -57,7 +61,7 @@ public class UsersService {
 
         String dn;
 
-        if(distinguishedName.isEmpty()) {
+        if (distinguishedName == null || distinguishedName.isEmpty()) {
             dn = "cn=" + user.getCn() + "," + ldapService.getUsersContainer();
         } else {
             dn = "cn=" + user.getCn() + "," + distinguishedName;
@@ -66,7 +70,6 @@ public class UsersService {
         Entry entry = new DefaultEntry(
                 dn,
                 "displayName", user.getDisplayName(),
-                "initials", user.getInitials(),
                 "givenName", user.getFirstName(),
                 "sn", user.getLastName(),
                 "sAMAccountName", user.getSamAccountName(),
@@ -81,15 +84,18 @@ public class UsersService {
 
         UserEntry newUser = getByCN(user.getCn());
 
-        ChangeUserAccountControlAsync(newUser, isCannotChangePassword, isPasswordNeverExpires, isAccountDisabled);
+        ChangeUserAccountControl(newUser, isCannotChangePassword, isPasswordNeverExpires, isAccountDisabled);
 
         if (isMustChangePassword)
             MustChangePasswordAsync(newUser);
 
+        if (user.getInitials() != null && !user.getInitials().isEmpty())
+            ldapService.updateProperty(newUser.getDistinguishedName(), "initials", user.getInitials());
+
         return newUser;
     }
 
-    private void ChangeUserAccountControlAsync(UserEntry user, boolean isCannotChangePassword, boolean isPasswordNeverExpires, boolean isAccountDisabled) {
+    public void ChangeUserAccountControl(UserEntry user, boolean isCannotChangePassword, boolean isPasswordNeverExpires, boolean isAccountDisabled) {
         int userAccountControl = user.getUserAccountControl();
 
         if (isCannotChangePassword)
@@ -107,11 +113,11 @@ public class UsersService {
         else
             userAccountControl = userAccountControl & ~UserAccountControls.ACCOUNTDISABLE.getValue();
 
-        ldapService.updateProperty(user.getDistinguishedName(),"userAccountControl", String.valueOf(userAccountControl));
+        ldapService.updateProperty(user.getDistinguishedName(), "userAccountControl", String.valueOf(userAccountControl));
     }
 
     private void MustChangePasswordAsync(UserEntry user) {
-        ldapService.updateProperty(user.getDistinguishedName(),"pwdlastset", "0");
+        ldapService.updateProperty(user.getDistinguishedName(), "pwdlastset", "0");
     }
 
     @SneakyThrows
@@ -131,6 +137,19 @@ public class UsersService {
 
     public UserAccountControls getUserControl(int userAccountControl) {
         return UserAccountControls.fromValue(userAccountControl);
+    }
+
+    public String getDefaultContainer() {
+        return ldapService.getUsersContainer();
+    }
+
+    public void resetPassword(UserEntry user, String password) {
+        ldapService.updateProperty(user.getDistinguishedName(), "userPassword", password);
+        ldapService.updateProperty(user.getDistinguishedName(), "pwdLastSet", "0");
+    }
+
+    public LdapService getLdapService() {
+        return ldapService;
     }
 
 }
