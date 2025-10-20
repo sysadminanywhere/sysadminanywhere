@@ -82,4 +82,50 @@ public class GroupEntry {
     @AD(name = "primarygroupid")
     private int primaryGroupId;
 
+    public String getADGroupType() {
+        return getGroupType(groupType);
+    }
+
+    public boolean isSecurity() {
+        return getADGroupType().contains("security");
+    }
+
+    public boolean isDistribution() {
+        return getADGroupType().contains("distribution");
+    }
+
+    public boolean isBuiltIn() {
+        return getADGroupType().contains("BuiltIn");
+    }
+
+    private String getGroupType(long groupType)
+    {
+        switch ((int) groupType)
+        {
+            case 2:
+                return "Global distribution group";
+
+            case 4:
+                return "Domain local distribution group";
+
+            case 8:
+                return "Universal distribution group";
+
+            case -2147483646:
+                return "Global security group";
+
+            case -2147483644:
+                return "Domain local security group";
+
+            case -2147483640:
+                return "Universal security group";
+
+            case -2147483643:
+                return "BuiltIn group";
+
+            default:
+                return "";
+        }
+    }
+
 }

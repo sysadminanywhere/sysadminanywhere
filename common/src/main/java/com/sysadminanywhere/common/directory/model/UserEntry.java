@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -209,6 +208,36 @@ public class UserEntry {
     private byte[] logonHours;
 
     @AD(name = "jpegphoto")
-    private byte[] jpegPhoto;
+    private byte[] jpegPhoto;   // 648x648
+
+    @AD(name = "thumbnailphoto")
+    private byte[] thumbnailPhoto;  // 96x96
+
+    @AD(name = "pwdlastset")
+    private String pwdLastSet;
+
+    public boolean isDisabled() {
+        return ((userAccountControl & UserAccountControls.ACCOUNTDISABLE.getValue()) != 0);
+    }
+
+    public boolean isLocked() {
+        return ((userAccountControl & UserAccountControls.LOCKOUT.getValue()) != 0);
+    }
+
+    public boolean isExpired() {
+        return ((userAccountControl & UserAccountControls.PASSWORD_EXPIRED.getValue()) != 0);
+    }
+
+    public boolean isNeverExpires() {
+        return ((userAccountControl & UserAccountControls.DONT_EXPIRE_PASSWD.getValue()) != 0);
+    }
+
+    public boolean isUserMustChangePassword() {
+        return getPwdLastSet().equals("0");
+    }
+
+    public boolean isUserCannotChangePassword() {
+        return ((userAccountControl & UserAccountControls.PASSWD_CANT_CHANGE.getValue()) != 0);
+    }
 
 }

@@ -1,7 +1,9 @@
 package com.sysadminanywhere.common.directory.model;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -124,5 +126,21 @@ public class ComputerEntry {
 
     @AD(name = "codepage")
     private int codepage;
+
+    public boolean isDisabled() {
+        return ((userAccountControl & UserAccountControls.ACCOUNTDISABLE.getValue()) != 0);
+    }
+
+    public boolean isWorkstation() {
+        return !operatingSystem.contains("Server");
+    }
+
+    public boolean isServer() {
+        return operatingSystem.contains("Server");
+    }
+
+    public boolean isDomainController() {
+        return primaryGroupId == 516;
+    }
 
 }
