@@ -27,8 +27,13 @@ public class LdapController {
     }
 
     @GetMapping("/audit")
-    public ResponseEntity<Page<AuditDto>> getAudit(@ParameterObject Pageable pageable, @RequestParam Map<String, Object> filters) {
+    public ResponseEntity<Page<AuditDto>> getAudit(@ParameterObject Pageable pageable, @RequestParam Map<String, String> filters) {
         return new ResponseEntity<>(ldapService.getAudit(pageable, filters), HttpStatus.OK);
+    }
+
+    @GetMapping("/audit/list")
+    public ResponseEntity<List<AuditDto>> getAudit(@RequestParam Map<String, String> filters) {
+        return new ResponseEntity<>(ldapService.getAuditList(filters), HttpStatus.OK);
     }
 
 }

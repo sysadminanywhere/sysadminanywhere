@@ -89,17 +89,17 @@ public class ChangedObjectRule implements Rule {
             Map<String, Object> filters = new HashMap<>();
             filters.put("startDate", LocalDate.now());
 
-//            List<AuditDto> list = ldapService.getAuditList(filters);
-//
-//            for (AuditDto item : list) {
-//                if (item.getName().equalsIgnoreCase(user) && item.getWhenChanged().isAfter(whenChanged)) {
-//                    emailService.sendEmail(email,
-//                            "Object changed",
-//                            "<h1>Object changed!</h1><p>Object " + user + " has been modified.</p>");
-//
-//                    whenChanged = item.getWhenChanged();
-//                }
-//            }
+            List<AuditDto> list = ldapService.getAuditList(filters);
+
+            for (AuditDto item : list) {
+                if (item.getName().equalsIgnoreCase(user) && item.getWhenChanged().isAfter(whenChanged)) {
+                    emailService.sendEmail(email,
+                            "Object changed",
+                            "<h1>Object changed!</h1><p>Object " + user + " has been modified.</p>");
+
+                    whenChanged = item.getWhenChanged();
+                }
+            }
         }
 
         ldapService = null;

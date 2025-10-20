@@ -320,6 +320,11 @@ public class LdapService {
         return ldapServiceClient.getAudit(pageable,filters);
     }
 
+    @SneakyThrows
+    public List<AuditDto> getAuditList(Map<String, Object> filters) {
+        return ldapServiceClient.getAuditList(filters);
+    }
+
     public boolean deleteMember(Entry entry, String group) {
         try {
             Modification removeMember = new DefaultModification(

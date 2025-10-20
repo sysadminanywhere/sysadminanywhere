@@ -285,7 +285,7 @@ public class LdapService {
     }
 
     @SneakyThrows
-    public Page<AuditDto> getAudit(Pageable pageable, Map<String, Object> filters) {
+    public Page<AuditDto> getAudit(Pageable pageable, Map<String, String> filters) {
         List<AuditDto> list = getAuditList(filters);
 
         if (list.isEmpty()) {
@@ -304,10 +304,10 @@ public class LdapService {
 
     @SneakyThrows
     @Cacheable(value = "ldap_audit", key = "{#filters}")
-    public List<AuditDto> getAuditList(Map<String, Object> filters) {
+    public List<AuditDto> getAuditList(Map<String, String> filters) {
 
-        LocalDate startDateFilter = filters.get("startDate") != null ? (LocalDate) filters.get("startDate") : LocalDate.now();
-        LocalDate endDateFilter = filters.get("endDate") != null ? (LocalDate) filters.get("endDate") : LocalDate.now();
+        LocalDate startDateFilter = filters.get("startDate") != null ? LocalDate.parse(filters.get("startDate")) : LocalDate.now();
+        LocalDate endDateFilter = filters.get("endDate") != null ? LocalDate.parse(filters.get("endDate")) : LocalDate.now();
 
         String startDate = startDateFilter.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd000000.0Z"));
         String endDate = endDateFilter.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd235959.0Z"));
