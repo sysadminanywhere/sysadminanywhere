@@ -1,5 +1,6 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.client.directory.PrintersServiceClient;
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
@@ -15,17 +16,18 @@ import java.util.Optional;
 public class PrintersService {
 
     private final LdapService ldapService;
+    private final PrintersServiceClient printersServiceClient;
 
     ResolveService<PrinterEntry> resolveService = new ResolveService<>(PrinterEntry.class);
 
-    public PrintersService(LdapService ldapService) {
+    public PrintersService(LdapService ldapService, PrintersServiceClient printersServiceClient) {
         this.ldapService = ldapService;
+        this.printersServiceClient = printersServiceClient;
     }
 
     @SneakyThrows
     public Page<PrinterEntry> getAll(Pageable pageable, String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=printQueue)" + filters + ")", pageable.getSort());
-        return resolveService.getADPage(result, pageable);
+        return printersServiceClient.getAll(pageable, filters);
     }
 
     public PrinterEntry getByCN(String cn) {

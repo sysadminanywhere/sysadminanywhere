@@ -1,5 +1,6 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.client.directory.ContactsServiceClient;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
@@ -16,17 +17,18 @@ import java.util.Optional;
 public class ContactsService {
 
     private final LdapService ldapService;
+    private final ContactsServiceClient contactsServiceClient;
 
     ResolveService<ContactEntry> resolveService = new ResolveService<>(ContactEntry.class);
 
-    public ContactsService(LdapService ldapService) {
+    public ContactsService(LdapService ldapService, ContactsServiceClient contactsServiceClient) {
         this.ldapService = ldapService;
+        this.contactsServiceClient = contactsServiceClient;
     }
 
     @SneakyThrows
     public Page<ContactEntry> getAll(Pageable pageable, String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=contact)(objectCategory=person)" + filters + ")", pageable.getSort());
-        return resolveService.getADPage(result, pageable);
+        return contactsServiceClient.getAll(pageable, filters);
     }
 
     public ContactEntry getByCN(String cn) {

@@ -1,5 +1,6 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.client.directory.ComputersServiceClient;
 import com.sysadminanywhere.common.directory.model.*;
 import com.sysadminanywhere.model.wmi.*;
 import com.vaadin.flow.component.notification.Notification;
@@ -25,18 +26,19 @@ public class ComputersService {
 
     private final LdapService ldapService;
     private final WmiService wmiService;
+    private final ComputersServiceClient computersServiceClient;
 
     ResolveService<ComputerEntry> resolveService = new ResolveService<>(ComputerEntry.class);
 
-    public ComputersService(LdapService ldapService, WmiService wmiService) {
+    public ComputersService(LdapService ldapService, WmiService wmiService, ComputersServiceClient computersServiceClient) {
         this.ldapService = ldapService;
         this.wmiService = wmiService;
+        this.computersServiceClient = computersServiceClient;
     }
 
     @SneakyThrows
     public Page<ComputerEntry> getAll(Pageable pageable, String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=computer)" + filters + ")", pageable.getSort());
-        return resolveService.getADPage(result, pageable);
+        return computersServiceClient.getAll(pageable, filters);
     }
 
     public List<ComputerEntry> getAll(String filters) {

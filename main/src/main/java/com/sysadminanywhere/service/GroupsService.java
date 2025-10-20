@@ -1,5 +1,6 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.client.directory.GroupsServiceClient;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.model.GroupScope;
 import com.sysadminanywhere.common.directory.model.GroupType;
@@ -18,17 +19,18 @@ import java.util.Optional;
 public class GroupsService {
 
     private final LdapService ldapService;
+    private final GroupsServiceClient groupsServiceClient;
 
     ResolveService<GroupEntry> resolveService = new ResolveService<>(GroupEntry.class);
 
-    public GroupsService(LdapService ldapService) {
+    public GroupsService(LdapService ldapService, GroupsServiceClient groupsServiceClient) {
         this.ldapService = ldapService;
+        this.groupsServiceClient = groupsServiceClient;
     }
 
     @SneakyThrows
     public Page<GroupEntry> getAll(Pageable pageable, String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=group)" + filters + ")", pageable.getSort());
-        return resolveService.getADPage(result, pageable);
+        return groupsServiceClient.getAll(pageable, filters);
     }
 
     public List<GroupEntry> getAll(String filters) {
