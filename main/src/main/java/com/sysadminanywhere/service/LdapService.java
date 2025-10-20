@@ -1,7 +1,8 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.client.directory.LdapServiceClient;
+import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.domain.DirectorySetting;
-import com.sysadminanywhere.model.AuditItem;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.vaadin.flow.component.notification.Notification;
@@ -16,6 +17,7 @@ import org.apache.directory.api.ldap.model.message.*;
 import org.apache.directory.api.ldap.model.message.controls.*;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.ldap.client.api.LdapConnection;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,9 @@ public class LdapService {
 
     private final LdapConnection connection;
     private final DirectorySetting directorySetting;
+
+    @Autowired
+    private LdapServiceClient ldapServiceClient;
 
     private String domainName;
     private String defaultNamingContext;
@@ -311,66 +316,8 @@ public class LdapService {
     }
 
     @SneakyThrows
-    public Page<AuditItem> getAudit(Pageable pageable, Map<String, Object> filters) {
-        List<AuditItem> list = getAuditList(filters);
-
-        if (list.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
-        }
-
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), list.size());
-
-        if (start >= list.size()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, list.size());
-        }
-
-        return new PageImpl<>(list.subList(start, end), pageable, list.size());
-    }
-
-    @SneakyThrows
-    @Cacheable(value = "ldap_audit", key = "{#filters}")
-    public List<AuditItem> getAuditList(Map<String, Object> filters) {
-
-        LocalDate startDateFilter = filters.get("startDate") != null ? (LocalDate) filters.get("startDate") : LocalDate.now();
-        LocalDate endDateFilter = filters.get("endDate") != null ? (LocalDate) filters.get("endDate") : LocalDate.now();
-
-        String startDate = startDateFilter.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd000000.0Z"));
-        String endDate = endDateFilter.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd235959.0Z"));
-
-        List<Entry> list = search(baseDn, "(&(whenChanged>=" + startDate + ")(whenChanged<=" + endDate + "))", SearchScope.SUBTREE);
-        List<AuditItem> content = new ArrayList<>();
-
-        if (!list.isEmpty()) {
-            for (Entry entry : list) {
-                AuditItem item = new AuditItem();
-
-                item.setName(entry.get("name").getString());
-                item.setDistinguishedName(entry.getDn().getName());
-
-                Value whenCreatedValue = entry.get("whencreated") != null ? entry.get("whencreated").get() : null;
-                Value whenChangedValue = entry.get("whenchanged") != null ? entry.get("whenchanged").get() : null;
-
-                if (whenChangedValue != null && whenChangedValue != null) {
-
-                    String whenCreated = whenCreatedValue.getString();
-                    String whenChanged = whenChangedValue.getString();
-
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss'.0Z'");
-
-                    item.setWhenCreated(LocalDateTime.parse(whenCreated, formatter));
-                    item.setWhenChanged(LocalDateTime.parse(whenChanged, formatter));
-
-                    String action = item.getWhenChanged().isAfter(item.getWhenCreated()) ? "Changed" : "Created";
-                    item.setAction(action);
-
-                    content.add(item);
-                }
-
-            }
-        }
-        content.sort(Comparator.comparing(AuditItem::getWhenChanged).reversed());
-        return content;
+    public Page<AuditDto> getAudit(Pageable pageable, Map<String, Object> filters) {
+        return ldapServiceClient.getAudit(pageable,filters);
     }
 
     public boolean deleteMember(Entry entry, String group) {

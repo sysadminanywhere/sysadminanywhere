@@ -1,13 +1,12 @@
 package com.sysadminanywhere.model.monitoring;
 
+import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.domain.DirectorySetting;
-import com.sysadminanywhere.model.AuditItem;
 import com.sysadminanywhere.service.EmailService;
 import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.textfield.TextField;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
@@ -90,17 +89,17 @@ public class ChangedObjectRule implements Rule {
             Map<String, Object> filters = new HashMap<>();
             filters.put("startDate", LocalDate.now());
 
-            List<AuditItem> list = ldapService.getAuditList(filters);
-
-            for (AuditItem item : list) {
-                if (item.getName().equalsIgnoreCase(user) && item.getWhenChanged().isAfter(whenChanged)) {
-                    emailService.sendEmail(email,
-                            "Object changed",
-                            "<h1>Object changed!</h1><p>Object " + user + " has been modified.</p>");
-
-                    whenChanged = item.getWhenChanged();
-                }
-            }
+//            List<AuditDto> list = ldapService.getAuditList(filters);
+//
+//            for (AuditDto item : list) {
+//                if (item.getName().equalsIgnoreCase(user) && item.getWhenChanged().isAfter(whenChanged)) {
+//                    emailService.sendEmail(email,
+//                            "Object changed",
+//                            "<h1>Object changed!</h1><p>Object " + user + " has been modified.</p>");
+//
+//                    whenChanged = item.getWhenChanged();
+//                }
+//            }
         }
 
         ldapService = null;

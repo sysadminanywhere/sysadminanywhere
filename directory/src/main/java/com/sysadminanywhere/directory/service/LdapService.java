@@ -1,5 +1,8 @@
 package com.sysadminanywhere.directory.service;
 
+import com.sysadminanywhere.common.directory.dto.AuditDto;
+import com.sysadminanywhere.common.directory.model.Container;
+import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.directory.config.DirectoryConfig;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -13,10 +16,18 @@ import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,21 +78,26 @@ public class LdapService {
 
     @SneakyThrows
     public List<Entry> search(String filter, Sort sort) {
-        return search(filter, SearchScope.SUBTREE, sort);
+        return search(baseDn, filter, SearchScope.SUBTREE, sort);
     }
 
     @SneakyThrows
     public List<Entry> search(String filter) {
-        return search(filter, SearchScope.SUBTREE, null);
+        return search(baseDn, filter, SearchScope.SUBTREE, null);
     }
 
     @SneakyThrows
     public List<Entry> search(String filter, SearchScope searchScope) {
-        return search(filter, searchScope, null);
+        return search(baseDn, filter, searchScope, null);
     }
 
     @SneakyThrows
-    public List<Entry> search(String filter, SearchScope searchScope, Sort sort) {
+    public List<Entry> search(Dn dn, String filter, SearchScope searchScope) {
+        return search(dn, filter, searchScope, null);
+    }
+
+    @SneakyThrows
+    public List<Entry> search(Dn dn, String filter, SearchScope searchScope, Sort sort) {
 
         List<Entry> list = new ArrayList<>();
 
@@ -91,7 +107,7 @@ public class LdapService {
             searchRequest.addAttributes("*");
             searchRequest.setTypesOnly(false);
             searchRequest.setTimeLimit(0);
-            searchRequest.setBase(baseDn);
+            searchRequest.setBase(dn);
 
             searchRequest.setFilter(filter);
 
@@ -226,6 +242,145 @@ public class LdapService {
         }
 
         return false;
+    }
+
+    @Cacheable(value = "containers")
+    public Containers getContainers() {
+        Containers containers = new Containers();
+
+        List<Entry> list = search("(objectclass=*)", SearchScope.ONELEVEL);
+        for (Entry entry : list) {
+            if (entry.get("name") != null
+                    && (entry.get("showInAdvancedViewOnly") == null
+                    || entry.get("showInAdvancedViewOnly").get().getString().equalsIgnoreCase("false"))) {
+
+                Container container = new Container(entry.get("name").get().getString(), entry.get("distinguishedName").get().getString(), null);
+                containers.getContainers().add(container);
+
+                getChild(containers, container);
+            }
+        }
+
+        return containers;
+    }
+
+    @SneakyThrows
+    private void getChild(Containers containers, Container parent) {
+
+        List<Entry> list = search(new Dn(parent.getDistinguishedName()), "(objectclass=*)", SearchScope.ONELEVEL);
+        for (Entry entry : list) {
+
+            boolean organizationalUnit = false;
+            for (Value v : entry.get("objectClass")) {
+                if (v.getString().equalsIgnoreCase("organizationalUnit"))
+                    organizationalUnit = true;
+            }
+
+            if (entry.get("name") != null && organizationalUnit) {
+                Container container = new Container(entry.get("name").get().getString(), entry.get("distinguishedName").get().getString(), parent);
+                containers.getContainers().add(container);
+                getChild(containers, container);
+            }
+        }
+    }
+
+    @SneakyThrows
+    public Page<AuditDto> getAudit(Pageable pageable, Map<String, Object> filters) {
+        List<AuditDto> list = getAuditList(filters);
+
+        if (list.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), list.size());
+
+        if (start >= list.size()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, list.size());
+        }
+
+        return new PageImpl<>(list.subList(start, end), pageable, list.size());
+    }
+
+    @SneakyThrows
+    @Cacheable(value = "ldap_audit", key = "{#filters}")
+    public List<AuditDto> getAuditList(Map<String, Object> filters) {
+
+        LocalDate startDateFilter = filters.get("startDate") != null ? (LocalDate) filters.get("startDate") : LocalDate.now();
+        LocalDate endDateFilter = filters.get("endDate") != null ? (LocalDate) filters.get("endDate") : LocalDate.now();
+
+        String startDate = startDateFilter.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd000000.0Z"));
+        String endDate = endDateFilter.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMdd235959.0Z"));
+
+        List<Entry> list = search(baseDn, "(&(whenChanged>=" + startDate + ")(whenChanged<=" + endDate + "))", SearchScope.SUBTREE);
+        List<AuditDto> content = new ArrayList<>();
+
+        if (!list.isEmpty()) {
+            for (Entry entry : list) {
+                AuditDto item = new AuditDto();
+
+                item.setName(entry.get("name").getString());
+                item.setDistinguishedName(entry.getDn().getName());
+
+                Value whenCreatedValue = entry.get("whencreated") != null ? entry.get("whencreated").get() : null;
+                Value whenChangedValue = entry.get("whenchanged") != null ? entry.get("whenchanged").get() : null;
+
+                if (whenChangedValue != null && whenChangedValue != null) {
+
+                    String whenCreated = whenCreatedValue.getString();
+                    String whenChanged = whenChangedValue.getString();
+
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss'.0Z'");
+
+                    item.setWhenCreated(LocalDateTime.parse(whenCreated, formatter));
+                    item.setWhenChanged(LocalDateTime.parse(whenChanged, formatter));
+
+                    String action = item.getWhenChanged().isAfter(item.getWhenCreated()) ? "Changed" : "Created";
+                    item.setAction(action);
+
+                    content.add(item);
+                }
+
+            }
+        }
+        content.sort(Comparator.comparing(AuditDto::getWhenChanged).reversed());
+        return content;
+    }
+
+    public boolean deleteMember(Entry entry, String group) {
+        try {
+            Modification removeMember = new DefaultModification(
+                    ModificationOperation.REMOVE_ATTRIBUTE, "member", entry.getDn().getName()
+            );
+
+            ModifyRequest modifyRequest = new ModifyRequestImpl();
+            modifyRequest.setName(new Dn(group));
+
+            modifyRequest.addModification(removeMember);
+            ModifyResponse response = connection.modify(modifyRequest);
+
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    public boolean addMember(Entry entry, String group) {
+        try {
+            Modification removeMember = new DefaultModification(
+                    ModificationOperation.ADD_ATTRIBUTE, "member", entry.getDn().getName()
+            );
+
+            ModifyRequest modifyRequest = new ModifyRequestImpl();
+            modifyRequest.setName(new Dn(group));
+
+            modifyRequest.addModification(removeMember);
+            ModifyResponse response = connection.modify(modifyRequest);
+
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
 }

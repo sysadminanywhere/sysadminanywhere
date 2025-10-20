@@ -1,6 +1,6 @@
 package com.sysadminanywhere.views.domain;
 
-import com.sysadminanywhere.model.AuditItem;
+import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
@@ -38,7 +38,7 @@ public class AuditView extends Div {
 
     private String id;
 
-    private Grid<AuditItem> grid;
+    private Grid<AuditDto> grid;
 
     private AuditView.Filters filters;
     private final LdapService ldapService;
@@ -155,7 +155,7 @@ public class AuditView extends Div {
     }
 
     private Component createGrid() {
-        grid = new Grid<>(AuditItem.class, false);
+        grid = new Grid<>(AuditDto.class, false);
         grid.addColumn("name").setAutoWidth(true);
         grid.addColumn("distinguishedName").setAutoWidth(true);
         grid.addColumn("action").setAutoWidth(true);
