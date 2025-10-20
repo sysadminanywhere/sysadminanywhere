@@ -1,7 +1,6 @@
 package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.directory.dto.AuditDto;
-import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.directory.service.LdapService;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
