@@ -37,13 +37,7 @@ public class ContactsService {
     }
 
     public ContactEntry getByCN(String cn) {
-        List<Entry> result = ldapService.search("(&(objectClass=contact)(objectCategory=person)(cn=" + cn + "))");
-        Optional<Entry> entry = result.stream().findFirst();
-
-        if (entry.isPresent())
-            return resolveService.getADValue(entry.get());
-        else
-            return null;
+        return contactsServiceClient.getList("(&(objectClass=contact)(objectCategory=person)(cn=" + cn + "))").getFirst();
     }
 
     @SneakyThrows

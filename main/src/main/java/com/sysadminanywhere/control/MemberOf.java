@@ -1,5 +1,6 @@
 package com.sysadminanywhere.control;
 
+import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.model.GroupItem;
 import com.sysadminanywhere.service.LdapService;
@@ -23,6 +24,7 @@ import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Value;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
@@ -37,7 +39,7 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
     Button plusButton = new Button(new Icon(VaadinIcon.PLUS));
     Button minusButton = new Button(new Icon(VaadinIcon.MINUS));
 
-    Entry entry;
+    EntryDto entry;
     private String selected = "";
 
     public MemberOf() {
@@ -56,25 +58,25 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
     public void update(LdapService ldapService, String cn) {
         this.ldapService = ldapService;
 
-        List<Entry> list = this.ldapService.search("(cn=" + cn + ")");
+        List<EntryDto> list = this.ldapService.search("(cn=" + cn + ")");
         listMemberOf.clear();
 
         if (!list.isEmpty()) {
             entry = list.get(0);
-            Attribute attribute = entry.get("memberOf");
+            Object attribute = entry.getAttributes().get("memberOf");
 
             int primaryGroupId = 0;
-            if (entry.get("primarygroupid") != null)
-                primaryGroupId = Integer.parseInt(entry.get("primarygroupid").get().getString());
+            if (entry.getAttributes().get("primarygroupid") != null)
+                primaryGroupId = Integer.parseInt(entry.getAttributes().get("primarygroupid").toString());
 
             items = new ArrayList<>();
 
             if (primaryGroupId != 0)
                 items.add(new GroupItem(ADHelper.getPrimaryGroup(primaryGroupId), ""));
 
-            if (attribute != null) {
-                for (Value v : attribute) {
-                    String value = v.getString();
+            if (attribute != null && attribute instanceof List) {
+                for (Object v : (List<Object>) attribute) {
+                    String value = v.toString();
                     String key = ADHelper.ExtractCN(value);
                     items.add(new GroupItem(key, value));
                 }
@@ -132,7 +134,7 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {
-            boolean result = ldapService.deleteMember(entry, group.getDistinguishedName());
+            boolean result = ldapService.deleteMember(entry.getDn(), group.getDistinguishedName());
 
             if (result) {
                 items.remove(group);
@@ -156,7 +158,7 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
         groups.setRenderer(new TextRenderer<>(GroupItem::getName));
 
         Button saveButton = new Button("Add", e -> {
-            boolean result = ldapService.addMember(entry, groups.getValue().getDistinguishedName());
+            boolean result = ldapService.addMember(entry.getDn(), groups.getValue().getDistinguishedName());
 
             if (result) {
                 items.add(new GroupItem(groups.getValue().getName(), groups.getValue().getDistinguishedName()));
@@ -170,10 +172,10 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
 
         Button cancelButton = new Button("Cancel", e -> dialog.close());
 
-        List<Entry> result = ldapService.search("(objectClass=group)");
+        List<EntryDto> result = ldapService.search("(objectClass=group)");
 
-        for (Entry group : result) {
-            groupItems.add(new GroupItem(group.get("name").get().getString(), group.getDn().getName()));
+        for (EntryDto group : result) {
+            groupItems.add(new GroupItem(group.getAttributes().get("name").toString(), group.getDn()));
         }
 
         groups.addValueChangeListener(event -> {

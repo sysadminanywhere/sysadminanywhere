@@ -36,13 +36,7 @@ public class PrintersService {
     }
 
     public PrinterEntry getByCN(String cn) {
-        List<Entry> result = ldapService.search("(&(objectClass=printQueue)(cn=" + cn + "))");
-        Optional<Entry> entry = result.stream().findFirst();
-
-        if (entry.isPresent())
-            return resolveService.getADValue(entry.get());
-        else
-            return null;
+        return printersServiceClient.getList("(&(objectClass=printQueue)(cn=" + cn + "))").getFirst();
     }
 
     @SneakyThrows

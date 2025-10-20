@@ -46,10 +46,7 @@ public class ComputersService {
     }
 
     public ComputerEntry getByCN(String cn) {
-        List<Entry> result = ldapService.search("(&(objectClass=computer)(cn=" + cn + "))");
-        Optional<Entry> entry = result.stream().findFirst();
-
-        return entry.map(attributes -> resolveService.getADValue(attributes)).orElse(null);
+        return computersServiceClient.getList("(&(objectClass=computer)(cn=" + cn + "))").getFirst();
     }
 
     @SneakyThrows

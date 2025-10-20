@@ -1,7 +1,9 @@
 package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.directory.dto.AuditDto;
+import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.directory.service.LdapService;
+import org.apache.directory.api.ldap.model.entry.Entry;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +35,11 @@ public class LdapController {
     @GetMapping("/audit/list")
     public ResponseEntity<List<AuditDto>> getAudit(@RequestParam Map<String, String> filters) {
         return new ResponseEntity<>(ldapService.getAuditList(filters), HttpStatus.OK);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<EntryDto>> getAudit(@RequestParam String filters) {
+        return new ResponseEntity<>(ldapService.convertEntryList(ldapService.search(filters)), HttpStatus.OK);
     }
 
 }

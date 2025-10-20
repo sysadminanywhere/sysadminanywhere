@@ -234,8 +234,7 @@ public class InventoryService {
     }
 
     private List<ComputerEntry> getComputers() {
-        List<Entry> result = ldapService.search("(objectClass=computer)");
-        return resolveService.getADList(result);
+        return computersService.getAll("");
     }
 
     private LocalDateTime getLocalDateTime(String installDate) {

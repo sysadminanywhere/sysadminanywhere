@@ -1,5 +1,6 @@
 package com.sysadminanywhere.model.monitoring;
 
+import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.domain.DirectorySetting;
 import com.sysadminanywhere.service.EmailService;
 import com.sysadminanywhere.service.LdapService;
@@ -96,17 +97,17 @@ public class PasswordExpirationRule implements Rule {
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime warningDate = now.plusDays(warningDays);
 
-            List<Entry> list = ldapService.search("(&(objectClass=user)(objectCategory=person))");
+            List<EntryDto> list = ldapService.search("(&(objectClass=user)(objectCategory=person))");
 
             long n = 0;
 
-            for (Entry entry : list) {
-                if (entry.containsAttribute("accountExpires")) {
-                    long expiryFileTime = Long.parseLong(entry.get("accountExpires").get().getString());
+            for (EntryDto entry : list) {
+                if (entry.getAttributes().containsKey("accountExpires")) {
+                    long expiryFileTime = Long.parseLong(entry.getAttributes().get("accountExpires").toString());
                     LocalDateTime expiryDate = fileTimeToLocalDateTime(expiryFileTime);
 
                     if (expiryDate.isBefore(warningDate)) {
-                        String email = entry.get("userPrincipalName").get().getString();
+                        String email = entry.getAttributes().get("userPrincipalName").toString();
                         sendEmail(email, subject, message, expiryDate);
                         n++;
                     }

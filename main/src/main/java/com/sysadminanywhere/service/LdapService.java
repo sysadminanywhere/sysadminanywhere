@@ -2,6 +2,7 @@ package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.client.directory.LdapServiceClient;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
+import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.domain.DirectorySetting;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
@@ -82,7 +83,6 @@ public class LdapService {
 
     @SneakyThrows
     public Entry getDomainEntry() {
-        //return connection.lookup(defaultNamingContext);
         return connection.getRootDse();
     }
 
@@ -108,14 +108,8 @@ public class LdapService {
         return maxPwdAgeDays;
     }
 
-    @SneakyThrows
-    public List<Entry> search(String filter, Sort sort) {
-        return search(baseDn, filter, SearchScope.SUBTREE, sort);
-    }
-
-    @SneakyThrows
-    public List<Entry> search(String filter) {
-        return search(baseDn, filter, SearchScope.SUBTREE, null);
+    public List<EntryDto> search(String filter) {
+        return ldapServiceClient.getSearch(filter);
     }
 
     @SneakyThrows
@@ -325,10 +319,10 @@ public class LdapService {
         return ldapServiceClient.getAuditList(filters);
     }
 
-    public boolean deleteMember(Entry entry, String group) {
+    public boolean deleteMember(String dn, String group) {
         try {
             Modification removeMember = new DefaultModification(
-                    ModificationOperation.REMOVE_ATTRIBUTE, "member", entry.getDn().getName()
+                    ModificationOperation.REMOVE_ATTRIBUTE, "member", dn
             );
 
             ModifyRequest modifyRequest = new ModifyRequestImpl();
@@ -346,10 +340,10 @@ public class LdapService {
         }
     }
 
-    public boolean addMember(Entry entry, String group) {
+    public boolean addMember(String dn, String group) {
         try {
             Modification removeMember = new DefaultModification(
-                    ModificationOperation.ADD_ATTRIBUTE, "member", entry.getDn().getName()
+                    ModificationOperation.ADD_ATTRIBUTE, "member", dn
             );
 
             ModifyRequest modifyRequest = new ModifyRequestImpl();

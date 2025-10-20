@@ -1,6 +1,7 @@
 package com.sysadminanywhere.directory.service;
 
 import com.sysadminanywhere.common.directory.dto.AuditDto;
+import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.directory.config.DirectoryConfig;
@@ -74,6 +75,45 @@ public class LdapService {
 
     public String getDomainName() {
         return domainName;
+    }
+
+    private EntryDto convertEntry(Entry entry) {
+        EntryDto entryDto = new EntryDto();
+
+        entryDto.setDn(entry.getDn().getName());
+        Map<String, Object> map = new HashMap<>();
+
+        for (Attribute attribute : entry.getAttributes()) {
+            List<Object> values = new ArrayList<>();
+
+            for (Value value : attribute) {
+                if (value.isHumanReadable()) {
+                    values.add(value.getString());
+                } else {
+                    values.add(value.getBytes());
+                }
+            }
+
+            if (values.size() == 1) {
+                map.put(attribute.getId(), values.get(0));
+            } else {
+                map.put(attribute.getId(), values);
+            }
+        }
+
+        entryDto.setAttributes(map);
+
+        return entryDto;
+    }
+
+    public List<EntryDto> convertEntryList(List<Entry> entries) {
+        List<EntryDto> list = new ArrayList<>();
+
+        for (Entry entry : entries) {
+            list.add(convertEntry(entry));
+        }
+
+        return list;
     }
 
     @SneakyThrows

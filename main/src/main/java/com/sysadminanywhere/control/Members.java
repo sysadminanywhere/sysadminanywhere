@@ -1,5 +1,6 @@
 package com.sysadminanywhere.control;
 
+import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.service.LdapService;
@@ -42,17 +43,17 @@ public class Members extends Composite<Div> implements HasComponents, HasSize {
     }
 
     public void update(LdapService ldapService, String cn) {
-        List<Entry> list = ldapService.search("(cn=" + cn + ")");
+        List<EntryDto> list = ldapService.search("(cn=" + cn + ")");
         listMembers.clear();
 
         if (!list.isEmpty()) {
-            Entry entry = list.get(0);
-            Attribute attribute = entry.get("member");
+            EntryDto entry = list.get(0);
+            Object attribute = entry.getAttributes().get("member");
 
-            if (attribute != null) {
+            if (attribute != null && attribute instanceof List) {
                 List<String> items = new ArrayList<>();
-                for (Value v : attribute) {
-                    items.add(ADHelper.ExtractCN(v.getString()));
+                for (Object v : (List<Object>) attribute) {
+                    items.add(ADHelper.ExtractCN(v.toString()));
                 }
                 listMembers.setItems(items);
             }

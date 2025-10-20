@@ -36,13 +36,7 @@ public class UsersService {
     }
 
     public UserEntry getByCN(String cn) {
-        List<Entry> result = ldapService.search("(&(objectClass=user)(objectCategory=person)(cn=" + cn + "))");
-        Optional<Entry> entry = result.stream().findFirst();
-
-        if (entry.isPresent())
-            return resolveService.getADValue(entry.get());
-        else
-            return null;
+        return usersServiceClient.getList("(&(objectClass=user)(objectCategory=person)(cn=" + cn + "))").getFirst();
     }
 
     @SneakyThrows
