@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/computers")
 public class ComputersController {
@@ -24,6 +26,11 @@ public class ComputersController {
     @GetMapping()
     public ResponseEntity<Page<ComputerEntry>> getAll(@ParameterObject Pageable pageable, @RequestParam String filters) {
         return new ResponseEntity<>(computersService.getAll(pageable, filters), HttpStatus.OK);
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<ComputerEntry>> getAll2(@RequestParam String filters) {
+        return new ResponseEntity<>(computersService.getAll(filters), HttpStatus.OK);
     }
 
     @GetMapping("/{cn}")

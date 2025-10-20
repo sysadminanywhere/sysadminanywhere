@@ -8,6 +8,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 @FeignClient(
         name = "computers",
         url = "${app.services.directory.uri}",
@@ -17,5 +19,8 @@ public interface ComputersServiceClient {
 
     @GetMapping("/api/computers")
     Page<ComputerEntry> getAll(Pageable pageable, @RequestParam("filters") String filters);
+
+    @GetMapping("/api/computers/list")
+    List<ComputerEntry> getList(@RequestParam("filters") String filters);
 
 }

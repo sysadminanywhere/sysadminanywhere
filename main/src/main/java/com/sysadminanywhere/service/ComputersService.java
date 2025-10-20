@@ -41,9 +41,8 @@ public class ComputersService {
         return computersServiceClient.getAll(pageable, filters);
     }
 
-    public List<ComputerEntry> getAll(String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=computer)" + filters + ")");
-        return resolveService.getADList(result);
+    public List<ComputerEntry> getList(String filters) {
+        return computersServiceClient.getList(filters);
     }
 
     public ComputerEntry getByCN(String cn) {
