@@ -34,8 +34,7 @@ public class GroupsService {
     }
 
     public List<GroupEntry> getAll(String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=group)" + filters + ")");
-        return resolveService.getADList(result);
+        return groupsServiceClient.getList(filters);
     }
 
     public GroupEntry getByCN(String cn) {

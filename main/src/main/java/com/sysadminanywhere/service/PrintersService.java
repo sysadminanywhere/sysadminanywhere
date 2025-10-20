@@ -30,6 +30,11 @@ public class PrintersService {
         return printersServiceClient.getAll(pageable, filters);
     }
 
+    @SneakyThrows
+    public List<PrinterEntry> getAll(String filters) {
+        return printersServiceClient.getList(filters);
+    }
+
     public PrinterEntry getByCN(String cn) {
         List<Entry> result = ldapService.search("(&(objectClass=printQueue)(cn=" + cn + "))");
         Optional<Entry> entry = result.stream().findFirst();

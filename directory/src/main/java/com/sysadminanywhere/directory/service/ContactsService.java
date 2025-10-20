@@ -29,6 +29,12 @@ public class ContactsService {
         return resolveService.getADPage(result, pageable);
     }
 
+    @SneakyThrows
+    public List<ContactEntry> getAll(String filters) {
+        List<Entry> result = ldapService.search("(&(objectClass=contact)(objectCategory=person)" + filters + ")");
+        return resolveService.getADList(result);
+    }
+
     public ContactEntry getByCN(String cn) {
         List<Entry> result = ldapService.search("(&(objectClass=contact)(objectCategory=person)(cn=" + cn + "))");
         Optional<Entry> entry = result.stream().findFirst();

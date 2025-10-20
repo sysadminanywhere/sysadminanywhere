@@ -32,8 +32,7 @@ public class UsersService {
     }
 
     public List<UserEntry> getAll(String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=user)(objectCategory=person)" + filters + ")");
-        return resolveService.getADList(result);
+        return usersServiceClient.getList(filters);
     }
 
     public UserEntry getByCN(String cn) {

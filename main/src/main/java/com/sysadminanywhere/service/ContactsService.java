@@ -31,6 +31,11 @@ public class ContactsService {
         return contactsServiceClient.getAll(pageable, filters);
     }
 
+    @SneakyThrows
+    public List<ContactEntry> getAll(String filters) {
+        return contactsServiceClient.getList(filters);
+    }
+
     public ContactEntry getByCN(String cn) {
         List<Entry> result = ldapService.search("(&(objectClass=contact)(objectCategory=person)(cn=" + cn + "))");
         Optional<Entry> entry = result.stream().findFirst();

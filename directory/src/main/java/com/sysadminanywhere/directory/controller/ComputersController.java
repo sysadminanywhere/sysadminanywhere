@@ -29,7 +29,7 @@ public class ComputersController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<ComputerEntry>> getAll2(@RequestParam String filters) {
+    public ResponseEntity<List<ComputerEntry>> getList(@RequestParam String filters) {
         return new ResponseEntity<>(computersService.getAll(filters), HttpStatus.OK);
     }
 

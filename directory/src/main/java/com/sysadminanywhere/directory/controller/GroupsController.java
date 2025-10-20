@@ -2,6 +2,7 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.directory.dto.AddGroupDto;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
+import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import com.sysadminanywhere.directory.service.GroupsService;
 import lombok.NonNull;
 import org.springdoc.core.annotations.ParameterObject;
@@ -10,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -31,6 +34,12 @@ public class GroupsController {
     public ResponseEntity<GroupEntry> getByCN(@PathVariable String cn) {
         return new ResponseEntity<>(groupsService.getByCN(cn), HttpStatus.OK);
     }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<GroupEntry>> getList(@RequestParam String filters) {
+        return new ResponseEntity<>(groupsService.getAll(filters), HttpStatus.OK);
+    }
+
 
     @PostMapping()
     public ResponseEntity<GroupEntry> add(@NonNull @RequestBody AddGroupDto addGroup) {

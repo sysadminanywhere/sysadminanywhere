@@ -28,6 +28,12 @@ public class PrintersService {
         return resolveService.getADPage(result, pageable);
     }
 
+    @SneakyThrows
+    public List<PrinterEntry> getAll(String filters) {
+        List<Entry> result = ldapService.search("(&(objectClass=printQueue)" + filters + ")");
+        return resolveService.getADList(result);
+    }
+
     public PrinterEntry getByCN(String cn) {
         List<Entry> result = ldapService.search("(&(objectClass=printQueue)(cn=" + cn + "))");
         Optional<Entry> entry = result.stream().findFirst();

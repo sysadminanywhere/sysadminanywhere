@@ -2,6 +2,7 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.directory.dto.AddContactDto;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
+import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import com.sysadminanywhere.directory.service.ContactsService;
 import lombok.NonNull;
 import org.springdoc.core.annotations.ParameterObject;
@@ -10,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -25,6 +28,11 @@ public class ContactsController {
     @GetMapping()
     public ResponseEntity<Page<ContactEntry>> getAll(@ParameterObject Pageable pageable, @RequestParam String filters) {
         return new ResponseEntity<>(contactsService.getAll(pageable, filters), HttpStatus.OK);
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<ContactEntry>> getList(@RequestParam String filters) {
+        return new ResponseEntity<>(contactsService.getAll(filters), HttpStatus.OK);
     }
 
     @GetMapping("/{cn}")
