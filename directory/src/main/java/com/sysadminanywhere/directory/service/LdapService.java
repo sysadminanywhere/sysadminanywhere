@@ -1,9 +1,9 @@
 package com.sysadminanywhere.directory.service;
 
-import com.sysadminanywhere.common.directory.model.Container;
-import com.sysadminanywhere.common.directory.model.Containers;
+import com.sysadminanywhere.directory.config.DirectoryConfig;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.*;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -11,10 +11,12 @@ import org.apache.directory.api.ldap.model.message.*;
 import org.apache.directory.api.ldap.model.message.controls.*;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.ldap.client.api.LdapConnection;
-import org.springframework.cache.annotation.Cacheable;
+import org.apache.directory.ldap.client.api.LdapConnectionConfig;
+import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -23,6 +25,8 @@ import java.util.stream.Collectors;
 public class LdapService {
 
     private final LdapConnection connection;
+    private final LdapConnectionConfig ldapConnectionConfig;
+    private final DirectoryConfig directoryConfig;
 
     private String domainName;
     private String defaultNamingContext;
@@ -42,17 +46,15 @@ public class LdapService {
 
 
     @SneakyThrows
-    public LdapService(LdapConnection connection) {
+    public LdapService(LdapConnection connection, LdapConnectionConfig ldapConnectionConfig, DirectoryConfig directoryConfig) {
         this.connection = connection;
+        this.ldapConnectionConfig = ldapConnectionConfig;
+        this.directoryConfig = directoryConfig;
 
-        this.connection.bind();
-
-        if(this.connection.isConnected()) {
-            Entry entry = connection.getRootDse();
-            baseDn = new Dn(entry.get("rootdomainnamingcontext").get().getString());
-            defaultNamingContext = baseDn.getName();
-            domainName = defaultNamingContext.toUpperCase().replace("DC=", "").replace(",", ".").toLowerCase();
-        }
+        Entry entry = connection.getRootDse();
+        baseDn = new Dn(entry.get("rootdomainnamingcontext").get().getString());
+        defaultNamingContext = baseDn.getName();
+        domainName = defaultNamingContext.toUpperCase().replace("DC=", "").replace(",", ".").toLowerCase();
     }
 
     public String getDefaultNamingContext() {
@@ -64,55 +66,22 @@ public class LdapService {
     }
 
     @SneakyThrows
-    public Entry getDomainEntry() {
-        //return connection.lookup(defaultNamingContext);
-        return connection.getRootDse();
-    }
-
-    public LdapConnection getConnection() {
-        return connection;
-    }
-
-    @Cacheable(value = "maxPwdAge")
-    public long getMaxPwdAge() {
-        List<Entry> list = search("(objectclass=*)", SearchScope.ONELEVEL);
-        Optional<Entry> entry = list.stream().filter(c -> c.get("cn").get().getString().equalsIgnoreCase("Builtin")).findFirst();
-        if (entry.isPresent()) {
-            long result = Long.parseLong(entry.get().get("maxPwdAge").get().getString());
-            return result;
-        }
-        return 0;
-    }
-
-    public long getMaxPwdAgeDays() {
-        long maxPwdAgeIntervals = getMaxPwdAge();
-        long maxPwdAgeSeconds = Math.abs(maxPwdAgeIntervals) / 10_000_000L;
-        long maxPwdAgeDays = maxPwdAgeSeconds / (60 * 60 * 24);
-        return maxPwdAgeDays;
-    }
-
-    @SneakyThrows
     public List<Entry> search(String filter, Sort sort) {
-        return search(baseDn, filter, SearchScope.SUBTREE, sort);
+        return search(filter, SearchScope.SUBTREE, sort);
     }
 
     @SneakyThrows
     public List<Entry> search(String filter) {
-        return search(baseDn, filter, SearchScope.SUBTREE, null);
+        return search(filter, SearchScope.SUBTREE, null);
     }
 
     @SneakyThrows
     public List<Entry> search(String filter, SearchScope searchScope) {
-        return search(baseDn, filter, searchScope, null);
+        return search(filter, searchScope, null);
     }
 
     @SneakyThrows
-    public List<Entry> search(Dn dn, String filter, SearchScope searchScope) {
-        return search(dn, filter, searchScope, null);
-    }
-
-    @SneakyThrows
-    public List<Entry> search(Dn dn, String filter, SearchScope searchScope, Sort sort) {
+    public List<Entry> search(String filter, SearchScope searchScope, Sort sort) {
 
         List<Entry> list = new ArrayList<>();
 
@@ -122,7 +91,8 @@ public class LdapService {
             searchRequest.addAttributes("*");
             searchRequest.setTypesOnly(false);
             searchRequest.setTimeLimit(0);
-            searchRequest.setBase(dn);
+            searchRequest.setBase(baseDn);
+
             searchRequest.setFilter(filter);
 
             int pageSize = 100;
@@ -181,8 +151,7 @@ public class LdapService {
 
     @SneakyThrows
     public void update(ModifyRequest modifyRequest) {
-        if (modifyRequest.getModifications().size() > 0)
-            connection.modify(modifyRequest);
+        connection.modify(modifyRequest);
     }
 
     @SneakyThrows
@@ -222,7 +191,8 @@ public class LdapService {
         connection.modify(dn, modification);
     }
 
-    public Boolean login(String userName, String password) {
+    public Boolean checkUser(String userName, String password) {
+        LdapConnection networkConnection = new LdapNetworkConnection(ldapConnectionConfig);
 
         BindRequest bindRequest = new BindRequestImpl();
         bindRequest.setCredentials(password);
@@ -230,89 +200,32 @@ public class LdapService {
         bindRequest.setName(userName);
 
         try {
-            connection.bind(bindRequest);
-        } catch (LdapException e) {
+            networkConnection.bind(bindRequest);
+
+            if (networkConnection.isAuthenticated()) {
+                if (directoryConfig.getGroupsAllowed() != null && !directoryConfig.getGroupsAllowed().isEmpty()) {
+                    try (EntryCursor cursor = networkConnection.search(baseDn, "(&(objectClass=user)(objectCategory=person)(cn=" + userName + "))", SearchScope.SUBTREE)) {
+                        for (Entry entry : cursor) {
+                            for (Value v : entry.get("memberof")) {
+                                for (String item : directoryConfig.getGroupsAllowed()) {
+                                    if (v.getString().equalsIgnoreCase(item)) {
+                                        return true;
+                                    }
+                                }
+                            }
+                            return false;
+                        }
+                    }
+                } else {
+                    return true;
+                }
+            }
+
+        } catch (LdapException | IOException e) {
             log.error("Connection error: {}", e);
         }
 
         return false;
     }
-
-    @Cacheable(value = "containers")
-    public Containers getContainers() {
-        Containers containers = new Containers();
-
-        List<Entry> list = search("(objectclass=*)", SearchScope.ONELEVEL);
-        for (Entry entry : list) {
-            if (entry.get("name") != null
-                    && (entry.get("showInAdvancedViewOnly") == null
-                    || entry.get("showInAdvancedViewOnly").get().getString().equalsIgnoreCase("false"))) {
-
-                Container container = new Container(entry.get("name").get().getString(), entry.get("distinguishedName").get().getString(), null);
-                containers.getContainers().add(container);
-
-                getChild(containers, container);
-            }
-        }
-
-        return containers;
-    }
-
-    @SneakyThrows
-    private void getChild(Containers containers, Container parent) {
-
-        List<Entry> list = search(new Dn(parent.getDistinguishedName()), "(objectclass=*)", SearchScope.ONELEVEL);
-        for (Entry entry : list) {
-
-            boolean organizationalUnit = false;
-            for (Value v : entry.get("objectClass")) {
-                if (v.getString().equalsIgnoreCase("organizationalUnit"))
-                    organizationalUnit = true;
-            }
-
-            if (entry.get("name") != null && organizationalUnit) {
-                Container container = new Container(entry.get("name").get().getString(), entry.get("distinguishedName").get().getString(), parent);
-                containers.getContainers().add(container);
-                getChild(containers, container);
-            }
-        }
-    }
-
-    public boolean deleteMember(Entry entry, String group) {
-        try {
-            Modification removeMember = new DefaultModification(
-                    ModificationOperation.REMOVE_ATTRIBUTE, "member", entry.getDn().getName()
-            );
-
-            ModifyRequest modifyRequest = new ModifyRequestImpl();
-            modifyRequest.setName(new Dn(group));
-
-            modifyRequest.addModification(removeMember);
-            ModifyResponse response = connection.modify(modifyRequest);
-
-            return true;
-        } catch (Exception ex) {
-            return false;
-        }
-    }
-
-    public boolean addMember(Entry entry, String group) {
-        try {
-            Modification removeMember = new DefaultModification(
-                    ModificationOperation.ADD_ATTRIBUTE, "member", entry.getDn().getName()
-            );
-
-            ModifyRequest modifyRequest = new ModifyRequestImpl();
-            modifyRequest.setName(new Dn(group));
-
-            modifyRequest.addModification(removeMember);
-            ModifyResponse response = connection.modify(modifyRequest);
-
-            return true;
-        } catch (Exception ex) {
-            return false;
-        }
-    }
-
 
 }

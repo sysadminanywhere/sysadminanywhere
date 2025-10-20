@@ -5,6 +5,7 @@ import com.sysadminanywhere.common.directory.model.UserEntry;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ public class UsersService {
     }
 
     @SneakyThrows
-    public Page<UserEntry> getAll(Pageable pageable, String filters) {
+    public Page<UserEntry> getAll(@ParameterObject Pageable pageable, String filters) {
         List<Entry> result = ldapService.search("(&(objectClass=user)(objectCategory=person)" + filters + ")", pageable.getSort());
         return resolveService.getADPage(result, pageable);
     }
