@@ -41,7 +41,7 @@ public class ComputersService {
         return computersServiceClient.getAll(pageable, filters);
     }
 
-    public List<ComputerEntry> getList(String filters) {
+    public List<ComputerEntry> getAll(String filters) {
         return computersServiceClient.getList(filters);
     }
 

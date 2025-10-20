@@ -113,7 +113,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
 
         report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
 
-        SerializableSupplier<List<? extends ComputerEntry>> itemsSupplier = () -> computersService.getList(reportItem.getFilter());
+        SerializableSupplier<List<? extends ComputerEntry>> itemsSupplier = () -> computersService.getAll(reportItem.getFilter());
         report.setItems(itemsSupplier.get());
 
         return new DownloadMenu<>(ComputerEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);

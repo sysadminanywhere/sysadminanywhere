@@ -10,8 +10,7 @@ import com.github.appreciated.apexcharts.config.builder.XAxisBuilder;
 import com.github.appreciated.apexcharts.helper.Series;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.common.directory.model.*;
-import com.sysadminanywhere.service.LdapService;
-import com.sysadminanywhere.service.ResolveService;
+import com.sysadminanywhere.service.*;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -34,19 +33,32 @@ public class DashboardView extends VerticalLayout {
     private final String ChartHeight = "300px";
     private final String ChartWidth = "400px";
 
-    private final LdapService ldapService;
+    private final ComputersService computersService;
+    private final UsersService usersService;
+    private final GroupsService groupsService;
+    private final PrintersService printersService;
+    private final ContactsService contactsService;
 
-    public DashboardView(LdapService ldapService) {
-        this.ldapService = ldapService;
+    public DashboardView(ComputersService computersService,
+                         UsersService usersService,
+                         GroupsService groupsService,
+                         PrintersService printersService,
+                         ContactsService contactsService) {
+
+        this.computersService = computersService;
+        this.usersService = usersService;
+        this.groupsService = groupsService;
+        this.printersService = printersService;
+        this.contactsService = contactsService;
 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();
 
-        List<ComputerEntry> computers = new ResolveService<>(ComputerEntry.class).getADList(ldapService.search("(objectClass=computer)"));
-        List<UserEntry> users = new ResolveService<>(UserEntry.class).getADList(ldapService.search("(&(objectClass=user)(objectCategory=person))"));
-        List<GroupEntry> groups = new ResolveService<>(GroupEntry.class).getADList(ldapService.search("(objectClass=group)"));
-        List<PrinterEntry> printers = new ResolveService<>(PrinterEntry.class).getADList(ldapService.search("(objectClass=printQueue)"));
-        List<ContactEntry> contacts = new ResolveService<>(ContactEntry.class).getADList(ldapService.search("(&(objectClass=contact)(objectCategory=person))"));
+        List<ComputerEntry> computers = computersService.getAll("");
+        List<UserEntry> users = usersService.getAll("");
+        List<GroupEntry> groups = groupsService.getAll("");
+        List<PrinterEntry> printers = printersService.getAll("");
+        List<ContactEntry> contacts = contactsService.getAll("");
 
         getStoredTheme().thenAccept(v -> {
             boolean isDarkTheme = false;
