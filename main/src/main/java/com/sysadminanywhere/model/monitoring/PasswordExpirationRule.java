@@ -44,9 +44,6 @@ public class PasswordExpirationRule implements Rule {
     private LdapConnectionConfig ldapConnectionConfig;
 
     @Autowired
-    DirectorySetting directorySetting;
-
-    @Autowired
     private EmailService emailService;
 
     private LdapService ldapService;
@@ -80,7 +77,7 @@ public class PasswordExpirationRule implements Rule {
                 && parameters.containsKey("message")) {
 
             LdapConnection connection = new LdapNetworkConnection(ldapConnectionConfig);
-            ldapService = new LdapService(connection, directorySetting);
+            ldapService = new LdapService(connection);
 
             Boolean result = ldapService.login(userName, password);
 

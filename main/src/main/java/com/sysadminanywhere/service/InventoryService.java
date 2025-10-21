@@ -14,7 +14,6 @@ import com.sysadminanywhere.repository.ComputerRepository;
 import com.sysadminanywhere.repository.InstallationRepository;
 import com.sysadminanywhere.repository.SoftwareRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
@@ -48,7 +47,6 @@ public class InventoryService {
     ResolveService<ComputerEntry> resolveService = new ResolveService<>(ComputerEntry.class);
 
     private final LdapConnectionConfig ldapConnectionConfig;
-    private final DirectorySetting directorySetting;
     private final ComputersService computersService;
 
     private LdapService ldapService;
@@ -58,9 +56,8 @@ public class InventoryService {
     private final SoftwareRepository softwareRepository;
     private final InstallationRepository installationRepository;
 
-    public InventoryService(LdapConnectionConfig ldapConnectionConfig, DirectorySetting directorySetting, ComputersService computersService, ComputerRepository computerRepository, SoftwareRepository softwareRepository, InstallationRepository installationRepository) {
+    public InventoryService(LdapConnectionConfig ldapConnectionConfig, ComputersService computersService, ComputerRepository computerRepository, SoftwareRepository softwareRepository, InstallationRepository installationRepository) {
         this.ldapConnectionConfig = ldapConnectionConfig;
-        this.directorySetting = directorySetting;
         this.computersService = computersService;
         this.computerRepository = computerRepository;
         this.softwareRepository = softwareRepository;
@@ -93,7 +90,7 @@ public class InventoryService {
         log.info("Scan started");
 
         LdapConnection connection = new LdapNetworkConnection(ldapConnectionConfig);
-        ldapService = new LdapService(connection, directorySetting);
+        ldapService = new LdapService(connection);
         wmiService = new WmiService();
 
         Boolean result = ldapService.login(userName, password);

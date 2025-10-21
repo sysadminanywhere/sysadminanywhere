@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 public class LdapService {
 
     private final LdapConnection connection;
-    private final DirectorySetting directorySetting;
 
     @Autowired
     private LdapServiceClient ldapServiceClient;
@@ -59,9 +58,8 @@ public class LdapService {
 
 
     @SneakyThrows
-    public LdapService(LdapConnection connection, DirectorySetting directorySetting) {
+    public LdapService(LdapConnection connection) {
         this.connection = connection;
-        this.directorySetting = directorySetting;
 
         this.connection.bind();
 
@@ -81,9 +79,8 @@ public class LdapService {
         return domainName;
     }
 
-    @SneakyThrows
-    public Entry getDomainEntry() {
-        return connection.getRootDse();
+    public EntryDto getDomainEntry() {
+        return ldapServiceClient.getRootDse();
     }
 
     public LdapConnection getConnection() {
@@ -181,26 +178,6 @@ public class LdapService {
         return list;
     }
 
-    @SneakyThrows
-    public void add(Entry entry) {
-        AddRequest addRequest = new AddRequestImpl();
-        addRequest.setEntry(entry);
-        addRequest.addControl(new ManageDsaITImpl());
-
-        connection.add(addRequest);
-    }
-
-    @SneakyThrows
-    public void update(ModifyRequest modifyRequest) {
-        if (modifyRequest.getModifications().size() > 0)
-            connection.modify(modifyRequest);
-    }
-
-    @SneakyThrows
-    public void delete(Entry entry) {
-        connection.delete(entry.getDn());
-    }
-
     public String getComputersContainer() {
         String result = getWellKnownObjects().stream().filter(c -> c.startsWith(ContainerComputers)).collect(Collectors.toList()).get(0);
         return result.replace(ContainerComputers, "");
@@ -226,13 +203,6 @@ public class LdapService {
         return list;
     }
 
-    @SneakyThrows
-    public void updateProperty(String dn, String name, String value) {
-        Attribute attribute = new DefaultAttribute(name, value);
-        Modification modification = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, attribute);
-        connection.modify(dn, modification);
-    }
-
     public Boolean login(String userName, String password) {
 
         BindRequest bindRequest = new BindRequestImpl();
@@ -242,27 +212,7 @@ public class LdapService {
 
         try {
             connection.bind(bindRequest);
-
-            if (connection.isAuthenticated()) {
-                if (directorySetting.getGroupsAllowed() != null && !directorySetting.getGroupsAllowed().isEmpty()) {
-                    try (EntryCursor cursor = connection.search(baseDn, "(&(objectClass=user)(objectCategory=person)(cn=" + userName + "))", SearchScope.SUBTREE)) {
-                        for (Entry entry : cursor) {
-                            for (Value v : entry.get("memberof")) {
-                                for (String item : directorySetting.getGroupsAllowed()) {
-                                    if (v.getString().equalsIgnoreCase(item)) {
-                                        return true;
-                                    }
-                                }
-                            }
-                            return false;
-                        }
-                    }
-                } else {
-                    return true;
-                }
-            }
-
-        } catch (LdapException | IOException e) {
+        } catch (LdapException e) {
             log.error("Connection error: {}", e);
         }
 

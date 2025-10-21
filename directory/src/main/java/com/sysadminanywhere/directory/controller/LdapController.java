@@ -38,8 +38,13 @@ public class LdapController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<EntryDto>> getAudit(@RequestParam String filters) {
+    public ResponseEntity<List<EntryDto>> search(@RequestParam String filters) {
         return new ResponseEntity<>(ldapService.convertEntryList(ldapService.search(filters)), HttpStatus.OK);
+    }
+
+    @GetMapping("/rootdse")
+    public ResponseEntity<EntryDto> getRootDse() {
+        return new ResponseEntity<>(ldapService.convertEntry(ldapService.getDomainEntry()), HttpStatus.OK);
     }
 
 }

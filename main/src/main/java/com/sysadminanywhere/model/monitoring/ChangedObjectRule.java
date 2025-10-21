@@ -41,9 +41,6 @@ public class ChangedObjectRule implements Rule {
     private LdapConnectionConfig ldapConnectionConfig;
 
     @Autowired
-    DirectorySetting directorySetting;
-
-    @Autowired
     private EmailService emailService;
 
     private LdapService ldapService;
@@ -78,7 +75,7 @@ public class ChangedObjectRule implements Rule {
                 whenChanged = LocalDate.now().atStartOfDay();
 
             LdapConnection connection = new LdapNetworkConnection(ldapConnectionConfig);
-            ldapService = new LdapService(connection, directorySetting);
+            ldapService = new LdapService(connection);
 
             Boolean result = ldapService.login(userName, password);
 

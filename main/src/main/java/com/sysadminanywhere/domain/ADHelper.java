@@ -1,34 +1,32 @@
 package com.sysadminanywhere.domain;
 
+import com.sysadminanywhere.common.directory.dto.EntryDto;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Value;
 
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class ADHelper {
 
-    public static String ExtractCN(String dn)
-    {
+    public static String ExtractCN(String dn) {
         String[] parts = dn.split(",");
 
-        for (int i = 0; i < parts.length; i++)
-        {
+        for (int i = 0; i < parts.length; i++) {
             var p = parts[i];
             var elems = p.split("=");
             var t = elems[0].trim().toUpperCase();
             var v = elems[1].trim();
-            if (t.equals("CN"))
-            {
+            if (t.equals("CN")) {
                 return v;
             }
         }
         return dn;
     }
 
-    public static String getPrimaryGroup(int id)
-    {
+    public static String getPrimaryGroup(int id) {
     /*
         512   Domain Admins
         513   Domain Users
@@ -37,8 +35,7 @@ public class ADHelper {
         516   Domain Controllers
     */
 
-        switch (id)
-        {
+        switch (id) {
             case 512:
                 return "Domain Admins";
 
@@ -59,10 +56,8 @@ public class ADHelper {
         }
     }
 
-    public static String getGroupType(long groupType)
-    {
-        switch ((int) groupType)
-        {
+    public static String getGroupType(long groupType) {
+        switch ((int) groupType) {
             case 2:
                 return "Global distribution group";
 
@@ -89,14 +84,20 @@ public class ADHelper {
         }
     }
 
-    public static String getAttributeAsCommaSeparated(Entry entry, String attributeName) {
-        if (!entry.containsAttribute(attributeName)) return "";
+    public static String getAttributeAsCommaSeparated(EntryDto entry, String attributeName) {
+        if (!entry.getAttributes().containsKey(attributeName)) return "";
 
-        Attribute attr = entry.get(attributeName);
+        Object attr = entry.getAttributes().get(attributeName);
 
-        return StreamSupport.stream(attr.spliterator(), false)
-                .map(Value::getString)
-                .collect(Collectors.joining(", "));
+        if (attr instanceof List) {
+            List<Object> list = (List<Object>) attr;
+
+            return list.stream()
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
+        } else {
+            return "";
+        }
     }
 
 }

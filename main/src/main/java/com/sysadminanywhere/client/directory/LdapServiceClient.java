@@ -28,4 +28,7 @@ public interface LdapServiceClient {
     @GetMapping("/api/ldap/search")
     List<EntryDto> getSearch(@RequestParam("filters") String filters);
 
+    @GetMapping("/api/ldap/rootdse")
+    EntryDto getRootDse();
+
 }

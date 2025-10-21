@@ -77,7 +77,12 @@ public class LdapService {
         return domainName;
     }
 
-    private EntryDto convertEntry(Entry entry) {
+    @SneakyThrows
+    public Entry getDomainEntry() {
+        return connection.getRootDse();
+    }
+
+    public EntryDto convertEntry(Entry entry) {
         EntryDto entryDto = new EntryDto();
 
         entryDto.setDn(entry.getDn().getName());
