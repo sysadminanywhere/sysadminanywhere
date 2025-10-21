@@ -36,10 +36,9 @@ import java.util.stream.Collectors;
 public class LdapService {
 
     private final LdapConnection connection;
+    private final LdapServiceClient ldapServiceClient;
 
-    @Autowired
-    private LdapServiceClient ldapServiceClient;
-
+    private EntryDto rootDse;
     private String domainName;
     private String defaultNamingContext;
     private Dn baseDn;
@@ -58,17 +57,16 @@ public class LdapService {
 
 
     @SneakyThrows
-    public LdapService(LdapConnection connection) {
+    public LdapService(LdapConnection connection, LdapServiceClient ldapServiceClient) {
         this.connection = connection;
+        this.ldapServiceClient = ldapServiceClient;
 
         this.connection.bind();
 
-        if(this.connection.isConnected()) {
-            Entry entry = connection.getRootDse();
-            baseDn = new Dn(entry.get("rootdomainnamingcontext").get().getString());
-            defaultNamingContext = baseDn.getName();
-            domainName = defaultNamingContext.toUpperCase().replace("DC=", "").replace(",", ".").toLowerCase();
-        }
+        rootDse = ldapServiceClient.getRootDse();
+        baseDn = new Dn(rootDse.getAttributes().get("rootdomainnamingcontext").toString());
+        defaultNamingContext = baseDn.getName();
+        domainName = defaultNamingContext.toUpperCase().replace("DC=", "").replace(",", ".").toLowerCase();
     }
 
     public String getDefaultNamingContext() {
@@ -80,7 +78,7 @@ public class LdapService {
     }
 
     public EntryDto getDomainEntry() {
-        return ldapServiceClient.getRootDse();
+        return rootDse;
     }
 
     public LdapConnection getConnection() {

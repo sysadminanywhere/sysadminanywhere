@@ -1,5 +1,6 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.client.directory.LdapServiceClient;
 import com.sysadminanywhere.domain.DirectorySetting;
 import com.sysadminanywhere.model.ComputerItem;
 import com.sysadminanywhere.model.SoftwareCount;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +47,9 @@ public class InventoryService {
     boolean isEnabled;
 
     ResolveService<ComputerEntry> resolveService = new ResolveService<>(ComputerEntry.class);
+
+    @Autowired
+    private LdapServiceClient ldapServiceClient;
 
     private final LdapConnectionConfig ldapConnectionConfig;
     private final ComputersService computersService;
@@ -90,7 +95,7 @@ public class InventoryService {
         log.info("Scan started");
 
         LdapConnection connection = new LdapNetworkConnection(ldapConnectionConfig);
-        ldapService = new LdapService(connection);
+        ldapService = new LdapService(connection, ldapServiceClient);
         wmiService = new WmiService();
 
         Boolean result = ldapService.login(userName, password);

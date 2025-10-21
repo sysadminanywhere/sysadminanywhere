@@ -1,5 +1,6 @@
 package com.sysadminanywhere.model.monitoring;
 
+import com.sysadminanywhere.client.directory.LdapServiceClient;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.domain.DirectorySetting;
 import com.sysadminanywhere.service.EmailService;
@@ -46,6 +47,9 @@ public class PasswordExpirationRule implements Rule {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private LdapServiceClient ldapServiceClient;
+
     private LdapService ldapService;
 
     NumberField numberField = new NumberField("Start notifying for");
@@ -77,7 +81,7 @@ public class PasswordExpirationRule implements Rule {
                 && parameters.containsKey("message")) {
 
             LdapConnection connection = new LdapNetworkConnection(ldapConnectionConfig);
-            ldapService = new LdapService(connection);
+            ldapService = new LdapService(connection, ldapServiceClient);
 
             Boolean result = ldapService.login(userName, password);
 

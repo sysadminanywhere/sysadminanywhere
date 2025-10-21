@@ -1,5 +1,6 @@
 package com.sysadminanywhere.model.monitoring;
 
+import com.sysadminanywhere.client.directory.LdapServiceClient;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.domain.DirectorySetting;
 import com.sysadminanywhere.service.EmailService;
@@ -41,6 +42,9 @@ public class ChangedObjectRule implements Rule {
     private LdapConnectionConfig ldapConnectionConfig;
 
     @Autowired
+    private LdapServiceClient ldapServiceClient;
+
+    @Autowired
     private EmailService emailService;
 
     private LdapService ldapService;
@@ -75,7 +79,7 @@ public class ChangedObjectRule implements Rule {
                 whenChanged = LocalDate.now().atStartOfDay();
 
             LdapConnection connection = new LdapNetworkConnection(ldapConnectionConfig);
-            ldapService = new LdapService(connection);
+            ldapService = new LdapService(connection, ldapServiceClient);
 
             Boolean result = ldapService.login(userName, password);
 
