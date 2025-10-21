@@ -3,14 +3,12 @@ package com.sysadminanywhere.service;
 import com.sysadminanywhere.client.directory.LdapServiceClient;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
-import com.sysadminanywhere.domain.DirectorySetting;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.*;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -18,16 +16,10 @@ import org.apache.directory.api.ldap.model.message.*;
 import org.apache.directory.api.ldap.model.message.controls.*;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.ldap.client.api.LdapConnection;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,11 +29,6 @@ public class LdapService {
 
     private final LdapConnection connection;
     private final LdapServiceClient ldapServiceClient;
-
-    private EntryDto rootDse;
-    private String domainName;
-    private String defaultNamingContext;
-    private Dn baseDn;
 
     private final String ContainerMicrosoft = "B:32:F4BE92A4C777485E878E9421D53087DB:";                 //NOSONAR CN=Microsoft,CN=Program Data,DC=example,DC=com
     private final String ContainerProgramData = "B:32:09460C08AE1E4A4EA0F64AEE7DAA1E5A:";               //NOSONAR CN=Program Data,DC=example,DC=com
@@ -55,30 +42,29 @@ public class LdapService {
     private final String ContainerUsers = "B:32:A9D1CA15768811D1ADED00C04FD8D5CD:";                     //NOSONAR CN=Users,DC=example,DC=com
     private final String ContainerNTDSQuotas = "B:32:6227F0AF1FC2410D8E3BB10615BB5B0F:";                //NOSONAR CN=NTDS Quotas,DC=example,DC=com
 
-
     @SneakyThrows
     public LdapService(LdapConnection connection, LdapServiceClient ldapServiceClient) {
         this.connection = connection;
         this.ldapServiceClient = ldapServiceClient;
 
         this.connection.bind();
+    }
 
-        rootDse = ldapServiceClient.getRootDse();
-        baseDn = new Dn(rootDse.getAttributes().get("rootdomainnamingcontext").toString());
-        defaultNamingContext = baseDn.getName();
-        domainName = defaultNamingContext.toUpperCase().replace("DC=", "").replace(",", ".").toLowerCase();
+    @SneakyThrows
+    public Dn getBaseDn(){
+        return new Dn(getRootDse().getAttributes().get("rootdomainnamingcontext").toString());
     }
 
     public String getDefaultNamingContext() {
-        return defaultNamingContext;
+        return getBaseDn().getName();
     }
 
     public String getDomainName() {
-        return domainName;
+        return getDefaultNamingContext().toUpperCase().replace("DC=", "").replace(",", ".").toLowerCase();
     }
 
-    public EntryDto getDomainEntry() {
-        return rootDse;
+    public EntryDto getRootDse() {
+        return ldapServiceClient.getRootDse();
     }
 
     public LdapConnection getConnection() {
@@ -109,7 +95,7 @@ public class LdapService {
 
     @SneakyThrows
     public List<Entry> search(String filter, SearchScope searchScope) {
-        return search(baseDn, filter, searchScope, null);
+        return search(getBaseDn(), filter, searchScope, null);
     }
 
     @SneakyThrows
@@ -259,7 +245,7 @@ public class LdapService {
 
     @SneakyThrows
     public Page<AuditDto> getAudit(Pageable pageable, Map<String, Object> filters) {
-        return ldapServiceClient.getAudit(pageable,filters);
+        return ldapServiceClient.getAudit(pageable, filters);
     }
 
     @SneakyThrows
@@ -308,6 +294,5 @@ public class LdapService {
             return false;
         }
     }
-
 
 }

@@ -71,18 +71,18 @@ public class DomainView extends VerticalLayout {
         Card card = new Card();
         card.setTitle("Properties");
 
-        EntryDto domainEntry = ldapService.getDomainEntry();
+        EntryDto domainEntry = ldapService.getRootDse();
 
-        String ldapTime = domainEntry.getAttributes().get("currentTime").toString();
+        String ldapTime = domainEntry.getAttributes().get("currenttime").toString();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss.SX").withZone(ZoneId.of("UTC"));
         ZonedDateTime dateTime = ZonedDateTime.parse(ldapTime, formatter);
 
         Table domainProperties = new Table("");
-        domainProperties.add("Forest functionality", FunctionalLevel.fromValue(domainEntry.getAttributes().get("forestFunctionality").toString()));
-        domainProperties.add("Supported SASL mechanisms", ADHelper.getAttributeAsCommaSeparated(domainEntry,"supportedSASLMechanisms"));
-        domainProperties.add("Supported LDAP version", ADHelper.getAttributeAsCommaSeparated(domainEntry, "supportedLDAPVersion"));
-        domainProperties.add("Domain functionality", FunctionalLevel.fromValue(domainEntry.getAttributes().get("domainFunctionality").toString()));
-        domainProperties.add("Domain controller functionality", FunctionalLevel.fromValue((domainEntry.getAttributes().get("domainControllerFunctionality").toString())));
+        domainProperties.add("Forest functionality", FunctionalLevel.fromValue(domainEntry.getAttributes().get("forestfunctionality").toString()));
+        domainProperties.add("Supported SASL mechanisms", ADHelper.getAttributeAsCommaSeparated(domainEntry,"supportedsaslmechanisms"));
+        domainProperties.add("Supported LDAP version", ADHelper.getAttributeAsCommaSeparated(domainEntry, "supportedldapversion"));
+        domainProperties.add("Domain functionality", FunctionalLevel.fromValue(domainEntry.getAttributes().get("domainfunctionality").toString()));
+        domainProperties.add("Domain controller functionality", FunctionalLevel.fromValue((domainEntry.getAttributes().get("domaincontrollerfunctionality").toString())));
         domainProperties.add("Current time", dateTime.toString());
         domainProperties.add("Max password age", String.valueOf(ldapService.getMaxPwdAgeDays()) + " days");
 
