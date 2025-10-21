@@ -5,8 +5,7 @@ import com.sysadminanywhere.config.FeignClientConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,5 +21,11 @@ public interface PrintersServiceClient {
 
     @GetMapping("/api/printers/list")
     List<PrinterEntry> getList(@RequestParam("filters") String filters);
+
+    @GetMapping("/api/printers/{cn}")
+    PrinterEntry getByCN(@PathVariable("cn") String cn);
+
+    @DeleteMapping("/api/printers")
+    void delete(@RequestParam("distinguishedName") String distinguishedName);
 
 }

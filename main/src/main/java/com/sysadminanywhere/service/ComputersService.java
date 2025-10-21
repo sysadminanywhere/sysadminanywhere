@@ -1,6 +1,7 @@
 package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.client.directory.ComputersServiceClient;
+import com.sysadminanywhere.common.directory.dto.AddComputerDto;
 import com.sysadminanywhere.common.directory.model.*;
 import com.sysadminanywhere.model.wmi.*;
 import com.vaadin.flow.component.notification.Notification;
@@ -8,7 +9,6 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
-import org.apache.directory.api.ldap.model.message.ModifyRequest;
 import org.sentrysoftware.wmi.exceptions.WmiComException;
 import org.sentrysoftware.wmi.exceptions.WqlQuerySyntaxException;
 import org.springframework.data.domain.Page;
@@ -51,60 +51,16 @@ public class ComputersService {
 
     @SneakyThrows
     public ComputerEntry add(String distinguishedName, ComputerEntry computer, boolean isEnabled) {
-        String dn;
-
-        if (distinguishedName == null || distinguishedName.isEmpty()) {
-            dn = "cn=" + computer.getCn() + "," + ldapService.getComputersContainer();
-        } else {
-            dn = "cn=" + computer.getCn() + "," + distinguishedName;
-        }
-
-        if (computer.getSamAccountName() == null || computer.getSamAccountName().isEmpty())
-            computer.setSamAccountName(computer.getCn());
-
-        Entry entry = new DefaultEntry(
-                dn,
-                "sAMAccountName", computer.getSamAccountName(),
-                "objectClass:computer",
-                "cn", computer.getCn()
-        );
-
-        ldapService.add(entry);
-
-        ComputerEntry newComputer = getByCN(computer.getCn());
-
-        int userAccountControl = newComputer.getUserAccountControl();
-
-        if (!isEnabled) {
-            if ((userAccountControl & UserAccountControls.ACCOUNTDISABLE.getValue()) != UserAccountControls.ACCOUNTDISABLE.getValue())
-                userAccountControl = userAccountControl & UserAccountControls.ACCOUNTDISABLE.getValue();
-        } else {
-            if ((userAccountControl & UserAccountControls.ACCOUNTDISABLE.getValue()) == UserAccountControls.ACCOUNTDISABLE.getValue())
-                userAccountControl = userAccountControl & ~UserAccountControls.ACCOUNTDISABLE.getValue();
-        }
-
-        ldapService.updateProperty(newComputer.getDistinguishedName(), "userAccountControl", String.valueOf(userAccountControl));
-
-        if (computer.getDescription() != null && !computer.getDescription().isEmpty())
-            ldapService.updateProperty(newComputer.getDistinguishedName(), "description", computer.getDescription());
-
-        if (computer.getLocation() != null && !computer.getLocation().isEmpty())
-            ldapService.updateProperty(newComputer.getDistinguishedName(), "location", computer.getLocation());
-
-        return newComputer;
+        return computersServiceClient.add(new AddComputerDto(distinguishedName,computer, isEnabled));
     }
 
     public ComputerEntry update(ComputerEntry computer) {
-        ModifyRequest modifyRequest = resolveService.getModifyRequest(computer, getByCN(computer.getCn()));
-        ldapService.update(modifyRequest);
-
-        return getByCN(computer.getCn());
+        return computersServiceClient.update(computer);
     }
 
     @SneakyThrows
     public void delete(String distinguishedName) {
-        Entry entry = new DefaultEntry(distinguishedName);
-        ldapService.delete(entry);
+        computersServiceClient.delete(distinguishedName);
     }
 
     public UserAccountControls getUserControl(int userAccountControl) {
