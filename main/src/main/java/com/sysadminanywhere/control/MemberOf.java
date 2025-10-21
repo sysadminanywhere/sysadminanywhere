@@ -63,7 +63,7 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
 
         if (!list.isEmpty()) {
             entry = list.get(0);
-            Object attribute = entry.getAttributes().get("memberOf");
+            Object attribute = entry.getAttributes().get("memberof");
 
             int primaryGroupId = 0;
             if (entry.getAttributes().get("primarygroupid") != null)
