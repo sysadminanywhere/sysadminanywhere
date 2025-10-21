@@ -1,6 +1,7 @@
 package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.client.directory.ContactsServiceClient;
+import com.sysadminanywhere.common.directory.dto.AddContactDto;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
@@ -42,45 +43,16 @@ public class ContactsService {
 
     @SneakyThrows
     public ContactEntry add(String distinguishedName, ContactEntry contact) {
-        String dn;
-
-        if (distinguishedName == null || distinguishedName.isEmpty()) {
-            dn = "cn=" + contact.getCn() + "," + ldapService.getUsersContainer();
-        } else {
-            dn = "cn=" + contact.getCn() + "," + distinguishedName;
-        }
-
-        Entry entry = new DefaultEntry(
-                dn,
-                "displayName", contact.getDisplayName(),
-                "givenName", contact.getFirstName(),
-                "sn", contact.getLastName(),
-                "objectClass:contact",
-                "objectClass:person",
-                "cn", contact.getCn()
-        );
-
-        ldapService.add(entry);
-
-        ContactEntry newContact = getByCN(contact.getCn());
-
-        if (contact.getInitials() != null && !contact.getInitials().isEmpty())
-            ldapService.updateProperty(newContact.getDistinguishedName(), "initials", contact.getInitials());
-
-        return newContact;
+        return contactsServiceClient.add(new AddContactDto(distinguishedName, contact));
     }
 
     public ContactEntry update(ContactEntry contact) {
-        ModifyRequest modifyRequest = resolveService.getModifyRequest(contact, getByCN(contact.getCn()));
-        ldapService.update(modifyRequest);
-
-        return getByCN(contact.getCn());
+        return contactsServiceClient.update(contact);
     }
 
     @SneakyThrows
     public void delete(String distinguishedName) {
-        Entry entry = new DefaultEntry(distinguishedName);
-        ldapService.delete(entry);
+        contactsServiceClient.delete(distinguishedName);
     }
 
     public String getDefaultContainer() {

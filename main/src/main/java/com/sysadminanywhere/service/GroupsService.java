@@ -1,19 +1,16 @@
 package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.client.directory.GroupsServiceClient;
+import com.sysadminanywhere.common.directory.dto.AddGroupDto;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.model.GroupScope;
 import com.sysadminanywhere.common.directory.model.GroupType;
 import lombok.SneakyThrows;
-import org.apache.directory.api.ldap.model.entry.DefaultEntry;
-import org.apache.directory.api.ldap.model.entry.Entry;
-import org.apache.directory.api.ldap.model.message.ModifyRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class GroupsService {
@@ -43,48 +40,16 @@ public class GroupsService {
 
     @SneakyThrows
     public GroupEntry add(String distinguishedName, GroupEntry group, GroupScope groupScope, boolean isSecurity) {
-        String dn;
-
-        if (distinguishedName == null || distinguishedName.isEmpty()) {
-            dn = "cn=" + group.getCn() + "," + ldapService.getUsersContainer();
-        } else {
-            dn = "cn=" + group.getCn() + "," + distinguishedName;
-        }
-
-        if (group.getSamAccountName() == null || group.getSamAccountName().isEmpty())
-            group.setSamAccountName(group.getCn());
-
-        group.setGroupType(getGroupType(groupScope, isSecurity));
-
-        Entry entry = new DefaultEntry(
-                dn,
-                "sAMAccountName", group.getSamAccountName(),
-                "objectClass:group",
-                "groupType", String.valueOf(group.getGroupType()),
-                "cn", group.getCn()
-        );
-
-        ldapService.add(entry);
-
-        GroupEntry newGroup = getByCN(group.getCn());
-
-        if (group.getDescription() != null && !group.getDescription().isEmpty())
-            ldapService.updateProperty(newGroup.getDistinguishedName(), "location", group.getDescription());
-
-        return newGroup;
+        return groupsServiceClient.add(new AddGroupDto(distinguishedName, group, groupScope, isSecurity));
     }
 
     public GroupEntry update(GroupEntry group) {
-        ModifyRequest modifyRequest = resolveService.getModifyRequest(group, getByCN(group.getCn()));
-        ldapService.update(modifyRequest);
-
-        return getByCN(group.getCn());
+        return groupsServiceClient.update(group);
     }
 
     @SneakyThrows
     public void delete(String distinguishedName) {
-        Entry entry = new DefaultEntry(distinguishedName);
-        ldapService.delete(entry);
+        groupsServiceClient.delete(distinguishedName);
     }
 
     public String getGroupTypeName(long groupType)

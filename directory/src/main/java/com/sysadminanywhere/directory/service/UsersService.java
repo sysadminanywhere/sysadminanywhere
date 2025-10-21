@@ -85,10 +85,7 @@ public class UsersService {
 
         UserEntry newUser = getByCN(user.getCn());
 
-        ChangeUserAccountControl(newUser, isCannotChangePassword, isPasswordNeverExpires, isAccountDisabled);
-
-        if (isMustChangePassword)
-            MustChangePasswordAsync(newUser);
+        changeUserAccountControl(newUser, isCannotChangePassword, isPasswordNeverExpires, isAccountDisabled, isMustChangePassword);
 
         if (user.getInitials() != null && !user.getInitials().isEmpty())
             ldapService.updateProperty(newUser.getDistinguishedName(), "initials", user.getInitials());
@@ -96,7 +93,7 @@ public class UsersService {
         return newUser;
     }
 
-    public void ChangeUserAccountControl(UserEntry user, boolean isCannotChangePassword, boolean isPasswordNeverExpires, boolean isAccountDisabled) {
+    public void changeUserAccountControl(UserEntry user, boolean isCannotChangePassword, boolean isPasswordNeverExpires, boolean isAccountDisabled, boolean isMustChangePassword) {
         int userAccountControl = user.getUserAccountControl();
 
         if (isCannotChangePassword)
@@ -115,6 +112,9 @@ public class UsersService {
             userAccountControl = userAccountControl & ~UserAccountControls.ACCOUNTDISABLE.getValue();
 
         ldapService.updateProperty(user.getDistinguishedName(), "userAccountControl", String.valueOf(userAccountControl));
+
+        if (isMustChangePassword)
+            MustChangePasswordAsync(user);
     }
 
     private void MustChangePasswordAsync(UserEntry user) {
@@ -144,9 +144,9 @@ public class UsersService {
         return ldapService.getUsersContainer();
     }
 
-    public void resetPassword(UserEntry user, String password) {
-        ldapService.updateProperty(user.getDistinguishedName(), "userPassword", password);
-        ldapService.updateProperty(user.getDistinguishedName(), "pwdLastSet", "0");
+    public void resetPassword(String distinguishedName, String password) {
+        ldapService.updateProperty(distinguishedName, "userPassword", password);
+        ldapService.updateProperty(distinguishedName, "pwdLastSet", "0");
     }
 
     public LdapService getLdapService() {

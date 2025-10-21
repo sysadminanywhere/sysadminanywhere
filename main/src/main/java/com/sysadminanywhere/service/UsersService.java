@@ -1,17 +1,16 @@
 package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.client.directory.UsersServiceClient;
+import com.sysadminanywhere.common.directory.dto.AddUserDto;
+import com.sysadminanywhere.common.directory.dto.ChangeUserAccountControlDto;
+import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
 import com.sysadminanywhere.common.directory.model.UserEntry;
-import com.sysadminanywhere.common.directory.model.UserAccountControls;
 import lombok.SneakyThrows;
-import org.apache.directory.api.ldap.model.entry.DefaultEntry;
-import org.apache.directory.api.ldap.model.entry.Entry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UsersService {
@@ -48,90 +47,31 @@ public class UsersService {
                          boolean isAccountDisabled,
                          boolean isMustChangePassword) {
 
-        if (user.getSamAccountName() == null || user.getSamAccountName().isEmpty())
-            user.setSamAccountName(user.getCn());
-
-        if (user.getUserPrincipalName() == null || user.getUserPrincipalName().isEmpty())
-            user.setUserPrincipalName(user.getSamAccountName() + "@" + ldapService.getDomainName());
-
-        String dn;
-
-        if (distinguishedName == null || distinguishedName.isEmpty()) {
-            dn = "cn=" + user.getCn() + "," + ldapService.getUsersContainer();
-        } else {
-            dn = "cn=" + user.getCn() + "," + distinguishedName;
-        }
-
-        Entry entry = new DefaultEntry(
-                dn,
-                "displayName", user.getDisplayName(),
-                "givenName", user.getFirstName(),
-                "sn", user.getLastName(),
-                "sAMAccountName", user.getSamAccountName(),
-                "userPrincipalName", user.getUserPrincipalName(),
-                "objectClass:user",
-                "objectClass:person",
-                "cn", user.getCn(),
-                "userPassword", password
-        );
-
-        ldapService.add(entry);
-
-        UserEntry newUser = getByCN(user.getCn());
-
-        ChangeUserAccountControl(newUser, isCannotChangePassword, isPasswordNeverExpires, isAccountDisabled);
-
-        if (isMustChangePassword)
-            MustChangePasswordAsync(newUser);
-
-        if (user.getInitials() != null && !user.getInitials().isEmpty())
-            ldapService.updateProperty(newUser.getDistinguishedName(), "initials", user.getInitials());
-
-        return newUser;
-    }
-
-    public void ChangeUserAccountControl(UserEntry user, boolean isCannotChangePassword, boolean isPasswordNeverExpires, boolean isAccountDisabled) {
-        int userAccountControl = user.getUserAccountControl();
-
-        if (isCannotChangePassword)
-            userAccountControl = userAccountControl | UserAccountControls.PASSWD_CANT_CHANGE.getValue();
-        else
-            userAccountControl = userAccountControl & ~UserAccountControls.PASSWD_CANT_CHANGE.getValue();
-
-        if (isPasswordNeverExpires)
-            userAccountControl = userAccountControl | UserAccountControls.DONT_EXPIRE_PASSWD.getValue();
-        else
-            userAccountControl = userAccountControl & ~UserAccountControls.DONT_EXPIRE_PASSWD.getValue();
-
-        if (isAccountDisabled)
-            userAccountControl = userAccountControl | UserAccountControls.ACCOUNTDISABLE.getValue();
-        else
-            userAccountControl = userAccountControl & ~UserAccountControls.ACCOUNTDISABLE.getValue();
-
-        ldapService.updateProperty(user.getDistinguishedName(), "userAccountControl", String.valueOf(userAccountControl));
-    }
-
-    private void MustChangePasswordAsync(UserEntry user) {
-        ldapService.updateProperty(user.getDistinguishedName(), "pwdlastset", "0");
+        return usersServiceClient.add(new AddUserDto(distinguishedName,
+                user,
+                password,
+                isCannotChangePassword,
+                isPasswordNeverExpires,
+                isAccountDisabled,
+                isMustChangePassword));
     }
 
     @SneakyThrows
     public UserEntry update(UserEntry user) {
-        Entry entry = resolveService.getEntry(user);
-        Entry oldEntry = resolveService.getEntry(getByCN(user.getCn()));
-
-        ldapService.update(resolveService.getModifyRequest(entry, oldEntry));
-        return getByCN(user.getCn());
+        return usersServiceClient.update(user);
     }
 
     @SneakyThrows
     public void delete(String distinguishedName) {
-        Entry entry = new DefaultEntry(distinguishedName);
-        ldapService.delete(entry);
+        usersServiceClient.delete(distinguishedName);
     }
 
-    public UserAccountControls getUserControl(int userAccountControl) {
-        return UserAccountControls.fromValue(userAccountControl);
+    public void changeUserAccountControl(UserEntry user, boolean isCannotChangePassword, boolean isPasswordNeverExpires, boolean isAccountDisabled, boolean isMustChangePassword) {
+        usersServiceClient.changeUserAccountControl(new ChangeUserAccountControlDto(user,
+                isCannotChangePassword,
+                isPasswordNeverExpires,
+                isAccountDisabled,
+                isMustChangePassword));
     }
 
     public String getDefaultContainer() {
@@ -139,8 +79,7 @@ public class UsersService {
     }
 
     public void resetPassword(UserEntry user, String password) {
-        ldapService.updateProperty(user.getDistinguishedName(), "userPassword", password);
-        ldapService.updateProperty(user.getDistinguishedName(), "pwdLastSet", "0");
+        usersServiceClient.resetPassword(new ResetPasswordDto(user.getDistinguishedName(), password));
     }
 
     public LdapService getLdapService() {

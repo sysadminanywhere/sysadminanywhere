@@ -3,14 +3,11 @@ package com.sysadminanywhere.service;
 import com.sysadminanywhere.client.directory.PrintersServiceClient;
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import lombok.SneakyThrows;
-import org.apache.directory.api.ldap.model.entry.DefaultEntry;
-import org.apache.directory.api.ldap.model.entry.Entry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PrintersService {
@@ -41,8 +38,7 @@ public class PrintersService {
 
     @SneakyThrows
     public void delete(String distinguishedName) {
-        Entry entry = new DefaultEntry(distinguishedName);
-        ldapService.delete(entry);
+        printersServiceClient.delete(distinguishedName);
     }
 
     public String getDefaultContainer() {

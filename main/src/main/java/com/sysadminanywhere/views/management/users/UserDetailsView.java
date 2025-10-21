@@ -280,11 +280,12 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
             UserEntry entry = user;
 
             try {
-                usersService.ChangeUserAccountControl(
+                usersService.changeUserAccountControl(
                         entry,
                         chkUserCannotChangePassword.getValue(),
                         chkPasswordNeverExpires.getValue(),
-                        chkAccountDisabled.getValue());
+                        chkAccountDisabled.getValue(),
+                        chkUserMustChangePassword.getValue());
 
                 updateView();
 

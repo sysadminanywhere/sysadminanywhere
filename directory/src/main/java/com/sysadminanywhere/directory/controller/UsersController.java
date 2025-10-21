@@ -1,6 +1,8 @@
 package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.directory.dto.AddUserDto;
+import com.sysadminanywhere.common.directory.dto.ChangeUserAccountControlDto;
+import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.directory.service.UsersService;
 import lombok.NonNull;
@@ -59,6 +61,23 @@ public class UsersController {
     @DeleteMapping()
     public ResponseEntity delete(@NonNull @RequestParam String distinguishedName) {
         usersService.delete(distinguishedName);
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @PostMapping("resetpassword")
+    public ResponseEntity resetPassword(@NonNull @RequestBody ResetPasswordDto resetPasswordDto) {
+        usersService.resetPassword(resetPasswordDto.getDistinguishedName(), resetPasswordDto.getPassword());
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @PostMapping("changeuac")
+    public ResponseEntity changeUserAccountControl(@NonNull @RequestBody ChangeUserAccountControlDto changeUserAccountControlDto) {
+        usersService.changeUserAccountControl(changeUserAccountControlDto.getUser(),
+                changeUserAccountControlDto.isCannotChangePassword(),
+                changeUserAccountControlDto.isPasswordNeverExpires(),
+                changeUserAccountControlDto.isAccountDisabled(),
+                changeUserAccountControlDto.isMustChangePassword());
+
         return new ResponseEntity(HttpStatus.OK);
     }
 

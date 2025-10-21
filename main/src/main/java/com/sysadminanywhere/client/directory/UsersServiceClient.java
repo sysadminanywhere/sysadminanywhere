@@ -1,6 +1,8 @@
 package com.sysadminanywhere.client.directory;
 
 import com.sysadminanywhere.common.directory.dto.AddUserDto;
+import com.sysadminanywhere.common.directory.dto.ChangeUserAccountControlDto;
+import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.config.FeignClientConfig;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -34,5 +36,11 @@ public interface UsersServiceClient {
 
     @DeleteMapping("/api/users")
     void delete(@RequestParam("distinguishedName") String distinguishedName);
+
+    @PostMapping("/api/users/resetpassword")
+    void resetPassword(@RequestBody ResetPasswordDto resetPasswordDto);
+
+    @PostMapping("/api/users/changeuac")
+    void changeUserAccountControl(@RequestBody ChangeUserAccountControlDto changeUserAccountControlDto);
 
 }

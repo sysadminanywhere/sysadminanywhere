@@ -63,13 +63,12 @@ public class ComputersService {
         computersServiceClient.delete(distinguishedName);
     }
 
-    public UserAccountControls getUserControl(int userAccountControl) {
-        return UserAccountControls.fromValue(userAccountControl);
-    }
-
     public String getDefaultContainer() {
         return ldapService.getComputersContainer();
     }
+
+
+    // WMI =================================
 
     public Page<ProcessEntity> getProcesses(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
