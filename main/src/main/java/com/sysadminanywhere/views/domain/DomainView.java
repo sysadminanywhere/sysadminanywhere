@@ -54,12 +54,12 @@ public class DomainView extends VerticalLayout {
         Card card = new Card();
         card.setTitle("Domain controllers");
 
-        List<Entry> controllers = ldapService.search(new Dn("CN=Sites,CN=Configuration," + ldapService.getDefaultNamingContext()), "(objectClass=server)", SearchScope.SUBTREE);
+        List<EntryDto> controllers = ldapService.search(new Dn("CN=Sites,CN=Configuration," + ldapService.getDefaultNamingContext()), "(objectClass=server)", SearchScope.SUBTREE);
 
         Table domainControllers = new Table("");
-        for (Entry entry : controllers) {
-            String href = "management/computers/" + entry.get("name").getString() + "/details";
-            domainControllers.add(entry.get("name").getString(), new Anchor(href, entry.getDn().getName()));
+        for (EntryDto entry : controllers) {
+            String href = "management/computers/" + entry.getAttributes().get("name").toString() + "/details";
+            domainControllers.add(entry.getAttributes().get("name").toString(), new Anchor(href, entry.getDn()));
         }
 
         card.add(domainControllers);

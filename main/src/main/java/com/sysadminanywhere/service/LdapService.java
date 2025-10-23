@@ -3,13 +3,13 @@ package com.sysadminanywhere.service;
 import com.sysadminanywhere.client.directory.LdapServiceClient;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
+import com.sysadminanywhere.common.directory.dto.SearchDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.*;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.message.*;
@@ -73,10 +73,10 @@ public class LdapService {
 
     @Cacheable(value = "maxPwdAge")
     public long getMaxPwdAge() {
-        List<Entry> list = search("(objectclass=*)", SearchScope.ONELEVEL);
-        Optional<Entry> entry = list.stream().filter(c -> c.get("cn").get().getString().equalsIgnoreCase("Builtin")).findFirst();
+        List<EntryDto> list = search("(objectclass=*)", SearchScope.ONELEVEL);
+        Optional<EntryDto> entry = list.stream().filter(c -> c.getAttributes().get("cn").toString().equalsIgnoreCase("builtin")).findFirst();
         if (entry.isPresent()) {
-            long result = Long.parseLong(entry.get().get("maxPwdAge").get().getString());
+            long result = Long.parseLong(entry.get().getAttributes().get("maxpwdage").toString());
             return result;
         }
         return 0;
@@ -90,76 +90,22 @@ public class LdapService {
     }
 
     public List<EntryDto> search(String filter) {
-        return ldapServiceClient.getSearch(filter);
+        return search(getBaseDn(), filter, SearchScope.SUBTREE, null);
     }
 
     @SneakyThrows
-    public List<Entry> search(String filter, SearchScope searchScope) {
+    public List<EntryDto> search(String filter, SearchScope searchScope) {
         return search(getBaseDn(), filter, searchScope, null);
     }
 
     @SneakyThrows
-    public List<Entry> search(Dn dn, String filter, SearchScope searchScope) {
+    public List<EntryDto> search(Dn dn, String filter, SearchScope searchScope) {
         return search(dn, filter, searchScope, null);
     }
 
     @SneakyThrows
-    public List<Entry> search(Dn dn, String filter, SearchScope searchScope, Sort sort) {
-
-        List<Entry> list = new ArrayList<>();
-
-        try {
-            SearchRequest searchRequest = new SearchRequestImpl();
-            searchRequest.setScope(searchScope);
-            searchRequest.addAttributes("*");
-            searchRequest.setTypesOnly(false);
-            searchRequest.setTimeLimit(0);
-            searchRequest.setBase(dn);
-            searchRequest.setFilter(filter);
-
-            int pageSize = 100;
-            String sortKey = "cn";
-
-            if (sort != null && !sort.isEmpty()) {
-                Optional<Sort.Order> order = sort.get().findFirst();
-                if (order.isPresent())
-                    sortKey = order.get().getProperty();
-            }
-
-            SortRequest sortRequest = new SortRequestImpl();
-            sortRequest.addSortKey(new SortKey(sortKey));
-            searchRequest.addControl(sortRequest);
-
-            PagedResults pagedResults = new PagedResultsImpl();
-            pagedResults.setSize(pageSize);
-            searchRequest.addControl(pagedResults);
-
-            while (true) {
-                try (SearchCursor searchCursor = connection.search(searchRequest)) {
-                    while (searchCursor.next()) {
-                        Response response = searchCursor.get();
-                        if (response instanceof SearchResultEntry) {
-                            Entry resultEntry = ((SearchResultEntry) response).getEntry();
-                            list.add(resultEntry);
-                        }
-                    }
-                    SearchResultDone resultDone = searchCursor.getSearchResultDone();
-                    if (resultDone != null) {
-                        PagedResults pageResultResponseControl = (PagedResults) resultDone.getControl(PagedResults.OID);
-                        if (pageResultResponseControl == null || pageResultResponseControl.getCookie().length == 0) {
-                            break;
-                        } else {
-                            pagedResults.setCookie(pageResultResponseControl.getCookie());
-                        }
-                    }
-                }
-            }
-
-        } catch (LdapException le) {
-            log.error("LdapException: {}", le);
-        }
-
-        return list;
+    public List<EntryDto> search(Dn dn, String filter, SearchScope searchScope, Sort sort) {
+        return ldapServiceClient.getSearch(new SearchDto(dn.getName(), filter, searchScope.getScope()));
     }
 
     public String getComputersContainer() {
@@ -175,12 +121,16 @@ public class LdapService {
     public List<String> getWellKnownObjects() {
         List<String> list = new ArrayList<>();
 
-        List<Entry> result = search("(objectclass=domain)", SearchScope.OBJECT);
-        Optional<Entry> entry = result.stream().findFirst();
+        List<EntryDto> result = search("(objectclass=domain)", SearchScope.OBJECT);
+        Optional<EntryDto> entry = result.stream().findFirst();
 
         if (entry.isPresent()) {
-            for (Value v : entry.get().get("wellknownobjects")) {
-                list.add(v.toString());
+            Object attr = entry.get().getAttributes().get("wellknownobjects");
+            if (attr instanceof List) {
+                List<Object> lst = (List<Object>) attr;
+                for (Object v : lst) {
+                    list.add(v.toString());
+                }
             }
         }
 
@@ -207,13 +157,13 @@ public class LdapService {
     public Containers getContainers() {
         Containers containers = new Containers();
 
-        List<Entry> list = search("(objectclass=*)", SearchScope.ONELEVEL);
-        for (Entry entry : list) {
-            if (entry.get("name") != null
-                    && (entry.get("showInAdvancedViewOnly") == null
-                    || entry.get("showInAdvancedViewOnly").get().getString().equalsIgnoreCase("false"))) {
+        List<EntryDto> list = search("(objectclass=*)", SearchScope.ONELEVEL);
+        for (EntryDto entry : list) {
+            if (entry.getAttributes().get("name") != null
+                    && (entry.getAttributes().get("showinadvancedviewonly") == null
+                    || entry.getAttributes().get("showinadvancedviewonly").toString().equalsIgnoreCase("false"))) {
 
-                Container container = new Container(entry.get("name").get().getString(), entry.get("distinguishedName").get().getString(), null);
+                Container container = new Container(entry.getAttributes().get("name").toString(), entry.getAttributes().get("distinguishedname").toString(), null);
                 containers.getContainers().add(container);
 
                 getChild(containers, container);
@@ -226,17 +176,21 @@ public class LdapService {
     @SneakyThrows
     private void getChild(Containers containers, Container parent) {
 
-        List<Entry> list = search(new Dn(parent.getDistinguishedName()), "(objectclass=*)", SearchScope.ONELEVEL);
-        for (Entry entry : list) {
+        List<EntryDto> list = search(new Dn(parent.getDistinguishedName()), "(objectclass=*)", SearchScope.ONELEVEL);
+        for (EntryDto entry : list) {
 
             boolean organizationalUnit = false;
-            for (Value v : entry.get("objectClass")) {
-                if (v.getString().equalsIgnoreCase("organizationalUnit"))
-                    organizationalUnit = true;
+            Object attr = entry.getAttributes().get("objectclass");
+            if (attr instanceof List) {
+                List<Object> lst = (List<Object>) attr;
+                for (Object v : lst) {
+                    if (v.toString().equalsIgnoreCase("organizationalunit"))
+                        organizationalUnit = true;
+                }
             }
 
-            if (entry.get("name") != null && organizationalUnit) {
-                Container container = new Container(entry.get("name").get().getString(), entry.get("distinguishedName").get().getString(), parent);
+            if (entry.getAttributes().get("name") != null && organizationalUnit) {
+                Container container = new Container(entry.getAttributes().get("name").toString(), entry.getAttributes().get("distinguishedname").toString(), parent);
                 containers.getContainers().add(container);
                 getChild(containers, container);
             }

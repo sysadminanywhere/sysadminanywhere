@@ -2,17 +2,18 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
+import com.sysadminanywhere.common.directory.dto.SearchDto;
 import com.sysadminanywhere.directory.service.LdapService;
+import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.message.SearchScope;
+import org.apache.directory.api.ldap.model.name.Dn;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -37,9 +38,13 @@ public class LdapController {
         return new ResponseEntity<>(ldapService.getAuditList(filters), HttpStatus.OK);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<EntryDto>> search(@RequestParam String filters) {
-        return new ResponseEntity<>(ldapService.convertEntryList(ldapService.search(filters)), HttpStatus.OK);
+    @SneakyThrows
+    @PostMapping("/search")
+    public ResponseEntity<List<EntryDto>> search(@RequestBody SearchDto searchDto) {
+        Dn dn = new Dn(searchDto.getDistinguishedName());
+        String filter = searchDto.getFilter();
+        SearchScope searchScope = SearchScope.getSearchScope(searchDto.getSearchScope());
+        return new ResponseEntity<>(ldapService.convertEntryList(ldapService.search(dn, filter, searchScope)), HttpStatus.OK);
     }
 
     @GetMapping("/rootdse")

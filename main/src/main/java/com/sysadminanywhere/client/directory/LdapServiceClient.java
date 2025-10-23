@@ -2,11 +2,14 @@ package com.sysadminanywhere.client.directory;
 
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
+import com.sysadminanywhere.common.directory.dto.SearchDto;
 import com.sysadminanywhere.config.FeignClientConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -25,8 +28,8 @@ public interface LdapServiceClient {
     @GetMapping("/api/ldap/audit/list")
     List<AuditDto> getAuditList(@RequestParam("filters") Map<String, Object> filters);
 
-    @GetMapping("/api/ldap/search")
-    List<EntryDto> getSearch(@RequestParam("filters") String filters);
+    @PostMapping("/api/ldap/search")
+    List<EntryDto> getSearch(@RequestBody SearchDto searchDto);
 
     @GetMapping("/api/ldap/rootdse")
     EntryDto getRootDse();
