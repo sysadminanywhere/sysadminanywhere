@@ -42,9 +42,6 @@ public class PasswordExpirationRule implements Rule {
     String password;
 
     @Autowired
-    private LdapConnectionConfig ldapConnectionConfig;
-
-    @Autowired
     private EmailService emailService;
 
     @Autowired

@@ -2,15 +2,12 @@ package com.sysadminanywhere.model.monitoring;
 
 import com.sysadminanywhere.client.directory.LdapServiceClient;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
-import com.sysadminanywhere.domain.DirectorySetting;
 import com.sysadminanywhere.service.EmailService;
 import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.textfield.TextField;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
-import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
@@ -37,9 +34,6 @@ public class ChangedObjectRule implements Rule {
 
     @Value("${ldap.host.password:}")
     String password;
-
-    @Autowired
-    private LdapConnectionConfig ldapConnectionConfig;
 
     @Autowired
     private LdapServiceClient ldapServiceClient;

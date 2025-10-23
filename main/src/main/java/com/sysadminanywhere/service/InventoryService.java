@@ -51,7 +51,6 @@ public class InventoryService {
     @Autowired
     private LdapServiceClient ldapServiceClient;
 
-    private final LdapConnectionConfig ldapConnectionConfig;
     private final ComputersService computersService;
 
     private LdapService ldapService;
@@ -61,8 +60,7 @@ public class InventoryService {
     private final SoftwareRepository softwareRepository;
     private final InstallationRepository installationRepository;
 
-    public InventoryService(LdapConnectionConfig ldapConnectionConfig, ComputersService computersService, ComputerRepository computerRepository, SoftwareRepository softwareRepository, InstallationRepository installationRepository) {
-        this.ldapConnectionConfig = ldapConnectionConfig;
+    public InventoryService(ComputersService computersService, ComputerRepository computerRepository, SoftwareRepository softwareRepository, InstallationRepository installationRepository) {
         this.computersService = computersService;
         this.computerRepository = computerRepository;
         this.softwareRepository = softwareRepository;
@@ -145,7 +143,7 @@ public class InventoryService {
     }
 
     private void checkHardware(Computer computer, HardwareEntity hardwareEntity) {
-        
+
     }
 
     private void checkForDeletedHardware(Computer computer, List<HardwareEntity> hardware) {
