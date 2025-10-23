@@ -78,8 +78,7 @@ public class ChangedObjectRule implements Rule {
             if (whenChanged == null)
                 whenChanged = LocalDate.now().atStartOfDay();
 
-            LdapConnection connection = new LdapNetworkConnection(ldapConnectionConfig);
-            ldapService = new LdapService(connection, ldapServiceClient);
+            ldapService = new LdapService(ldapServiceClient);
 
             Boolean result = ldapService.login(userName, password);
 

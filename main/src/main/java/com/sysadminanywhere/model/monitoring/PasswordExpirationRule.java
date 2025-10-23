@@ -80,8 +80,7 @@ public class PasswordExpirationRule implements Rule {
                 && parameters.containsKey("subject")
                 && parameters.containsKey("message")) {
 
-            LdapConnection connection = new LdapNetworkConnection(ldapConnectionConfig);
-            ldapService = new LdapService(connection, ldapServiceClient);
+            ldapService = new LdapService(ldapServiceClient);
 
             Boolean result = ldapService.login(userName, password);
 

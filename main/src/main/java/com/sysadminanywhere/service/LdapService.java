@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 @Service
 public class LdapService {
 
-    private final LdapConnection connection;
     private final LdapServiceClient ldapServiceClient;
 
     private final String ContainerMicrosoft = "B:32:F4BE92A4C777485E878E9421D53087DB:";                 //NOSONAR CN=Microsoft,CN=Program Data,DC=example,DC=com
@@ -43,11 +42,8 @@ public class LdapService {
     private final String ContainerNTDSQuotas = "B:32:6227F0AF1FC2410D8E3BB10615BB5B0F:";                //NOSONAR CN=NTDS Quotas,DC=example,DC=com
 
     @SneakyThrows
-    public LdapService(LdapConnection connection, LdapServiceClient ldapServiceClient) {
-        this.connection = connection;
+    public LdapService(LdapServiceClient ldapServiceClient) {
         this.ldapServiceClient = ldapServiceClient;
-
-        this.connection.bind();
     }
 
     @SneakyThrows
@@ -68,7 +64,7 @@ public class LdapService {
     }
 
     public LdapConnection getConnection() {
-        return connection;
+        return null;
     }
 
     @Cacheable(value = "maxPwdAge")
@@ -138,18 +134,6 @@ public class LdapService {
     }
 
     public Boolean login(String userName, String password) {
-
-        BindRequest bindRequest = new BindRequestImpl();
-        bindRequest.setCredentials(password);
-        bindRequest.setSimple(true);
-        bindRequest.setName(userName);
-
-        try {
-            connection.bind(bindRequest);
-        } catch (LdapException e) {
-            log.error("Connection error: {}", e);
-        }
-
         return false;
     }
 
@@ -208,45 +192,11 @@ public class LdapService {
     }
 
     public boolean deleteMember(String dn, String group) {
-        try {
-            Modification removeMember = new DefaultModification(
-                    ModificationOperation.REMOVE_ATTRIBUTE, "member", dn
-            );
-
-            ModifyRequest modifyRequest = new ModifyRequestImpl();
-            modifyRequest.setName(new Dn(group));
-
-            modifyRequest.addModification(removeMember);
-            ModifyResponse response = connection.modify(modifyRequest);
-
-            return true;
-        } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-
-            return false;
-        }
+        return ldapServiceClient.deleteMember(dn, group);
     }
 
     public boolean addMember(String dn, String group) {
-        try {
-            Modification removeMember = new DefaultModification(
-                    ModificationOperation.ADD_ATTRIBUTE, "member", dn
-            );
-
-            ModifyRequest modifyRequest = new ModifyRequestImpl();
-            modifyRequest.setName(new Dn(group));
-
-            modifyRequest.addModification(removeMember);
-            ModifyResponse response = connection.modify(modifyRequest);
-
-            return true;
-        } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-
-            return false;
-        }
+        return ldapServiceClient.addMember(dn, group);
     }
 
 }

@@ -52,4 +52,14 @@ public class LdapController {
         return new ResponseEntity<>(ldapService.convertEntry(ldapService.getDomainEntry()), HttpStatus.OK);
     }
 
+    @PostMapping("/members")
+    public ResponseEntity<Boolean> addMember(@RequestParam String dn, @RequestParam String group) {
+        return new ResponseEntity<>(ldapService.addMember(dn, group), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/members")
+    public ResponseEntity<Boolean> deleteMember(@RequestParam String dn, @RequestParam String group) {
+        return new ResponseEntity<>(ldapService.deleteMember(dn, group), HttpStatus.OK);
+    }
+
 }

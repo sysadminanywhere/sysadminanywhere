@@ -94,8 +94,7 @@ public class InventoryService {
 
         log.info("Scan started");
 
-        LdapConnection connection = new LdapNetworkConnection(ldapConnectionConfig);
-        ldapService = new LdapService(connection, ldapServiceClient);
+        ldapService = new LdapService(ldapServiceClient);
         wmiService = new WmiService();
 
         Boolean result = ldapService.login(userName, password);
@@ -111,13 +110,13 @@ public class InventoryService {
 
         log.info("Found {} computers", computers.size());
 
-//        for (ComputerEntry computerEntry : computers) {
-//            if (!computerEntry.isDisabled()) {
-//                Computer computer = checkComputer(computerEntry);
-//                scanSoftware(computer);
-//                scanHardware(computer);
-//            }
-//        }
+        for (ComputerEntry computerEntry : computers) {
+            if (!computerEntry.isDisabled()) {
+                Computer computer = checkComputer(computerEntry);
+                scanSoftware(computer);
+                scanHardware(computer);
+            }
+        }
 
         ldapService = null;
         wmiService = null;

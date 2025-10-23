@@ -392,10 +392,10 @@ public class LdapService {
         return content;
     }
 
-    public boolean deleteMember(Entry entry, String group) {
+    public boolean deleteMember(String dn, String group) {
         try {
             Modification removeMember = new DefaultModification(
-                    ModificationOperation.REMOVE_ATTRIBUTE, "member", entry.getDn().getName()
+                    ModificationOperation.REMOVE_ATTRIBUTE, "member", dn
             );
 
             ModifyRequest modifyRequest = new ModifyRequestImpl();
@@ -410,10 +410,10 @@ public class LdapService {
         }
     }
 
-    public boolean addMember(Entry entry, String group) {
+    public boolean addMember(String dn, String group) {
         try {
             Modification removeMember = new DefaultModification(
-                    ModificationOperation.ADD_ATTRIBUTE, "member", entry.getDn().getName()
+                    ModificationOperation.ADD_ATTRIBUTE, "member", dn
             );
 
             ModifyRequest modifyRequest = new ModifyRequestImpl();
