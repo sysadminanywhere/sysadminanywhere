@@ -1,6 +1,6 @@
 package com.sysadminanywhere.views.inventory;
 
-import com.sysadminanywhere.model.SoftwareCount;
+import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.service.InventoryService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;

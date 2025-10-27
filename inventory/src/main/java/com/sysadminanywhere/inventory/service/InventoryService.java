@@ -1,16 +1,27 @@
 package com.sysadminanywhere.inventory.service;
 
+import com.sysadminanywhere.common.directory.dto.EntryDto;
+import com.sysadminanywhere.common.directory.dto.SearchDto;
+import com.sysadminanywhere.common.directory.model.ComputerEntry;
+import com.sysadminanywhere.common.inventory.model.ComputerItem;
+import com.sysadminanywhere.common.inventory.model.SoftwareCount;
+import com.sysadminanywhere.common.inventory.model.SoftwareOnComputer;
+import com.sysadminanywhere.common.wmi.HardwareEntity;
+import com.sysadminanywhere.common.wmi.SoftwareEntity;
+import com.sysadminanywhere.inventory.client.LdapServiceClient;
+import com.sysadminanywhere.inventory.client.WmiServiceClient;
 import com.sysadminanywhere.inventory.entity.Computer;
 import com.sysadminanywhere.inventory.entity.Installation;
 import com.sysadminanywhere.inventory.entity.Software;
-import com.sysadminanywhere.inventory.model.ComputerEntry;
-import com.sysadminanywhere.inventory.model.SoftwareEntity;
 import com.sysadminanywhere.inventory.repository.ComputerRepository;
 import com.sysadminanywhere.inventory.repository.InstallationRepository;
 import com.sysadminanywhere.inventory.repository.SoftwareRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,29 +31,23 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
 public class InventoryService {
 
-    @Value("${ldap.host.username:}")
-    String userName;
+    @Autowired
+    private LdapServiceClient ldapServiceClient;
 
-    @Value("${ldap.host.password:}")
-    String password;
-
-    ResolveService<ComputerEntry> resolveService = new ResolveService<>(ComputerEntry.class);
-
-    private final LdapService ldapService;
-    private final WmiService wmiService;
+    @Autowired
+    private WmiServiceClient wmiServiceClient;
 
     private final ComputerRepository computerRepository;
     private final SoftwareRepository softwareRepository;
     private final InstallationRepository installationRepository;
 
-    public InventoryService(LdapService ldapService, WmiService wmiService, ComputerRepository computerRepository, SoftwareRepository softwareRepository, InstallationRepository installationRepository) {
-        this.ldapService = ldapService;
-        this.wmiService = wmiService;
+    public InventoryService(ComputerRepository computerRepository, SoftwareRepository softwareRepository, InstallationRepository installationRepository) {
         this.computerRepository = computerRepository;
         this.softwareRepository = softwareRepository;
         this.installationRepository = installationRepository;
@@ -65,19 +70,10 @@ public class InventoryService {
     */
 
     @Transactional
-    @Scheduled(cron = "${cron.expression}")
+    @Scheduled(cron = "${inventory.cron.expression}")
     public void scan() {
 
         log.info("Scan started");
-
-        Boolean result = ldapService.login(userName, password);
-
-        if (!result) {
-            log.error("Unknown user: {}", userName);
-            return;
-        }
-
-        wmiService.init(userName, password);
 
         List<ComputerEntry> computers = getComputers();
 
@@ -86,17 +82,38 @@ public class InventoryService {
         for (ComputerEntry computerEntry : computers) {
             if (!computerEntry.isDisabled()) {
                 Computer computer = checkComputer(computerEntry);
-                List<SoftwareEntity> software = getSoftware(computerEntry.getCn());
-                log.info("On computer {} found {} applications", computer.getName(), software.size());
-                for (SoftwareEntity softwareEntity : software) {
-                    checkSoftware(computer, softwareEntity);
-                }
-
-                checkForDeletedSoftware(computer, software);
+                scanSoftware(computer);
+                scanHardware(computer);
             }
         }
 
         log.info("Scan stopped");
+    }
+
+    private void scanSoftware(Computer computer) {
+        List<SoftwareEntity> software = getSoftware(computer.getName());
+        log.info("On computer {} found {} applications", computer.getName(), software.size());
+        for (SoftwareEntity softwareEntity : software) {
+            checkSoftware(computer, softwareEntity);
+        }
+
+        checkForDeletedSoftware(computer, software);
+    }
+
+    private void scanHardware(Computer computer) {
+        List<HardwareEntity> hardware = getHardware(computer.getName());
+        for (HardwareEntity hardwareEntity : hardware) {
+            checkHardware(computer, hardwareEntity);
+        }
+
+        checkForDeletedHardware(computer, hardware);
+    }
+
+    private void checkHardware(Computer computer, HardwareEntity hardwareEntity) {
+
+    }
+
+    private void checkForDeletedHardware(Computer computer, List<HardwareEntity> hardware) {
 
     }
 
@@ -153,7 +170,7 @@ public class InventoryService {
 
     @Transactional
     public Software checkSoftware(SoftwareEntity softwareEntity) {
-        List<Software> software = softwareRepository.findByNameAndVendorAndVersion(softwareEntity.getName(), softwareEntity.getVendor(), softwareEntity.getVersion());
+        List<Software> software = softwareRepository.findByNameAndVendor(softwareEntity.getName(), softwareEntity.getVendor());
         if (software.isEmpty()) {
             Software soft = new Software();
             soft.setName(softwareEntity.getName());
@@ -162,29 +179,61 @@ public class InventoryService {
 
             return softwareRepository.save(soft);
         } else {
-            return software.get(0);
+            Software soft = software.get(0);
+            if (!softwareEntity.getVersion().equalsIgnoreCase(soft.getVersion())) {
+                soft.setVersion(softwareEntity.getVersion());
+                return softwareRepository.save(soft);
+            } else {
+                return soft;
+            }
         }
     }
 
     private List<SoftwareEntity> getSoftware(String hostName) {
-        try {
-            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.GetValues(wmiService.execute(hostName, "Select * From Win32_Product"));
-        } catch (Exception ex) {
-            log.error("Error: {}", ex.getMessage());
-            return new ArrayList<>();
-        }
+        return wmiServiceClient.getSoftware(hostName);
     }
 
     private List<ComputerEntry> getComputers() {
-        List<Entry> result = ldapService.search("(objectClass=computer)");
-        return resolveService.getADList(result);
+        List<ComputerEntry> list = new ArrayList<>();
+
+        List<EntryDto> result = ldapServiceClient.getSearch(new SearchDto("", "(objectClass=computer)", 2));
+
+        for (EntryDto entry : result) {
+
+            ComputerEntry computerEntry = new ComputerEntry();
+            computerEntry.setUserAccountControl(Integer.parseInt(entry.getAttributes().get("useraccountcontrol").toString()));
+            computerEntry.setCn(entry.getAttributes().get("cn").toString());
+            computerEntry.setDnsHostName(entry.getAttributes().get("dnshostname").toString());
+
+            list.add(computerEntry);
+        }
+
+        return list;
     }
 
     private LocalDateTime getLocalDateTime(String installDate) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         LocalDate ld = LocalDate.parse(installDate, dateTimeFormatter);
         return ld.atStartOfDay();
+    }
+
+    public Page<SoftwareOnComputer> getSoftwareOnComputer(Long computerId, Pageable pageable, Map<String, String> filters) {
+        return softwareRepository.getSoftwareOnComputer(computerId, pageable);
+    }
+
+    public Page<SoftwareCount> getSoftwareCount(Pageable pageable, Map<String, String> filters) {
+        String name = filters.get("name") + "%";
+        String vendor = filters.get("vendor") + "%";
+        return softwareRepository.getSoftwareInstallationCount(name, vendor, pageable);
+    }
+
+    public Page<ComputerItem> getComputersWithSoftware(Long softwareId, Pageable pageable, Map<String, String> filters) {
+        String name = filters.get("name") + "%";
+        return computerRepository.getComputersWithSoftware(softwareId, name, pageable);
+    }
+
+    private List<HardwareEntity> getHardware(String hostName) {
+        return new ArrayList<>();
     }
 
 }

@@ -1,4 +1,4 @@
-package com.sysadminanywhere.inventory.controller.dto;
+package com.sysadminanywhere.common.inventory.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

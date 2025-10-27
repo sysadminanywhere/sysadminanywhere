@@ -1,6 +1,6 @@
 package com.sysadminanywhere.inventory.mapper;
 
-import com.sysadminanywhere.inventory.controller.dto.ComputerDto;
+import com.sysadminanywhere.common.inventory.model.ComputerItem;
 import com.sysadminanywhere.inventory.entity.Computer;
 import org.springframework.stereotype.Component;
 
@@ -10,8 +10,8 @@ import java.util.List;
 @Component
 public class ComputerMapper {
 
-    public ComputerDto toDto(Computer computer) {
-        ComputerDto dto = new ComputerDto();
+    public ComputerItem toDto(Computer computer) {
+        ComputerItem dto = new ComputerItem();
 
         dto.setId(computer.getId());
         dto.setName(computer.getName());
@@ -20,8 +20,8 @@ public class ComputerMapper {
         return dto;
     }
 
-    public List<ComputerDto> toDtoList(List<Computer> computers) {
-        List<ComputerDto> list = new ArrayList<>();
+    public List<ComputerItem> toDtoList(List<Computer> computers) {
+        List<ComputerItem> list = new ArrayList<>();
 
         for (Computer computer : computers) {
             list.add(toDto(computer));

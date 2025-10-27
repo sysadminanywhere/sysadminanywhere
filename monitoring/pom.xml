@@ -51,6 +51,11 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>com.sysadminanywhere</groupId>
+            <artifactId>common</artifactId>
+            <version>3.0.0</version>
+        </dependency>
 
 		<dependency>
 			<groupId>org.postgresql</groupId>
