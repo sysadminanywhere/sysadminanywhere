@@ -5,6 +5,7 @@ import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
 import com.sysadminanywhere.common.wmi.dto.InvokeDto;
 import com.sysadminanywhere.config.FeignClientConfig;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -18,7 +19,7 @@ import java.util.Map;
 )
 public interface WmiServiceClient {
 
-    @PostMapping("/api/wmi/execute")
+    @PostMapping(value = "/api/wmi/execute")
     List<Map<String, Object>> execute(@RequestBody ExecuteDto executeDto);
 
     @PostMapping("/api/wmi/execute/clear")

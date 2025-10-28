@@ -31,8 +31,8 @@ public class WmiService {
         return wmiServiceClient.invoke(new InvokeDto(hostName, path, className, methodName, inputMap));
     }
 
-    public Boolean executeCommand(String hostName, String command, String workingDirectory) {
-        return wmiServiceClient.command(new CommandDto(hostName, command, workingDirectory));
+    public void executeCommand(String hostName, String command, String workingDirectory) {
+        wmiServiceClient.command(new CommandDto(hostName, command, workingDirectory));
     }
 
 }

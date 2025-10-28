@@ -57,14 +57,12 @@ public class WmiController {
     }
 
     @PostMapping("/api/wmi/command")
-    public ResponseEntity<Boolean> command(@RequestBody CommandDto commandDto) {
+    public void command(@RequestBody CommandDto commandDto) {
         try {
             wmiService.executeCommand(commandDto.getHostName(),
                     commandDto.getCommand(),
                     commandDto.getWorkingDirectory());
-            return new ResponseEntity<>(true, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(false, HttpStatus.NO_CONTENT);
         }
     }
 
