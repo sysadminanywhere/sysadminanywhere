@@ -11,6 +11,8 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 
+import java.nio.charset.StandardCharsets;
+
 @RequiredArgsConstructor
 @Slf4j
 public class KeycloakFeignClientInterceptor implements RequestInterceptor {
@@ -36,7 +38,11 @@ public class KeycloakFeignClientInterceptor implements RequestInterceptor {
         }
 
         log.info("Feign Request: {} {}", template.method(), template.url());
-        log.debug("Headers: {}", template.headers());
+
+        if (template.body() != null) {
+            String body = new String(template.body(), StandardCharsets.UTF_8);
+            log.info("Feign Body: {}", body);
+        }
     }
 
 }

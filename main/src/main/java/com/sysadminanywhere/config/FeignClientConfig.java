@@ -1,5 +1,6 @@
 package com.sysadminanywhere.config;
 
+import feign.Logger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,11 @@ public class FeignClientConfig {
     @Bean
     public KeycloakFeignClientInterceptor keycloakFeignClientInterceptor() {
         return new KeycloakFeignClientInterceptor(authorizedClientService);
+    }
+
+    @Bean
+    public Logger.Level feignLoggerLevel() {
+        return Logger.Level.FULL;
     }
 
 }
