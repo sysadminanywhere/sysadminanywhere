@@ -4,6 +4,7 @@ import org.sentrysoftware.wmi.WmiHelper;
 import org.sentrysoftware.wmi.exceptions.WmiComException;
 import org.sentrysoftware.wmi.exceptions.WqlQuerySyntaxException;
 import org.sentrysoftware.wmi.wbem.WmiWbemServices;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -16,15 +17,13 @@ import java.util.concurrent.TimeoutException;
 @Service
 public class WmiService {
 
-    String username;
-    char[] password;
+    @Value("${ldap.host.username:}")
+    private String userName;
+
+    @Value("${ldap.host.password:}")
+    private String password;
 
     private final int timeOut = 30000;
-
-    public void init(String userName, String password) {
-        this.username = userName;
-        this.password = password.toCharArray();
-    }
 
     @Cacheable(value = "wmi_execute", key = "{#hostName, #wqlQuery}")
     public List<Map<String, Object>> execute(String hostName, String wqlQuery) throws WmiComException, WqlQuerySyntaxException, TimeoutException {
@@ -33,7 +32,7 @@ public class WmiService {
 
         List<Map<String, Object>> result;
 
-        try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, username, password)) {
+        try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, userName, password.toCharArray())) {
             result = wbemServices.executeWql(wqlQuery, timeOut);
         }
 
@@ -50,7 +49,7 @@ public class WmiService {
 
         Map<String, Object> result;
 
-        try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, username, password)) {
+        try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, userName, password.toCharArray())) {
             result = wbemServices.executeMethod(path, className, methodName, inputMap);
         }
 
@@ -61,7 +60,7 @@ public class WmiService {
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
-        try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, username, password)) {
+        try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, userName, password.toCharArray())) {
             wbemServices.executeCommand(command, workingDirectory, Charset.defaultCharset(), timeOut);
         }
     }
