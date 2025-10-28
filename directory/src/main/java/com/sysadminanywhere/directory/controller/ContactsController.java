@@ -2,7 +2,6 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.directory.dto.AddContactDto;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
-import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import com.sysadminanywhere.directory.service.ContactsService;
 import lombok.NonNull;
 import org.springdoc.core.annotations.ParameterObject;
@@ -13,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 
 @RestController
 @RequestMapping("/api/contacts")

@@ -1,7 +1,6 @@
 package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
-import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.directory.service.PrintersService;
 import lombok.NonNull;
 import org.springdoc.core.annotations.ParameterObject;
@@ -12,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 
 @RestController
 @RequestMapping("/api/printers")

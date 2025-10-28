@@ -5,7 +5,6 @@ import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.SearchDto;
 import com.sysadminanywhere.directory.service.LdapService;
 import lombok.SneakyThrows;
-import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.springdoc.core.annotations.ParameterObject;

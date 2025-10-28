@@ -4,7 +4,6 @@ import com.sysadminanywhere.common.wmi.dto.CommandDto;
 import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
 import com.sysadminanywhere.common.wmi.dto.InvokeDto;
 import com.sysadminanywhere.directory.service.WmiService;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
