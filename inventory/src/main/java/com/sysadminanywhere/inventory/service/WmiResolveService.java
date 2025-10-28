@@ -1,6 +1,6 @@
-package com.sysadminanywhere.directory.service;
+package com.sysadminanywhere.inventory.service;
 
-import com.sysadminanywhere.common.wmi.WMIAttribute;
+import com.sysadminanywhere.inventory.wmi.WMIAttribute;
 import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

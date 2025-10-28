@@ -1,11 +1,10 @@
 package com.sysadminanywhere.views.management.computers;
 
+import com.sysadminanywhere.model.wmi.ComputerSystemEntity;
 import com.sysadminanywhere.control.MemberOf;
 import com.sysadminanywhere.control.MenuControl;
-import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
-import com.sysadminanywhere.model.wmi.ComputerSystemEntity;
 import com.sysadminanywhere.service.ComputersService;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -18,7 +17,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
@@ -37,8 +35,6 @@ import jakarta.annotation.security.PermitAll;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
 
 @PageTitle("Computer details")
 @Route(value = "management/computers/:id?/details")

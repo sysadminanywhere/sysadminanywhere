@@ -1,8 +1,8 @@
 package com.sysadminanywhere.views.management.computers;
 
+import com.sysadminanywhere.model.wmi.EventEntity;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.wmi.EventEntity;
 import com.sysadminanywhere.service.ComputersService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -139,11 +139,11 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
             add(sourceName, eventType, datePicker, actions);
         }
 
-        public Map<String, Object> getFilters() {
-            Map<String, Object> filters = new HashMap<>();
+        public Map<String, String> getFilters() {
+            Map<String, String> filters = new HashMap<>();
             filters.put("sourceName", sourceName.getValue());
             filters.put("eventType", eventType.getValue());
-            filters.put("date", datePicker.getValue());
+            filters.put("date", datePicker.getValue().toString());
             return filters;
         }
 

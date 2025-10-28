@@ -19,12 +19,8 @@ import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.TextRenderer;
-import org.apache.directory.api.ldap.model.entry.Attribute;
-import org.apache.directory.api.ldap.model.entry.Entry;
-import org.apache.directory.api.ldap.model.entry.Value;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class MemberOf extends Composite<Div> implements HasComponents, HasSize {

@@ -4,7 +4,6 @@ import com.sysadminanywhere.control.MenuButton;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LdapService;
-import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.service.MonitoringService;
 import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.account.MeView;
@@ -66,17 +65,16 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     private AuthenticatedUser authenticatedUser;
     private AccessAnnotationChecker accessChecker;
 
-    private final LoginService loginService;
     private final LdapService ldapService;
     private final MonitoringService monitoringService;
 
     public MainLayout(AuthenticatedUser authenticatedUser,
                       AccessAnnotationChecker accessChecker,
-                      LoginService loginService, LdapService ldapService, MonitoringService monitoringService) {
+                      LdapService ldapService,
+                      MonitoringService monitoringService) {
 
         this.authenticatedUser = authenticatedUser;
         this.accessChecker = accessChecker;
-        this.loginService = loginService;
         this.ldapService = ldapService;
 
         currentTitle = ldapService.getDomainName();

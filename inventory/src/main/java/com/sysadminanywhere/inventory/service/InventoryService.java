@@ -6,8 +6,7 @@ import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.inventory.model.ComputerItem;
 import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareOnComputer;
-import com.sysadminanywhere.common.wmi.HardwareEntity;
-import com.sysadminanywhere.common.wmi.SoftwareEntity;
+import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
 import com.sysadminanywhere.inventory.client.LdapServiceClient;
 import com.sysadminanywhere.inventory.client.WmiServiceClient;
 import com.sysadminanywhere.inventory.entity.Computer;
@@ -16,11 +15,12 @@ import com.sysadminanywhere.inventory.entity.Software;
 import com.sysadminanywhere.inventory.repository.ComputerRepository;
 import com.sysadminanywhere.inventory.repository.InstallationRepository;
 import com.sysadminanywhere.inventory.repository.SoftwareRepository;
+import com.sysadminanywhere.inventory.wmi.HardwareEntity;
+import com.sysadminanywhere.inventory.wmi.SoftwareEntity;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.directory.api.ldap.model.entry.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -190,7 +190,13 @@ public class InventoryService {
     }
 
     private List<SoftwareEntity> getSoftware(String hostName) {
-        return wmiServiceClient.getSoftware(hostName);
+        try {
+            String query = "Select * From Win32_Product";
+            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
+            return wmiResolveService.getValues(wmiServiceClient.execute(new ExecuteDto(hostName, query)));
+        } catch (Exception ex) {
+            return new ArrayList<>();
+        }
     }
 
     private List<ComputerEntry> getComputers() {

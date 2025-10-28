@@ -18,8 +18,6 @@ public class UsersService {
     private final LdapService ldapService;
     private final UsersServiceClient usersServiceClient;
 
-    ResolveService<UserEntry> resolveService = new ResolveService<>(UserEntry.class);
-
     public UsersService(LdapService ldapService, UsersServiceClient usersServiceClient) {
         this.ldapService = ldapService;
         this.usersServiceClient = usersServiceClient;

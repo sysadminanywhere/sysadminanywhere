@@ -3,6 +3,7 @@ package com.sysadminanywhere.views.domain;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.control.Table;
 import com.sysadminanywhere.domain.ADHelper;
+import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.FunctionalLevel;
 import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.card.Card;
@@ -14,9 +15,6 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import lombok.SneakyThrows;
-import org.apache.directory.api.ldap.model.entry.Entry;
-import org.apache.directory.api.ldap.model.message.SearchScope;
-import org.apache.directory.api.ldap.model.name.Dn;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -54,7 +52,7 @@ public class DomainView extends VerticalLayout {
         Card card = new Card();
         card.setTitle("Domain controllers");
 
-        List<EntryDto> controllers = ldapService.search(new Dn("CN=Sites,CN=Configuration," + ldapService.getDefaultNamingContext()), "(objectClass=server)", SearchScope.SUBTREE);
+        List<EntryDto> controllers = ldapService.search("CN=Sites,CN=Configuration," + ldapService.getDefaultNamingContext(), "(objectClass=server)", SearchScope.SUBTREE);
 
         Table domainControllers = new Table("");
         for (EntryDto entry : controllers) {

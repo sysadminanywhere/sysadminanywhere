@@ -6,16 +6,9 @@ import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.SearchDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
+import com.sysadminanywhere.domain.SearchScope;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.directory.api.ldap.model.entry.*;
-import org.apache.directory.api.ldap.model.exception.LdapException;
-import org.apache.directory.api.ldap.model.message.*;
-import org.apache.directory.api.ldap.model.message.controls.*;
-import org.apache.directory.api.ldap.model.name.Dn;
-import org.apache.directory.ldap.client.api.LdapConnection;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -47,12 +40,12 @@ public class LdapService {
     }
 
     @SneakyThrows
-    public Dn getBaseDn(){
-        return new Dn(getRootDse().getAttributes().get("rootdomainnamingcontext").toString());
+    public String getBaseDn(){
+        return getRootDse().getAttributes().get("rootdomainnamingcontext").toString();
     }
 
     public String getDefaultNamingContext() {
-        return getBaseDn().getName();
+        return getBaseDn();
     }
 
     public String getDomainName() {
@@ -61,10 +54,6 @@ public class LdapService {
 
     public EntryDto getRootDse() {
         return ldapServiceClient.getRootDse();
-    }
-
-    public LdapConnection getConnection() {
-        return null;
     }
 
     @Cacheable(value = "maxPwdAge")
@@ -95,13 +84,13 @@ public class LdapService {
     }
 
     @SneakyThrows
-    public List<EntryDto> search(Dn dn, String filter, SearchScope searchScope) {
+    public List<EntryDto> search(String dn, String filter, SearchScope searchScope) {
         return search(dn, filter, searchScope, null);
     }
 
     @SneakyThrows
-    public List<EntryDto> search(Dn dn, String filter, SearchScope searchScope, Sort sort) {
-        return ldapServiceClient.getSearch(new SearchDto(dn.getName(), filter, searchScope.getScope()));
+    public List<EntryDto> search(String dn, String filter, SearchScope searchScope, Sort sort) {
+        return ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal()));
     }
 
     public String getComputersContainer() {
@@ -160,7 +149,7 @@ public class LdapService {
     @SneakyThrows
     private void getChild(Containers containers, Container parent) {
 
-        List<EntryDto> list = search(new Dn(parent.getDistinguishedName()), "(objectclass=*)", SearchScope.ONELEVEL);
+        List<EntryDto> list = search(parent.getDistinguishedName(), "(objectclass=*)", SearchScope.ONELEVEL);
         for (EntryDto entry : list) {
 
             boolean organizationalUnit = false;

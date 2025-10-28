@@ -1,13 +1,9 @@
 package com.sysadminanywhere.domain;
 
 import com.sysadminanywhere.common.directory.dto.EntryDto;
-import org.apache.directory.api.ldap.model.entry.Attribute;
-import org.apache.directory.api.ldap.model.entry.Entry;
-import org.apache.directory.api.ldap.model.entry.Value;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public class ADHelper {
 

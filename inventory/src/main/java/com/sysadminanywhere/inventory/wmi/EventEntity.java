@@ -1,4 +1,4 @@
-package com.sysadminanywhere.common.wmi;
+package com.sysadminanywhere.inventory.wmi;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

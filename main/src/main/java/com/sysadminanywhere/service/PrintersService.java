@@ -15,8 +15,6 @@ public class PrintersService {
     private final LdapService ldapService;
     private final PrintersServiceClient printersServiceClient;
 
-    ResolveService<PrinterEntry> resolveService = new ResolveService<>(PrinterEntry.class);
-
     public PrintersService(LdapService ldapService, PrintersServiceClient printersServiceClient) {
         this.ldapService = ldapService;
         this.printersServiceClient = printersServiceClient;

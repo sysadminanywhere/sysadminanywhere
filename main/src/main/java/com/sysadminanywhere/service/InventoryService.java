@@ -1,24 +1,14 @@
 package com.sysadminanywhere.service;
 
-import com.sysadminanywhere.client.directory.LdapServiceClient;
-import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.inventory.model.ComputerItem;
 import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareOnComputer;
 import com.sysadminanywhere.model.wmi.HardwareEntity;
-import com.sysadminanywhere.model.wmi.SoftwareEntity;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

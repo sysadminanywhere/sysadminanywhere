@@ -18,8 +18,6 @@ public class GroupsService {
     private final LdapService ldapService;
     private final GroupsServiceClient groupsServiceClient;
 
-    ResolveService<GroupEntry> resolveService = new ResolveService<>(GroupEntry.class);
-
     public GroupsService(LdapService ldapService, GroupsServiceClient groupsServiceClient) {
         this.ldapService = ldapService;
         this.groupsServiceClient = groupsServiceClient;

@@ -4,9 +4,6 @@ import com.sysadminanywhere.client.directory.ContactsServiceClient;
 import com.sysadminanywhere.common.directory.dto.AddContactDto;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
 import lombok.SneakyThrows;
-import org.apache.directory.api.ldap.model.entry.DefaultEntry;
-import org.apache.directory.api.ldap.model.entry.Entry;
-import org.apache.directory.api.ldap.model.message.ModifyRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,8 +16,6 @@ public class ContactsService {
 
     private final LdapService ldapService;
     private final ContactsServiceClient contactsServiceClient;
-
-    ResolveService<ContactEntry> resolveService = new ResolveService<>(ContactEntry.class);
 
     public ContactsService(LdapService ldapService, ContactsServiceClient contactsServiceClient) {
         this.ldapService = ldapService;

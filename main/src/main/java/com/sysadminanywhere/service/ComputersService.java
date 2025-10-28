@@ -4,13 +4,7 @@ import com.sysadminanywhere.client.directory.ComputersServiceClient;
 import com.sysadminanywhere.common.directory.dto.AddComputerDto;
 import com.sysadminanywhere.common.directory.model.*;
 import com.sysadminanywhere.model.wmi.*;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import lombok.SneakyThrows;
-import org.apache.directory.api.ldap.model.entry.DefaultEntry;
-import org.apache.directory.api.ldap.model.entry.Entry;
-import org.sentrysoftware.wmi.exceptions.WmiComException;
-import org.sentrysoftware.wmi.exceptions.WqlQuerySyntaxException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
 
 @Service
 public class ComputersService {
@@ -27,8 +20,6 @@ public class ComputersService {
     private final LdapService ldapService;
     private final WmiService wmiService;
     private final ComputersServiceClient computersServiceClient;
-
-    ResolveService<ComputerEntry> resolveService = new ResolveService<>(ComputerEntry.class);
 
     public ComputersService(LdapService ldapService, WmiService wmiService, ComputersServiceClient computersServiceClient) {
         this.ldapService = ldapService;
@@ -75,9 +66,7 @@ public class ComputersService {
             String query = "Select * From Win32_Process" + getWmiQueryFromFilters(filters);
             WmiResolveService<ProcessEntity> wmiResolveService = new WmiResolveService<>(ProcessEntity.class);
             return wmiResolveService.getValues(wmiService.execute(hostName, query), pageable);
-        } catch (WmiComException | WqlQuerySyntaxException | TimeoutException ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } catch (Exception ex) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
     }
@@ -93,8 +82,6 @@ public class ComputersService {
             WmiResolveService<ServiceEntity> wmiResolveService = new WmiResolveService<>(ServiceEntity.class);
             return wmiResolveService.getValues(wmiService.execute(hostName, query), pageable);
         } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
     }
@@ -110,13 +97,21 @@ public class ComputersService {
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
             return wmiResolveService.getValues(wmiService.execute(hostName, query), pageable);
         } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
     }
 
-    public Page<EventEntity> getEvents(Pageable pageable, Map<String, Object> filters, String hostName) {
+    public List<SoftwareEntity> getSoftware(String hostName) {
+        try {
+            String query = "Select * From Win32_Product";
+            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
+            return wmiResolveService.getValues(wmiService.execute(hostName, query));
+        } catch (Exception ex) {
+            return new ArrayList<>();
+        }
+    }
+
+    public Page<EventEntity> getEvents(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
             WmiResolveService<EventEntity> wmiResolveService = new WmiResolveService<>(EventEntity.class);
 
@@ -124,14 +119,12 @@ public class ComputersService {
 
             return wmiResolveService.getValues(wmiService.execute(hostName, queryString), pageable);
         } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
     }
 
-    private String getEventQueryString(Map<String, Object> filters) {
-        LocalDate date = (LocalDate) filters.get("date");
+    private String getEventQueryString(Map<String, String> filters) {
+        LocalDate date = LocalDate.parse(filters.get("date"));
 
         String startDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "000000.000000000";
         String endDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "235959.000000000";
@@ -165,7 +158,7 @@ public class ComputersService {
         return queryString;
     }
 
-    public void clearEvents(Map<String, Object> filters, String hostName) {
+    public void clearEvents(Map<String, String> filters, String hostName) {
         wmiService.clearExecuteCache(hostName, getEventQueryString(filters));
     }
 
@@ -184,8 +177,6 @@ public class ComputersService {
             WmiResolveService<DiskDriveEntity> wmiResolveService = new WmiResolveService<>(DiskDriveEntity.class);
             return wmiResolveService.getValues(wmiService.execute(hostName, "SELECT * FROM Win32_DiskDrive"));
         } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return null;
         }
     }
@@ -195,8 +186,6 @@ public class ComputersService {
             WmiResolveService<OperatingSystemEntity> wmiResolveService = new WmiResolveService<>(OperatingSystemEntity.class);
             return wmiResolveService.getValue(wmiService.execute(hostName, "SELECT * FROM Win32_OperatingSystem").get(0));
         } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return null;
         }
     }
@@ -206,8 +195,6 @@ public class ComputersService {
             WmiResolveService<DiskPartitionEntity> wmiResolveService = new WmiResolveService<>(DiskPartitionEntity.class);
             return wmiResolveService.getValues(wmiService.execute(hostName, "SELECT * FROM Win32_DiskPartition"));
         } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return null;
         }
     }
@@ -217,8 +204,6 @@ public class ComputersService {
             WmiResolveService<ProcessorEntity> wmiResolveService = new WmiResolveService<>(ProcessorEntity.class);
             return wmiResolveService.getValues(wmiService.execute(hostName, "SELECT * FROM Win32_Processor"));
         } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return null;
         }
     }
@@ -228,8 +213,6 @@ public class ComputersService {
             WmiResolveService<VideoControllerEntity> wmiResolveService = new WmiResolveService<>(VideoControllerEntity.class);
             return wmiResolveService.getValues(wmiService.execute(hostName, "SELECT * FROM Win32_VideoController"));
         } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return null;
         }
     }
@@ -239,8 +222,6 @@ public class ComputersService {
             WmiResolveService<PhysicalMemoryEntity> wmiResolveService = new WmiResolveService<>(PhysicalMemoryEntity.class);
             return wmiResolveService.getValues(wmiService.execute(hostName, "SELECT * FROM Win32_PhysicalMemory"));
         } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return null;
         }
     }
@@ -250,8 +231,6 @@ public class ComputersService {
             WmiResolveService<LogicalDiskEntity> wmiResolveService = new WmiResolveService<>(LogicalDiskEntity.class);
             return wmiResolveService.getValues(wmiService.execute(hostName, "SELECT * FROM Win32_LogicalDisk"));
         } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return null;
         }
     }
@@ -261,8 +240,6 @@ public class ComputersService {
             WmiResolveService<BaseboardEntity> wmiResolveService = new WmiResolveService<>(BaseboardEntity.class);
             return wmiResolveService.getValue(wmiService.execute(hostName, "SELECT * FROM Win32_BaseBoard").get(0));
         } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return null;
         }
     }
@@ -272,8 +249,6 @@ public class ComputersService {
             WmiResolveService<BIOSEntity> wmiResolveService = new WmiResolveService<>(BIOSEntity.class);
             return wmiResolveService.getValue(wmiService.execute(hostName, "SELECT * FROM Win32_BIOS").get(0));
         } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return null;
         }
     }
@@ -283,8 +258,6 @@ public class ComputersService {
             WmiResolveService<ComputerSystemEntity> wmiResolveService = new WmiResolveService<>(ComputerSystemEntity.class);
             return wmiResolveService.getValue(wmiService.execute(hostName, "SELECT * FROM Win32_ComputerSystem").get(0));
         } catch (Exception ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             return null;
         }
     }
@@ -293,9 +266,7 @@ public class ComputersService {
         Map<String, Object> inputMap = Collections.singletonMap("Flags", 6);
         try {
             wmiService.invoke(hostName, "Win32_OperatingSystem=@", "Win32_OperatingSystem", "Win32Shutdown", inputMap);
-        } catch (WmiComException ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } catch (Exception ex) {
         }
     }
 
@@ -303,9 +274,7 @@ public class ComputersService {
         Map<String, Object> inputMap = Collections.singletonMap("Flags", 12);
         try {
             wmiService.invoke(hostName, "Win32_OperatingSystem=@", "Win32_OperatingSystem", "Win32Shutdown", inputMap);
-        } catch (WmiComException ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } catch (Exception ex) {
         }
     }
 
@@ -390,34 +359,23 @@ public class ComputersService {
                         case 21 -> "Invalid parameter";
                         default -> "Other error";
                     };
-                    Notification notification = Notification.show(errorMessage);
-                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                } else {
-                    Notification notification = Notification.show("Process '" + process.getCaption() + "' stopped");
-                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 }
             }
-        } catch (WmiComException e) {
-            Notification notification = Notification.show(e.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } catch (Exception e) {
         }
     }
 
     public void startService(String hostName, ServiceEntity service) {
         try {
             wmiService.executeCommand(hostName, String.format("net start '%s'", service.getName()), "c:\\");
-        } catch (WmiComException | TimeoutException ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } catch (Exception ex) {
         }
     }
 
     public void stopService(String hostName, ServiceEntity service) {
         try {
             wmiService.executeCommand(hostName, String.format("net stop '%s'", service.getName()), "c:\\");
-        } catch (WmiComException | TimeoutException ex) {
-            Notification notification = Notification.show(ex.getMessage());
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } catch (Exception ex) {
         }
     }
 

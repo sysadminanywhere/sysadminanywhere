@@ -1,7 +1,7 @@
 package com.sysadminanywhere.views.management.computers;
 
-import com.sysadminanywhere.control.Table;
 import com.sysadminanywhere.model.wmi.HardwareEntity;
+import com.sysadminanywhere.control.Table;
 import com.sysadminanywhere.service.ComputersService;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.Arrays.stream;
 
 @PageTitle("Hardware")
 @Route(value = "management/computers/:id?/hardware")

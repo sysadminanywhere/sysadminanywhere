@@ -7,7 +7,6 @@ import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.textfield.TextField;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
