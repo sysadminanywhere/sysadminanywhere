@@ -11,7 +11,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <vaadin.version>24.7.2</vaadin.version>
+        <vaadin.version>24.7.14</vaadin.version>
         <spring-cloud.version>2024.0.1</spring-cloud.version>
     </properties>
 
