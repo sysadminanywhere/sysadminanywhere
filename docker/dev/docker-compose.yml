@@ -23,7 +23,7 @@ services:
         export VAULT_TOKEN='myroottoken'
       
         # Записываем секреты
-        vault kv put secret/sysadminanywhere username=ivmarkin password='Secret2#'
+        vault kv put secret/sysadminanywhere username=admin password='Secret2#'
       
         # Возвращаем управление основному процессу
         wait
