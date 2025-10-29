@@ -1,6 +1,7 @@
 package com.sysadminanywhere.directory.config;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.message.BindRequest;
 import org.apache.directory.api.ldap.model.message.BindRequestImpl;
 import org.apache.directory.ldap.client.api.LdapConnection;
@@ -17,6 +18,7 @@ import org.springframework.vault.support.VaultResponse;
 
 import java.util.Arrays;
 
+@Slf4j
 @Configuration
 public class LdapConfig {
 
@@ -60,6 +62,9 @@ public class LdapConfig {
         bindRequest.setName(userName);
 
         connection.bind(bindRequest);
+
+        log.info("Is Connected: {}", connection.isConnected());
+        log.info("Is Authenticated: {}", connection.isAuthenticated());
 
         return connection;
     }

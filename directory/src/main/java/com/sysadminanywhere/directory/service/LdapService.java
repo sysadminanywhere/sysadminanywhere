@@ -146,56 +146,59 @@ public class LdapService {
 
         List<Entry> list = new ArrayList<>();
 
-        try {
-            SearchRequest searchRequest = new SearchRequestImpl();
-            searchRequest.setScope(searchScope);
-            searchRequest.addAttributes("*");
-            searchRequest.setTypesOnly(false);
-            searchRequest.setTimeLimit(0);
-            searchRequest.setBase(dn);
+        if (connection.isConnected() && connection.isAuthenticated()) {
 
-            searchRequest.setFilter(filter);
+            try {
+                SearchRequest searchRequest = new SearchRequestImpl();
+                searchRequest.setScope(searchScope);
+                searchRequest.addAttributes("*");
+                searchRequest.setTypesOnly(false);
+                searchRequest.setTimeLimit(0);
+                searchRequest.setBase(dn);
 
-            int pageSize = 100;
-            String sortKey = "cn";
+                searchRequest.setFilter(filter);
 
-            if (sort != null && !sort.isEmpty()) {
-                Optional<Sort.Order> order = sort.get().findFirst();
-                if (order.isPresent())
-                    sortKey = order.get().getProperty();
-            }
+                int pageSize = 100;
+                String sortKey = "cn";
 
-            SortRequest sortRequest = new SortRequestImpl();
-            sortRequest.addSortKey(new SortKey(sortKey));
-            searchRequest.addControl(sortRequest);
+                if (sort != null && !sort.isEmpty()) {
+                    Optional<Sort.Order> order = sort.get().findFirst();
+                    if (order.isPresent())
+                        sortKey = order.get().getProperty();
+                }
 
-            PagedResults pagedResults = new PagedResultsImpl();
-            pagedResults.setSize(pageSize);
-            searchRequest.addControl(pagedResults);
+                SortRequest sortRequest = new SortRequestImpl();
+                sortRequest.addSortKey(new SortKey(sortKey));
+                searchRequest.addControl(sortRequest);
 
-            while (true) {
-                try (SearchCursor searchCursor = connection.search(searchRequest)) {
-                    while (searchCursor.next()) {
-                        Response response = searchCursor.get();
-                        if (response instanceof SearchResultEntry) {
-                            Entry resultEntry = ((SearchResultEntry) response).getEntry();
-                            list.add(resultEntry);
+                PagedResults pagedResults = new PagedResultsImpl();
+                pagedResults.setSize(pageSize);
+                searchRequest.addControl(pagedResults);
+
+                while (true) {
+                    try (SearchCursor searchCursor = connection.search(searchRequest)) {
+                        while (searchCursor.next()) {
+                            Response response = searchCursor.get();
+                            if (response instanceof SearchResultEntry) {
+                                Entry resultEntry = ((SearchResultEntry) response).getEntry();
+                                list.add(resultEntry);
+                            }
                         }
-                    }
-                    SearchResultDone resultDone = searchCursor.getSearchResultDone();
-                    if (resultDone != null) {
-                        PagedResults pageResultResponseControl = (PagedResults) resultDone.getControl(PagedResults.OID);
-                        if (pageResultResponseControl == null || pageResultResponseControl.getCookie().length == 0) {
-                            break;
-                        } else {
-                            pagedResults.setCookie(pageResultResponseControl.getCookie());
+                        SearchResultDone resultDone = searchCursor.getSearchResultDone();
+                        if (resultDone != null) {
+                            PagedResults pageResultResponseControl = (PagedResults) resultDone.getControl(PagedResults.OID);
+                            if (pageResultResponseControl == null || pageResultResponseControl.getCookie().length == 0) {
+                                break;
+                            } else {
+                                pagedResults.setCookie(pageResultResponseControl.getCookie());
+                            }
                         }
                     }
                 }
-            }
 
-        } catch (LdapException le) {
-            log.error("LdapException: {}", le);
+            } catch (LdapException le) {
+                log.error("LdapException: {}", le);
+            }
         }
 
         return list;
