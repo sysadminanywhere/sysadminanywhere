@@ -25,8 +25,8 @@ public class ContactsService {
 
     @SneakyThrows
     public Page<ContactEntry> getAll(Pageable pageable, String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=contact)(objectCategory=person)" + filters + ")", pageable.getSort());
-        return resolveService.getADPage(result, pageable);
+        Page<Entry> result = ldapService.searchPage("(&(objectClass=contact)(objectCategory=person)" + filters + ")", pageable.getSort(), pageable);
+        return resolveService.getADPage(result);
     }
 
     @SneakyThrows

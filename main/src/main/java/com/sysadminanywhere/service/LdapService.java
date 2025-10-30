@@ -98,6 +98,10 @@ public class LdapService {
         return search(getBaseDn(), filter, SearchScope.SUBTREE, null);
     }
 
+    public List<EntryDto> searchWithAttributes(String filter, String... attributes) {
+        return ldapServiceClient.getSearch(new SearchDto(getBaseDn(), filter, SearchScope.SUBTREE.ordinal(), attributes));
+    }
+
     @SneakyThrows
     public List<EntryDto> search(String filter, SearchScope searchScope) {
         return search(getBaseDn(), filter, searchScope, null);

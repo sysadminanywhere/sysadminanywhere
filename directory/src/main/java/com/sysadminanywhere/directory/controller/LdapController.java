@@ -43,7 +43,20 @@ public class LdapController {
         Dn dn = new Dn(searchDto.getDistinguishedName());
         String filter = searchDto.getFilter();
         SearchScope searchScope = SearchScope.getSearchScope(searchDto.getSearchScope());
-        return new ResponseEntity<>(ldapService.convertEntryList(ldapService.search(dn, filter, searchScope)), HttpStatus.OK);
+        String[] attributes = new String[]{"*"};
+        if (searchDto.getAttributes() != null)
+            attributes = searchDto.getAttributes();
+
+        return new ResponseEntity<>(ldapService.convertEntryList(ldapService.searchWithAttributes(dn, filter, searchScope, attributes)), HttpStatus.OK);
+    }
+
+    @SneakyThrows
+    @PostMapping("/count")
+    public ResponseEntity<Long> count(@RequestBody SearchDto searchDto) {
+        Dn dn = new Dn(searchDto.getDistinguishedName());
+        String filter = searchDto.getFilter();
+        SearchScope searchScope = SearchScope.getSearchScope(searchDto.getSearchScope());
+        return new ResponseEntity<>(ldapService.count(dn, filter, searchScope), HttpStatus.OK);
     }
 
     @GetMapping("/rootdse")

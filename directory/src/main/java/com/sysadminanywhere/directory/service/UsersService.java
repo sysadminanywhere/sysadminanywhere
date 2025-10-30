@@ -26,8 +26,8 @@ public class UsersService {
 
     @SneakyThrows
     public Page<UserEntry> getAll(@ParameterObject Pageable pageable, String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=user)(objectCategory=person)" + filters + ")", pageable.getSort());
-        return resolveService.getADPage(result, pageable);
+        Page<Entry> result = ldapService.searchPage("(&(objectClass=user)(objectCategory=person)" + filters + ")", pageable.getSort(), pageable);
+        return resolveService.getADPage(result);
     }
 
     public List<UserEntry> getAll(String filters) {

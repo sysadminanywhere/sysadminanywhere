@@ -31,6 +31,19 @@ public class ResolveService<T> {
     }
 
     @SneakyThrows
+    public Page<T> getADPage(Page<Entry> page) {
+        if (page.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), page.getPageable(), page.getTotalElements());
+        }
+
+        List<T> content = page.getContent().stream()
+                .map(this::getADValue)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(content, page.getPageable(), page.getTotalElements());
+    }
+
+    @SneakyThrows
     public Page<T> getADPage(List<Entry> list, Pageable pageable) {
         if (list.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);

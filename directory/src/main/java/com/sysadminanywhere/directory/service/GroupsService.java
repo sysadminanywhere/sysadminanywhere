@@ -27,8 +27,8 @@ public class GroupsService {
 
     @SneakyThrows
     public Page<GroupEntry> getAll(Pageable pageable, String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=group)" + filters + ")", pageable.getSort());
-        return resolveService.getADPage(result, pageable);
+        Page<Entry> result = ldapService.searchPage("(&(objectClass=group)" + filters + ")", pageable.getSort(), pageable);
+        return resolveService.getADPage(result);
     }
 
     public List<GroupEntry> getAll(String filters) {

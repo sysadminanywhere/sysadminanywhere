@@ -24,8 +24,8 @@ public class PrintersService {
 
     @SneakyThrows
     public Page<PrinterEntry> getAll(Pageable pageable, String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=printQueue)" + filters + ")", pageable.getSort());
-        return resolveService.getADPage(result, pageable);
+        Page<Entry> result = ldapService.searchPage("(&(objectClass=printQueue)" + filters + ")", pageable.getSort(), pageable);
+        return resolveService.getADPage(result);
     }
 
     @SneakyThrows

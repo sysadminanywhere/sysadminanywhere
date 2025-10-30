@@ -122,8 +122,8 @@ public class LdapService {
     }
 
     @SneakyThrows
-    public List<Entry> search(String filter, Sort sort) {
-        return search(baseDn, filter, SearchScope.SUBTREE, sort);
+    public Page<Entry> searchPage(String filter, Sort sort, Pageable pageable) {
+        return searchPage(baseDn, filter, SearchScope.SUBTREE, sort, pageable);
     }
 
     @SneakyThrows
@@ -142,7 +142,50 @@ public class LdapService {
     }
 
     @SneakyThrows
+    public Long count(String filter) {
+        return count(baseDn, filter, SearchScope.SUBTREE);
+    }
+
+    @SneakyThrows
+    public Long count(Dn dn, String filter, SearchScope searchScope) {
+        long totalElements = 0;
+
+        if (connection.isConnected() && connection.isAuthenticated()) {
+            try {
+                SearchRequest countRequest = new SearchRequestImpl();
+                countRequest.setBase(dn);
+                countRequest.setFilter(filter);
+                countRequest.setScope(searchScope);
+                countRequest.setTypesOnly(true);
+                countRequest.addAttributes();
+                countRequest.setTimeLimit(0);
+
+                try (SearchCursor countCursor = connection.search(countRequest)) {
+                    while (countCursor.next()) {
+                        countCursor.get();
+                        totalElements++;
+                    }
+                }
+            } catch (LdapException le) {
+                log.error("LdapException: {}", le);
+            }
+        }
+
+        return totalElements;
+    }
+
+    @SneakyThrows
     public List<Entry> search(Dn dn, String filter, SearchScope searchScope, Sort sort) {
+        return search(dn, filter, searchScope, sort, "*");
+    }
+
+    @SneakyThrows
+    public List<Entry> searchWithAttributes(Dn dn, String filter, SearchScope searchScope, String... attributes) {
+        return search(dn, filter, searchScope, null, attributes);
+    }
+
+    @SneakyThrows
+    public List<Entry> search(Dn dn, String filter, SearchScope searchScope, Sort sort, String... attributes) {
 
         List<Entry> list = new ArrayList<>();
 
@@ -151,7 +194,7 @@ public class LdapService {
             try {
                 SearchRequest searchRequest = new SearchRequestImpl();
                 searchRequest.setScope(searchScope);
-                searchRequest.addAttributes("*");
+                searchRequest.addAttributes(attributes);
                 searchRequest.setTypesOnly(false);
                 searchRequest.setTimeLimit(0);
                 searchRequest.setBase(dn);
@@ -202,6 +245,92 @@ public class LdapService {
         }
 
         return list;
+    }
+
+    @SneakyThrows
+    public Page<Entry> searchPage(Dn dn, String filter, SearchScope searchScope, Sort sort, Pageable pageable) {
+
+        List<Entry> pageList = new ArrayList<>();
+        byte[] cookie = null;
+        int pageSize = pageable.getPageSize();
+        int offset = (int) pageable.getOffset();
+
+        long totalElements = 0;
+
+        if (connection.isConnected() && connection.isAuthenticated()) {
+            try {
+                SearchRequest searchRequest = new SearchRequestImpl();
+                searchRequest.setScope(searchScope);
+                searchRequest.addAttributes("*");
+                searchRequest.setTypesOnly(false);
+                searchRequest.setTimeLimit(0);
+                searchRequest.setBase(dn);
+                searchRequest.setFilter(filter);
+
+                // сортировка
+                String sortKey = "cn";
+                if (sort != null && !sort.isEmpty()) {
+                    Optional<Sort.Order> order = sort.get().findFirst();
+                    if (order.isPresent()) {
+                        sortKey = order.get().getProperty();
+                    }
+                }
+                SortRequest sortRequest = new SortRequestImpl();
+                sortRequest.addSortKey(new SortKey(sortKey));
+                searchRequest.addControl(sortRequest);
+
+                PagedResults pagedResults = new PagedResultsImpl();
+                pagedResults.setSize(pageSize);
+
+                int skipped = 0;
+
+                while (true) {
+                    if (cookie != null) {
+                        pagedResults.setCookie(cookie);
+                    }
+                    searchRequest.addControl(pagedResults);
+
+                    try (SearchCursor searchCursor = connection.search(searchRequest)) {
+                        while (searchCursor.next()) {
+                            Response response = searchCursor.get();
+                            if (response instanceof SearchResultEntry) {
+                                totalElements++;
+
+                                if (skipped < offset) {
+                                    skipped++;
+                                    continue;
+                                }
+
+                                if (pageList.size() < pageSize) {
+                                    Entry resultEntry = ((SearchResultEntry) response).getEntry();
+                                    pageList.add(resultEntry);
+                                }
+                            }
+                        }
+
+                        SearchResultDone resultDone = searchCursor.getSearchResultDone();
+                        if (resultDone != null) {
+                            PagedResults pageResultResponseControl = (PagedResults) resultDone.getControl(PagedResults.OID);
+                            if (pageResultResponseControl != null && pageResultResponseControl.getCookie().length > 0) {
+                                cookie = pageResultResponseControl.getCookie();
+                            } else {
+                                cookie = null;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (cookie == null) {
+                        break;
+                    }
+                }
+
+            } catch (LdapException le) {
+                log.error("LdapException: {}", le);
+            }
+        }
+
+        return new PageImpl<>(pageList, pageable, totalElements);
     }
 
     @SneakyThrows

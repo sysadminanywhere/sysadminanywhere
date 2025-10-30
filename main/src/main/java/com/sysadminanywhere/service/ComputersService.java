@@ -2,6 +2,7 @@ package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.client.directory.ComputersServiceClient;
 import com.sysadminanywhere.common.directory.dto.AddComputerDto;
+import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.*;
 import com.sysadminanywhere.model.wmi.*;
 import lombok.SneakyThrows;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.parser.Entity;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -34,6 +36,29 @@ public class ComputersService {
 
     public List<ComputerEntry> getAll(String filters) {
         return computersServiceClient.getList(filters);
+    }
+
+    public List<ComputerEntry> getAll() {
+        List<EntryDto> list = ldapService.searchWithAttributes("(objectClass=computer)",
+                "cn", "useraccountcontrol", "operatingsystem", "primarygroupid");
+
+        List<ComputerEntry> items = new ArrayList<>();
+
+        for (EntryDto entryDto : list) {
+            ComputerEntry item = new ComputerEntry();
+            item.setCn(entryDto.getAttributes().get("cn").toString());
+            item.setUserAccountControl(Integer.parseInt(entryDto.getAttributes().get("useraccountcontrol").toString()));
+            item.setPrimaryGroupId(Integer.parseInt(entryDto.getAttributes().get("primarygroupid").toString()));
+            item.setOperatingSystem("");
+
+            if (entryDto.getAttributes().containsKey("operatingsystem")) {
+                item.setOperatingSystem(entryDto.getAttributes().get("operatingsystem").toString());
+            }
+
+            items.add(item);
+        }
+
+        return items;
     }
 
     public ComputerEntry getByCN(String cn) {
