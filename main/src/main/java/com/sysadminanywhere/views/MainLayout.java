@@ -39,7 +39,12 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.jwt.Jwt;
+
+import java.util.Map;
+import java.util.Optional;
 
 @Layout
 @PermitAll
@@ -163,9 +168,10 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        var p = authentication.getPrincipal();
-        if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
-            String userName = jwt.getClaim("preferred_username");
+        if (authentication != null && authentication.getPrincipal() instanceof OidcUser user) {
+            OidcIdToken token = user.getIdToken();
+            Map<String, Object> claims = token.getClaims();
+            String userName = user.getClaim("preferred_username");
         }
 //        if (ldapService.getConnection().isConnected()) {
 //            Optional<UserEntry> maybeUser = authenticatedUser.get();

@@ -49,8 +49,11 @@ public class LdapService {
     }
 
     @SneakyThrows
-    public String getBaseDn(){
-        return getRootDse().getAttributes().get("rootdomainnamingcontext").toString();
+    public String getBaseDn() {
+        if (getRootDse() != null)
+            return getRootDse().getAttributes().get("rootdomainnamingcontext").toString();
+        else
+            return "";
     }
 
     public String getDefaultNamingContext() {
@@ -58,7 +61,10 @@ public class LdapService {
     }
 
     public String getDomainName() {
-        return getDefaultNamingContext().toUpperCase().replace("DC=", "").replace(",", ".").toLowerCase();
+        if (!getDefaultNamingContext().isEmpty())
+            return getDefaultNamingContext().toUpperCase().replace("DC=", "").replace(",", ".").toLowerCase();
+        else
+            return "";
     }
 
     public EntryDto getRootDse() {
@@ -66,7 +72,7 @@ public class LdapService {
             return ldapServiceClient.getRootDse();
         } catch (Exception ex) {
             authenticationContext.logout();
-            return new EntryDto();
+            return null;
         }
     }
 
