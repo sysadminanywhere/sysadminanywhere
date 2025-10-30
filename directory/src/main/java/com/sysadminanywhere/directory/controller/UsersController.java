@@ -26,8 +26,8 @@ public class UsersController {
     }
 
     @GetMapping()
-    public ResponseEntity<Page<UserEntry>> getAll(@ParameterObject Pageable pageable, @RequestParam("filters") String filters) {
-        return new ResponseEntity<>(usersService.getAll(pageable, filters), HttpStatus.OK);
+    public ResponseEntity<Page<UserEntry>> getAll(@ParameterObject Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes")  String[] attributes) {
+        return new ResponseEntity<>(usersService.getAll(pageable, filters, attributes), HttpStatus.OK);
     }
 
     @GetMapping("/list")

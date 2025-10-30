@@ -24,8 +24,8 @@ public class ComputersController {
     }
 
     @GetMapping()
-    public ResponseEntity<Page<ComputerEntry>> getAll(@ParameterObject Pageable pageable, @RequestParam String filters) {
-        return new ResponseEntity<>(computersService.getAll(pageable, filters), HttpStatus.OK);
+    public ResponseEntity<Page<ComputerEntry>> getAll(@ParameterObject Pageable pageable, @RequestParam String filters, @RequestParam String[] attributes) {
+        return new ResponseEntity<>(computersService.getAll(pageable, filters, attributes), HttpStatus.OK);
     }
 
     @GetMapping("/list")

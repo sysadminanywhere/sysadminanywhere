@@ -26,8 +26,8 @@ public class UsersService {
     }
 
     @SneakyThrows
-    public Page<UserEntry> getAll(Pageable pageable, String filters) {
-        return usersServiceClient.getAll(pageable, filters);
+    public Page<UserEntry> getAll(Pageable pageable, String filters, String... attributes) {
+        return usersServiceClient.getAll(pageable, filters, attributes);
     }
 
     public List<UserEntry> getAll(String filters) {

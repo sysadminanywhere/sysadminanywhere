@@ -17,7 +17,7 @@ import java.util.List;
 public interface PrintersServiceClient {
 
     @GetMapping("/api/printers")
-    Page<PrinterEntry> getAll(Pageable pageable, @RequestParam("filters") String filters);
+    Page<PrinterEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/printers/list")
     List<PrinterEntry> getList(@RequestParam("filters") String filters);

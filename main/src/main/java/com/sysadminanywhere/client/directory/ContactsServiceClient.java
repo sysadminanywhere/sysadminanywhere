@@ -19,7 +19,7 @@ import java.util.List;
 public interface ContactsServiceClient {
 
     @GetMapping("/api/contacts")
-    Page<ContactEntry> getAll(Pageable pageable, @RequestParam("filters") String filters);
+    Page<ContactEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/contacts/list")
     List<ContactEntry> getList(@RequestParam("filters") String filters);

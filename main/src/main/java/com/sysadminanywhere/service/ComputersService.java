@@ -30,8 +30,8 @@ public class ComputersService {
     }
 
     @SneakyThrows
-    public Page<ComputerEntry> getAll(Pageable pageable, String filters) {
-        return computersServiceClient.getAll(pageable, filters);
+    public Page<ComputerEntry> getAll(Pageable pageable, String filters, String... attributes) {
+        return computersServiceClient.getAll(pageable, filters, attributes);
     }
 
     public List<ComputerEntry> getAll(String filters) {

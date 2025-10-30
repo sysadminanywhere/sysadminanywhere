@@ -26,8 +26,8 @@ public class GroupsService {
     }
 
     @SneakyThrows
-    public Page<GroupEntry> getAll(Pageable pageable, String filters) {
-        return groupsServiceClient.getAll(pageable, filters);
+    public Page<GroupEntry> getAll(Pageable pageable, String filters, String... attributes) {
+        return groupsServiceClient.getAll(pageable, filters, attributes);
     }
 
     public List<GroupEntry> getAll(String filters) {

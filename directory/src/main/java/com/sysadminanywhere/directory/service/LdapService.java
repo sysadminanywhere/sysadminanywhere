@@ -122,8 +122,8 @@ public class LdapService {
     }
 
     @SneakyThrows
-    public Page<Entry> searchPage(String filter, Sort sort, Pageable pageable) {
-        return searchPage(baseDn, filter, SearchScope.SUBTREE, sort, pageable);
+    public Page<Entry> searchPage(String filter, Sort sort, Pageable pageable, String... attributes) {
+        return searchPage(baseDn, filter, SearchScope.SUBTREE, sort, pageable, attributes);
     }
 
     @SneakyThrows
@@ -248,7 +248,7 @@ public class LdapService {
     }
 
     @SneakyThrows
-    public Page<Entry> searchPage(Dn dn, String filter, SearchScope searchScope, Sort sort, Pageable pageable) {
+    public Page<Entry> searchPage(Dn dn, String filter, SearchScope searchScope, Sort sort, Pageable pageable, String... attributes) {
 
         List<Entry> pageList = new ArrayList<>();
         byte[] cookie = null;
@@ -261,7 +261,7 @@ public class LdapService {
             try {
                 SearchRequest searchRequest = new SearchRequestImpl();
                 searchRequest.setScope(searchScope);
-                searchRequest.addAttributes("*");
+                searchRequest.addAttributes(attributes);
                 searchRequest.setTypesOnly(false);
                 searchRequest.setTimeLimit(0);
                 searchRequest.setBase(dn);

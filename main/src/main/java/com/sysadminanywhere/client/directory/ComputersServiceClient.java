@@ -18,7 +18,7 @@ import java.util.List;
 public interface ComputersServiceClient {
 
     @GetMapping("/api/computers")
-    Page<ComputerEntry> getAll(Pageable pageable, @RequestParam("filters") String filters);
+    Page<ComputerEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/computers/list")
     List<ComputerEntry> getList(@RequestParam("filters") String filters);

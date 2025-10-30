@@ -24,8 +24,8 @@ public class ComputersService {
     }
 
     @SneakyThrows
-    public Page<ComputerEntry> getAll(Pageable pageable, String filters) {
-        Page<Entry> result = ldapService.searchPage("(&(objectClass=computer)" + filters + ")", pageable.getSort(), pageable);
+    public Page<ComputerEntry> getAll(Pageable pageable, String filters, String... attributes) {
+        Page<Entry> result = ldapService.searchPage("(&(objectClass=computer)" + filters + ")", pageable.getSort(), pageable, attributes);
         return resolveService.getADPage(result);
     }
 

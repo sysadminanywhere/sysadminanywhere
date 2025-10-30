@@ -19,7 +19,7 @@ import java.util.List;
 public interface GroupsServiceClient {
 
     @GetMapping("/api/groups")
-    Page<GroupEntry> getAll(Pageable pageable, @RequestParam("filters") String filters);
+    Page<GroupEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/groups/list")
     List<GroupEntry> getList(@RequestParam("filters") String filters);

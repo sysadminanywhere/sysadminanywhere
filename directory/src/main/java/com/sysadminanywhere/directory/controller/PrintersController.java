@@ -23,8 +23,8 @@ public class PrintersController {
     }
 
     @GetMapping()
-    public ResponseEntity<Page<PrinterEntry>> getAll(@ParameterObject Pageable pageable, @RequestParam String filters) {
-        return new ResponseEntity<>(printersService.getAll(pageable, filters), HttpStatus.OK);
+    public ResponseEntity<Page<PrinterEntry>> getAll(@ParameterObject Pageable pageable, @RequestParam String filters, @RequestParam String[] attributes) {
+        return new ResponseEntity<>(printersService.getAll(pageable, filters, attributes), HttpStatus.OK);
     }
 
     @GetMapping("/list")

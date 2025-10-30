@@ -159,7 +159,7 @@ public class ComputersView extends Div implements MenuControl {
 
         grid.setItems(query -> computersService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                filters.getFilters()).stream());
+                filters.getFilters(), "cn", "description").stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 

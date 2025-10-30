@@ -24,8 +24,8 @@ public class GroupsController {
     }
 
     @GetMapping()
-    public ResponseEntity<Page<GroupEntry>> getAll(@ParameterObject Pageable pageable, @RequestParam String filters) {
-        return new ResponseEntity<>(groupsService.getAll(pageable, filters), HttpStatus.OK);
+    public ResponseEntity<Page<GroupEntry>> getAll(@ParameterObject Pageable pageable, @RequestParam String filters, @RequestParam String[] attributes) {
+        return new ResponseEntity<>(groupsService.getAll(pageable, filters, attributes), HttpStatus.OK);
     }
 
     @GetMapping("/{cn}")

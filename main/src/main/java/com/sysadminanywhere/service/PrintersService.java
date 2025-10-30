@@ -23,8 +23,8 @@ public class PrintersService {
     }
 
     @SneakyThrows
-    public Page<PrinterEntry> getAll(Pageable pageable, String filters) {
-        return printersServiceClient.getAll(pageable, filters);
+    public Page<PrinterEntry> getAll(Pageable pageable, String filters, String... attributes) {
+        return printersServiceClient.getAll(pageable, filters, attributes);
     }
 
     @SneakyThrows

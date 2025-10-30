@@ -20,7 +20,7 @@ import java.util.List;
 public interface UsersServiceClient {
 
     @GetMapping("/api/users")
-    Page<UserEntry> getAll(Pageable pageable, @RequestParam("filters") String filters);
+    Page<UserEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/users/list")
     List<UserEntry> getList(@RequestParam("filters") String filters);

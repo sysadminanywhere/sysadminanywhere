@@ -25,8 +25,8 @@ public class ContactsService {
     }
 
     @SneakyThrows
-    public Page<ContactEntry> getAll(Pageable pageable, String filters) {
-        return contactsServiceClient.getAll(pageable, filters);
+    public Page<ContactEntry> getAll(Pageable pageable, String filters, String... attributes) {
+        return contactsServiceClient.getAll(pageable, filters, attributes);
     }
 
     @SneakyThrows

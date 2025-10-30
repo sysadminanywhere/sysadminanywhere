@@ -24,8 +24,8 @@ public class ContactsController {
     }
 
     @GetMapping()
-    public ResponseEntity<Page<ContactEntry>> getAll(@ParameterObject Pageable pageable, @RequestParam String filters) {
-        return new ResponseEntity<>(contactsService.getAll(pageable, filters), HttpStatus.OK);
+    public ResponseEntity<Page<ContactEntry>> getAll(@ParameterObject Pageable pageable, @RequestParam String filters, @RequestParam String[] attributes) {
+        return new ResponseEntity<>(contactsService.getAll(pageable, filters, attributes), HttpStatus.OK);
     }
 
     @GetMapping("/list")
