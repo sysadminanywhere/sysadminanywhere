@@ -163,9 +163,9 @@ public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuC
         MenuHelper.createIconItem(menuBar, "/icons/portrait.svg", "Photo", event -> {
             updatePhotoDialog().open();
         });
-        MenuHelper.createIconItem(menuBar, "/icons/sign-out.svg", "Sign out", event -> {
-            authenticatedUser.logout();
-        });
+//        MenuHelper.createIconItem(menuBar, "/icons/sign-out.svg", "Sign out", event -> {
+//            authenticatedUser.logout();
+//        });
 
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 

@@ -121,8 +121,12 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 createMainButtonItem("Reports", UserReportsView.class, "/icons/reports.svg"));
         topMenu.setMargin(false);
 
-        VerticalLayout bottomMenu = new VerticalLayout(createMainButtonItem("Account", MeView.class, "/icons/user.svg"),
-                createMainButtonItem("Settings", SettingsView.class, "/icons/settings.svg"));
+        VerticalLayout bottomMenu = new VerticalLayout();
+
+        if(authenticatedUser.get().isPresent())
+            bottomMenu.add(createMainButtonItem("Account", MeView.class, "/icons/user.svg"));
+
+        bottomMenu.add(createMainButtonItem("Settings", SettingsView.class, "/icons/settings.svg"));
 
         bottomMenu.setHeightFull();
         bottomMenu.setMargin(false);
@@ -167,21 +171,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof OidcUser user) {
-            OidcIdToken token = user.getIdToken();
-            Map<String, Object> claims = token.getClaims();
-            String userName = user.getClaim("preferred_username");
-        }
-//        if (ldapService.getConnection().isConnected()) {
-//            Optional<UserEntry> maybeUser = authenticatedUser.get();
-//            if (maybeUser.isPresent()) {
-//                UserEntry user = maybeUser.get();
-//                if (!loginService.isLoggedIn())
-//                    loginService.Login(user);
-//            } else {
-//                UI.getCurrent().navigate(LoginView.class);
-//            }
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (authentication != null && authentication.getPrincipal() instanceof OidcUser user) {
+//            String federationSource = user.getClaim("federation_source");
 //        }
     }
 
