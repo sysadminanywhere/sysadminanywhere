@@ -5,9 +5,12 @@ import com.sysadminanywhere.service.UsersService;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import java.util.Optional;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,11 +27,10 @@ public class AuthenticatedUser {
 
     @Transactional
     public Optional<UserEntry> get() {
-        SecurityContext context = SecurityContextHolder.getContext();
-        Object principal = context.getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) context.getAuthentication().getPrincipal();
-            return Optional.ofNullable(usersService.getByCN(userDetails.getUsername()));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof OidcUser user) {
+            String userName = user.getClaim("preferred_username");
+            return Optional.ofNullable(usersService.getByCN(userName));
         }
         // Anonymous or no authentication.
         return Optional.empty();

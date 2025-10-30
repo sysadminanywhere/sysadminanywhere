@@ -163,6 +163,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        var p = authentication.getPrincipal();
         if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
             String userName = jwt.getClaim("preferred_username");
         }
