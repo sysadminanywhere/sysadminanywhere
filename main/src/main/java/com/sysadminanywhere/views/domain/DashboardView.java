@@ -55,10 +55,10 @@ public class DashboardView extends VerticalLayout {
         verticalLayout.setWidthFull();
 
         List<ComputerEntry> computers = computersService.getAll();
-        List<UserEntry> users = usersService.getAll("");
-        List<GroupEntry> groups = groupsService.getAll("");
-        List<PrinterEntry> printers = printersService.getAll("");
-        List<ContactEntry> contacts = contactsService.getAll("");
+        List<UserEntry> users = usersService.getAll();
+        List<GroupEntry> groups = groupsService.getAll();
+        List<PrinterEntry> printers = printersService.getAll();
+        List<ContactEntry> contacts = contactsService.getAll();
 
         getStoredTheme().thenAccept(v -> {
             boolean isDarkTheme = false;

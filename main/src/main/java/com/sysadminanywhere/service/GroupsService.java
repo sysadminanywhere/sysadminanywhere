@@ -2,6 +2,7 @@ package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.client.directory.GroupsServiceClient;
 import com.sysadminanywhere.common.directory.dto.AddGroupDto;
+import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.model.GroupScope;
 import com.sysadminanywhere.common.directory.model.GroupType;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -30,6 +32,22 @@ public class GroupsService {
 
     public List<GroupEntry> getAll(String filters) {
         return groupsServiceClient.getList(filters);
+    }
+
+    public List<GroupEntry> getAll() {
+        List<EntryDto> list = ldapService.searchWithAttributes("(objectClass=group)",
+                "cn", "grouptype");
+
+        List<GroupEntry> items = new ArrayList<>();
+
+        for (EntryDto entryDto : list) {
+            GroupEntry item = new GroupEntry();
+            item.setCn(entryDto.getAttributes().get("cn").toString());
+            item.setGroupType(Integer.parseInt(entryDto.getAttributes().get("grouptype").toString()));
+            items.add(item);
+        }
+
+        return items;
     }
 
     public GroupEntry getByCN(String cn) {

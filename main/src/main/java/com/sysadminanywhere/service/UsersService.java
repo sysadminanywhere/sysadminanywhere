@@ -3,6 +3,7 @@ package com.sysadminanywhere.service;
 import com.sysadminanywhere.client.directory.UsersServiceClient;
 import com.sysadminanywhere.common.directory.dto.AddUserDto;
 import com.sysadminanywhere.common.directory.dto.ChangeUserAccountControlDto;
+import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import lombok.SneakyThrows;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -30,6 +32,22 @@ public class UsersService {
 
     public List<UserEntry> getAll(String filters) {
         return usersServiceClient.getList(filters);
+    }
+
+    public List<UserEntry> getAll() {
+        List<EntryDto> list = ldapService.searchWithAttributes("(&(objectClass=user)(objectCategory=person))",
+                "cn", "useraccountcontrol");
+
+        List<UserEntry> items = new ArrayList<>();
+
+        for (EntryDto entryDto : list) {
+            UserEntry item = new UserEntry();
+            item.setCn(entryDto.getAttributes().get("cn").toString());
+            item.setUserAccountControl(Integer.parseInt(entryDto.getAttributes().get("useraccountcontrol").toString()));
+            items.add(item);
+        }
+
+        return items;
     }
 
     public UserEntry getByCN(String cn) {
