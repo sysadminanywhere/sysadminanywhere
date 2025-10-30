@@ -7,10 +7,16 @@ import com.sysadminanywhere.common.directory.dto.SearchDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.domain.SearchScope;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.spring.security.AuthenticationContext;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -21,6 +27,9 @@ import java.util.stream.Collectors;
 public class LdapService {
 
     private final LdapServiceClient ldapServiceClient;
+
+    @Autowired
+    private AuthenticationContext authenticationContext;
 
     private final String ContainerMicrosoft = "B:32:F4BE92A4C777485E878E9421D53087DB:";                 //NOSONAR CN=Microsoft,CN=Program Data,DC=example,DC=com
     private final String ContainerProgramData = "B:32:09460C08AE1E4A4EA0F64AEE7DAA1E5A:";               //NOSONAR CN=Program Data,DC=example,DC=com
@@ -53,7 +62,12 @@ public class LdapService {
     }
 
     public EntryDto getRootDse() {
-        return ldapServiceClient.getRootDse();
+        try {
+            return ldapServiceClient.getRootDse();
+        } catch (Exception ex) {
+            authenticationContext.logout();
+            return new EntryDto();
+        }
     }
 
     @Cacheable(value = "maxPwdAge")
