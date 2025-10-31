@@ -1,5 +1,6 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.client.inventory.InventoryServiceClient;
 import com.sysadminanywhere.common.inventory.model.ComputerItem;
 import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareOnComputer;
@@ -17,38 +18,25 @@ import java.util.Map;
 @Service
 public class InventoryService {
 
-    /*
+    private final InventoryServiceClient inventoryServiceClient;
 
-     ┌───────────── second (0-59)
-     │ ┌───────────── minute (0 - 59)
-     │ │ ┌───────────── hour (0 - 23)
-     │ │ │ ┌───────────── day of the month (1 - 31)
-     │ │ │ │ ┌───────────── month (1 - 12) (or JAN-DEC)
-     │ │ │ │ │ ┌───────────── day of the week (0 - 7)
-     │ │ │ │ │ │          (0 or 7 is Sunday, or MON-SUN)
-     │ │ │ │ │ │
-     * * * * * *
-
-    "0 0 12 * * *" every day at 12:00
-
-    */
+    public InventoryService(InventoryServiceClient inventoryServiceClient) {
+        this.inventoryServiceClient = inventoryServiceClient;
+    }
 
     public Page<SoftwareOnComputer> getSoftwareOnComputer(Long computerId, Pageable pageable, Map<String, String> filters) {
-        //return softwareRepository.getSoftwareOnComputer(computerId, pageable);
-        return null;
+        return inventoryServiceClient.getSoftwareOnComputer(computerId, filters, pageable);
     }
 
     public Page<SoftwareCount> getSoftwareCount(Pageable pageable, Map<String, String> filters) {
-        String name = filters.get("name") + "%";
-        String vendor = filters.get("vendor") + "%";
-        //return softwareRepository.getSoftwareInstallationCount(name, vendor, pageable);
-        return null;
+        filters.replace("name", filters.get("name") + "%");
+        filters.replace("vendor", filters.get("vendor") + "%");
+        return inventoryServiceClient.getSoftwareCount(filters, pageable);
     }
 
     public Page<ComputerItem> getComputersWithSoftware(Long softwareId, Pageable pageable, Map<String, String> filters) {
-        String name = filters.get("name") + "%";
-        //return computerRepository.getComputersWithSoftware(softwareId, name, pageable);
-        return null;
+        filters.replace("name", filters.get("name") + "%");
+        return inventoryServiceClient.getComputersWithSoftware(softwareId, filters, pageable);
     }
 
     private List<HardwareEntity> getHardware(String hostName) {
