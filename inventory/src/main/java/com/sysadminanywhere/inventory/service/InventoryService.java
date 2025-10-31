@@ -202,7 +202,7 @@ public class InventoryService {
     private List<ComputerEntry> getComputers() {
         List<ComputerEntry> list = new ArrayList<>();
 
-        List<EntryDto> result = ldapServiceClient.getSearch(new SearchDto("", "(objectClass=computer)", 2));
+        List<EntryDto> result = ldapServiceClient.getSearch(new SearchDto("", "(objectClass=computer)", 2, "cn", "useraccountcontrol", "dnshostname"));
 
         for (EntryDto entry : result) {
 

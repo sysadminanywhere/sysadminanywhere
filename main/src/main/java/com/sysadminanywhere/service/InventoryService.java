@@ -29,13 +29,10 @@ public class InventoryService {
     }
 
     public Page<SoftwareCount> getSoftwareCount(Pageable pageable, Map<String, String> filters) {
-        filters.replace("name", filters.get("name") + "%");
-        filters.replace("vendor", filters.get("vendor") + "%");
         return inventoryServiceClient.getSoftwareCount(filters, pageable);
     }
 
     public Page<ComputerItem> getComputersWithSoftware(Long softwareId, Pageable pageable, Map<String, String> filters) {
-        filters.replace("name", filters.get("name") + "%");
         return inventoryServiceClient.getComputersWithSoftware(softwareId, filters, pageable);
     }
 
