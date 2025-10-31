@@ -31,8 +31,8 @@ public class GroupsService {
         return resolveService.getADPage(result);
     }
 
-    public List<GroupEntry> getAll(String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=group)" + filters + ")");
+    public List<GroupEntry> getAll(String filters, String... attributes) {
+        List<Entry> result = ldapService.searchWithAttributes("(&(objectClass=group)" + filters + ")", attributes);
         return resolveService.getADList(result);
     }
 

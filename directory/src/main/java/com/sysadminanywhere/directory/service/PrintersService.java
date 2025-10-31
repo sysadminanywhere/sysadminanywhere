@@ -29,8 +29,8 @@ public class PrintersService {
     }
 
     @SneakyThrows
-    public List<PrinterEntry> getAll(String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=printQueue)" + filters + ")");
+    public List<PrinterEntry> getAll(String filters, String... attributes) {
+        List<Entry> result = ldapService.searchWithAttributes("(&(objectClass=printQueue)" + filters + ")", attributes);
         return resolveService.getADList(result);
     }
 

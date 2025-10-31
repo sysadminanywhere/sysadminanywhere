@@ -34,8 +34,8 @@ public class GroupsController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<GroupEntry>> getList(@RequestParam String filters) {
-        return new ResponseEntity<>(groupsService.getAll(filters), HttpStatus.OK);
+    public ResponseEntity<List<GroupEntry>> getList(@RequestParam String filters, @RequestParam String[] attributes) {
+        return new ResponseEntity<>(groupsService.getAll(filters, attributes), HttpStatus.OK);
     }
 
 

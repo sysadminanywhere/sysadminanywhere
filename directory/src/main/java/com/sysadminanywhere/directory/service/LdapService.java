@@ -180,6 +180,11 @@ public class LdapService {
     }
 
     @SneakyThrows
+    public List<Entry> searchWithAttributes(String filter, String... attributes) {
+        return search(baseDn, filter, SearchScope.SUBTREE, null, attributes);
+    }
+
+    @SneakyThrows
     public List<Entry> searchWithAttributes(Dn dn, String filter, SearchScope searchScope, String... attributes) {
         return search(dn, filter, searchScope, null, attributes);
     }

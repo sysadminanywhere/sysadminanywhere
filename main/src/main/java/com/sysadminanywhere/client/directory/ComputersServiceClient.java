@@ -21,7 +21,7 @@ public interface ComputersServiceClient {
     Page<ComputerEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/computers/list")
-    List<ComputerEntry> getList(@RequestParam("filters") String filters);
+    List<ComputerEntry> getList(@RequestParam("filters") String filters, @RequestParam("attributes") String... attributes);
 
     @GetMapping("/api/computers/{cn}")
     ComputerEntry getByCN(@PathVariable("cn") String cn);

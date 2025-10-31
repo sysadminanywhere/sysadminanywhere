@@ -113,7 +113,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
 
         report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
 
-        SerializableSupplier<List<? extends ComputerEntry>> itemsSupplier = () -> computersService.getAll(reportItem.getFilter());
+        SerializableSupplier<List<? extends ComputerEntry>> itemsSupplier = () -> computersService.getAll(reportItem.getFilter(), reportItem.getColumns());
         report.setItems(itemsSupplier.get());
 
         return new DownloadMenu<>(ComputerEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
@@ -161,7 +161,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
             reportItem.setFilter(result.toString());
         }
 
-        SerializableSupplier<List<? extends UserEntry>> itemsSupplier = () -> usersService.getAll(reportItem.getFilter());
+        SerializableSupplier<List<? extends UserEntry>> itemsSupplier = () -> usersService.getAll(reportItem.getFilter(), reportItem.getColumns());
         report.setItems(itemsSupplier.get());
 
         return new DownloadMenu<>(UserEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
@@ -172,7 +172,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
 
         report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
 
-        SerializableSupplier<List<? extends GroupEntry>> itemsSupplier = () -> groupsService.getAll(reportItem.getFilter());
+        SerializableSupplier<List<? extends GroupEntry>> itemsSupplier = () -> groupsService.getAll(reportItem.getFilter(), reportItem.getColumns());
         report.setItems(itemsSupplier.get());
 
         return new DownloadMenu<>(GroupEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);

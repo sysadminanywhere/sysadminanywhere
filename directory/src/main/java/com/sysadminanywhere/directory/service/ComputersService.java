@@ -29,8 +29,8 @@ public class ComputersService {
         return resolveService.getADPage(result);
     }
 
-    public List<ComputerEntry> getAll(String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=computer)" + filters + ")");
+    public List<ComputerEntry> getAll(String filters, String... attributes) {
+        List<Entry> result = ldapService.searchWithAttributes("(&(objectClass=computer)" + filters + ")", attributes);
         return resolveService.getADList(result);
     }
 

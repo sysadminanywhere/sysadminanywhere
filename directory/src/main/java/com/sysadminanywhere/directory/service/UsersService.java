@@ -30,8 +30,8 @@ public class UsersService {
         return resolveService.getADPage(result);
     }
 
-    public List<UserEntry> getAll(String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=user)(objectCategory=person)" + filters + ")");
+    public List<UserEntry> getAll(String filters, String... attributes) {
+        List<Entry> result = ldapService.searchWithAttributes("(&(objectClass=user)(objectCategory=person)" + filters + ")", attributes);
         return resolveService.getADList(result);
     }
 

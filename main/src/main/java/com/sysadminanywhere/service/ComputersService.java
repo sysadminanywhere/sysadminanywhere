@@ -34,8 +34,8 @@ public class ComputersService {
         return computersServiceClient.getAll(pageable, filters, attributes);
     }
 
-    public List<ComputerEntry> getAll(String filters) {
-        return computersServiceClient.getList(filters);
+    public List<ComputerEntry> getAll(String filters, String... attributes) {
+        return computersServiceClient.getList(filters, attributes);
     }
 
     public List<ComputerEntry> getAll() {
@@ -62,7 +62,7 @@ public class ComputersService {
     }
 
     public ComputerEntry getByCN(String cn) {
-        return computersServiceClient.getList("(&(objectClass=computer)(cn=" + cn + "))").getFirst();
+        return computersServiceClient.getByCN(cn);
     }
 
     @SneakyThrows

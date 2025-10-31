@@ -30,8 +30,8 @@ public class UsersService {
         return usersServiceClient.getAll(pageable, filters, attributes);
     }
 
-    public List<UserEntry> getAll(String filters) {
-        return usersServiceClient.getList(filters);
+    public List<UserEntry> getAll(String filters, String... attributes) {
+        return usersServiceClient.getList(filters, attributes);
     }
 
     public List<UserEntry> getAll() {
@@ -51,7 +51,7 @@ public class UsersService {
     }
 
     public UserEntry getByCN(String cn) {
-        return usersServiceClient.getList("(&(objectClass=user)(objectCategory=person)(cn=" + cn + "))").getFirst();
+        return usersServiceClient.getByCN(cn);
     }
 
     @SneakyThrows

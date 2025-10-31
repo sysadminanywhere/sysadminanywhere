@@ -31,8 +31,8 @@ public class UsersController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<UserEntry>> getList(@RequestParam String filters) {
-        return new ResponseEntity<>(usersService.getAll(filters), HttpStatus.OK);
+    public ResponseEntity<List<UserEntry>> getList(@RequestParam String filters, @RequestParam String[] attributes) {
+        return new ResponseEntity<>(usersService.getAll(filters, attributes), HttpStatus.OK);
     }
 
     @GetMapping("/{cn}")

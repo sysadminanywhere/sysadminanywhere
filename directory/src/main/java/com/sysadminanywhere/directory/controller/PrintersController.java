@@ -28,8 +28,8 @@ public class PrintersController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<PrinterEntry>> getList(@RequestParam String filters) {
-        return new ResponseEntity<>(printersService.getAll(filters), HttpStatus.OK);
+    public ResponseEntity<List<PrinterEntry>> getList(@RequestParam String filters, @RequestParam String[] attributes) {
+        return new ResponseEntity<>(printersService.getAll(filters, attributes), HttpStatus.OK);
     }
 
     @GetMapping("/{cn}")

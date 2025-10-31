@@ -30,8 +30,8 @@ public class GroupsService {
         return groupsServiceClient.getAll(pageable, filters, attributes);
     }
 
-    public List<GroupEntry> getAll(String filters) {
-        return groupsServiceClient.getList(filters);
+    public List<GroupEntry> getAll(String filters, String... attributes) {
+        return groupsServiceClient.getList(filters, attributes);
     }
 
     public List<GroupEntry> getAll() {
@@ -51,7 +51,7 @@ public class GroupsService {
     }
 
     public GroupEntry getByCN(String cn) {
-        return groupsServiceClient.getList("(&(objectClass=group)(cn=" + cn + "))").getFirst();
+        return groupsServiceClient.getByCN(cn);
     }
 
     @SneakyThrows

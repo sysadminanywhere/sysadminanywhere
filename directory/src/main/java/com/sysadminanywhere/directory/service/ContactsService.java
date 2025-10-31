@@ -30,8 +30,8 @@ public class ContactsService {
     }
 
     @SneakyThrows
-    public List<ContactEntry> getAll(String filters) {
-        List<Entry> result = ldapService.search("(&(objectClass=contact)(objectCategory=person)" + filters + ")");
+    public List<ContactEntry> getAll(String filters, String... attributes) {
+        List<Entry> result = ldapService.searchWithAttributes("(&(objectClass=contact)(objectCategory=person)" + filters + ")", attributes);
         return resolveService.getADList(result);
     }
 

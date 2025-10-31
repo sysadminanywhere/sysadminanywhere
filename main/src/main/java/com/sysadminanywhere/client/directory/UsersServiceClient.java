@@ -23,7 +23,7 @@ public interface UsersServiceClient {
     Page<UserEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/users/list")
-    List<UserEntry> getList(@RequestParam("filters") String filters);
+    List<UserEntry> getList(@RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/users/{cn}")
     UserEntry getByCN(@PathVariable("cn") String cn);

@@ -22,7 +22,7 @@ public interface GroupsServiceClient {
     Page<GroupEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/groups/list")
-    List<GroupEntry> getList(@RequestParam("filters") String filters);
+    List<GroupEntry> getList(@RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/groups/{cn}")
     GroupEntry getByCN(@PathVariable("cn") String cn);

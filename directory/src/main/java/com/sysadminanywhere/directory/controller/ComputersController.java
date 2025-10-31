@@ -29,8 +29,8 @@ public class ComputersController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<ComputerEntry>> getList(@RequestParam String filters) {
-        return new ResponseEntity<>(computersService.getAll(filters), HttpStatus.OK);
+    public ResponseEntity<List<ComputerEntry>> getList(@RequestParam String filters, @RequestParam String[] attributes) {
+        return new ResponseEntity<>(computersService.getAll(filters, attributes), HttpStatus.OK);
     }
 
     @GetMapping("/{cn}")

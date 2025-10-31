@@ -48,7 +48,7 @@ public class PrintersService {
     }
 
     public PrinterEntry getByCN(String cn) {
-        return printersServiceClient.getList("(&(objectClass=printQueue)(cn=" + cn + "))").getFirst();
+        return printersServiceClient.getByCN(cn);
     }
 
     @SneakyThrows

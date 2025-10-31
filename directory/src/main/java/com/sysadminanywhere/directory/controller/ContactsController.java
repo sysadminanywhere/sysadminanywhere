@@ -29,8 +29,8 @@ public class ContactsController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<ContactEntry>> getList(@RequestParam String filters) {
-        return new ResponseEntity<>(contactsService.getAll(filters), HttpStatus.OK);
+    public ResponseEntity<List<ContactEntry>> getList(@RequestParam String filters, @RequestParam String[] attributes) {
+        return new ResponseEntity<>(contactsService.getAll(filters, attributes), HttpStatus.OK);
     }
 
     @GetMapping("/{cn}")
