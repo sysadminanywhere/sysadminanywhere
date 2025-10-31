@@ -18,9 +18,7 @@ import com.sysadminanywhere.inventory.repository.SoftwareRepository;
 import com.sysadminanywhere.inventory.wmi.HardwareEntity;
 import com.sysadminanywhere.inventory.wmi.SoftwareEntity;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -37,17 +35,21 @@ import java.util.Map;
 @Service
 public class InventoryService {
 
-    @Autowired
-    private LdapServiceClient ldapServiceClient;
-
-    @Autowired
-    private WmiServiceClient wmiServiceClient;
+    private final LdapServiceClient ldapServiceClient;
+    private final WmiServiceClient wmiServiceClient;
 
     private final ComputerRepository computerRepository;
     private final SoftwareRepository softwareRepository;
     private final InstallationRepository installationRepository;
 
-    public InventoryService(ComputerRepository computerRepository, SoftwareRepository softwareRepository, InstallationRepository installationRepository) {
+    public InventoryService(LdapServiceClient ldapServiceClient,
+                            WmiServiceClient wmiServiceClient,
+                            ComputerRepository computerRepository,
+                            SoftwareRepository softwareRepository,
+                            InstallationRepository installationRepository) {
+
+        this.ldapServiceClient = ldapServiceClient;
+        this.wmiServiceClient = wmiServiceClient;
         this.computerRepository = computerRepository;
         this.softwareRepository = softwareRepository;
         this.installationRepository = installationRepository;
@@ -70,7 +72,7 @@ public class InventoryService {
     */
 
     @Transactional
-    @Scheduled(cron = "${inventory.cron.expression}")
+    @Scheduled(cron = "${cron.expression}")
     public void scan() {
 
         log.info("Scan started");

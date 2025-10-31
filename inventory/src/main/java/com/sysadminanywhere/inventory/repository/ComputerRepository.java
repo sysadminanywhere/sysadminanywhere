@@ -18,7 +18,7 @@ public interface ComputerRepository extends JpaRepository<Computer, Long>, JpaSp
     List<Computer> findAllByName(String cn);
 
     // select c."name", c.dns from computers c inner join installations i on c.id = i.computer_id where i.software_id = 1
-    @Query("SELECT new com.sysadminanywhere.model.ComputerItem(c.id, c.name, c.dns) FROM Computer c JOIN c.installations i WHERE i.software.id = :softwareId and c.name LIKE :name")
+    @Query("SELECT new com.sysadminanywhere.common.inventory.model.ComputerItem(c.id, c.name, c.dns) FROM Computer c JOIN c.installations i WHERE i.software.id = :softwareId and c.name LIKE :name")
     Page<ComputerItem> getComputersWithSoftware(@Param("softwareId") Long softwareId, @Param("name") String name, Pageable pageable);
 
 }
