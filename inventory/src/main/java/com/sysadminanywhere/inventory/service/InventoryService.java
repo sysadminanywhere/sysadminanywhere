@@ -7,8 +7,6 @@ import com.sysadminanywhere.common.inventory.model.ComputerItem;
 import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareOnComputer;
 import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
-import com.sysadminanywhere.inventory.client.LdapServiceClient;
-import com.sysadminanywhere.inventory.client.WmiServiceClient;
 import com.sysadminanywhere.inventory.entity.Computer;
 import com.sysadminanywhere.inventory.entity.Installation;
 import com.sysadminanywhere.inventory.entity.Software;
@@ -18,6 +16,7 @@ import com.sysadminanywhere.inventory.repository.SoftwareRepository;
 import com.sysadminanywhere.inventory.wmi.HardwareEntity;
 import com.sysadminanywhere.inventory.wmi.SoftwareEntity;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -35,21 +34,21 @@ import java.util.Map;
 @Service
 public class InventoryService {
 
-    private final LdapServiceClient ldapServiceClient;
-    private final WmiServiceClient wmiServiceClient;
+    private final LdapService ldapService;
+    private final WmiService wmiService;
 
     private final ComputerRepository computerRepository;
     private final SoftwareRepository softwareRepository;
     private final InstallationRepository installationRepository;
 
-    public InventoryService(LdapServiceClient ldapServiceClient,
-                            WmiServiceClient wmiServiceClient,
+    public InventoryService(LdapService ldapService,
+                            WmiService wmiService,
                             ComputerRepository computerRepository,
                             SoftwareRepository softwareRepository,
                             InstallationRepository installationRepository) {
 
-        this.ldapServiceClient = ldapServiceClient;
-        this.wmiServiceClient = wmiServiceClient;
+        this.ldapService = ldapService;
+        this.wmiService = wmiService;
         this.computerRepository = computerRepository;
         this.softwareRepository = softwareRepository;
         this.installationRepository = installationRepository;
@@ -195,7 +194,7 @@ public class InventoryService {
         try {
             String query = "Select * From Win32_Product";
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.getValues(wmiServiceClient.execute(new ExecuteDto(hostName, query)));
+            return wmiResolveService.getValues(wmiService.execute(new ExecuteDto(hostName, query)));
         } catch (Exception ex) {
             return new ArrayList<>();
         }
@@ -204,16 +203,18 @@ public class InventoryService {
     private List<ComputerEntry> getComputers() {
         List<ComputerEntry> list = new ArrayList<>();
 
-        List<EntryDto> result = ldapServiceClient.getSearch(new SearchDto("", "(objectClass=computer)", 2, "cn", "useraccountcontrol", "dnshostname"));
+        List<EntryDto> result = ldapService.getSearch(new SearchDto("", "(objectClass=computer)", 2, "cn", "useraccountcontrol", "dnshostname"));
 
-        for (EntryDto entry : result) {
+        if(result != null) {
+            for (EntryDto entry : result) {
 
-            ComputerEntry computerEntry = new ComputerEntry();
-            computerEntry.setUserAccountControl(Integer.parseInt(entry.getAttributes().get("useraccountcontrol").toString()));
-            computerEntry.setCn(entry.getAttributes().get("cn").toString());
-            computerEntry.setDnsHostName(entry.getAttributes().get("dnshostname").toString());
+                ComputerEntry computerEntry = new ComputerEntry();
+                computerEntry.setUserAccountControl(Integer.parseInt(entry.getAttributes().get("useraccountcontrol").toString()));
+                computerEntry.setCn(entry.getAttributes().get("cn").toString());
+                computerEntry.setDnsHostName(entry.getAttributes().get("dnshostname").toString());
 
-            list.add(computerEntry);
+                list.add(computerEntry);
+            }
         }
 
         return list;

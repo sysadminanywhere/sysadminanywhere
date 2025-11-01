@@ -82,6 +82,10 @@ public class LdapService {
         return connection.getRootDse();
     }
 
+    public Dn getBaseDn() {
+        return baseDn;
+    }
+
     public EntryDto convertEntry(Entry entry) {
         EntryDto entryDto = new EntryDto();
 
