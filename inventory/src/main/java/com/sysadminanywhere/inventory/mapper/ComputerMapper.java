@@ -15,7 +15,6 @@ public class ComputerMapper {
 
         dto.setId(computer.getId());
         dto.setName(computer.getName());
-        dto.setDns(computer.getDns());
 
         return dto;
     }

@@ -11,6 +11,5 @@ public class ComputerItem {
 
     private Long id;
     private String name;
-    private String dns;
 
 }

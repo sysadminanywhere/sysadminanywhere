@@ -1,5 +1,7 @@
 package com.sysadminanywhere.inventory.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.SearchDto;
@@ -7,6 +9,7 @@ import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.inventory.model.ComputerItem;
 import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareOnComputer;
+import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
 import com.sysadminanywhere.inventory.entity.Computer;
 import com.sysadminanywhere.inventory.entity.Installation;
 import com.sysadminanywhere.inventory.entity.Software;
@@ -99,6 +102,8 @@ public class InventoryService {
     @KafkaListener(topics = "directory-response", groupId = "inventory")
     void listener(@Headers MessageHeaders headers, @Payload String message) {
 
+        log.info("Received message [{}]", message);
+
         String action = headers.get("action").toString();
         String correlationId = headers.get("correlationId").toString();
         String sender = headers.get("sender").toString();
@@ -116,29 +121,37 @@ public class InventoryService {
 
                 for (ComputerEntry computerEntry : computers) {
                     if (!computerEntry.isDisabled()) {
-                        Computer computer = checkComputer(computerEntry);
-                        scanSoftware(computer);
-                        scanHardware(computer);
+                        requestSoftware(computerEntry.getCn());
+                        //scanHardware(computer);
                     }
                 }
                 break;
 
             case "software":
+                scanSoftware(message);
                 break;
         }
-
-        log.info("Received message [{}] in group1", message);
     }
 
-    private void scanSoftware(Computer computer) {
-        List<SoftwareEntity> software = getSoftware(computer.getName());
-        log.info("On computer {} found {} applications", computer.getName(), software.size());
-        for (SoftwareEntity softwareEntity : software) {
-            checkSoftware(computer, softwareEntity);
+    @SneakyThrows
+    private void scanSoftware(String message) {
+
+        List<Map<String, Object>> list = mapper.readValue(message, new TypeReference<List<Map<String, Object>>>() {});
+
+        WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
+        List<SoftwareEntity> software = wmiResolveService.getValues(list);
+
+        if (!software.isEmpty()) {
+            Computer computer = checkComputer(software.get(0).getHostName());
+            log.info("On computer {} found {} applications", computer.getName(), software.size());
+            for (SoftwareEntity softwareEntity : software) {
+                checkSoftware(computer, softwareEntity);
+            }
+
+            checkForDeletedSoftware(computer, software);
         }
-
-        checkForDeletedSoftware(computer, software);
     }
+
 
     private void scanHardware(Computer computer) {
         List<HardwareEntity> hardware = getHardware(computer.getName());
@@ -157,27 +170,32 @@ public class InventoryService {
 
     }
 
-    @Transactional
     public void checkSoftware(Computer computer, SoftwareEntity softwareEntity) {
         Software software = checkSoftware(softwareEntity);
 
         List<Installation> installs = installationRepository.findAllByComputerAndSoftware(computer, software);
 
-        if (installs.isEmpty()) {
-            Installation installation = new Installation();
-            installation.setComputer(computer);
-            installation.setSoftware(software);
-            installation.setCheckingDate(LocalDateTime.now());
-            installation.setInstallDate(getLocalDateTime(softwareEntity.getInstallDate()));
+        try {
 
-            installationRepository.save(installation);
-        } else {
-            installs.get(0).setCheckingDate(LocalDateTime.now());
-            installationRepository.save(installs.get(0));
+            if (installs.isEmpty()) {
+                Installation installation = new Installation();
+                installation.setComputer(computer);
+                installation.setSoftware(software);
+                installation.setCheckingDate(LocalDateTime.now());
+                installation.setInstallDate(getLocalDateTime(softwareEntity.getInstallDate()));
+
+                installationRepository.save(installation);
+            } else {
+                Installation existingInstallation = installs.get(0);
+                existingInstallation.setCheckingDate(LocalDateTime.now());
+                installationRepository.save(existingInstallation);
+            }
+
+        } catch (Exception ex) {
+            log.error(ex.toString());
         }
     }
 
-    @Transactional
     public void checkForDeletedSoftware(Computer computer, List<SoftwareEntity> software) {
         List<Installation> installs = installationRepository.findAllByComputer(computer);
 
@@ -195,20 +213,17 @@ public class InventoryService {
         }
     }
 
-    @Transactional
-    public Computer checkComputer(ComputerEntry computerEntry) {
-        List<Computer> computers = computerRepository.findAllByName(computerEntry.getCn());
+    public Computer checkComputer(String hostName) {
+        List<Computer> computers = computerRepository.findAllByName(hostName);
         if (computers.isEmpty()) {
             Computer computer = new Computer();
-            computer.setName(computerEntry.getCn());
-            computer.setDns(computerEntry.getDnsHostName());
+            computer.setName(hostName);
             return computerRepository.save(computer);
         } else {
             return computers.get(0);
         }
     }
 
-    @Transactional
     public Software checkSoftware(SoftwareEntity softwareEntity) {
         List<Software> software = softwareRepository.findByNameAndVendor(softwareEntity.getName(), softwareEntity.getVendor());
         if (software.isEmpty()) {
@@ -229,14 +244,20 @@ public class InventoryService {
         }
     }
 
-    private List<SoftwareEntity> getSoftware(String hostName) {
-        try {
-            String query = "Select * From Win32_Product";
-            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return new ArrayList<>(); //wmiResolveService.getValues(wmiService.execute(new ExecuteDto(hostName, query)));
-        } catch (Exception ex) {
-            return new ArrayList<>();
-        }
+    @SneakyThrows
+    private void requestSoftware(String hostName) {
+        String query = "Select * From Win32_Product";
+        Message<String> kafkaMessage = MessageBuilder
+                .withPayload(mapper.writeValueAsString(new ExecuteDto(hostName, query)))
+                .setHeader(KafkaHeaders.TOPIC, "directory-request")
+                .setHeader("correlationId", UUID.randomUUID().toString())
+                .setHeader("action", "wmi.execute")
+                .setHeader("sender", "inventory")
+                .setHeader("recipient", "directory")
+                .setHeader("method", "software")
+                .build();
+
+        kafkaTemplate.send(kafkaMessage);
     }
 
     @SneakyThrows

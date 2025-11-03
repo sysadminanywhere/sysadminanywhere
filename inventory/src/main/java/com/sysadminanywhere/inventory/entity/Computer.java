@@ -21,9 +21,6 @@ public class Computer {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(nullable = false)
-    private String dns;
-
     @OneToMany(mappedBy = "computer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Installation> installations;
 
