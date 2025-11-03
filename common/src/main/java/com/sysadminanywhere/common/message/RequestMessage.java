@@ -1,10 +1,8 @@
-package com.sysadminanywhere.common.rabbit;
+package com.sysadminanywhere.common.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -15,6 +13,5 @@ public class RequestMessage {
     private String serviceName;
     private String action;
     private Object data;
-    private LocalDateTime timestamp;
 
 }

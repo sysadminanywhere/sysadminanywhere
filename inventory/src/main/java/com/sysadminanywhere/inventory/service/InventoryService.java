@@ -1,11 +1,13 @@
 package com.sysadminanywhere.inventory.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.SearchDto;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.inventory.model.ComputerItem;
 import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareOnComputer;
+import com.sysadminanywhere.common.message.RequestMessage;
 import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
 import com.sysadminanywhere.inventory.entity.Computer;
 import com.sysadminanywhere.inventory.entity.Installation;
@@ -15,10 +17,12 @@ import com.sysadminanywhere.inventory.repository.InstallationRepository;
 import com.sysadminanywhere.inventory.repository.SoftwareRepository;
 import com.sysadminanywhere.inventory.wmi.HardwareEntity;
 import com.sysadminanywhere.inventory.wmi.SoftwareEntity;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,26 +33,25 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
+import static com.sysadminanywhere.inventory.config.KafkaTopic.DIRECTORY_RESPONSE;
 
 @Slf4j
 @Service
 public class InventoryService {
 
-    private final LdapService ldapService;
-    private final WmiService wmiService;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     private final ComputerRepository computerRepository;
     private final SoftwareRepository softwareRepository;
     private final InstallationRepository installationRepository;
 
-    public InventoryService(LdapService ldapService,
-                            WmiService wmiService,
+    public InventoryService(KafkaTemplate<String, String> kafkaTemplate,
                             ComputerRepository computerRepository,
                             SoftwareRepository softwareRepository,
                             InstallationRepository installationRepository) {
-
-        this.ldapService = ldapService;
-        this.wmiService = wmiService;
+        this.kafkaTemplate = kafkaTemplate;
         this.computerRepository = computerRepository;
         this.softwareRepository = softwareRepository;
         this.installationRepository = installationRepository;
@@ -70,25 +73,39 @@ public class InventoryService {
 
     */
 
-    @Transactional
+    @SneakyThrows
     @Scheduled(cron = "${cron.expression}")
     public void scan() {
 
         log.info("Scan started");
 
-        List<ComputerEntry> computers = getComputers();
+        RequestMessage message = new RequestMessage();
+        message.setAction("ldap.search");
+        message.setData(new SearchDto("", "(objectClass=computer)", 2, "cn", "useraccountcontrol", "dnshostname"));
+        message.setServiceName("directory");
+        message.setId(UUID.randomUUID().toString());
 
-        log.info("Found {} computers", computers.size());
+        ObjectMapper mapper = new ObjectMapper();
+        kafkaTemplate.send("directory-request", mapper.writeValueAsString(message));
 
-        for (ComputerEntry computerEntry : computers) {
-            if (!computerEntry.isDisabled()) {
-                Computer computer = checkComputer(computerEntry);
-                scanSoftware(computer);
-                scanHardware(computer);
-            }
-        }
+//        List<ComputerEntry> computers = getComputers();
+//
+//        log.info("Found {} computers", computers.size());
+//
+//        for (ComputerEntry computerEntry : computers) {
+//            if (!computerEntry.isDisabled()) {
+//                Computer computer = checkComputer(computerEntry);
+//                scanSoftware(computer);
+//                scanHardware(computer);
+//            }
+//        }
 
         log.info("Scan stopped");
+    }
+
+    @KafkaListener(topics = "directory-response", groupId = "g1")
+    void listener(String data) {
+        log.info("Received message [{}] in group1", data);
     }
 
     private void scanSoftware(Computer computer) {
@@ -194,7 +211,7 @@ public class InventoryService {
         try {
             String query = "Select * From Win32_Product";
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.getValues(wmiService.execute(new ExecuteDto(hostName, query)));
+            return new ArrayList<>(); //wmiResolveService.getValues(wmiService.execute(new ExecuteDto(hostName, query)));
         } catch (Exception ex) {
             return new ArrayList<>();
         }
@@ -203,7 +220,7 @@ public class InventoryService {
     private List<ComputerEntry> getComputers() {
         List<ComputerEntry> list = new ArrayList<>();
 
-        List<EntryDto> result = ldapService.getSearch(new SearchDto("", "(objectClass=computer)", 2, "cn", "useraccountcontrol", "dnshostname"));
+        List<EntryDto> result = null; //ldapService.getSearch(new SearchDto("", "(objectClass=computer)", 2, "cn", "useraccountcontrol", "dnshostname"));
 
         if(result != null) {
             for (EntryDto entry : result) {

@@ -1,20 +1,17 @@
-package com.sysadminanywhere.common.rabbit;
+package com.sysadminanywhere.common.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ResponseMessage {
 
-    private String requestId;
+    private String id;
     private String status;
     private String message;
     private Object result;
-    private LocalDateTime timestamp;
 
 }

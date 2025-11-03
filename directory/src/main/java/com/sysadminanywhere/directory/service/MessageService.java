@@ -2,49 +2,46 @@ package com.sysadminanywhere.directory.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.common.directory.dto.SearchDto;
-import com.sysadminanywhere.common.rabbit.RequestMessage;
-import com.sysadminanywhere.common.rabbit.ResponseMessage;
+import com.sysadminanywhere.common.message.RequestMessage;
+import com.sysadminanywhere.common.message.ResponseMessage;
 import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
-import com.sysadminanywhere.directory.config.MessageConfig;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.api.ldap.model.name.Dn;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Service
 @Slf4j
 public class MessageService {
 
-    private final RabbitTemplate rabbitTemplate;
-
+    private final KafkaTemplate<String, String> kafkaTemplate;
     private final LdapService ldapService;
     private final WmiService wmiService;
 
-    public MessageService(RabbitTemplate rabbitTemplate,
+    public MessageService(KafkaTemplate<String, String> kafkaTemplate,
                           LdapService ldapService,
                           WmiService wmiService) {
 
-        this.rabbitTemplate = rabbitTemplate;
+        this.kafkaTemplate = kafkaTemplate;
         this.ldapService = ldapService;
         this.wmiService = wmiService;
     }
 
     @SneakyThrows
-    @RabbitListener(queues = MessageConfig.queueName)
-    private ResponseMessage handleRequest(RequestMessage request) {
+    @KafkaListener(topics = "directory-request", groupId = "g1")
+    private void handleRequest(String message) {
+        ObjectMapper mapper = new ObjectMapper();
+
+        RequestMessage request = mapper.readValue(message, RequestMessage.class);
 
         Object result = null;
 
         switch (request.getAction()) {
             case "ldap.search":
                 if (request.getData() != null) {
-                    ObjectMapper mapper = new ObjectMapper();
                     SearchDto searchDto = mapper.convertValue(request.getData(), SearchDto.class);
 
                     Dn dn = searchDto.getDistinguishedName().isEmpty() ? ldapService.getBaseDn() : new Dn(searchDto.getDistinguishedName());
@@ -61,7 +58,6 @@ public class MessageService {
 
             case "wmi.execute":
                 if (request.getData() != null) {
-                    ObjectMapper mapper = new ObjectMapper();
                     ExecuteDto executeDto = mapper.convertValue(request.getData(), ExecuteDto.class);
 
                     result = wmiService.execute(executeDto.getHostName(), executeDto.getWqlQuery());
@@ -72,13 +68,13 @@ public class MessageService {
                 throw new IllegalArgumentException("Unknown action: " + request.getAction());
         }
 
-        return new ResponseMessage(
+        ResponseMessage responseMessage = new ResponseMessage(
                 request.getId(),
                 "SUCCESS",
                 "Request processed successfully",
-                result,
-                LocalDateTime.now()
-        );
+                result);
+
+        kafkaTemplate.send("directory-response", mapper.writeValueAsString(responseMessage));
     }
 
 }
