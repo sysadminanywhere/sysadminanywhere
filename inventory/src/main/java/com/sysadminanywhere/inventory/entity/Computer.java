@@ -21,10 +21,10 @@ public class Computer {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @OneToMany(mappedBy = "computer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "computer", fetch = FetchType.LAZY)
     private Set<Installation> installations;
 
-    @OneToMany(mappedBy = "computer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "computer", fetch = FetchType.LAZY)
     private Set<ComputerHardware> computerHardwares;
 
 }

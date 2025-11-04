@@ -27,7 +27,7 @@ public class Software {
     @Column(nullable = false)
     private String version;
 
-    @OneToMany(mappedBy = "software", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "software", fetch = FetchType.LAZY)
     private Set<Installation> installations;
 
 }

@@ -102,8 +102,6 @@ public class InventoryService {
     @KafkaListener(topics = "directory-response", groupId = "inventory")
     void listener(@Headers MessageHeaders headers, @Payload String message) {
 
-        log.info("Received message [{}]", message);
-
         String action = headers.get("action").toString();
         String correlationId = headers.get("correlationId").toString();
         String sender = headers.get("sender").toString();
@@ -170,6 +168,7 @@ public class InventoryService {
 
     }
 
+    @Transactional
     public void checkSoftware(Computer computer, SoftwareEntity softwareEntity) {
         Software software = checkSoftware(softwareEntity);
 
@@ -196,6 +195,7 @@ public class InventoryService {
         }
     }
 
+    @Transactional
     public void checkForDeletedSoftware(Computer computer, List<SoftwareEntity> software) {
         List<Installation> installs = installationRepository.findAllByComputer(computer);
 

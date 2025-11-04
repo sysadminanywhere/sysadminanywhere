@@ -24,7 +24,7 @@ public class Hardware {
     @Column(nullable = false)
     private String type;
 
-    @OneToMany(mappedBy = "hardware", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "hardware", fetch = FetchType.LAZY)
     private Set<ComputerHardware> computerHardwares;
 
 }
