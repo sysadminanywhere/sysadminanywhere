@@ -14,7 +14,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/inventory/software")
+@RequestMapping("/api/inventory")
 public class InventoryController {
 
     private final ComputerRepository computerRepository;
@@ -26,21 +26,21 @@ public class InventoryController {
         this.softwareRepository = softwareRepository;
     }
 
-    @PostMapping("/computers/{computerId}")
-    public ResponseEntity<Page<SoftwareOnComputer>> getSoftwareOnComputer(@PathVariable Long computerId, @RequestBody Map<String, String> filters, Pageable pageable) {
+    @GetMapping("/computers/{computerId}")
+    public ResponseEntity<Page<SoftwareOnComputer>> getSoftwareOnComputer(@PathVariable Long computerId, Pageable pageable) {
         return new ResponseEntity<>(softwareRepository.getSoftwareOnComputer(computerId, pageable), HttpStatus.OK);
     }
 
-    @PostMapping("/count")
-    public ResponseEntity<Page<SoftwareCount>> getSoftwareCount(@RequestBody Map<String, String> filters, Pageable pageable) {
-        String name = filters.get("name") + "%";
-        String vendor = filters.get("vendor") + "%";
+    @GetMapping("/count")
+    public ResponseEntity<Page<SoftwareCount>> getSoftwareCount(@RequestParam String name, @RequestParam String vendor, Pageable pageable) {
+        name = name + "%";
+        vendor = vendor + "%";
         return new ResponseEntity<>(softwareRepository.getSoftwareInstallationCount(name, vendor, pageable), HttpStatus.OK);
     }
 
-    @PostMapping("/{softwareId}")
-    public ResponseEntity<Page<ComputerItem>> getComputersWithSoftware(@PathVariable Long softwareId, @RequestBody Map<String, String> filters, Pageable pageable) {
-        String name = filters.get("name") + "%";
+    @GetMapping("/{softwareId}")
+    public ResponseEntity<Page<ComputerItem>> getComputersWithSoftware(@PathVariable Long softwareId, @RequestParam String name, Pageable pageable) {
+        name = name + "%";
         return new ResponseEntity<>(computerRepository.getComputersWithSoftware(softwareId, name, pageable), HttpStatus.OK);
     }
 

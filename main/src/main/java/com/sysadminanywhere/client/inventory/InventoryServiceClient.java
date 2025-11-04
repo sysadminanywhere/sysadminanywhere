@@ -7,8 +7,6 @@ import com.sysadminanywhere.config.FeignClientConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -20,13 +18,13 @@ import java.util.Map;
 )
 public interface InventoryServiceClient {
 
-    @PostMapping("/computers/{computerId}")
-    Page<SoftwareOnComputer> getSoftwareOnComputer(@PathVariable Long computerId, @RequestBody Map<String, String> filters, Pageable pageable);
+    @GetMapping("/api/inventory/computers/{computerId}")
+    Page<SoftwareOnComputer> getSoftwareOnComputer(@PathVariable Long computerId, Pageable pageable);
 
-    @PostMapping("/count")
-    Page<SoftwareCount> getSoftwareCount(@RequestBody Map<String, String> filters, Pageable pageable);
+    @GetMapping("/api/inventory/count")
+    Page<SoftwareCount> getSoftwareCount(@RequestParam("name") String name, @RequestParam("vendor") String vendor, Pageable pageable);
 
-    @PostMapping("/{softwareId}")
-    Page<ComputerItem> getComputersWithSoftware(@PathVariable Long softwareId, @RequestBody Map<String, String> filters, Pageable pageable);
+    @GetMapping("/api/inventory/{softwareId}")
+    Page<ComputerItem> getComputersWithSoftware(@PathVariable Long softwareId, @RequestParam("name") String name, Pageable pageable);
 
 }

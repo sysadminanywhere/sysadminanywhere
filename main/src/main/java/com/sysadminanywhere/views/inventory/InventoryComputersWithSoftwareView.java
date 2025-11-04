@@ -124,7 +124,6 @@ public class InventoryComputersWithSoftwareView  extends Div implements BeforeEn
     private Component createGrid() {
         grid = new Grid<>(ComputerItem.class, false);
         grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("dns").setAutoWidth(true);
 
         grid.setItems(query -> inventoryService.getComputersWithSoftware(id,
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),

@@ -24,16 +24,19 @@ public class InventoryService {
         this.inventoryServiceClient = inventoryServiceClient;
     }
 
-    public Page<SoftwareOnComputer> getSoftwareOnComputer(Long computerId, Pageable pageable, Map<String, String> filters) {
-        return inventoryServiceClient.getSoftwareOnComputer(computerId, filters, pageable);
+    public Page<SoftwareOnComputer> getSoftwareOnComputer(Long computerId, Pageable pageable) {
+        return inventoryServiceClient.getSoftwareOnComputer(computerId, pageable);
     }
 
     public Page<SoftwareCount> getSoftwareCount(Pageable pageable, Map<String, String> filters) {
-        return inventoryServiceClient.getSoftwareCount(filters, pageable);
+        String name = filters.get("name");
+        String vendor = filters.get("vendor");
+        return inventoryServiceClient.getSoftwareCount(name, vendor, pageable);
     }
 
     public Page<ComputerItem> getComputersWithSoftware(Long softwareId, Pageable pageable, Map<String, String> filters) {
-        return inventoryServiceClient.getComputersWithSoftware(softwareId, filters, pageable);
+        String name = filters.get("name");
+        return inventoryServiceClient.getComputersWithSoftware(softwareId, name, pageable);
     }
 
     private List<HardwareEntity> getHardware(String hostName) {
