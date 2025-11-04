@@ -43,7 +43,7 @@ public class SettingsView extends VerticalLayout {
         this.authenticatedUser = authenticatedUser;
         this.settingsService = settingsService;
 
-        Optional<UserEntry> maybeUser = authenticatedUser.get();
+        Optional<UserEntry> maybeUser = authenticatedUser.getUser();
         if (maybeUser.isPresent()) {
             UserEntry user = maybeUser.get();
             loginEntity = loginService.getLogin(user);

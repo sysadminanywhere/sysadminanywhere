@@ -9,8 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @FeignClient(
         name = "inventory",
         url = "${app.services.inventory.uri}",
@@ -26,5 +24,8 @@ public interface InventoryServiceClient {
 
     @GetMapping("/api/inventory/{softwareId}")
     Page<ComputerItem> getComputersWithSoftware(@PathVariable Long softwareId, @RequestParam("name") String name, Pageable pageable);
+
+    @GetMapping("/ping")
+    String ping();
 
 }

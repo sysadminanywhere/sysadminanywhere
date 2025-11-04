@@ -5,16 +5,14 @@ import com.sysadminanywhere.service.UsersService;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import java.util.Optional;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component
 public class AuthenticatedUser {
 
@@ -27,13 +25,19 @@ public class AuthenticatedUser {
     }
 
     @Transactional
-    public Optional<UserEntry> get() {
+    public Optional<UserEntry> getUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof OidcUser user) {
             String userName = user.getClaim("preferred_username");
             String federationSource = user.getClaim("federation_source");
-            if (federationSource != null)
-                return Optional.ofNullable(usersService.getByCN(userName));
+            if (federationSource != null) {
+                try {
+                    return Optional.ofNullable(usersService.getByCN(userName));
+                } catch (Exception ex) {
+                    log.error("Domain service is unavailable!");
+                    return Optional.empty();
+                }
+            }
         }
         return Optional.empty();
     }

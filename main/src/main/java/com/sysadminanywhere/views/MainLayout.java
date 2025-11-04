@@ -9,6 +9,7 @@ import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.account.MeView;
 import com.sysadminanywhere.views.domain.AuditView;
 import com.sysadminanywhere.views.domain.DashboardView;
+import com.sysadminanywhere.views.domain.DomainErrorView;
 import com.sysadminanywhere.views.domain.DomainView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
@@ -39,12 +40,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.oauth2.jwt.Jwt;
-
-import java.util.Map;
-import java.util.Optional;
 
 @Layout
 @PermitAll
@@ -68,21 +64,16 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     String currentTitle = "Domain";
 
     private AuthenticatedUser authenticatedUser;
-    private AccessAnnotationChecker accessChecker;
 
     private final LdapService ldapService;
     private final MonitoringService monitoringService;
 
     public MainLayout(AuthenticatedUser authenticatedUser,
-                      AccessAnnotationChecker accessChecker,
                       LdapService ldapService,
                       MonitoringService monitoringService) {
 
         this.authenticatedUser = authenticatedUser;
-        this.accessChecker = accessChecker;
         this.ldapService = ldapService;
-
-        currentTitle = ldapService.getDomainName();
         this.monitoringService = monitoringService;
 
         setPrimarySection(Section.DRAWER);
@@ -123,7 +114,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
         VerticalLayout bottomMenu = new VerticalLayout();
 
-        if(authenticatedUser.get().isPresent())
+        if(authenticatedUser.getUser().isPresent())
             bottomMenu.add(createMainButtonItem("Account", MeView.class, "/icons/user.svg"));
 
         bottomMenu.add(createMainButtonItem("Settings", SettingsView.class, "/icons/settings.svg"));
@@ -171,10 +162,14 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        if (authentication != null && authentication.getPrincipal() instanceof OidcUser user) {
-//            String federationSource = user.getClaim("federation_source");
-//        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof OidcUser user) {
+            try {
+                currentTitle = ldapService.getDomainName();
+            } catch (Exception ex) {
+                UI.getCurrent().navigate(DomainErrorView.class);
+            }
+        }
     }
 
     @Override

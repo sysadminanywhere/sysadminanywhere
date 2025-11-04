@@ -45,7 +45,7 @@ public class AddUserDialog extends Dialog {
         Pattern userLoginPattern = Pattern.compile("");
         String userLoginFormat = "";
 
-        Optional<UserEntry> maybeUser = authenticatedUser.get();
+        Optional<UserEntry> maybeUser = authenticatedUser.getUser();
         if (maybeUser.isPresent()) {
             UserEntry user = maybeUser.get();
             loginEntity = loginService.getLogin(user);

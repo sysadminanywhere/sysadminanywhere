@@ -7,15 +7,13 @@ import com.sysadminanywhere.common.directory.dto.SearchDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.domain.SearchScope;
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -71,7 +69,9 @@ public class LdapService {
         try {
             return ldapServiceClient.getRootDse();
         } catch (Exception ex) {
-            authenticationContext.logout();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if(!authentication.isAuthenticated())
+                authenticationContext.logout();
             return null;
         }
     }

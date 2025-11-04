@@ -111,7 +111,7 @@ public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuC
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<UserEntry> maybeUser = authenticatedUser.get();
+        Optional<UserEntry> maybeUser = authenticatedUser.getUser();
         if (maybeUser.isPresent()) {
             user = maybeUser.get();
         }
