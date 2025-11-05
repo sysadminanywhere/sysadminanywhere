@@ -52,6 +52,15 @@ public class InventoryService {
         }
     }
 
+    public Boolean ping() {
+        try {
+            inventoryServiceClient.ping();
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
     private List<HardwareEntity> getHardware(String hostName) {
         return new ArrayList<>();
     }

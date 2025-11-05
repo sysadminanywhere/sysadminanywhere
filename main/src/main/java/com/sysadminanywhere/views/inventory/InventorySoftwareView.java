@@ -11,6 +11,8 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -46,6 +48,11 @@ public class InventorySoftwareView extends Div {
         layout.setPadding(false);
         layout.setSpacing(false);
         add(layout);
+
+        if (!inventoryService.ping()) {
+            Notification notification = Notification.show("Inventory service is unavailable!");
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
 
     private HorizontalLayout createMobileFilters() {
