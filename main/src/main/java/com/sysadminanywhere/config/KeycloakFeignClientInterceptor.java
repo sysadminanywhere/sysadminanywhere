@@ -37,11 +37,11 @@ public class KeycloakFeignClientInterceptor implements RequestInterceptor {
             }
         }
 
-        log.info("Feign Request: {} {}", template.method(), template.url());
+        log.debug("Feign Request: {} {}", template.method(), template.url());
 
         if (template.body() != null) {
             String body = new String(template.body(), StandardCharsets.UTF_8);
-            log.info("Feign Body: {}", body);
+            log.debug("Feign Body: {}", body);
         }
     }
 
