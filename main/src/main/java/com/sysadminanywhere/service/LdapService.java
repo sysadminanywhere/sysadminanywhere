@@ -99,7 +99,11 @@ public class LdapService {
     }
 
     public List<EntryDto> searchWithAttributes(String filter, String... attributes) {
-        return ldapServiceClient.getSearch(new SearchDto(getBaseDn(), filter, SearchScope.SUBTREE.ordinal(), attributes));
+        try {
+            return ldapServiceClient.getSearch(new SearchDto(getBaseDn(), filter, SearchScope.SUBTREE.ordinal(), attributes));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @SneakyThrows
@@ -114,7 +118,11 @@ public class LdapService {
 
     @SneakyThrows
     public List<EntryDto> search(String dn, String filter, SearchScope searchScope, Sort sort) {
-        return ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal()));
+        try {
+            return ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal()));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public String getComputersContainer() {
@@ -194,22 +202,36 @@ public class LdapService {
         }
     }
 
-    @SneakyThrows
     public Page<AuditDto> getAudit(Pageable pageable, Map<String, Object> filters) {
-        return ldapServiceClient.getAudit(pageable, filters);
+        try {
+            return ldapServiceClient.getAudit(pageable, filters);
+        } catch (Exception e) {
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
     }
 
-    @SneakyThrows
     public List<AuditDto> getAuditList(Map<String, Object> filters) {
-        return ldapServiceClient.getAuditList(filters);
+        try {
+            return ldapServiceClient.getAuditList(filters);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public boolean deleteMember(String dn, String group) {
-        return ldapServiceClient.deleteMember(dn, group);
+        try {
+            return ldapServiceClient.deleteMember(dn, group);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean addMember(String dn, String group) {
-        return ldapServiceClient.addMember(dn, group);
+        try {
+            return ldapServiceClient.addMember(dn, group);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
 }

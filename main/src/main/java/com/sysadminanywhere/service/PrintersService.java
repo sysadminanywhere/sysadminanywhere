@@ -5,6 +5,7 @@ import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,11 @@ public class PrintersService {
 
     @SneakyThrows
     public Page<PrinterEntry> getAll(Pageable pageable, String filters, String... attributes) {
-        return printersServiceClient.getAll(pageable, filters, attributes);
+        try {
+            return printersServiceClient.getAll(pageable, filters, attributes);
+        } catch (Exception e) {
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
     }
 
     @SneakyThrows
@@ -38,10 +43,12 @@ public class PrintersService {
 
         List<PrinterEntry> items = new ArrayList<>();
 
-        for (EntryDto entryDto : list) {
-            PrinterEntry item = new PrinterEntry();
-            item.setCn(entryDto.getAttributes().get("cn").toString());
-            items.add(item);
+        if(list != null) {
+            for (EntryDto entryDto : list) {
+                PrinterEntry item = new PrinterEntry();
+                item.setCn(entryDto.getAttributes().get("cn").toString());
+                items.add(item);
+            }
         }
 
         return items;

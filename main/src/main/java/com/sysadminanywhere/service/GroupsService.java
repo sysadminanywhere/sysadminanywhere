@@ -8,6 +8,7 @@ import com.sysadminanywhere.common.directory.model.GroupScope;
 import com.sysadminanywhere.common.directory.model.GroupType;
 import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,11 @@ public class GroupsService {
 
     @SneakyThrows
     public Page<GroupEntry> getAll(Pageable pageable, String filters, String... attributes) {
-        return groupsServiceClient.getAll(pageable, filters, attributes);
+        try {
+            return groupsServiceClient.getAll(pageable, filters, attributes);
+        } catch (Exception e) {
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
     }
 
     public List<GroupEntry> getAll(String filters, String... attributes) {
@@ -40,11 +45,13 @@ public class GroupsService {
 
         List<GroupEntry> items = new ArrayList<>();
 
-        for (EntryDto entryDto : list) {
-            GroupEntry item = new GroupEntry();
-            item.setCn(entryDto.getAttributes().get("cn").toString());
-            item.setGroupType(Integer.parseInt(entryDto.getAttributes().get("grouptype").toString()));
-            items.add(item);
+        if(list != null) {
+            for (EntryDto entryDto : list) {
+                GroupEntry item = new GroupEntry();
+                item.setCn(entryDto.getAttributes().get("cn").toString());
+                item.setGroupType(Integer.parseInt(entryDto.getAttributes().get("grouptype").toString()));
+                items.add(item);
+            }
         }
 
         return items;

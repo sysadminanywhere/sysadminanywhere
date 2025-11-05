@@ -12,6 +12,8 @@ import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.common.directory.model.*;
 import com.sysadminanywhere.service.*;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
@@ -59,6 +61,11 @@ public class DashboardView extends VerticalLayout {
         List<GroupEntry> groups = groupsService.getAll();
         List<PrinterEntry> printers = printersService.getAll();
         List<ContactEntry> contacts = contactsService.getAll();
+
+        if(computers.isEmpty() && users.isEmpty() && groups.isEmpty()){
+            Notification notification = Notification.show("Domain service is unavailable!");
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
 
         getStoredTheme().thenAccept(v -> {
             boolean isDarkTheme = false;

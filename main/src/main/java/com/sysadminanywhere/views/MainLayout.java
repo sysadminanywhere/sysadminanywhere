@@ -9,7 +9,6 @@ import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.account.MeView;
 import com.sysadminanywhere.views.domain.AuditView;
 import com.sysadminanywhere.views.domain.DashboardView;
-import com.sysadminanywhere.views.domain.DomainErrorView;
 import com.sysadminanywhere.views.domain.DomainView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
@@ -34,13 +33,11 @@ import com.vaadin.flow.component.orderedlayout.*;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.*;
-import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 @Layout
 @PermitAll
@@ -53,6 +50,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     FlexLayout buttons = new FlexLayout();
     FlexLayout subNav = new FlexLayout();
 
+    VerticalLayout topMenu;
+    VerticalLayout bottomMenu;
+
     SideNav dashboardSubNavs = new SideNav();
     SideNav managementSubNavs = new SideNav();
     SideNav settingsSubNavs = new SideNav();
@@ -63,18 +63,13 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     String currentTitle = "Domain";
 
-    private AuthenticatedUser authenticatedUser;
 
     private final LdapService ldapService;
-    private final MonitoringService monitoringService;
 
     public MainLayout(AuthenticatedUser authenticatedUser,
-                      LdapService ldapService,
-                      MonitoringService monitoringService) {
+                      LdapService ldapService) {
 
-        this.authenticatedUser = authenticatedUser;
         this.ldapService = ldapService;
-        this.monitoringService = monitoringService;
 
         setPrimarySection(Section.DRAWER);
         getElement().setAttribute("theme", "teams-nav");
@@ -83,7 +78,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         subNav.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
 
         buttons.getStyle().setBackground("#D6DBE0");
-
         buttons.setWidth("90px");
         buttons.setHeightFull();
         buttons.setAlignContent(FlexLayout.ContentAlignment.CENTER);
@@ -105,14 +99,14 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         Scroller scroller = new Scroller(drawerContent);
         scroller.setClassName(LumoUtility.Padding.SMALL);
 
-        VerticalLayout topMenu = new VerticalLayout(createSelectedMainButtonItem(currentTitle, DashboardView.class, "/icons/dashboard.svg"),
+        topMenu = new VerticalLayout(createSelectedMainButtonItem(currentTitle, DashboardView.class, "/icons/dashboard.svg"),
                 createMainButtonItem("Management", UsersView.class, "/icons/management.svg"),
                 createMainButtonItem("Inventory", InventorySoftwareView.class, "/icons/inventory.svg"),
                 createMainButtonItem("Monitoring", NotificationsView.class, "/icons/monitoring.svg"),
                 createMainButtonItem("Reports", UserReportsView.class, "/icons/reports.svg"));
         topMenu.setMargin(false);
 
-        VerticalLayout bottomMenu = new VerticalLayout();
+        bottomMenu = new VerticalLayout();
 
         if(authenticatedUser.getUser().isPresent())
             bottomMenu.add(createMainButtonItem("Account", MeView.class, "/icons/user.svg"));
@@ -162,14 +156,13 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof OidcUser user) {
-            try {
-                currentTitle = ldapService.getDomainName();
-            } catch (Exception ex) {
-                UI.getCurrent().navigate(DomainErrorView.class);
-            }
-        }
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (authentication != null && authentication.isAuthenticated()) {
+//            try {
+//                currentTitle = ldapService.getDomainName();
+//            } catch (Exception ex) {
+//            }
+//        }
     }
 
     @Override
@@ -179,6 +172,13 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         viewTitle.setText(getCurrentPageTitle());
 
         menuLayout.removeAll();
+
+        if(ldapService.getDomainName().isEmpty()) {
+            drawerContent.removeAll();
+            setDrawerOpened(false);
+            UI.getCurrent().navigate(ErrorView.class);
+            return;
+        }
 
         Component view = getContent();
         if (view instanceof MenuControl) {

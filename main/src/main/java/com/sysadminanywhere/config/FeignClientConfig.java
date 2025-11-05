@@ -1,6 +1,7 @@
 package com.sysadminanywhere.config;
 
 import feign.Logger;
+import feign.codec.ErrorDecoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

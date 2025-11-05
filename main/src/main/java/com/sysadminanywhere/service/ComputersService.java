@@ -31,11 +31,19 @@ public class ComputersService {
 
     @SneakyThrows
     public Page<ComputerEntry> getAll(Pageable pageable, String filters, String... attributes) {
-        return computersServiceClient.getAll(pageable, filters, attributes);
+        try {
+            return computersServiceClient.getAll(pageable, filters, attributes);
+        } catch (Exception e) {
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
     }
 
     public List<ComputerEntry> getAll(String filters, String... attributes) {
-        return computersServiceClient.getList(filters, attributes);
+        try {
+            return computersServiceClient.getList(filters, attributes);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public List<ComputerEntry> getAll() {
@@ -44,18 +52,20 @@ public class ComputersService {
 
         List<ComputerEntry> items = new ArrayList<>();
 
-        for (EntryDto entryDto : list) {
-            ComputerEntry item = new ComputerEntry();
-            item.setCn(entryDto.getAttributes().get("cn").toString());
-            item.setUserAccountControl(Integer.parseInt(entryDto.getAttributes().get("useraccountcontrol").toString()));
-            item.setPrimaryGroupId(Integer.parseInt(entryDto.getAttributes().get("primarygroupid").toString()));
-            item.setOperatingSystem("");
+        if(list != null) {
+            for (EntryDto entryDto : list) {
+                ComputerEntry item = new ComputerEntry();
+                item.setCn(entryDto.getAttributes().get("cn").toString());
+                item.setUserAccountControl(Integer.parseInt(entryDto.getAttributes().get("useraccountcontrol").toString()));
+                item.setPrimaryGroupId(Integer.parseInt(entryDto.getAttributes().get("primarygroupid").toString()));
+                item.setOperatingSystem("");
 
-            if (entryDto.getAttributes().containsKey("operatingsystem")) {
-                item.setOperatingSystem(entryDto.getAttributes().get("operatingsystem").toString());
+                if (entryDto.getAttributes().containsKey("operatingsystem")) {
+                    item.setOperatingSystem(entryDto.getAttributes().get("operatingsystem").toString());
+                }
+
+                items.add(item);
             }
-
-            items.add(item);
         }
 
         return items;

@@ -6,6 +6,7 @@ import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
 import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +27,11 @@ public class ContactsService {
 
     @SneakyThrows
     public Page<ContactEntry> getAll(Pageable pageable, String filters, String... attributes) {
-        return contactsServiceClient.getAll(pageable, filters, attributes);
+        try {
+            return contactsServiceClient.getAll(pageable, filters, attributes);
+        } catch (Exception e) {
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
     }
 
     @SneakyThrows
@@ -40,10 +45,12 @@ public class ContactsService {
 
         List<ContactEntry> items = new ArrayList<>();
 
-        for (EntryDto entryDto : list) {
-            ContactEntry item = new ContactEntry();
-            item.setCn(entryDto.getAttributes().get("cn").toString());
-            items.add(item);
+        if(list != null) {
+            for (EntryDto entryDto : list) {
+                ContactEntry item = new ContactEntry();
+                item.setCn(entryDto.getAttributes().get("cn").toString());
+                items.add(item);
+            }
         }
 
         return items;

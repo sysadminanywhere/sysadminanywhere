@@ -8,6 +8,7 @@ import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,11 @@ public class UsersService {
 
     @SneakyThrows
     public Page<UserEntry> getAll(Pageable pageable, String filters, String... attributes) {
-        return usersServiceClient.getAll(pageable, filters, attributes);
+        try {
+            return usersServiceClient.getAll(pageable, filters, attributes);
+        } catch (Exception e) {
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
     }
 
     public List<UserEntry> getAll(String filters, String... attributes) {
@@ -40,11 +45,13 @@ public class UsersService {
 
         List<UserEntry> items = new ArrayList<>();
 
-        for (EntryDto entryDto : list) {
-            UserEntry item = new UserEntry();
-            item.setCn(entryDto.getAttributes().get("cn").toString());
-            item.setUserAccountControl(Integer.parseInt(entryDto.getAttributes().get("useraccountcontrol").toString()));
-            items.add(item);
+        if(list != null) {
+            for (EntryDto entryDto : list) {
+                UserEntry item = new UserEntry();
+                item.setCn(entryDto.getAttributes().get("cn").toString());
+                item.setUserAccountControl(Integer.parseInt(entryDto.getAttributes().get("useraccountcontrol").toString()));
+                items.add(item);
+            }
         }
 
         return items;
