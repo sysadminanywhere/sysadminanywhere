@@ -68,12 +68,13 @@ public class LdapService {
     public EntryDto getRootDse() {
         try {
             return ldapServiceClient.getRootDse();
-        } catch (Exception ex) {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if(!authentication.isAuthenticated())
+        } catch (feign.FeignException fx) {
+            log.error("Feign error with status: {}", fx.status(), fx);
+            if (fx.status() == 401 || fx.status() == 403) {
                 authenticationContext.logout();
-            return null;
+            }
         }
+        return null;
     }
 
     @Cacheable(value = "maxPwdAge")
