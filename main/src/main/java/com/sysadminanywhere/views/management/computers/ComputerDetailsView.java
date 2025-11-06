@@ -32,10 +32,12 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+@RolesAllowed("admins")
 @PageTitle("Computer details")
 @Route(value = "management/computers/:id?/details")
 @PermitAll

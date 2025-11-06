@@ -3,7 +3,6 @@ package com.sysadminanywhere.views.management.groups;
 import com.sysadminanywhere.control.MemberOf;
 import com.sysadminanywhere.control.Members;
 import com.sysadminanywhere.control.MenuControl;
-import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.service.GroupsService;
@@ -32,10 +31,9 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 
-import java.util.ArrayList;
-import java.util.List;
-
+@RolesAllowed("admins")
 @PageTitle("Group details")
 @Route(value = "management/groups/:id?/details")
 @PermitAll

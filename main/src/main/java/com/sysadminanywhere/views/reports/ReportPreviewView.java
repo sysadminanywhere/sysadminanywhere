@@ -14,6 +14,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.function.SerializableSupplier;
 import com.vaadin.flow.router.*;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.vaadin.reports.PrintPreviewReport;
@@ -30,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@RolesAllowed("admins")
 @PageTitle("Report")
 @Route(value = "reports/report")
 @PermitAll

@@ -18,6 +18,7 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
+import jakarta.annotation.security.RolesAllowed;
 
 import java.util.HashMap;
 

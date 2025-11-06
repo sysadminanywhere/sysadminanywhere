@@ -15,6 +15,7 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
+@RolesAllowed("admins")
 @PageTitle("Hardware")
 @Route(value = "management/computers/:id?/hardware")
 @PermitAll

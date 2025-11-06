@@ -25,7 +25,9 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 
+@RolesAllowed("admins")
 @PageTitle("Contact details")
 @Route(value = "management/contacts/:id?/details")
 @PermitAll

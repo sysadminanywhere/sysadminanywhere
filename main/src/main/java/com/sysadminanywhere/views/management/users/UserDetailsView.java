@@ -34,9 +34,11 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.dialog.Dialog;
+import jakarta.annotation.security.RolesAllowed;
 
 import java.io.ByteArrayInputStream;
 
+@RolesAllowed("admins")
 @PageTitle("User details")
 @Route(value = "management/users/:id?/details")
 @PermitAll
