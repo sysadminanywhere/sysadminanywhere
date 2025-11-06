@@ -1,4 +1,4 @@
-package com.sysadminanywhere.views;
+package com.sysadminanywhere.views.error;
 
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.AnchorTarget;

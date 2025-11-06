@@ -25,7 +25,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-@PreAuthorize("hasRole('admins', 'users')")
 @PageTitle("Dashboard")
 @Route(value = "")
 @RouteAlias(value = "domain/dashboard")

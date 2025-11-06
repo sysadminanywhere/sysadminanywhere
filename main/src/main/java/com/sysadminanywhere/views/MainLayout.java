@@ -4,12 +4,12 @@ import com.sysadminanywhere.control.MenuButton;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LdapService;
-import com.sysadminanywhere.service.MonitoringService;
 import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.account.MeView;
 import com.sysadminanywhere.views.domain.AuditView;
 import com.sysadminanywhere.views.domain.DashboardView;
 import com.sysadminanywhere.views.domain.DomainView;
+import com.sysadminanywhere.views.error.ErrorView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
@@ -36,8 +36,6 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @Layout
 @PermitAll

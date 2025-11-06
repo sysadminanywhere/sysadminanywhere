@@ -30,7 +30,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import java.io.ByteArrayInputStream;
 import java.util.Optional;
 
-@PreAuthorize("hasRole('admins', 'users')")
 @PageTitle("Me")
 @Route(value = "account/me")
 @PermitAll
