@@ -4,7 +4,6 @@ import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
-import com.sysadminanywhere.directory.config.DirectoryConfig;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
@@ -38,7 +37,6 @@ public class LdapService {
 
     private final LdapConnection connection;
     private final LdapConnectionConfig ldapConnectionConfig;
-    private final DirectoryConfig directoryConfig;
 
     private String domainName;
     private String defaultNamingContext;
@@ -58,10 +56,9 @@ public class LdapService {
 
 
     @SneakyThrows
-    public LdapService(LdapConnection connection, LdapConnectionConfig ldapConnectionConfig, DirectoryConfig directoryConfig) {
+    public LdapService(LdapConnection connection, LdapConnectionConfig ldapConnectionConfig) {
         this.connection = connection;
         this.ldapConnectionConfig = ldapConnectionConfig;
-        this.directoryConfig = directoryConfig;
 
         Entry entry = connection.getRootDse();
         baseDn = new Dn(entry.get("rootdomainnamingcontext").get().getString());
@@ -391,43 +388,6 @@ public class LdapService {
         Attribute attribute = new DefaultAttribute(name, value);
         Modification modification = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, attribute);
         connection.modify(dn, modification);
-    }
-
-    public Boolean checkUser(String userName, String password) {
-        LdapConnection networkConnection = new LdapNetworkConnection(ldapConnectionConfig);
-
-        BindRequest bindRequest = new BindRequestImpl();
-        bindRequest.setCredentials(password);
-        bindRequest.setSimple(true);
-        bindRequest.setName(userName);
-
-        try {
-            networkConnection.bind(bindRequest);
-
-            if (networkConnection.isAuthenticated()) {
-                if (directoryConfig.getGroupsAllowed() != null && !directoryConfig.getGroupsAllowed().isEmpty()) {
-                    try (EntryCursor cursor = networkConnection.search(baseDn, "(&(objectClass=user)(objectCategory=person)(cn=" + userName + "))", SearchScope.SUBTREE)) {
-                        for (Entry entry : cursor) {
-                            for (Value v : entry.get("memberof")) {
-                                for (String item : directoryConfig.getGroupsAllowed()) {
-                                    if (v.getString().equalsIgnoreCase(item)) {
-                                        return true;
-                                    }
-                                }
-                            }
-                            return false;
-                        }
-                    }
-                } else {
-                    return true;
-                }
-            }
-
-        } catch (LdapException | IOException e) {
-            log.error("Connection error: {}", e);
-        }
-
-        return false;
     }
 
     @Cacheable(value = "containers")

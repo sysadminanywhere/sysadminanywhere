@@ -40,9 +40,6 @@ public class LdapConfig {
     @Value("${ldap.host.password:}")
     private String password;
 
-    @Value("${ldap.host.groups.allowed:}")
-    private String groupsAllowed;
-
     @SneakyThrows
     @Bean
     public LdapConnection createConnection(LdapConnectionConfig sslConfig) {
@@ -77,16 +74,6 @@ public class LdapConfig {
         sslConfig.setLdapPort(port);
         sslConfig.setTrustManagers(new NoVerificationTrustManager());
         return sslConfig;
-    }
-
-    @Bean
-    public DirectoryConfig directoryConfig() {
-        DirectoryConfig directoryConfig = new DirectoryConfig();
-
-        if(!groupsAllowed.isEmpty())
-            directoryConfig.setGroupsAllowed(Arrays.asList(groupsAllowed.split(";")));
-
-        return directoryConfig;
     }
 
 }

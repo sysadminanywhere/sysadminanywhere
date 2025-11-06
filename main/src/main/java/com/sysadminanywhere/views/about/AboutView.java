@@ -10,7 +10,9 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.card.Card;
+import org.springframework.security.access.prepost.PreAuthorize;
 
+@PreAuthorize("hasRole('admins', 'users')")
 @PageTitle("About")
 @Route(value = "settings/about")
 @PermitAll
