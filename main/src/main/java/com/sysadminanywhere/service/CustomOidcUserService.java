@@ -1,5 +1,6 @@
 package com.sysadminanywhere.service;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,10 +24,16 @@ public class CustomOidcUserService extends OidcUserService {
 
     private Map<String, String> groupRoleMap;
 
-    public CustomOidcUserService() {
+    @PostConstruct
+    public void initGroupMap() {
         groupRoleMap = new HashMap<>();
-        groupRoleMap.put(admins, "admins");
-        groupRoleMap.put(users, "users");
+
+        if (admins != null && !admins.isBlank()) {
+            groupRoleMap.put(admins, "admins");
+        }
+        if (users != null && !users.isBlank()) {
+            groupRoleMap.put(users, "users");
+        }
     }
 
     @Override

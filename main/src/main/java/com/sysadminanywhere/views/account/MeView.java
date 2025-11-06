@@ -25,10 +25,12 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.io.ByteArrayInputStream;
 import java.util.Optional;
 
+@PreAuthorize("hasRole('admins', 'users')")
 @PageTitle("Me")
 @Route(value = "account/me")
 @PermitAll

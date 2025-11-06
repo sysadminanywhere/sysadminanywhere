@@ -20,10 +20,12 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+@PreAuthorize("hasRole('admins', 'users')")
 @PageTitle("Dashboard")
 @Route(value = "")
 @RouteAlias(value = "domain/dashboard")
