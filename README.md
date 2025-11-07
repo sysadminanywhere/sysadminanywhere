@@ -1,9 +1,9 @@
 # Sysadmin Anywhere
 
-Free Web-based application revolutionizes Active Directory network administration by offering a unified tool that simplifies every task you need to perform.
+A free Web-based application for administering your Active Directory network that provides a single tool to simplify administrative tasks.
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
-![Static Badge](https://img.shields.io/badge/version-2.2.0-blue)
+![Static Badge](https://img.shields.io/badge/version-3.0.0-blue)
 
 ![Sysadmin Screenshot](images/Screen02.png)
 
@@ -24,17 +24,12 @@ Free Web-based application revolutionizes Active Directory network administratio
 - No limitation on the number of objects
 - Monitoring system with alert rules - including Ping, password expiration notifier, object change detection, incorrect password attempts
 
-### Settings
+### Documentations
 
-* [Docker settings](https://github.com/sysadminanywhere/sysadminanywhere/wiki/Docker-settings)
-* [Desktop applicaton settings](https://github.com/sysadminanywhere/sysadminanywhere/wiki/Desktop-settings)
+* [Documentation](https://docs.sysadminanywhere.com)
 
 ### License
 
 This software is distributed under the terms of the MIT License (MIT).
 
-### Authors
-
-Igor Markin / [LinkedIn](https://www.linkedin.com/in/igor-markin/)
-
-Contributions and bugs reports are welcome.
+**Contributions and bugs reports are welcome.**
