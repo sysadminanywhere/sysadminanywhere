@@ -20,7 +20,7 @@ public interface PrintersServiceClient {
     Page<PrinterEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/printers/list")
-    List<PrinterEntry> getList(@RequestParam("filters") String filters);
+    List<PrinterEntry> getList(@RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/printers/{cn}")
     PrinterEntry getByCN(@PathVariable("cn") String cn);

@@ -33,8 +33,12 @@ public class PrintersService {
     }
 
     @SneakyThrows
-    public List<PrinterEntry> getAll(String filters) {
-        return printersServiceClient.getList(filters);
+    public List<PrinterEntry> getAll(String filters, String... attributes) {
+        try {
+            return printersServiceClient.getList(filters, attributes);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public List<PrinterEntry> getAll() {

@@ -22,7 +22,7 @@ public interface ContactsServiceClient {
     Page<ContactEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/contacts/list")
-    List<ContactEntry> getList(@RequestParam("filters") String filters);
+    List<ContactEntry> getList(@RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
 
     @GetMapping("/api/contacts/{cn}")
     ContactEntry getByCN(@PathVariable("cn") String cn);

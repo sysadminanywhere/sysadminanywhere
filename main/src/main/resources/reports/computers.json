@@ -27,7 +27,7 @@
   "name" : "Created",
   "description" : "Created dates",
   "filter" : "",
-  "columns" : ["cn","operatingSystem","whencreated"]
+  "columns" : ["cn","operatingSystem","created"]
 }, {
   "id" : "lastlogon",
   "name" : "Last logon",

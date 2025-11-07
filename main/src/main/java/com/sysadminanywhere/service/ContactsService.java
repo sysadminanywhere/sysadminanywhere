@@ -35,8 +35,12 @@ public class ContactsService {
     }
 
     @SneakyThrows
-    public List<ContactEntry> getAll(String filters) {
-        return contactsServiceClient.getList(filters);
+    public List<ContactEntry> getAll(String filters, String... attributes) {
+        try {
+            return contactsServiceClient.getList(filters, attributes);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public List<ContactEntry> getAll() {

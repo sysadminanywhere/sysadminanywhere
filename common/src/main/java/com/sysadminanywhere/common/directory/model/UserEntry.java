@@ -18,7 +18,7 @@ public class UserEntry {
     private String cn;
 
     @AD(name = "whencreated", IsReadOnly = true)
-    private LocalDateTime whencreated;
+    private LocalDateTime created;
 
     @AD(name = "description")
     private String description;

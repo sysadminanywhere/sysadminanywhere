@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.reports;
 
 import ar.com.fdvs.dj.domain.AutoText;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sysadminanywhere.common.directory.model.AD;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
@@ -20,13 +21,11 @@ import org.springframework.core.io.Resource;
 import org.vaadin.reports.PrintPreviewReport;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -115,7 +114,9 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
 
         report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
 
-        SerializableSupplier<List<? extends ComputerEntry>> itemsSupplier = () -> computersService.getAll(reportItem.getFilter(), reportItem.getColumns());
+        String[] attributes = getAttributes(reportItem.getColumns(), ComputerEntry.class);
+
+        SerializableSupplier<List<? extends ComputerEntry>> itemsSupplier = () -> computersService.getAll(reportItem.getFilter(), attributes);
         report.setItems(itemsSupplier.get());
 
         return new DownloadMenu<>(ComputerEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
@@ -163,7 +164,9 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
             reportItem.setFilter(result.toString());
         }
 
-        SerializableSupplier<List<? extends UserEntry>> itemsSupplier = () -> usersService.getAll(reportItem.getFilter(), reportItem.getColumns());
+        String[] attributes = getAttributes(reportItem.getColumns(), UserEntry.class);
+
+        SerializableSupplier<List<? extends UserEntry>> itemsSupplier = () -> usersService.getAll(reportItem.getFilter(), attributes);
         report.setItems(itemsSupplier.get());
 
         return new DownloadMenu<>(UserEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
@@ -174,7 +177,9 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
 
         report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
 
-        SerializableSupplier<List<? extends GroupEntry>> itemsSupplier = () -> groupsService.getAll(reportItem.getFilter(), reportItem.getColumns());
+        String[] attributes = getAttributes(reportItem.getColumns(), GroupEntry.class);
+
+        SerializableSupplier<List<? extends GroupEntry>> itemsSupplier = () -> groupsService.getAll(reportItem.getFilter(), attributes);
         report.setItems(itemsSupplier.get());
 
         return new DownloadMenu<>(GroupEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
@@ -207,6 +212,22 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
         long fileTime = secondsBetween * 10_000_000 + nanosPart / 100;
 
         return fileTime;
+    }
+
+    private String[] getAttributes(String[] columns, Class<?> clazz) {
+        List<String> attributes = new ArrayList<>();
+
+        for (Field field : clazz.getDeclaredFields()) {
+            AD annotation = field.getAnnotation(AD.class);
+            if (annotation == null) continue;
+
+            if (Arrays.stream(columns).anyMatch(field.getName()::equalsIgnoreCase)) {
+                attributes.add(annotation.name());
+            }
+
+        }
+
+        return attributes.toArray(new String[attributes.size()]);
     }
 
 }

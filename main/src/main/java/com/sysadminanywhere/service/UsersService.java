@@ -36,7 +36,11 @@ public class UsersService {
     }
 
     public List<UserEntry> getAll(String filters, String... attributes) {
-        return usersServiceClient.getList(filters, attributes);
+        try {
+            return usersServiceClient.getList(filters, attributes);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public List<UserEntry> getAll() {

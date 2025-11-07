@@ -36,7 +36,11 @@ public class GroupsService {
     }
 
     public List<GroupEntry> getAll(String filters, String... attributes) {
-        return groupsServiceClient.getList(filters, attributes);
+        try {
+            return groupsServiceClient.getList(filters, attributes);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public List<GroupEntry> getAll() {
