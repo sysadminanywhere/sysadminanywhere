@@ -57,7 +57,7 @@ public class ContactsService {
     }
 
     public ContactEntry getByCN(String cn) {
-        return contactsServiceClient.getList("(&(objectClass=contact)(objectCategory=person)(cn=" + cn + "))").getFirst();
+        return contactsServiceClient.getByCN(cn);
     }
 
     @SneakyThrows

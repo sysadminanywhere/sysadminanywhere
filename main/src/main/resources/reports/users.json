@@ -33,7 +33,7 @@
   "name" : "Created",
   "description" : "Created dates",
   "filter" : "",
-  "columns" : ["cn","description","created"]
+  "columns" : ["cn","description","whencreated"]
 }, {
   "id" : "logonscripts",
   "name" : "Logon scripts",

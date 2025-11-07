@@ -19,7 +19,7 @@ public class ContactEntry {
     private String cn;
 
     @AD(name = "whencreated", IsReadOnly = true)
-    private LocalDateTime created;
+    private LocalDateTime whencreated;
 
     @AD(name = "description")
     private String description;

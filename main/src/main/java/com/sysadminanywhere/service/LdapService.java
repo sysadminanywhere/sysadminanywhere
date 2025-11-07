@@ -70,9 +70,10 @@ public class LdapService {
             return ldapServiceClient.getRootDse();
         } catch (feign.FeignException fx) {
             log.error("Feign error with status: {}", fx.status(), fx);
-            if (fx.status() == 401 || fx.status() == 403) {
+            if (fx.status() == 401) {
                 authenticationContext.logout();
             }
+        } catch (NullPointerException ne) {
         }
         return null;
     }
