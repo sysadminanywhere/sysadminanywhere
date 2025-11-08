@@ -316,7 +316,7 @@ public class ComputersService {
 
     public Integer getProcessorLoad(String hostName) {
         try {
-            List<Map<String, Object>> result = wmiService.execute(hostName, "Select * FROM Win32_PerfFormattedData_PerfOS_Processor");
+            List<Map<String, Object>> result = wmiService.execute(hostName, "Select Name, PercentProcessorTime FROM Win32_PerfFormattedData_PerfOS_Processor");
 
             for (Map<String, Object> item : result) {
                 if (item.get("Name").toString().equals("_Total")) {
@@ -331,7 +331,7 @@ public class ComputersService {
 
     public Long getAvailableBytes(String hostName) {
         try {
-            List<Map<String, Object>> result = wmiService.execute(hostName, "Select * FROM Win32_PerfFormattedData_PerfOS_Memory");
+            List<Map<String, Object>> result = wmiService.execute(hostName, "Select AvailableBytes FROM Win32_PerfFormattedData_PerfOS_Memory");
             return Long.valueOf(result.get(0).get("AvailableBytes").toString());
         } catch (Exception ex) {
             return 0L;
@@ -340,7 +340,7 @@ public class ComputersService {
 
     public Long getTotalPhysicalMemory(String hostName) {
         try {
-            List<Map<String, Object>> result = wmiService.execute(hostName, "Select * FROM Win32_ComputerSystem");
+            List<Map<String, Object>> result = wmiService.execute(hostName, "Select TotalPhysicalMemory FROM Win32_ComputerSystem");
             return Long.valueOf(result.get(0).get("TotalPhysicalMemory").toString());
         } catch (Exception ex) {
             return 0L;
@@ -349,7 +349,7 @@ public class ComputersService {
 
     public Integer getDisk(String hostName) {
         try {
-            List<Map<String, Object>> result = wmiService.execute(hostName, "Select * From Win32_LogicalDisk WHERE Caption='C:'");
+            List<Map<String, Object>> result = wmiService.execute(hostName, "Select Size, FreeSpace From Win32_LogicalDisk WHERE Caption='C:'");
 
             Long diskSize = Long.valueOf(result.get(0).get("Size").toString());
             Long diskFreeSpace = Long.valueOf(result.get(0).get("FreeSpace").toString());
