@@ -14,6 +14,7 @@ import com.github.appreciated.apexcharts.config.xaxis.TickPlacement;
 import com.github.appreciated.apexcharts.helper.Series;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
@@ -22,10 +23,7 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.binder.Binder;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.*;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
@@ -41,6 +39,8 @@ import java.util.concurrent.TimeUnit;
 @Uses(Icon.class)
 public class ComputerPerformanceView extends Div implements BeforeEnterObserver {
 
+    private volatile boolean pageActive = true;
+
     private String id;
     private final ComputersService computersService;
     ComputerEntry computer;
@@ -55,6 +55,10 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
 
     List<Integer> processorStack = new ArrayList<>();
     List<Integer> memoryStack = new ArrayList<>();
+
+    private ApexCharts chartMemory;
+    private ApexCharts chartDisk;
+    private ApexCharts chartProcessor;
 
     Long totalPhysicalMemory = 0L;
 
@@ -79,6 +83,22 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
                 lblDescription.setText(computer.getDescription());
 
                 totalPhysicalMemory = computersService.getTotalPhysicalMemory(id);
+
+                new Thread(() -> {
+                    while (pageActive) {
+                        try {
+                            getUI().ifPresent(ui -> ui.access(() -> {
+                                if (pageActive) {
+                                    run();
+                                }
+                            }));
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            break;
+                        }
+                    }
+                }).start();
+
             }
         }
     }
@@ -112,7 +132,7 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
 
         verticalLayout.add(verticalLayout2);
 
-        final ApexCharts chartProcessor = ApexChartsBuilder.get().withChart(ChartBuilder.get()
+        chartProcessor = ApexChartsBuilder.get().withChart(ChartBuilder.get()
                         .withType(Type.LINE)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .withZoom(ZoomBuilder.get().withEnabled(false).build())
@@ -140,7 +160,7 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
 
         // ===============
 
-        final ApexCharts chartMemory = ApexChartsBuilder.get().withChart(ChartBuilder.get()
+        chartMemory = ApexChartsBuilder.get().withChart(ChartBuilder.get()
                         .withType(Type.LINE)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .withZoom(ZoomBuilder.get().withEnabled(false).build())
@@ -167,7 +187,7 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
         HorizontalLayout line1 = new HorizontalLayout();
         line1.add(chartProcessor, chartMemory);
 
-        final ApexCharts chartDisk = ApexChartsBuilder.get().withChart(ChartBuilder.get()
+        chartDisk = ApexChartsBuilder.get().withChart(ChartBuilder.get()
                         .withType(Type.RADIALBAR)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .withZoom(ZoomBuilder.get().withEnabled(false).build())
@@ -192,33 +212,41 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
 
         verticalLayout.add(line1, line2);
 
-        scheduler.scheduleAtFixedRate(() -> {
+    }
 
-            Long availableBytes = computersService.getAvailableBytes(id);
-            Long percent = ((totalPhysicalMemory - availableBytes) * 100) / totalPhysicalMemory;
+    private void run() {
 
-            memoryStack.remove(0);
-            memoryStack.add(percent.intValue());
-            Series seriesMemory = new Series();
-            seriesMemory.setData(memoryStack.toArray());
+        Long availableBytes = computersService.getAvailableBytes(id);
+        Long percent = ((totalPhysicalMemory - availableBytes) * 100) / totalPhysicalMemory;
+
+        memoryStack.remove(0);
+        memoryStack.add(percent.intValue());
+        Series seriesMemory = new Series();
+        seriesMemory.setData(memoryStack.toArray());
 
 
-            Integer processorLoad = computersService.getProcessorLoad(id);
+        Integer processorLoad = computersService.getProcessorLoad(id);
 
-            processorStack.remove(0);
-            processorStack.add(processorLoad);
-            Series seriesProcessor = new Series();
-            seriesProcessor.setData(processorStack.toArray());
+        processorStack.remove(0);
+        processorStack.add(processorLoad);
+        Series seriesProcessor = new Series();
+        seriesProcessor.setData(processorStack.toArray());
 
-            Integer disk = computersService.getDisk(id);
+        Integer disk = computersService.getDisk(id);
 
-            if (getUI().isEmpty()) return;
-            getUI().get().access(() -> {
-                chartMemory.updateSeries(seriesMemory);
-                chartProcessor.updateSeries(seriesProcessor);
-                chartDisk.updateSeries(disk.doubleValue());
-            });
-        }, 1, 5, TimeUnit.SECONDS);
+        if (getUI().isEmpty()) return;
+        getUI().get().access(() -> {
+            chartMemory.updateSeries(seriesMemory);
+            chartProcessor.updateSeries(seriesProcessor);
+            chartDisk.updateSeries(disk.doubleValue());
+        });
+
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        pageActive = false;
+        super.onDetach(detachEvent);
     }
 
 }
