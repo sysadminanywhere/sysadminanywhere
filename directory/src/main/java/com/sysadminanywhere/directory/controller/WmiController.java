@@ -30,7 +30,7 @@ public class WmiController {
         try {
             return new ResponseEntity<>(wmiService.execute(executeDto.getHostName(), executeDto.getWqlQuery()), HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -51,7 +51,7 @@ public class WmiController {
                     invokeDto.getMethodName(),
                     invokeDto.getInputMap()), HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(new HashMap<>(), HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(new HashMap<>(), HttpStatus.BAD_REQUEST);
         }
     }
 
