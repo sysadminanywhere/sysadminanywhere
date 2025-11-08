@@ -291,7 +291,8 @@ public class ComputersService {
     public ComputerSystemEntity getComputerSystem(String hostName) {
         try {
             WmiResolveService<ComputerSystemEntity> wmiResolveService = new WmiResolveService<>(ComputerSystemEntity.class);
-            return wmiResolveService.getValue(wmiService.execute(hostName, "SELECT * FROM Win32_ComputerSystem").get(0));
+            ComputerSystemEntity computerSystemEntity = wmiResolveService.getValue(wmiService.execute(hostName, "SELECT * FROM Win32_ComputerSystem").get(0));
+            return  computerSystemEntity;
         } catch (Exception ex) {
             return null;
         }

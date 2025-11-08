@@ -2,6 +2,7 @@ package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.model.wmi.WMIAttribute;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class WmiResolveService<T> {
 
     private Class<T> typeArgumentClass;
@@ -79,14 +81,16 @@ public class WmiResolveService<T> {
                                 field.set(result, Long.parseLong(item.get(property.name()).toString()));
                                 break;
                             case "[Ljava.lang.String;":
-                                Object[] objects = (Object[]) item.get(property.name());
-                                String[] list = new String[objects.length];
+                                try {
+                                    List<Object> objectList = (List<Object>) item.get(property.name());
+                                    String[] list = objectList.stream()
+                                            .map(Object::toString)
+                                            .toArray(String[]::new);
 
-                                for (int i = 0; i < objects.length; i++) {
-                                    list[i] = objects[i].toString();
+                                    field.set(result, list);
+                                } catch (Exception ex) {
+                                    log.error("Error: {}", ex.getMessage());
                                 }
-
-                                field.set(result, list);
                                 break;
                         }
                     }
