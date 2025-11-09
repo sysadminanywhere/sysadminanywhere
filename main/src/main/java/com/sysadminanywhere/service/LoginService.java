@@ -3,6 +3,7 @@ package com.sysadminanywhere.service;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.entity.LoginEntity;
 import com.sysadminanywhere.repository.LoginRepository;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
