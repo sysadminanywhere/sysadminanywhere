@@ -14,9 +14,9 @@ public class AddUserDto {
     private UserEntry user;
     private String password;
 
-    private boolean isCannotChangePassword;
-    private boolean isPasswordNeverExpires;
-    private boolean isAccountDisabled;
-    private boolean isMustChangePassword;
+    private boolean cannotChangePassword;
+    private boolean passwordNeverExpires;
+    private boolean accountDisabled;
+    private boolean mustChangePassword;
 
 }

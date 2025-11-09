@@ -12,8 +12,10 @@ import lombok.NoArgsConstructor;
 public class AddGroupDto {
 
     private String distinguishedName;
+
     private GroupEntry group;
     private GroupScope groupScope;
-    private boolean isSecurity;
+
+    private boolean security;
 
 }

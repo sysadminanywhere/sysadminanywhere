@@ -6,7 +6,6 @@ import com.sysadminanywhere.common.directory.dto.ChangeUserAccountControlDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
 import com.sysadminanywhere.common.directory.model.UserEntry;
-import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +25,6 @@ public class UsersService {
         this.usersServiceClient = usersServiceClient;
     }
 
-    @SneakyThrows
     public Page<UserEntry> getAll(Pageable pageable, String filters, String... attributes) {
         try {
             return usersServiceClient.getAll(pageable, filters, attributes);
@@ -65,7 +63,6 @@ public class UsersService {
         return usersServiceClient.getByCN(cn);
     }
 
-    @SneakyThrows
     public UserEntry add(String distinguishedName,
                          UserEntry user,
                          String password,
@@ -83,12 +80,10 @@ public class UsersService {
                 isMustChangePassword));
     }
 
-    @SneakyThrows
     public UserEntry update(UserEntry user) {
         return usersServiceClient.update(user);
     }
 
-    @SneakyThrows
     public void delete(String distinguishedName) {
         usersServiceClient.delete(distinguishedName);
     }

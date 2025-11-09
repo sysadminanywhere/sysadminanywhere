@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 public class AddComputerDto {
 
     private String distinguishedName;
+
     private ComputerEntry computer;
-    private boolean isEnabled;
+
+    private boolean enabled;
 
 }

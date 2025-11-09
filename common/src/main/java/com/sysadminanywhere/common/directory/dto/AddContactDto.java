@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 public class AddContactDto {
 
     private String distinguishedName;
+
     private ContactEntry contact;
 
 }

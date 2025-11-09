@@ -6,7 +6,6 @@ import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.model.GroupScope;
 import com.sysadminanywhere.common.directory.model.GroupType;
-import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +25,6 @@ public class GroupsService {
         this.groupsServiceClient = groupsServiceClient;
     }
 
-    @SneakyThrows
     public Page<GroupEntry> getAll(Pageable pageable, String filters, String... attributes) {
         try {
             return groupsServiceClient.getAll(pageable, filters, attributes);
@@ -65,7 +63,6 @@ public class GroupsService {
         return groupsServiceClient.getByCN(cn);
     }
 
-    @SneakyThrows
     public GroupEntry add(String distinguishedName, GroupEntry group, GroupScope groupScope, boolean isSecurity) {
         return groupsServiceClient.add(new AddGroupDto(distinguishedName, group, groupScope, isSecurity));
     }
@@ -74,7 +71,6 @@ public class GroupsService {
         return groupsServiceClient.update(group);
     }
 
-    @SneakyThrows
     public void delete(String distinguishedName) {
         groupsServiceClient.delete(distinguishedName);
     }

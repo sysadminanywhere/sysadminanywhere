@@ -5,13 +5,11 @@ import com.sysadminanywhere.common.directory.dto.AddComputerDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.*;
 import com.sysadminanywhere.model.wmi.*;
-import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.parser.Entity;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -29,7 +27,6 @@ public class ComputersService {
         this.computersServiceClient = computersServiceClient;
     }
 
-    @SneakyThrows
     public Page<ComputerEntry> getAll(Pageable pageable, String filters, String... attributes) {
         try {
             return computersServiceClient.getAll(pageable, filters, attributes);
@@ -75,16 +72,14 @@ public class ComputersService {
         return computersServiceClient.getByCN(cn);
     }
 
-    @SneakyThrows
     public ComputerEntry add(String distinguishedName, ComputerEntry computer, boolean isEnabled) {
-        return computersServiceClient.add(new AddComputerDto(distinguishedName,computer, isEnabled));
+        return computersServiceClient.add(new AddComputerDto(distinguishedName, computer, isEnabled));
     }
 
     public ComputerEntry update(ComputerEntry computer) {
         return computersServiceClient.update(computer);
     }
 
-    @SneakyThrows
     public void delete(String distinguishedName) {
         computersServiceClient.delete(distinguishedName);
     }
