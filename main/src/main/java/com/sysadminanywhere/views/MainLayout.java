@@ -114,8 +114,10 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
         bottomMenu = new VerticalLayout();
 
-        if(authenticatedUser.getUser().isPresent())
+        if(authenticatedUser.getUser().isPresent()) {
+            //loginService.Login(authenticatedUser.getUser().get());
             bottomMenu.add(createMainButtonItem("Account", MeView.class, "/icons/user.svg"));
+        }
 
         bottomMenu.add(createMainButtonItem("Settings", SettingsView.class, "/icons/settings.svg"));
 
@@ -162,9 +164,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<UserEntry> user = authenticatedUser.getUser();
-        if(user.isPresent())
-            loginService.Login(user.get());
     }
 
     @Override

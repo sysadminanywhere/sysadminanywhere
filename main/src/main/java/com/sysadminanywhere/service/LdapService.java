@@ -26,6 +26,8 @@ public class LdapService {
 
     private final LdapServiceClient ldapServiceClient;
 
+    private EntryDto rootDse;
+
     @Autowired
     private AuthenticationContext authenticationContext;
 
@@ -67,7 +69,10 @@ public class LdapService {
 
     public EntryDto getRootDse() {
         try {
-            return ldapServiceClient.getRootDse();
+            if (rootDse == null) {
+                rootDse = ldapServiceClient.getRootDse();
+            }
+            return rootDse;
         } catch (feign.FeignException fx) {
             log.error("Feign error with status: {}", fx.status(), fx);
             if (fx.status() == 401) {
