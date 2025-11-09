@@ -1,9 +1,11 @@
 package com.sysadminanywhere.views;
 
+import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.control.MenuButton;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LdapService;
+import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.account.MeView;
 import com.sysadminanywhere.views.domain.AuditView;
@@ -37,6 +39,8 @@ import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 
+import java.util.Optional;
+
 @Layout
 @PermitAll
 public class MainLayout extends AppLayout implements AfterNavigationObserver, BeforeEnterObserver {
@@ -61,13 +65,17 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     String currentTitle = "Domain";
 
-
+    private final AuthenticatedUser authenticatedUser;
     private final LdapService ldapService;
+    private final LoginService loginService;
 
     public MainLayout(AuthenticatedUser authenticatedUser,
-                      LdapService ldapService) {
+                      LdapService ldapService,
+                      LoginService loginService) {
 
+        this.authenticatedUser = authenticatedUser;
         this.ldapService = ldapService;
+        this.loginService = loginService;
 
         setPrimarySection(Section.DRAWER);
         getElement().setAttribute("theme", "teams-nav");
@@ -154,13 +162,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        if (authentication != null && authentication.isAuthenticated()) {
-//            try {
-//                currentTitle = ldapService.getDomainName();
-//            } catch (Exception ex) {
-//            }
-//        }
+        Optional<UserEntry> user = authenticatedUser.getUser();
+        if(user.isPresent())
+            loginService.Login(user.get());
     }
 
     @Override

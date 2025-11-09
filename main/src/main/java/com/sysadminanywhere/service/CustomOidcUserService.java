@@ -23,6 +23,9 @@ public class CustomOidcUserService extends OidcUserService {
     @Value("${ldap.host.groups.users:}")
     private String users;
 
+    @Autowired
+    private LoginService loginService;
+
     private Map<String, String> groupRoleMap;
 
     @PostConstruct

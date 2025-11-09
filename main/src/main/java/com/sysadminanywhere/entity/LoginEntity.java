@@ -12,18 +12,19 @@ import java.util.UUID;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "logins")
+@Table(name = "logins",
+        indexes = {@Index(columnList = "username", name = "idx_username")})
 public class LoginEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "username", nullable = false)
+    private String userName;
+
     @Column(name = "displayname", nullable = false)
     private String displayName;
-
-    @Column(name = "objectguid", nullable = false, unique = true)
-    private UUID objectGuid;
 
     @Column(name = "lastlogin", nullable = false)
     private LocalDateTime lastLogin;
