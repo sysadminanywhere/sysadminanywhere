@@ -12,6 +12,10 @@ public class AddContactDto {
 
     private String distinguishedName;
 
-    private ContactEntry contact;
+    private String cn;
+    private String displayName;
+    private String firstName;
+    private String lastName;
+    private String initials;
 
 }

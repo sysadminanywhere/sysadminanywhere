@@ -40,7 +40,13 @@ public class ContactsController {
 
     @PostMapping()
     public ResponseEntity<ContactEntry> add(@NonNull @RequestBody AddContactDto addContact){
-        return new ResponseEntity<>(contactsService.add(addContact.getDistinguishedName(), addContact.getContact()), HttpStatus.OK);
+        return new ResponseEntity<>(contactsService.add(addContact.getDistinguishedName(),
+                addContact.getCn(),
+                addContact.getDisplayName(),
+                addContact.getFirstName(),
+                addContact.getLastName(),
+                addContact.getInitials()
+        ), HttpStatus.OK);
     }
 
     @PutMapping()

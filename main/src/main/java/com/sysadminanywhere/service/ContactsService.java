@@ -61,7 +61,13 @@ public class ContactsService {
     }
 
     public ContactEntry add(String distinguishedName, ContactEntry contact) {
-        return contactsServiceClient.add(new AddContactDto(distinguishedName, contact));
+        return contactsServiceClient.add(new AddContactDto(distinguishedName,
+                contact.getCn(),
+                contact.getDisplayName(),
+                contact.getFirstName(),
+                contact.getLastName(),
+                contact.getInitials()
+        ));
     }
 
     public ContactEntry update(ContactEntry contact) {
