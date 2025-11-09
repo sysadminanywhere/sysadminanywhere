@@ -1,6 +1,5 @@
 package com.sysadminanywhere.common.directory.dto;
 
-import com.sysadminanywhere.common.directory.model.UserEntry;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +10,13 @@ import lombok.NoArgsConstructor;
 public class AddUserDto {
 
     private String distinguishedName;
-    private UserEntry user;
+
+    private String cn;
+    private String displayName;
+    private String firstName;
+    private String lastName;
+    private String initials;
+
     private String password;
 
     private boolean cannotChangePassword;

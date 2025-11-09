@@ -1,6 +1,5 @@
 package com.sysadminanywhere.common.directory.dto;
 
-import com.sysadminanywhere.common.directory.model.ContactEntry;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

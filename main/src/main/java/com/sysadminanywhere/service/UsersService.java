@@ -72,7 +72,11 @@ public class UsersService {
                          boolean isMustChangePassword) {
 
         return usersServiceClient.add(new AddUserDto(distinguishedName,
-                user,
+                user.getCn(),
+                user.getDisplayName(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getInitials(),
                 password,
                 isCannotChangePassword,
                 isPasswordNeverExpires,

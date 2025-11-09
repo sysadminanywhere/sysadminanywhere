@@ -44,7 +44,11 @@ public class UsersController {
     public ResponseEntity<UserEntry> add(@NonNull @RequestBody AddUserDto addUser) {
         return new ResponseEntity<>(usersService.add(
                 addUser.getDistinguishedName(),
-                addUser.getUser(),
+                addUser.getCn(),
+                addUser.getDisplayName(),
+                addUser.getFirstName(),
+                addUser.getLastName(),
+                addUser.getInitials(),
                 addUser.getPassword(),
                 addUser.isCannotChangePassword(),
                 addUser.isPasswordNeverExpires(),

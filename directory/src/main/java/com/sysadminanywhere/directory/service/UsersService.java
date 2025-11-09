@@ -47,48 +47,46 @@ public class UsersService {
 
     @SneakyThrows
     public UserEntry add(String distinguishedName,
-                         UserEntry user,
+                         String cn,
+                         String displayName,
+                         String firstName,
+                         String lastName,
+                         String initials,
                          String password,
                          boolean isCannotChangePassword,
                          boolean isPasswordNeverExpires,
                          boolean isAccountDisabled,
                          boolean isMustChangePassword) {
 
-        if (user.getSamAccountName() == null || user.getSamAccountName().isEmpty())
-            user.setSamAccountName(user.getCn());
-
-        if (user.getUserPrincipalName() == null || user.getUserPrincipalName().isEmpty())
-            user.setUserPrincipalName(user.getSamAccountName() + "@" + ldapService.getDomainName());
-
         String dn;
 
         if (distinguishedName == null || distinguishedName.isEmpty()) {
-            dn = "cn=" + user.getCn() + "," + ldapService.getUsersContainer();
+            dn = "cn=" + cn + "," + ldapService.getUsersContainer();
         } else {
-            dn = "cn=" + user.getCn() + "," + distinguishedName;
+            dn = "cn=" + cn + "," + distinguishedName;
         }
 
         Entry entry = new DefaultEntry(
                 dn,
-                "displayName", user.getDisplayName(),
-                "givenName", user.getFirstName(),
-                "sn", user.getLastName(),
-                "sAMAccountName", user.getSamAccountName(),
-                "userPrincipalName", user.getUserPrincipalName(),
+                "displayName", displayName,
+                "givenName", firstName,
+                "sn", lastName,
+                "sAMAccountName", cn,
+                "userPrincipalName", cn + "@" + ldapService.getDomainName(),
                 "objectClass:user",
                 "objectClass:person",
-                "cn", user.getCn(),
+                "cn", cn,
                 "userPassword", password
         );
 
         ldapService.add(entry);
 
-        UserEntry newUser = getByCN(user.getCn());
+        UserEntry newUser = getByCN(cn);
 
         changeUserAccountControl(newUser, isCannotChangePassword, isPasswordNeverExpires, isAccountDisabled, isMustChangePassword);
 
-        if (user.getInitials() != null && !user.getInitials().isEmpty())
-            ldapService.updateProperty(newUser.getDistinguishedName(), "initials", user.getInitials());
+        if (initials != null && !initials.isEmpty())
+            ldapService.updateProperty(newUser.getDistinguishedName(), "initials", initials);
 
         return newUser;
     }
