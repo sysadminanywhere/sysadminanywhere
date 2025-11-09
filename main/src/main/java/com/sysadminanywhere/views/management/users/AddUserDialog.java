@@ -119,15 +119,19 @@ public class AddUserDialog extends Dialog {
         Pattern finalUserLoginPattern = userLoginPattern;
         String finalUserLoginFormat = userLoginFormat;
 
-        txtDisplayName.addValueChangeListener(event -> {
-            txtFirstName.setValue(finalUserDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${FirstName}"));
-            txtLastName.setValue(finalUserDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${LastName}"));
+        if(!finalUserDisplayNameFormat.pattern().isEmpty()
+                && !finalUserLoginPattern.pattern().isEmpty()
+                && !finalUserLoginFormat.isEmpty()) {
+            txtDisplayName.addValueChangeListener(event -> {
+                txtFirstName.setValue(finalUserDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${FirstName}"));
+                txtLastName.setValue(finalUserDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${LastName}"));
 
-            if (finalUserDisplayNameFormat.toString().contains("<Middle>"))
-                txtInitials.setValue(finalUserDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${Middle}"));
+                if (finalUserDisplayNameFormat.toString().contains("<Middle>"))
+                    txtInitials.setValue(finalUserDisplayNameFormat.matcher(txtDisplayName.getValue()).replaceAll("${Middle}"));
 
-            txtAccountName.setValue(finalUserLoginPattern.matcher(txtDisplayName.getValue()).replaceAll(finalUserLoginFormat).toLowerCase());
-        });
+                txtAccountName.setValue(finalUserLoginPattern.matcher(txtDisplayName.getValue()).replaceAll(finalUserLoginFormat).toLowerCase());
+            });
+        }
 
         if (settings != null && !settings.getDefaultPassword().isEmpty()) {
             txtPassword.setValue(settings.getDefaultPassword());
