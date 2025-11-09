@@ -45,7 +45,7 @@ public class ComputersController {
                 addComputer.getCn(),
                 addComputer.getDescription(),
                 addComputer.getLocation(),
-                addComputer.getEnabled()
+                addComputer.isEnabled()
         ), HttpStatus.OK);
     }
 

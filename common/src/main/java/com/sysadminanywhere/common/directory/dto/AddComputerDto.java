@@ -15,6 +15,6 @@ public class AddComputerDto {
     private String description;
     private String location;
 
-    private Boolean enabled;
+    private boolean enabled;
 
 }
