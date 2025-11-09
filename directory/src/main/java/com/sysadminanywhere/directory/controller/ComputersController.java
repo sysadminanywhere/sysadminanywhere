@@ -42,8 +42,10 @@ public class ComputersController {
     public ResponseEntity<ComputerEntry> add(@NonNull @RequestBody AddComputerDto addComputer) {
         return new ResponseEntity<>(computersService.add(
                 addComputer.getDistinguishedName(),
-                addComputer.getComputer(),
-                addComputer.isEnabled()
+                addComputer.getCn(),
+                addComputer.getDescription(),
+                addComputer.getLocation(),
+                addComputer.getEnabled()
         ), HttpStatus.OK);
     }
 

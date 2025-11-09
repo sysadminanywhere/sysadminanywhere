@@ -43,7 +43,8 @@ public class GroupsController {
     public ResponseEntity<GroupEntry> add(@NonNull @RequestBody AddGroupDto addGroup) {
         return new ResponseEntity<>(groupsService.add(
                 addGroup.getDistinguishedName(),
-                addGroup.getGroup(),
+                addGroup.getCn(),
+                addGroup.getDescription(),
                 addGroup.getGroupScope(),
                 addGroup.isSecurity()
         ), HttpStatus.OK);

@@ -47,34 +47,29 @@ public class GroupsService {
     }
 
     @SneakyThrows
-    public GroupEntry add(String distinguishedName, GroupEntry group, GroupScope groupScope, boolean isSecurity) {
+    public GroupEntry add(String distinguishedName, String cn, String description, GroupScope groupScope, boolean isSecurity) {
         String dn;
 
         if (distinguishedName == null || distinguishedName.isEmpty()) {
-            dn = "cn=" + group.getCn() + "," + ldapService.getUsersContainer();
+            dn = "cn=" + cn + "," + ldapService.getUsersContainer();
         } else {
-            dn = "cn=" + group.getCn() + "," + distinguishedName;
+            dn = "cn=" + cn + "," + distinguishedName;
         }
-
-        if (group.getSamAccountName() == null || group.getSamAccountName().isEmpty())
-            group.setSamAccountName(group.getCn());
-
-        group.setGroupType(getGroupType(groupScope, isSecurity));
 
         Entry entry = new DefaultEntry(
                 dn,
-                "sAMAccountName", group.getSamAccountName(),
+                "sAMAccountName", cn,
                 "objectClass:group",
-                "groupType", String.valueOf(group.getGroupType()),
-                "cn", group.getCn()
+                "groupType", String.valueOf(getGroupType(groupScope, isSecurity)),
+                "cn", cn
         );
 
         ldapService.add(entry);
 
-        GroupEntry newGroup = getByCN(group.getCn());
+        GroupEntry newGroup = getByCN(cn);
 
-        if (group.getDescription() != null && !group.getDescription().isEmpty())
-            ldapService.updateProperty(newGroup.getDistinguishedName(), "location", group.getDescription());
+        if (description != null && !description.isEmpty())
+            ldapService.updateProperty(newGroup.getDistinguishedName(), "description", description);
 
         return newGroup;
     }

@@ -64,7 +64,7 @@ public class GroupsService {
     }
 
     public GroupEntry add(String distinguishedName, GroupEntry group, GroupScope groupScope, boolean isSecurity) {
-        return groupsServiceClient.add(new AddGroupDto(distinguishedName, group, groupScope, isSecurity));
+        return groupsServiceClient.add(new AddGroupDto(distinguishedName, group.getCn(), group.getDescription(), groupScope, isSecurity));
     }
 
     public GroupEntry update(GroupEntry group) {

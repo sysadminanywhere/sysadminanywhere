@@ -42,28 +42,25 @@ public class ComputersService {
     }
 
     @SneakyThrows
-    public ComputerEntry add(String distinguishedName, ComputerEntry computer, boolean isEnabled) {
+    public ComputerEntry add(String distinguishedName, String cn, String description, String location, boolean isEnabled) {
         String dn;
 
         if (distinguishedName == null || distinguishedName.isEmpty()) {
-            dn = "cn=" + computer.getCn() + "," + ldapService.getComputersContainer();
+            dn = "cn=" + cn + "," + ldapService.getComputersContainer();
         } else {
-            dn = "cn=" + computer.getCn() + "," + distinguishedName;
+            dn = "cn=" + cn + "," + distinguishedName;
         }
-
-        if (computer.getSamAccountName() == null || computer.getSamAccountName().isEmpty())
-            computer.setSamAccountName(computer.getCn());
 
         Entry entry = new DefaultEntry(
                 dn,
-                "sAMAccountName", computer.getSamAccountName(),
+                "sAMAccountName", cn,
                 "objectClass:computer",
-                "cn", computer.getCn()
+                "cn", cn
         );
 
         ldapService.add(entry);
 
-        ComputerEntry newComputer = getByCN(computer.getCn());
+        ComputerEntry newComputer = getByCN(cn);
 
         int userAccountControl = newComputer.getUserAccountControl();
 
@@ -77,11 +74,11 @@ public class ComputersService {
 
         ldapService.updateProperty(newComputer.getDistinguishedName(), "userAccountControl", String.valueOf(userAccountControl));
 
-        if (computer.getDescription() != null && !computer.getDescription().isEmpty())
-            ldapService.updateProperty(newComputer.getDistinguishedName(), "description", computer.getDescription());
+        if (description != null && !description.isEmpty())
+            ldapService.updateProperty(newComputer.getDistinguishedName(), "description", description);
 
-        if (computer.getLocation() != null && !computer.getLocation().isEmpty())
-            ldapService.updateProperty(newComputer.getDistinguishedName(), "location", computer.getLocation());
+        if (location != null && !location.isEmpty())
+            ldapService.updateProperty(newComputer.getDistinguishedName(), "location", location);
 
         return newComputer;
     }

@@ -73,7 +73,11 @@ public class ComputersService {
     }
 
     public ComputerEntry add(String distinguishedName, ComputerEntry computer, boolean isEnabled) {
-        return computersServiceClient.add(new AddComputerDto(distinguishedName, computer, isEnabled));
+        return computersServiceClient.add(new AddComputerDto(distinguishedName,
+                computer.getCn(),
+                computer.getDescription(),
+                computer.getLocation(),
+                isEnabled));
     }
 
     public ComputerEntry update(ComputerEntry computer) {
