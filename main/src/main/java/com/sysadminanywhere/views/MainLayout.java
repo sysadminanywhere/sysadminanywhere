@@ -17,7 +17,6 @@ import com.sysadminanywhere.views.management.contacts.ContactsView;
 import com.sysadminanywhere.views.management.groups.GroupsView;
 import com.sysadminanywhere.views.management.printers.PrintersView;
 import com.sysadminanywhere.views.management.users.UsersView;
-import com.sysadminanywhere.views.monitoring.NotificationsView;
 import com.sysadminanywhere.views.reports.ComputerReportsView;
 import com.sysadminanywhere.views.reports.GroupReportsView;
 import com.sysadminanywhere.views.reports.UserReportsView;
@@ -37,8 +36,6 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
@@ -60,7 +57,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     SideNav managementSubNavs = new SideNav();
     SideNav settingsSubNavs = new SideNav();
     SideNav inventorySubNavs = new SideNav();
-    SideNav monitoringSubNavs = new SideNav();
     SideNav reportsSubNavs = new SideNav();
     SideNav accountSubNavs = new SideNav();
 
@@ -109,7 +105,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         topMenu = new VerticalLayout(createSelectedMainButtonItem(currentTitle, DashboardView.class, "/icons/dashboard.svg"),
                 createMainButtonItem("Management", UsersView.class, "/icons/management.svg"),
                 createMainButtonItem("Inventory", InventorySoftwareView.class, "/icons/inventory.svg"),
-                createMainButtonItem("Monitoring", NotificationsView.class, "/icons/monitoring.svg"),
                 createMainButtonItem("Reports", UserReportsView.class, "/icons/reports.svg"));
         topMenu.setMargin(false);
 
@@ -142,8 +137,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 createSideNavItem("About", AboutView.class));
 
         inventorySubNavs.addItem(createSideNavItem("Software inventory", InventorySoftwareView.class));
-
-        monitoringSubNavs.addItem(createSideNavItem("Notifications", NotificationsView.class));
 
         reportsSubNavs.addItem(createSideNavItem("Users reports", UserReportsView.class),
                 createSideNavItem("Computer Reports", ComputerReportsView.class),
@@ -216,8 +209,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 subNav.add(accountSubNavs);
             } else if (currentRoute.startsWith("management")) {
                 subNav.add(managementSubNavs);
-            } else if (currentRoute.startsWith("monitoring")) {
-                subNav.add(monitoringSubNavs);
             } else if (currentRoute.startsWith("inventory")) {
                 subNav.add(inventorySubNavs);
             } else if (currentRoute.startsWith("reports")) {
