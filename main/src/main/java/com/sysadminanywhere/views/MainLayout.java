@@ -1,5 +1,6 @@
 package com.sysadminanywhere.views;
 
+import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.control.MenuButton;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.security.AuthenticatedUser;
@@ -36,6 +37,8 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
@@ -162,6 +165,12 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
+        if (!loginService.isLoggedIn()) {
+            Optional<UserEntry> user = authenticatedUser.getUser();
+            if (user.isPresent()) {
+                loginService.Login(user.get());
+            }
+        }
     }
 
     @Override
