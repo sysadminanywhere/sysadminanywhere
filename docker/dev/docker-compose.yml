@@ -96,3 +96,15 @@ services:
       DYNAMIC_CONFIG_ENABLED: true
     volumes:
       - ./kui/config.yaml:/etc/kafkaui/dynamic_config.yaml
+
+  n8n:
+    image: n8nio/n8n
+    container_name: n8n_dev
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=password
+      - N8N_ENDPOINT_WEBHOOK=true
+      - N8N_PROTOCOL=http
