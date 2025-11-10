@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/camunda
-    username: camunda
-    password: camunda
+    username: postgres
+    password: password
     driver-class-name: org.postgresql.Driver
 
 camunda:
@@ -17,4 +17,4 @@ camunda:
     auto-deployment-enabled: false
 
 server:
-  port: 8080
+  port: 8084
