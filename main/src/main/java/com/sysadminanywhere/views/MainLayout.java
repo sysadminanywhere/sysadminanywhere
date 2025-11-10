@@ -177,7 +177,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         if(ldapService.getDomainName().isEmpty()) {
             drawerContent.removeAll();
             setDrawerOpened(false);
-            UI.getCurrent().navigate(ErrorView.class);
+            //UI.getCurrent().navigate(ErrorView.class);
             return;
         }
 
