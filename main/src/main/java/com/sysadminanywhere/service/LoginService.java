@@ -24,11 +24,12 @@ public class LoginService {
     }
 
     public LoginEntity Login(UserEntry user) {
-        Optional<LoginEntity> login = loginRepository.findByUserName(user.getCn());
+        Optional<LoginEntity> login = loginRepository.findByObjectGuid(user.getObjectGUID());
         LoginEntity result;
 
         if (login.isEmpty()) {
             LoginEntity loginEntity = new LoginEntity();
+            loginEntity.setObjectGuid(user.getObjectGUID());
             loginEntity.setDisplayName(user.getDisplayName());
             loginEntity.setUserName(user.getCn());
             loginEntity.setLastLogin(LocalDateTime.now());
@@ -45,8 +46,7 @@ public class LoginService {
     }
 
     public Optional<LoginEntity> getLogin(UserEntry user) {
-        Optional<LoginEntity> login = loginRepository.findByUserName(user.getCn());
-        return login;
+        return loginRepository.findByObjectGuid(user.getObjectGUID());
     }
 
     public boolean isLoggedIn() {

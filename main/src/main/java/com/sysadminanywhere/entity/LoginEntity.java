@@ -13,12 +13,15 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "logins",
-        indexes = {@Index(columnList = "username", name = "idx_username")})
+        indexes = {@Index(columnList = "objectguid", name = "idx_objectguid")})
 public class LoginEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "objectguid", nullable = false, unique = true)
+    private UUID objectGuid;
 
     @Column(name = "username", nullable = false)
     private String userName;
