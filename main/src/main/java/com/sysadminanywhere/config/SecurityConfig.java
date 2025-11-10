@@ -49,10 +49,6 @@ public class SecurityConfig extends VaadinWebSecurity {
                         .oidcUserService(customOidcUserService))
                 );
 
-        http.exceptionHandling(ex -> ex
-                .accessDeniedPage("/access-denied")
-        );
-
         super.configure(http);
     }
 

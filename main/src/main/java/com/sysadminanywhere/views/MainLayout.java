@@ -1,6 +1,5 @@
 package com.sysadminanywhere.views;
 
-import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.control.MenuButton;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.security.AuthenticatedUser;
@@ -11,7 +10,6 @@ import com.sysadminanywhere.views.account.MeView;
 import com.sysadminanywhere.views.domain.AuditView;
 import com.sysadminanywhere.views.domain.DashboardView;
 import com.sysadminanywhere.views.domain.DomainView;
-import com.sysadminanywhere.views.error.ErrorView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
@@ -177,7 +175,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         if(ldapService.getDomainName().isEmpty()) {
             drawerContent.removeAll();
             setDrawerOpened(false);
-            //UI.getCurrent().navigate(ErrorView.class);
             return;
         }
 

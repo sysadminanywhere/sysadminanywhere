@@ -12,10 +12,15 @@ import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.common.directory.model.*;
 import com.sysadminanywhere.service.*;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.AnchorTarget;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
@@ -25,12 +30,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-@PageTitle("Dashboard")
 @Route(value = "")
 @RouteAlias(value = "domain/dashboard")
 @RouteAlias(value = "dashboard")
 @PermitAll
-public class DashboardView extends VerticalLayout {
+public class DashboardView extends VerticalLayout implements HasDynamicTitle {
 
     private final String ColumnWidth = "55%";
     private final String ChartHeight = "300px";
@@ -41,6 +45,8 @@ public class DashboardView extends VerticalLayout {
     private final GroupsService groupsService;
     private final PrintersService printersService;
     private final ContactsService contactsService;
+
+    private String title = "Dashboard";
 
     public DashboardView(ComputersService computersService,
                          UsersService usersService,
@@ -63,9 +69,19 @@ public class DashboardView extends VerticalLayout {
         List<PrinterEntry> printers = printersService.getAll();
         List<ContactEntry> contacts = contactsService.getAll();
 
-        if(computers.isEmpty() && users.isEmpty() && groups.isEmpty()){
+        if(computers.isEmpty() && users.isEmpty() && groups.isEmpty()) {
+            title = "Error";
+
+            add(new H1("Domain Service Unavailable"));
+            add(new Paragraph("Failed to connect to Domain service"));
+
+            Anchor docsPage = new Anchor("https://docs.sysadminanywhere.com/", "Documentation", AnchorTarget.BLANK);
+            add(docsPage);
+
             Notification notification = Notification.show("Domain service is unavailable!");
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+
+            return;
         }
 
         getStoredTheme().thenAccept(v -> {
@@ -228,6 +244,11 @@ public class DashboardView extends VerticalLayout {
                 });
 
         return future;
+    }
+
+    @Override
+    public String getPageTitle() {
+        return title;
     }
 
 }
