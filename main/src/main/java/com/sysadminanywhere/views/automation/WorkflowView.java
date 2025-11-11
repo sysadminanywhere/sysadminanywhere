@@ -6,6 +6,8 @@ import com.sysadminanywhere.model.workflow.Workflow;
 import com.sysadminanywhere.service.WorkflowsService;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
@@ -19,6 +21,7 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.ui.LoadMode;
 import jakarta.annotation.security.PermitAll;
 
 @PageTitle("Workflow")
@@ -44,6 +47,17 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
     public WorkflowView(WorkflowsService workflowsService) {
         this.workflowsService = workflowsService;
 
+        UI.getCurrent().getPage().addJavaScript("https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs@2.0.0/webcomponents-loader.js");
+        UI.getCurrent().getPage().addJavaScript("https://www.unpkg.com/lit@2.0.0-rc.2/polyfill-support.js");
+        UI.getCurrent().getPage().addJavaScript("https://cdn.jsdelivr.net/npm/@n8n_io/n8n-demo-component/n8n-demo.bundled.js");
+
+        UI.getCurrent().getPage().executeJs("""
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = 'https://cdn.jsdelivr.net/npm/@n8n_io/n8n-demo-component/n8n-demo.bundled.js';
+            document.head.appendChild(script);
+        """);
+
         addClassName("users-view");
 
         VerticalLayout verticalLayout = new VerticalLayout();
@@ -68,6 +82,8 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         horizontalLayout.add(verticalLayout2);
 
         verticalLayout.add(horizontalLayout);
+
+        verticalLayout.add(workflowPreview());
     }
 
     private void loadFlow(String id) {
@@ -91,5 +107,22 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
 
         return menuBar;
     }
+
+    public Div workflowPreview() {
+
+        Div container = new Div();
+        container.setId("n8n-container");
+        container.setWidth("100%");
+        container.setHeight("600px");
+
+        String n8nHtml = """
+                <n8n-demo workflow='{"nodes":[{"name":"Workflow-Created","type":"n8n-nodes-base.webhook","position":[512,369],"parameters":{"path":"webhook","httpMethod":"POST"},"typeVersion":1}],"connections":{}}'></n8n-demo>
+            """;
+
+        container.add(new Html(n8nHtml));
+
+        return container;
+    }
+
 
 }
