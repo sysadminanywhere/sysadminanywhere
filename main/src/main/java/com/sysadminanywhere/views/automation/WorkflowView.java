@@ -16,8 +16,6 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -146,14 +144,17 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
 
     private Grid getExecutions() {
         Grid<Execution> grid = new Grid<>(Execution.class, false);
-        grid.addColumn(Execution::getId).setHeader("Id");
-        grid.addColumn(Execution::getStartedAt).setHeader("Started");
+        grid.addColumn(Execution::getId).setHeader("Id").setAutoWidth(true);
+
+        grid.addColumn(workflow ->
+                        Utils.formatInstant(workflow.getStartedAt()))
+                .setHeader("Started").setAutoWidth(true);
 
         grid.addColumn(workflow ->
                         Utils.formatDuration(Duration.between(
                                 workflow.getStartedAt(),
                                 workflow.getStoppedAt()), false))
-                .setHeader("Run time");
+                .setHeader("Run time").setAutoWidth(true);
 
         grid.addColumn(Execution::getStatus).setHeader("Status");
         grid.addColumn(Execution::getErrorMessage).setHeader("Error message");
