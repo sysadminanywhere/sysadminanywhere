@@ -10,6 +10,7 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
@@ -118,8 +119,32 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
             }
         });
 
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
+            deleteDialog().open();
+        });
+
         return menuBar;
     }
+
+    private ConfirmDialog deleteDialog() {
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Delete");
+        dialog.setText("Are you sure you want to permanently delete this workflow?");
+
+        dialog.setCancelable(true);
+
+        dialog.setConfirmText("Delete");
+        dialog.setConfirmButtonTheme("error primary");
+
+        dialog.addConfirmListener(item -> {
+            workflowsService.delete(id);
+            dialog.getUI().ifPresent(ui ->
+                    ui.getPage().getHistory().back());
+        });
+
+        return dialog;
+    }
+
 
     @SneakyThrows
     public Html workflowPreview(WorkflowData workflowData) {
