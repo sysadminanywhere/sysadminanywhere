@@ -15,6 +15,7 @@ import com.github.appreciated.apexcharts.helper.Series;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
@@ -28,6 +29,7 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -132,8 +134,22 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
 
         verticalLayout.add(verticalLayout2);
 
-        chartProcessor = ApexChartsBuilder.get().withChart(ChartBuilder.get()
+        getStoredTheme().thenAccept(v -> {
+            boolean isDarkTheme = false;
+
+            if (v.contains("dark"))
+                isDarkTheme = true;
+
+            String theme = isDarkTheme ? "dark" : "light";
+            String foreColor = isDarkTheme ? "white" : "black";
+
+            chartProcessor = ApexChartsBuilder.get()
+                 .withTooltip(TooltipBuilder.get()
+                        .withFillSeriesColor(false)
+                        .withTheme(theme).build())
+                 .withChart(ChartBuilder.get()
                         .withType(Type.LINE)
+                        .withForeColor(foreColor)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .withZoom(ZoomBuilder.get().withEnabled(false).build())
                         .build())
@@ -160,8 +176,13 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
 
         // ===============
 
-        chartMemory = ApexChartsBuilder.get().withChart(ChartBuilder.get()
+        chartMemory = ApexChartsBuilder.get()
+                .withTooltip(TooltipBuilder.get()
+                        .withFillSeriesColor(false)
+                        .withTheme(theme).build())
+                .withChart(ChartBuilder.get()
                         .withType(Type.LINE)
+                        .withForeColor(foreColor)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .withZoom(ZoomBuilder.get().withEnabled(false).build())
                         .build())
@@ -187,8 +208,13 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
         HorizontalLayout line1 = new HorizontalLayout();
         line1.add(chartProcessor, chartMemory);
 
-        chartDisk = ApexChartsBuilder.get().withChart(ChartBuilder.get()
+        chartDisk = ApexChartsBuilder.get()
+                .withTooltip(TooltipBuilder.get()
+                        .withFillSeriesColor(false)
+                        .withTheme(theme).build())
+                .withChart(ChartBuilder.get()
                         .withType(Type.RADIALBAR)
+                        .withForeColor(foreColor)
                         .withToolbar(ToolbarBuilder.get().withShow(false).build())
                         .withZoom(ZoomBuilder.get().withEnabled(false).build())
                         .build())
@@ -211,6 +237,7 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
         line2.add(chartDisk);
 
         verticalLayout.add(line1, line2);
+        });
 
     }
 
@@ -247,6 +274,17 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
     protected void onDetach(DetachEvent detachEvent) {
         pageActive = false;
         super.onDetach(detachEvent);
+    }
+
+    private CompletableFuture<String> getStoredTheme() {
+        CompletableFuture<String> future = new CompletableFuture<>();
+
+        UI.getCurrent().getPage().executeJs("return localStorage.getItem('theme');")
+                .then(String.class, theme -> {
+                    future.complete(theme != null ? theme : "light");
+                });
+
+        return future;
     }
 
 }
