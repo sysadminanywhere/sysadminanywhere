@@ -28,7 +28,7 @@ import org.springframework.data.domain.PageRequest;
 
 @RolesAllowed("admins")
 @PageTitle("Automation flows")
-@Route(value = "automation/flows")
+@Route(value = "automation/workflows")
 @PermitAll
 @Uses(Icon.class)
 public class AutomationsView extends Div implements MenuControl {
@@ -144,7 +144,7 @@ public class AutomationsView extends Div implements MenuControl {
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->
-                    ui.getPage().open("http://localhost:5678/workflow/" + item.getItem().getId(), "_blank"));
+                    ui.navigate("automation/workflows/" + item.getItem().getId() + "/details"));
         });
 
         grid.setItems(query -> workflowsService.getAll(

@@ -24,4 +24,8 @@ public class WorkflowsService {
         return new PageImpl<>(list, pageable, list.size());
     }
 
+    public Workflow getWorkflow(String workflowId){
+        return n8nClient.getWorkflow(workflowId);
+    }
+
 }
