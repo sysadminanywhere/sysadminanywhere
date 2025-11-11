@@ -14,7 +14,6 @@
         <module>common</module>
         <module>directory</module>
         <module>inventory</module>
-        <module>workflows</module>
         <module>main</module>
     </modules>
 

@@ -127,21 +127,11 @@ public class ComputersService {
 
     public Page<SoftwareEntity> getSoftware(Pageable pageable, Map<String, String> filters, String hostName) {
         try {
-            String query = "Select * From Win32_Product" + getWmiQueryFromFilters(filters);
+            String query = "Select Name, Vendor, Version From Win32_Product" + getWmiQueryFromFilters(filters);
             WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
             return wmiResolveService.getValues(wmiService.execute(hostName, query), pageable);
         } catch (Exception ex) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
-        }
-    }
-
-    public List<SoftwareEntity> getSoftware(String hostName) {
-        try {
-            String query = "Select * From Win32_Product";
-            WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
-            return wmiResolveService.getValues(wmiService.execute(hostName, query));
-        } catch (Exception ex) {
-            return new ArrayList<>();
         }
     }
 

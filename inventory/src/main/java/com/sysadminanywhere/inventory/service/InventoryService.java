@@ -246,7 +246,7 @@ public class InventoryService {
 
     @SneakyThrows
     private void requestSoftware(String hostName) {
-        String query = "Select * From Win32_Product";
+        String query = "Select Name, Vendor, Version, InstallDate, __SERVER From Win32_Product";
         Message<String> kafkaMessage = MessageBuilder
                 .withPayload(mapper.writeValueAsString(new ExecuteDto(hostName, query)))
                 .setHeader(KafkaHeaders.TOPIC, "directory-request")
