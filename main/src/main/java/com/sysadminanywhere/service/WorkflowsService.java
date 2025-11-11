@@ -3,6 +3,7 @@ package com.sysadminanywhere.service;
 import com.sysadminanywhere.client.N8nClient;
 import com.sysadminanywhere.model.workflow.Workflow;
 import com.sysadminanywhere.model.workflow.WorkflowData;
+import com.sysadminanywhere.model.workflow.Execution;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,10 @@ public class WorkflowsService {
 
     public WorkflowData getWorkflow(String workflowId) {
         return n8nClient.getWorkflow(workflowId);
+    }
+
+    public List<Execution> getExecutions(String workflowId, Integer limit) {
+        return n8nClient.getExecutions(workflowId, limit).getData();
     }
 
     public void delete(String workflowId) {

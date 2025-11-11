@@ -11,14 +11,14 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExecuteWorkflowResponse {
+public class Execution {
 
-    private String executionId;
+    private String id;
     private String workflowId;
     private String status;
-    private String message;
-    private Object resultData;
+    private String errorMessage;
+
     private Instant startedAt;
-    private Instant finishedAt;
+    private Instant stoppedAt;
 
 }

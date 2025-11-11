@@ -17,35 +17,30 @@ public interface N8nClient {
     @GetMapping("/api/v1/workflows")
     WorkflowListResponse getWorkflows();
 
-    @PostMapping("/api/v1/workflows/{workflowId}/execute")
-    ExecuteWorkflowResponse executeWorkflow(
-            @PathVariable("workflowId") String workflowId,
-            @RequestBody ExecuteWorkflowRequest request
+    @GetMapping("/api/v1/executions/{executionId}")
+    Execution getExecution(@PathVariable("executionId") String executionId);
+
+    @GetMapping("/api/v1/executions")
+    ExecutionListResponse getExecutions(
+            @RequestParam("workflowId") String workflowId,
+            @RequestParam(value = "limit", required = false) Integer limit
     );
 
-    @GetMapping("/api/v1/executions/{executionId}")
-    WorkflowExecution getExecution(@PathVariable("executionId") String executionId);
-
-    @GetMapping("/api/v1/workflows/{workflowId}/executions")
-    List<WorkflowExecution> getExecutions(@PathVariable("workflowId") String workflowId);
+    @GetMapping("/api/v1/executions")
+    ExecutionListResponse getExecutions(
+            @RequestParam(value = "workflowId", required = false) String workflowId,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "limit", required = false) Integer limit
+    );
 
     @GetMapping("/api/v1/workflows/{workflowId}")
     WorkflowData getWorkflow(@PathVariable("workflowId") String workflowId);
-
-    @PostMapping("/api/v1/workflows")
-    Workflow createWorkflow(@RequestBody Workflow workflow);
-
-    @PutMapping("/api/v1/workflows/{workflowId}")
-    Workflow updateWorkflow(
-            @PathVariable("workflowId") String workflowId,
-            @RequestBody Workflow workflow
-    );
 
     @DeleteMapping("/api/v1/workflows/{workflowId}")
     void deleteWorkflow(@PathVariable("workflowId") String workflowId);
 
     @GetMapping("/api/v1/executions")
-    List<WorkflowExecution> getAllExecutions(
+    List<Execution> getAllExecutions(
             @RequestParam(value = "status", required = false) String status
     );
 

@@ -3,15 +3,14 @@ package com.sysadminanywhere.views.automation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.model.workflow.Workflow;
 import com.sysadminanywhere.model.workflow.WorkflowData;
+import com.sysadminanywhere.model.workflow.Execution;
+import com.sysadminanywhere.service.Utils;
 import com.sysadminanywhere.service.WorkflowsService;
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
-import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
@@ -24,9 +23,11 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.shared.ui.LoadMode;
 import jakarta.annotation.security.PermitAll;
 import lombok.SneakyThrows;
+
+import java.time.Duration;
+import java.util.List;
 
 @PageTitle("Workflow")
 @Route(value = "automation/workflows/:id?/details")
@@ -58,11 +59,11 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         UI.getCurrent().getPage().addJavaScript("https://cdn.jsdelivr.net/npm/@n8n_io/n8n-demo-component/n8n-demo.bundled.js");
 
         UI.getCurrent().getPage().executeJs("""
-            const script = document.createElement('script');
-            script.type = 'module';
-            script.src = 'https://cdn.jsdelivr.net/npm/@n8n_io/n8n-demo-component/n8n-demo.bundled.js';
-            document.head.appendChild(script);
-        """);
+                    const script = document.createElement('script');
+                    script.type = 'module';
+                    script.src = 'https://cdn.jsdelivr.net/npm/@n8n_io/n8n-demo-component/n8n-demo.bundled.js';
+                    document.head.appendChild(script);
+                """);
 
         addClassName("users-view");
 
@@ -77,24 +78,10 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
 
         add(verticalLayout);
 
-
-        VerticalLayout verticalLayout2 = new VerticalLayout(lblName, lblDescription);
-        verticalLayout2.setWidth("70%");
-
-        HorizontalLayout horizontalLayout = new HorizontalLayout();
-        horizontalLayout.setWidthFull();
-        horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-
-        horizontalLayout.add(verticalLayout2);
-
-        verticalLayout.add(horizontalLayout);
-
         n8Container = new Div();
-        n8Container.setId("n8n-container");
         n8Container.setWidth("100%");
-        n8Container.setHeight("600px");
 
-        verticalLayout.add(n8Container);
+        verticalLayout.add(lblName, lblDescription, n8Container, getExecutions());
     }
 
     private void loadFlow(String id) {
@@ -157,5 +144,26 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         return new Html(n8nHtml);
     }
 
+    private Grid getExecutions() {
+        Grid<Execution> grid = new Grid<>(Execution.class, false);
+        grid.addColumn(Execution::getId).setHeader("Id");
+        grid.addColumn(Execution::getStartedAt).setHeader("Started");
+
+        grid.addColumn(workflow ->
+                        Utils.formatDuration(Duration.between(
+                                workflow.getStartedAt(),
+                                workflow.getStoppedAt()), false))
+                .setHeader("Run time");
+
+        grid.addColumn(Execution::getStatus).setHeader("Status");
+        grid.addColumn(Execution::getErrorMessage).setHeader("Error message");
+
+        grid.setAllRowsVisible(true);
+
+        List<Execution> executions = workflowsService.getExecutions(id, 10);
+        grid.setItems(executions);
+
+        return grid;
+    }
 
 }
