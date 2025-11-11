@@ -2,6 +2,7 @@ package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.client.N8nClient;
 import com.sysadminanywhere.model.workflow.Workflow;
+import com.sysadminanywhere.model.workflow.WorkflowData;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +25,7 @@ public class WorkflowsService {
         return new PageImpl<>(list, pageable, list.size());
     }
 
-    public Workflow getWorkflow(String workflowId){
+    public WorkflowData getWorkflow(String workflowId){
         return n8nClient.getWorkflow(workflowId);
     }
 

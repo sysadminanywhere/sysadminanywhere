@@ -30,7 +30,7 @@ public interface N8nClient {
     List<WorkflowExecution> getExecutions(@PathVariable("workflowId") String workflowId);
 
     @GetMapping("/api/v1/workflows/{workflowId}")
-    Workflow getWorkflow(@PathVariable("workflowId") String workflowId);
+    WorkflowData getWorkflow(@PathVariable("workflowId") String workflowId);
 
     @PostMapping("/api/v1/workflows")
     Workflow createWorkflow(@RequestBody Workflow workflow);

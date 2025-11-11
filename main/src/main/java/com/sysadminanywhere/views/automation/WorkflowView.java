@@ -1,8 +1,10 @@
 package com.sysadminanywhere.views.automation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.workflow.Workflow;
+import com.sysadminanywhere.model.workflow.WorkflowData;
 import com.sysadminanywhere.service.WorkflowsService;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -23,6 +25,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.ui.LoadMode;
 import jakarta.annotation.security.PermitAll;
+import lombok.SneakyThrows;
 
 @PageTitle("Workflow")
 @Route(value = "automation/workflows/:id?/details")
@@ -35,6 +38,8 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
+
+    Div n8Container;
 
     @Override
     public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
@@ -83,14 +88,22 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
 
         verticalLayout.add(horizontalLayout);
 
-        verticalLayout.add(workflowPreview());
+        n8Container = new Div();
+        n8Container.setId("n8n-container");
+        n8Container.setWidth("100%");
+        n8Container.setHeight("600px");
+
+        verticalLayout.add(n8Container);
     }
 
     private void loadFlow(String id) {
-        Workflow workflow = workflowsService.getWorkflow(id);
+        WorkflowData workflow = workflowsService.getWorkflow(id);
 
         lblName.setText(workflow.getName());
         lblDescription.setText(workflow.getDescription());
+
+        n8Container.removeAll();
+        n8Container.add(workflowPreview(workflow));
     }
 
     @Override
@@ -108,20 +121,15 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         return menuBar;
     }
 
-    public Div workflowPreview() {
+    @SneakyThrows
+    public Html workflowPreview(WorkflowData workflowData) {
 
-        Div container = new Div();
-        container.setId("n8n-container");
-        container.setWidth("100%");
-        container.setHeight("600px");
+        ObjectMapper mapper = new ObjectMapper();
+        String workflow = mapper.writeValueAsString(workflowData);
 
-        String n8nHtml = """
-                <n8n-demo workflow='{"nodes":[{"name":"Workflow-Created","type":"n8n-nodes-base.webhook","position":[512,369],"parameters":{"path":"webhook","httpMethod":"POST"},"typeVersion":1}],"connections":{}}'></n8n-demo>
-            """;
+        String n8nHtml = "<n8n-demo workflow='" + workflow + "'></n8n-demo>";
 
-        container.add(new Html(n8nHtml));
-
-        return container;
+        return new Html(n8nHtml);
     }
 
 

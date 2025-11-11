@@ -5,21 +5,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WorkflowInfo {
+public class WorkflowNode {
 
     private String id;
     private String name;
-    private String description;
-    private Boolean active;
-    private Instant createdAt;
-    private Instant lastExecuted;
-    private String triggerType;
-    private Integer executionCount;
+    private String type;
+    private Integer typeVersion;
+    private List<Double> position;
+    private Map<String, Object> parameters;
+    private String webhookId;
 
 }
