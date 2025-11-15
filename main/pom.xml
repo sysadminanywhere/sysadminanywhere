@@ -34,6 +34,10 @@
             <name>Maven Central</name>
             <url>https://repo.maven.apache.org/maven2/</url>
         </repository>
+        <repository>
+            <id>birt-4.21.0</id>
+            <url>https://p2repository.com/mvn4/birt-4.21.0/</url>
+        </repository>
     </repositories>
 
     <dependencyManagement>
@@ -144,11 +148,11 @@
             <artifactId>DynamicJasper-core-fonts</artifactId>
             <version>2.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-ooxml</artifactId>
-            <version>5.4.0</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.apache.poi</groupId>-->
+<!--            <artifactId>poi-ooxml</artifactId>-->
+<!--            <version>5.4.0</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.vaadin.tatu</groupId>
             <artifactId>tree</artifactId>
@@ -169,10 +173,12 @@
             <artifactId>themeselect</artifactId>
             <version>1.0.1</version>
         </dependency>
+
         <dependency>
             <groupId>eu.eureka-bpo.birt</groupId>
-            <artifactId>org.eclipse.birt.runtime</artifactId>
+            <artifactId>birt-runtime</artifactId>
             <version>4.21.0.0</version>
+            <type>pom</type>
         </dependency>
 
         <dependency>

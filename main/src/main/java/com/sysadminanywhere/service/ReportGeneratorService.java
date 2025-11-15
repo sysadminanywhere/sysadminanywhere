@@ -17,8 +17,8 @@ import java.util.Map;
 public class ReportGeneratorService {
 
     public byte[] generateReport(List<?> objectList,
-                               String column1Field, String column2Field, String column3Field,
-                               String column1Name, String column2Name, String column3Name) {
+                                 String column1Field, String column2Field, String column3Field,
+                                 String column1Name, String column2Name, String column3Name) {
 
         List<Map<String, Object>> dataList = ObjectToListMapConverter.convertToListMap(objectList);
 
@@ -58,10 +58,10 @@ public class ReportGeneratorService {
             task.close();
 
             return outputStream.toByteArray();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             log.error(ex.getMessage());
         } finally {
-            if(engine != null)
+            if (engine != null)
                 engine.destroy();
             Platform.shutdown();
         }
