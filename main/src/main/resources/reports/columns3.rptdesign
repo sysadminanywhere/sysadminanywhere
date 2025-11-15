@@ -123,6 +123,12 @@
     </data-sets>
     <page-setup>
         <simple-master-page name="Simple MasterPage" id="25">
+            <page-header>
+                <label id="28">
+                    <property name="fontWeight">bold</property>
+                    <text-property name="text">Sysadmin Anywhere</text-property>
+                </label>
+            </page-header>
             <page-footer>
                 <text id="26">
                     <property name="contentType">html</property>
