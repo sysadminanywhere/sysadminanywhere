@@ -4,6 +4,7 @@ import com.sysadminanywhere.domain.ObjectToListMapConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.birt.core.framework.Platform;
 import org.eclipse.birt.report.engine.api.*;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -31,7 +32,9 @@ public class ReportGeneratorService {
             IReportEngineFactory factory = (IReportEngineFactory) Platform.createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY);
             engine = factory.createReportEngine(config);
 
-            IReportRunnable design = engine.openReportDesign("reports/columns3.rptdesign");
+            ClassPathResource resource = new ClassPathResource("reports/columns3.rptdesign");
+
+            IReportRunnable design = engine.openReportDesign(resource.getInputStream());
             IRunAndRenderTask task = engine.createRunAndRenderTask(design);
 
             HashMap<String, Object> params = new HashMap<>();
