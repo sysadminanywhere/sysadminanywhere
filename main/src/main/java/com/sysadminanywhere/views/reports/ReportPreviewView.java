@@ -45,6 +45,8 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
     private final GroupsService groupsService;
     private final PrintersService printersService;
 
+    private final ReportGeneratorService reportGeneratorService;
+
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         Location location = event.getLocation();
@@ -62,11 +64,16 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
         }
     }
 
-    public ReportPreviewView(ComputersService computersService, UsersService usersService, GroupsService groupsService, PrintersService printersService) {
+    public ReportPreviewView(ComputersService computersService,
+                             UsersService usersService,
+                             GroupsService groupsService,
+                             PrintersService printersService,
+                             ReportGeneratorService reportGeneratorService) {
         this.computersService = computersService;
         this.usersService = usersService;
         this.groupsService = groupsService;
         this.printersService = printersService;
+        this.reportGeneratorService = reportGeneratorService;
     }
 
     private void updateView() {
@@ -118,6 +125,10 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
 
         SerializableSupplier<List<? extends ComputerEntry>> itemsSupplier = () -> computersService.getAll(reportItem.getFilter(), attributes);
         report.setItems(itemsSupplier.get());
+
+        byte[] result = reportGeneratorService.generateReport(itemsSupplier.get(),
+                "cn", "operatingSystem", "operatingSystemServicePack",
+                "cn", "operatingSystem", "operatingSystemServicePack");
 
         return new DownloadMenu<>(ComputerEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
     }

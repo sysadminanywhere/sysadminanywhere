@@ -1,31 +1,36 @@
 package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.domain.ObjectToListMapConverter;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.birt.core.framework.Platform;
 import org.eclipse.birt.report.engine.api.*;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class ReportGeneratorService {
 
-    public void generateReport(List<?> objectList,
+    public byte[] generateReport(List<?> objectList,
                                String column1Field, String column2Field, String column3Field,
-                               String column1Name, String column2Name, String column3Name,
-                               String outputPath) throws Exception {
+                               String column1Name, String column2Name, String column3Name) {
 
         List<Map<String, Object>> dataList = ObjectToListMapConverter.convertToListMap(objectList);
 
-        EngineConfig config = new EngineConfig();
-        Platform.startup(config);
-        IReportEngineFactory factory = (IReportEngineFactory) Platform
-                .createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY);
-        IReportEngine engine = factory.createReportEngine(config);
+        IReportEngine engine = null;
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         try {
+            EngineConfig config = new EngineConfig();
+            Platform.startup(config);
+            IReportEngineFactory factory = (IReportEngineFactory) Platform.createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY);
+            engine = factory.createReportEngine(config);
+
             IReportRunnable design = engine.openReportDesign("reports/columns3.rptdesign");
             IRunAndRenderTask task = engine.createRunAndRenderTask(design);
 
@@ -42,17 +47,23 @@ public class ReportGeneratorService {
             task.getAppContext().put("DATA_LIST", dataList);
 
             PDFRenderOption options = new PDFRenderOption();
-            options.setOutputFileName(outputPath);
             options.setOutputFormat("pdf");
+            options.setOutputStream(outputStream);
             task.setRenderOption(options);
 
             task.run();
             task.close();
 
+            return outputStream.toByteArray();
+        } catch (Exception ex){
+            log.error(ex.getMessage());
         } finally {
-            engine.destroy();
+            if(engine != null)
+                engine.destroy();
             Platform.shutdown();
         }
+
+        return null;
     }
 
 }
