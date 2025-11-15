@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report xmlns="http://www.eclipse.org/birt/2005/design" version="3.2.27" id="1">
+    <property name="createdBy">Eclipse BIRT Designer Version 4.21.0.v202508021620</property>
+    <property name="units">in</property>
+    <property name="iconFile">/templates/blank_report.gif</property>
+    <property name="bidiLayoutOrientation">ltr</property>
+    <property name="imageDPI">96</property>
+    <parameters>
+        <scalar-parameter name="column1_field" id="22">
+            <text-property name="promptText">Поле для колонки 1</text-property>
+            <property name="valueType">static</property>
+        </scalar-parameter>
+        <scalar-parameter name="column2_field" id="2">
+            <text-property name="promptText">Поле для колонки 2</text-property>
+            <property name="valueType">static</property>
+        </scalar-parameter>
+        <scalar-parameter name="column3_field" id="3">
+            <text-property name="promptText">Поле для колонки 3</text-property>
+            <property name="valueType">static</property>
+        </scalar-parameter>
+        <scalar-parameter name="column1_name" id="4">
+            <text-property name="promptText">Название колонки 1</text-property>
+            <simple-property-list name="defaultValue">
+                <value>Колонка 1</value>
+            </simple-property-list>
+        </scalar-parameter>
+        <scalar-parameter name="column2_name" id="5">
+            <text-property name="promptText">Название колонки 2</text-property>
+            <simple-property-list name="defaultValue">
+                <value>Колонка 2</value>
+            </simple-property-list>
+        </scalar-parameter>
+        <scalar-parameter name="column3_name" id="6">
+            <text-property name="promptText">Название колонки 3</text-property>
+            <simple-property-list name="defaultValue">
+                <value>Колонка 3</value>
+            </simple-property-list>
+        </scalar-parameter>
+    </parameters>
+    <data-sources>
+        <script-data-source name="Data Source" id="23"/>
+    </data-sources>
+    <data-sets>
+        <script-data-set name="Data Set" id="24">
+            <list-property name="resultSetHints">
+                <structure>
+                    <property name="position">0</property>
+                    <property name="name">column1</property>
+                    <property name="dataType">string</property>
+                </structure>
+                <structure>
+                    <property name="position">1</property>
+                    <property name="name">column2</property>
+                    <property name="dataType">string</property>
+                </structure>
+                <structure>
+                    <property name="position">2</property>
+                    <property name="name">column3</property>
+                    <property name="dataType">string</property>
+                </structure>
+            </list-property>
+            <list-property name="columnHints">
+                <structure>
+                    <property name="columnName">column1</property>
+                </structure>
+                <structure>
+                    <property name="columnName">column2</property>
+                </structure>
+                <structure>
+                    <property name="columnName">column3</property>
+                </structure>
+            </list-property>
+            <structure name="cachedMetaData">
+                <list-property name="resultSet">
+                    <structure>
+                        <property name="position">1</property>
+                        <property name="name">column1</property>
+                        <property name="dataType">string</property>
+                    </structure>
+                    <structure>
+                        <property name="position">2</property>
+                        <property name="name">column2</property>
+                        <property name="dataType">string</property>
+                    </structure>
+                    <structure>
+                        <property name="position">3</property>
+                        <property name="name">column3</property>
+                        <property name="dataType">string</property>
+                    </structure>
+                </list-property>
+            </structure>
+            <property name="dataSource">Data Source</property>
+            <method name="open"><![CDATA[importPackage(Packages.java.util);
+
+                var dataList = reportContext.getAppContext().get("DATA_LIST");
+                if (dataList == null) {
+                    dataList = new ArrayList();
+                }
+                iterator = dataList.iterator();
+                totalRows = dataList.size();
+                rowCount = totalRows;]]></method>
+            <method name="fetch"><![CDATA[if (iterator != null &amp;&amp; iterator.hasNext()) {
+                    var rowData = iterator.next();
+                    var col1Field = params["column1_field"];
+                    var col2Field = params["column2_field"]; 
+                    var col3Field = params["column3_field"];
+                    
+                    // Получаем значения полей
+                    var value1 = rowData[col1Field] != null ? rowData[col1Field].toString() : "";
+                    var value2 = rowData[col2Field] != null ? rowData[col2Field].toString() : "";
+                    var value3 = rowData[col3Field] != null ? rowData[col3Field].toString() : "";
+                    
+                    // Устанавливаем значения для колонок
+                    row["column1"] = value1;
+                    row["column2"] = value2;
+                    row["column3"] = value3;
+                    
+                    return true;
+                }
+                return false;]]></method>
+            <method name="close"><![CDATA[iterator = null;]]></method>
+        </script-data-set>
+    </data-sets>
+    <page-setup>
+        <simple-master-page name="Simple MasterPage" id="25">
+            <page-footer>
+                <text id="26">
+                    <property name="contentType">html</property>
+                    <text-property name="content"><![CDATA[<value-of>new Date()</value-of>]]></text-property>
+                </text>
+            </page-footer>
+        </simple-master-page>
+    </page-setup>
+    <body>
+        <table id="27">
+            <property name="dataSet">Data Set</property>
+            <list-property name="boundDataColumns">
+                <structure>
+                    <property name="name">column1</property>
+                    <text-property name="displayName">column1</text-property>
+                    <expression name="expression" type="javascript">dataSetRow["column1"]</expression>
+                    <property name="dataType">string</property>
+                </structure>
+                <structure>
+                    <property name="name">column2</property>
+                    <text-property name="displayName">column2</text-property>
+                    <expression name="expression" type="javascript">dataSetRow["column2"]</expression>
+                    <property name="dataType">string</property>
+                </structure>
+                <structure>
+                    <property name="name">column3</property>
+                    <text-property name="displayName">column3</text-property>
+                    <expression name="expression" type="javascript">dataSetRow["column3"]</expression>
+                    <property name="dataType">string</property>
+                </structure>
+            </list-property>
+            <column id="19"/>
+            <column id="20"/>
+            <column id="21"/>
+            <header>
+                <row id="7">
+                    <cell id="8"/>
+                    <cell id="9"/>
+                    <cell id="10"/>
+                </row>
+            </header>
+            <detail>
+                <row id="11">
+                    <cell id="12"/>
+                    <cell id="13"/>
+                    <cell id="14"/>
+                </row>
+            </detail>
+            <footer>
+                <row id="15">
+                    <cell id="16"/>
+                    <cell id="17"/>
+                    <cell id="18"/>
+                </row>
+            </footer>
+        </table>
+    </body>
+</report>

@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.5</version>
+        <version>3.4.6</version>
     </parent>
 
     <repositories>
@@ -168,6 +168,11 @@
             <groupId>org.vaadin.addons.themeselect</groupId>
             <artifactId>themeselect</artifactId>
             <version>1.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.eureka-bpo.birt</groupId>
+            <artifactId>org.eclipse.birt.runtime</artifactId>
+            <version>4.21.0.0</version>
         </dependency>
 
         <dependency>
