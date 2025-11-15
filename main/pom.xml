@@ -59,11 +59,11 @@
                 <artifactId>commons-beanutils</artifactId>
                 <version>1.11.0</version>
             </dependency>
-            <dependency>
-                <groupId>ar.com.fdvs</groupId>
-                <artifactId>DynamicJasper</artifactId>
-                <version>5.3.6</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>ar.com.fdvs</groupId>-->
+<!--                <artifactId>DynamicJasper</artifactId>-->
+<!--                <version>5.3.6</version>-->
+<!--            </dependency>-->
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
@@ -138,16 +138,16 @@
             <artifactId>thumbnailator</artifactId>
             <version>0.4.20</version>
         </dependency>
-        <dependency>
-            <groupId>org.vaadin.reportui</groupId>
-            <artifactId>report-ui</artifactId>
-            <version>4.0.2</version>
-        </dependency>
-        <dependency>
-            <groupId>ar.com.fdvs</groupId>
-            <artifactId>DynamicJasper-core-fonts</artifactId>
-            <version>2.1</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.vaadin.reportui</groupId>-->
+<!--            <artifactId>report-ui</artifactId>-->
+<!--            <version>4.0.2</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>ar.com.fdvs</groupId>-->
+<!--            <artifactId>DynamicJasper-core-fonts</artifactId>-->
+<!--            <version>2.1</version>-->
+<!--        </dependency>-->
 <!--        <dependency>-->
 <!--            <groupId>org.apache.poi</groupId>-->
 <!--            <artifactId>poi-ooxml</artifactId>-->
@@ -179,6 +179,12 @@
             <artifactId>birt-runtime</artifactId>
             <version>4.21.0.0</version>
             <type>pom</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.vaadin.addons.componentfactory</groupId>
+            <artifactId>vcf-pdf-viewer</artifactId>
+            <version>4.1.0</version>
         </dependency>
 
         <dependency>

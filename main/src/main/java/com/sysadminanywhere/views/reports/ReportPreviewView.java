@@ -1,6 +1,5 @@
 package com.sysadminanywhere.views.reports;
 
-import ar.com.fdvs.dj.domain.AutoText;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.common.directory.model.AD;
 import com.sysadminanywhere.common.directory.model.UserEntry;
@@ -8,17 +7,18 @@ import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.model.ReportItem;
 import com.sysadminanywhere.service.*;
+import com.vaadin.componentfactory.pdfviewer.PdfViewer;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.function.SerializableSupplier;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.vaadin.reports.PrintPreviewReport;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -117,96 +117,104 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
     }
 
     private VerticalLayout computerReports(ReportItem reportItem) {
-        PrintPreviewReport<ComputerEntry> report = new PrintPreviewReport<>(ComputerEntry.class, reportItem.getColumns());
-
-        report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
+//        PrintPreviewReport<ComputerEntry> report = new PrintPreviewReport<>(ComputerEntry.class, reportItem.getColumns());
+//
+//        report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
 
         String[] attributes = getAttributes(reportItem.getColumns(), ComputerEntry.class);
 
-        SerializableSupplier<List<? extends ComputerEntry>> itemsSupplier = () -> computersService.getAll(reportItem.getFilter(), attributes);
-        report.setItems(itemsSupplier.get());
+//        SerializableSupplier<List<? extends ComputerEntry>> itemsSupplier = () -> computersService.getAll(reportItem.getFilter(), attributes);
+//        report.setItems(itemsSupplier.get());
 
-        byte[] result = reportGeneratorService.generateReport(itemsSupplier.get(),
+        byte[] result = reportGeneratorService.generateReport(computersService.getAll(reportItem.getFilter(), attributes),
                 "cn", "operatingSystem", "operatingSystemServicePack",
                 "cn", "operatingSystem", "operatingSystemServicePack");
 
-        return new DownloadMenu<>(ComputerEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
+//        return new DownloadMenu<>(ComputerEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
+
+        PdfViewer pdfViewer = new PdfViewer();
+        StreamResource resource = new StreamResource("example.pdf", () -> new ByteArrayInputStream(result));
+        pdfViewer.setSrc(resource);
+
+        return new VerticalLayout(pdfViewer);
     }
 
     private VerticalLayout userReports(ReportItem reportItem) {
-        PrintPreviewReport<UserEntry> report = new PrintPreviewReport<>(UserEntry.class, reportItem.getColumns());
+//        PrintPreviewReport<UserEntry> report = new PrintPreviewReport<>(UserEntry.class, reportItem.getColumns());
+//
+//        report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
+//
+//        if (reportItem.getFilter().contains("{")) {
+//            Pattern pattern = Pattern.compile("\\{([^:}]+):([^}]+)\\}");
+//            Matcher matcher = pattern.matcher(reportItem.getFilter());
+//
+//            StringBuffer result = new StringBuffer();
+//
+//            while (matcher.find()) {
+//                String key = matcher.group(1).trim();
+//                String value = matcher.group(2).trim();
+//
+//                String replacement;
+//
+//                switch (key) {
+//                    case "days":
+//                        replacement = getFileTime(Integer.parseInt(value)).toString();
+//                        matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+//                        break;
+//                    case "maxPwdAgeDays":
+//                        long maxPwdAgeDays = usersService.getLdapService().getMaxPwdAgeDays();
+//                        long thresholdDays = maxPwdAgeDays - Integer.parseInt(value);
+//
+//                        ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+//                        ZonedDateTime cutoffDate = now.minusDays(thresholdDays);
+//
+//                        ZonedDateTime windowsEpoch = ZonedDateTime.of(1601, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+//                        long seconds = ChronoUnit.SECONDS.between(windowsEpoch, cutoffDate);
+//                        Long pwdLastSetCutoff = seconds * 10_000_000L;
+//
+//                        replacement = pwdLastSetCutoff.toString();
+//                        matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+//                        break;
+//                }
+//            }
+//            matcher.appendTail(result);
+//            reportItem.setFilter(result.toString());
+//        }
+//
+//        String[] attributes = getAttributes(reportItem.getColumns(), UserEntry.class);
+//
+//        SerializableSupplier<List<? extends UserEntry>> itemsSupplier = () -> usersService.getAll(reportItem.getFilter(), attributes);
+//        report.setItems(itemsSupplier.get());
+//
+//        return new DownloadMenu<>(UserEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
 
-        report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
-
-        if (reportItem.getFilter().contains("{")) {
-            Pattern pattern = Pattern.compile("\\{([^:}]+):([^}]+)\\}");
-            Matcher matcher = pattern.matcher(reportItem.getFilter());
-
-            StringBuffer result = new StringBuffer();
-
-            while (matcher.find()) {
-                String key = matcher.group(1).trim();
-                String value = matcher.group(2).trim();
-
-                String replacement;
-
-                switch (key) {
-                    case "days":
-                        replacement = getFileTime(Integer.parseInt(value)).toString();
-                        matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
-                        break;
-                    case "maxPwdAgeDays":
-                        long maxPwdAgeDays = usersService.getLdapService().getMaxPwdAgeDays();
-                        long thresholdDays = maxPwdAgeDays - Integer.parseInt(value);
-
-                        ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-                        ZonedDateTime cutoffDate = now.minusDays(thresholdDays);
-
-                        ZonedDateTime windowsEpoch = ZonedDateTime.of(1601, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
-                        long seconds = ChronoUnit.SECONDS.between(windowsEpoch, cutoffDate);
-                        Long pwdLastSetCutoff = seconds * 10_000_000L;
-
-                        replacement = pwdLastSetCutoff.toString();
-                        matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
-                        break;
-                }
-            }
-            matcher.appendTail(result);
-            reportItem.setFilter(result.toString());
-        }
-
-        String[] attributes = getAttributes(reportItem.getColumns(), UserEntry.class);
-
-        SerializableSupplier<List<? extends UserEntry>> itemsSupplier = () -> usersService.getAll(reportItem.getFilter(), attributes);
-        report.setItems(itemsSupplier.get());
-
-        return new DownloadMenu<>(UserEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
-    }
+        return  new VerticalLayout();    }
 
     private VerticalLayout groupReports(ReportItem reportItem) {
-        PrintPreviewReport<GroupEntry> report = new PrintPreviewReport<>(GroupEntry.class, reportItem.getColumns());
+//        PrintPreviewReport<GroupEntry> report = new PrintPreviewReport<>(GroupEntry.class, reportItem.getColumns());
+//
+//        report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
+//
+//        String[] attributes = getAttributes(reportItem.getColumns(), GroupEntry.class);
+//
+//        SerializableSupplier<List<? extends GroupEntry>> itemsSupplier = () -> groupsService.getAll(reportItem.getFilter(), attributes);
+//        report.setItems(itemsSupplier.get());
+//
+//        return new DownloadMenu<>(GroupEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
 
-        report = getTemplate(report, reportItem.getName(), reportItem.getDescription());
+        return  new VerticalLayout();    }
 
-        String[] attributes = getAttributes(reportItem.getColumns(), GroupEntry.class);
-
-        SerializableSupplier<List<? extends GroupEntry>> itemsSupplier = () -> groupsService.getAll(reportItem.getFilter(), attributes);
-        report.setItems(itemsSupplier.get());
-
-        return new DownloadMenu<>(GroupEntry.class).getDownloadMenu(report, reportItem.getId(), itemsSupplier);
-    }
-
-    private PrintPreviewReport getTemplate(PrintPreviewReport report, String title, String subtitle) {
-        report.getReportBuilder()
-                .setMargins(20, 20, 20, 20)
-                .setTitle(title + " / " + subtitle)
-                .setPrintBackgroundOnOddRows(true)
-                .addAutoText("Sysadmin Anywhere", AutoText.POSITION_FOOTER, AutoText.ALIGMENT_LEFT, 200)
-                .addAutoText("sysadminanywhere.com", AutoText.POSITION_FOOTER, AutoText.ALIGNMENT_CENTER, 200)
-                .addAutoText(AutoText.AUTOTEXT_PAGE_X, AutoText.POSITION_FOOTER, AutoText.ALIGNMENT_RIGHT);
-
-        return report;
-    }
+//    private PrintPreviewReport getTemplate(PrintPreviewReport report, String title, String subtitle) {
+//        report.getReportBuilder()
+//                .setMargins(20, 20, 20, 20)
+//                .setTitle(title + " / " + subtitle)
+//                .setPrintBackgroundOnOddRows(true)
+//                .addAutoText("Sysadmin Anywhere", AutoText.POSITION_FOOTER, AutoText.ALIGMENT_LEFT, 200)
+//                .addAutoText("sysadminanywhere.com", AutoText.POSITION_FOOTER, AutoText.ALIGNMENT_CENTER, 200)
+//                .addAutoText(AutoText.AUTOTEXT_PAGE_X, AutoText.POSITION_FOOTER, AutoText.ALIGNMENT_RIGHT);
+//
+//        return report;
+//    }
 
     private Long getFileTime(int days) {
         ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
