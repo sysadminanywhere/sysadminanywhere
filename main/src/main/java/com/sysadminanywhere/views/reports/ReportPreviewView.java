@@ -124,7 +124,6 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
                 "cn", "operatingSystem", "operatingSystemServicePack");
 
         PdfViewer pdfViewer = new PdfViewer();
-//        pdfViewer.setSizeFull();
         StreamResource resource = new StreamResource("example.pdf", () -> new ByteArrayInputStream(result));
         pdfViewer.setSrc(resource);
 
