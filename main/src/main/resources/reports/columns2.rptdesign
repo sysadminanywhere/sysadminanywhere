@@ -134,11 +134,19 @@
             <property name="fontSize">12pt</property>
             <property name="fontWeight">bold</property>
             <property name="color">#FFFFFF</property>
+            <property name="marginTop">2pt</property>
+            <property name="marginLeft">2pt</property>
+            <property name="marginBottom">2pt</property>
+            <property name="marginRight">2pt</property>
             <property name="textAlign">center</property>
             <property name="verticalAlign">middle</property>
         </style>
         <style name="tableCell" id="39">
             <property name="fontSize">10pt</property>
+            <property name="marginTop">2pt</property>
+            <property name="marginLeft">2pt</property>
+            <property name="marginBottom">2pt</property>
+            <property name="marginRight">2pt</property>
         </style>
         <style name="reportTitle" id="40">
             <property name="fontSize">18pt</property>
@@ -146,6 +154,7 @@
             <property name="marginBottom">20px</property>
             <property name="textAlign">center</property>
         </style>
+        <style name="tableRow" id="41"/>
     </styles>
     <page-setup>
         <simple-master-page name="Simple MasterPage" id="25">
@@ -215,14 +224,20 @@
             </header>
             <detail>
                 <row id="11">
-                    <property name="style">tableCell</property>
+                    <method name="onRender"><![CDATA[if (row["__rownum"] % 2 == 0) {
+	this.getStyle().backgroundColor = "#E3E3E3";
+}]]></method>
+                    <property name="style">tableRow</property>
+                    <property name="masterPage">Simple MasterPage</property>
                     <cell id="12">
                         <data id="32">
+                            <property name="style">tableCell</property>
                             <property name="resultSetColumn">column1</property>
                         </data>
                     </cell>
                     <cell id="13">
                         <data id="33">
+                            <property name="style">tableCell</property>
                             <property name="resultSetColumn">column2</property>
                         </data>
                     </cell>
