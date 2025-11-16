@@ -37,6 +37,8 @@ public class ReportGeneratorService {
             IReportRunnable design = engine.openReportDesign(resource.getInputStream());
             IRunAndRenderTask task = engine.createRunAndRenderTask(design);
 
+            task.getAppContext().put("DATA_LIST", dataList);
+
             HashMap<String, Object> params = new HashMap<>();
             params.put("column1_field", column1Field);
             params.put("column2_field", column2Field);
@@ -46,8 +48,6 @@ public class ReportGeneratorService {
             params.put("column3_name", column3Name);
 
             task.setParameterValues(params);
-
-            task.getAppContext().put("DATA_LIST", dataList);
 
             PDFRenderOption options = new PDFRenderOption();
             options.setOutputFormat("pdf");
