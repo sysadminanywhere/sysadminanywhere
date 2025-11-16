@@ -20,20 +20,26 @@
         </scalar-parameter>
         <scalar-parameter name="column1_name" id="4">
             <text-property name="promptText">Название колонки 1</text-property>
+            <property name="valueType">static</property>
+            <property name="dataType">string</property>
             <simple-property-list name="defaultValue">
-                <value>Колонка 1</value>
+                <value type="constant">Колонка 1</value>
             </simple-property-list>
         </scalar-parameter>
         <scalar-parameter name="column2_name" id="5">
             <text-property name="promptText">Название колонки 2</text-property>
+            <property name="valueType">static</property>
+            <property name="dataType">string</property>
             <simple-property-list name="defaultValue">
-                <value>Колонка 2</value>
+                <value type="constant">Колонка 2</value>
             </simple-property-list>
         </scalar-parameter>
         <scalar-parameter name="column3_name" id="6">
             <text-property name="promptText">Название колонки 3</text-property>
+            <property name="valueType">static</property>
+            <property name="dataType">string</property>
             <simple-property-list name="defaultValue">
-                <value>Колонка 3</value>
+                <value type="constant">Колонка 3</value>
             </simple-property-list>
         </scalar-parameter>
     </parameters>
@@ -112,22 +118,6 @@
                     var col2Field = params["column2_field"];
                     var col3Field = params["column3_field"];
 
-                    try {
-                        Packages.java.lang.System.out.println(
-                           "BIRT params: " + col1Field + ", " + col2Field + ", " + col3Field
-                        );
-                    } catch(e) {}
-
-                    var col1Name = params["column1_name"];
-                    var col2Name = params["column2_name"];
-                    var col3Name = params["column3_name"];
-
-                    try {
-                        Packages.java.lang.System.out.println(
-                           "BIRT names: " + col1Name + ", " + col2Name + ", " + col3Name
-                        );
-                    } catch(e) {}
-
                     function getValue(obj, key) {
                         if (obj == null || key == null) return "";
 
@@ -157,12 +147,6 @@
                     row["column1"] = getValue(rowData, col1Field);
                     row["column2"] = getValue(rowData, col2Field);
                     row["column3"] = getValue(rowData, col3Field);
-
-                    try {
-                        Packages.java.lang.System.out.println(
-                           "ROW: " + row["column1"] + " | " + row["column2"] + " | " + row["column3"]
-                        );
-                    } catch(e) {}
 
                     return true;
                 }
@@ -214,27 +198,45 @@
             <column id="20"/>
             <column id="21"/>
             <header>
-        <row id="7">
-            <cell id="8">
-                <text id="29">
-                    <property name="contentType">plain</property>
-                    <expression name="valueExpr">params["column1_name"]</expression>
-                </text>
-            </cell>
-            <cell id="9">
-                <text id="30">
-                    <property name="contentType">plain</property>
-                    <expression name="valueExpr">params["column2_name"]</expression>
-                </text>
-            </cell>
-            <cell id="10">
-                <text id="31">
-                    <property name="contentType">plain</property>
-                    <expression name="valueExpr">params["column3_name"]</expression>
-                </text>
-            </cell>
-        </row>
-    </header>
+                <row id="7">
+                    <cell id="8">
+                        <data id="35">
+                            <list-property name="boundDataColumns">
+                                <structure>
+                                    <property name="name">column1_name</property>
+                                    <expression name="expression" type="javascript">params["column1_name"]</expression>
+                                    <property name="dataType">string</property>
+                                </structure>
+                            </list-property>
+                            <property name="resultSetColumn">column1_name</property>
+                        </data>
+                    </cell>
+                    <cell id="9">
+                        <data id="36">
+                            <list-property name="boundDataColumns">
+                                <structure>
+                                    <property name="name">column2_name</property>
+                                    <expression name="expression" type="javascript">params["column2_name"]</expression>
+                                    <property name="dataType">string</property>
+                                </structure>
+                            </list-property>
+                            <property name="resultSetColumn">column2_name</property>
+                        </data>
+                    </cell>
+                    <cell id="10">
+                        <data id="37">
+                            <list-property name="boundDataColumns">
+                                <structure>
+                                    <property name="name">column3_name</property>
+                                    <expression name="expression" type="javascript">params["column3_name"]</expression>
+                                    <property name="dataType">string</property>
+                                </structure>
+                            </list-property>
+                            <property name="resultSetColumn">column3_name</property>
+                        </data>
+                    </cell>
+                </row>
+            </header>
             <detail>
                 <row id="11">
                     <cell id="12">
