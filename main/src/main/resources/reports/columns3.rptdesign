@@ -157,6 +157,7 @@
     </data-sets>
     <page-setup>
         <simple-master-page name="Simple MasterPage" id="25">
+            <property name="type">a4</property>
             <page-header>
                 <label id="28">
                     <property name="fontWeight">bold</property>

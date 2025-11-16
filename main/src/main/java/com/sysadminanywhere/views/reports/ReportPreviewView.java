@@ -99,37 +99,38 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
             return;
         }
 
-        VerticalLayout verticalLayout = new VerticalLayout();
+        byte[] result = null;
 
         switch (entry.toLowerCase()) {
             case "computers":
-                verticalLayout = computerReports(reportItem);
+                result = computerReports(reportItem);
                 break;
             case "users":
-                verticalLayout = userReports(reportItem);
+                result = userReports(reportItem);
                 break;
             case "groups":
-                verticalLayout = groupReports(reportItem);
+                result = groupReports(reportItem);
                 break;
         }
 
-        add(verticalLayout);
+        if (result != null) {
+            byte[] finalResult = result;
+            PdfViewer pdfViewer = new PdfViewer();
+            StreamResource resource = new StreamResource(reportItem.getId() + ".pdf", () -> new ByteArrayInputStream(finalResult));
+            pdfViewer.setSrc(resource);
+
+            add(new VerticalLayout(pdfViewer));
+        }
     }
 
-    private VerticalLayout computerReports(ReportItem reportItem) {
+    private byte[] computerReports(ReportItem reportItem) {
         String[] attributes = getAttributes(reportItem.getColumns(), ComputerEntry.class);
 
-        byte[] result = reportGeneratorService.generateReport(computersService.getAll(reportItem.getFilter(), attributes),
+        return reportGeneratorService.generateReport(computersService.getAll(reportItem.getFilter(), attributes),
                 attributes, attributes);
-
-        PdfViewer pdfViewer = new PdfViewer();
-        StreamResource resource = new StreamResource("example.pdf", () -> new ByteArrayInputStream(result));
-        pdfViewer.setSrc(resource);
-
-        return new VerticalLayout(pdfViewer);
     }
 
-    private VerticalLayout userReports(ReportItem reportItem) {
+    private byte[] userReports(ReportItem reportItem) {
 
         if (reportItem.getFilter().contains("{")) {
             Pattern pattern = Pattern.compile("\\{([^:}]+):([^}]+)\\}");
@@ -170,14 +171,16 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
 
         String[] attributes = getAttributes(reportItem.getColumns(), UserEntry.class);
 
-        return  new VerticalLayout();    }
+        return reportGeneratorService.generateReport(usersService.getAll(reportItem.getFilter(), attributes),
+                attributes, attributes);
+    }
 
-    private VerticalLayout groupReports(ReportItem reportItem) {
+    private byte[] groupReports(ReportItem reportItem) {
         String[] attributes = getAttributes(reportItem.getColumns(), GroupEntry.class);
 
-        SerializableSupplier<List<? extends GroupEntry>> itemsSupplier = () -> groupsService.getAll(reportItem.getFilter(), attributes);
-
-        return  new VerticalLayout();    }
+        return reportGeneratorService.generateReport(groupsService.getAll(reportItem.getFilter(), attributes),
+                attributes, attributes);
+    }
 
     private Long getFileTime(int days) {
         ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
