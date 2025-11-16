@@ -128,11 +128,32 @@
             <method name="close"><![CDATA[iterator = null;]]></method>
         </script-data-set>
     </data-sets>
+    <styles>
+        <style name="tableHeader" id="38">
+            <property name="backgroundColor">#4CAF50</property>
+            <property name="fontSize">12pt</property>
+            <property name="fontWeight">bold</property>
+            <property name="color">#FFFFFF</property>
+            <property name="textAlign">center</property>
+            <property name="verticalAlign">middle</property>
+        </style>
+        <style name="tableCell" id="39">
+            <property name="fontSize">10pt</property>
+        </style>
+        <style name="reportTitle" id="40">
+            <property name="fontSize">18pt</property>
+            <property name="fontWeight">bold</property>
+            <property name="color">#2E7D32</property>
+            <property name="marginBottom">20px</property>
+            <property name="textAlign">center</property>
+        </style>
+    </styles>
     <page-setup>
         <simple-master-page name="Simple MasterPage" id="25">
             <property name="type">a4</property>
             <page-header>
                 <label id="28">
+                    <property name="style">reportTitle</property>
                     <property name="fontWeight">bold</property>
                     <text-property name="text">Sysadmin Anywhere</text-property>
                 </label>
@@ -166,6 +187,7 @@
             <column id="20"/>
             <header>
                 <row id="7">
+                    <property name="style">tableHeader</property>
                     <cell id="8">
                         <data id="35">
                             <list-property name="boundDataColumns">
@@ -194,6 +216,7 @@
             </header>
             <detail>
                 <row id="11">
+                    <property name="style">tableCell</property>
                     <cell id="12">
                         <data id="32">
                             <property name="resultSetColumn">column1</property>
