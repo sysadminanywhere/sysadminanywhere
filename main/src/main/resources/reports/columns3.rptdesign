@@ -90,33 +90,83 @@
                 </list-property>
             </structure>
             <property name="dataSource">Data Source</property>
-            <method name="open"><![CDATA[importPackage(Packages.java.util);
+            <method name="open"><![CDATA[                importPackage(Packages.java.util);
 
                 var dataList = reportContext.getAppContext().get("DATA_LIST");
+
                 if (dataList == null) {
                     dataList = new ArrayList();
                 }
+
                 iterator = dataList.iterator();
-                totalRows = dataList.size();
-                rowCount = totalRows;]]></method>
-            <method name="fetch"><![CDATA[if (iterator != null &amp;&amp; iterator.hasNext()) {
+
+                // Debug
+                try {
+                    Packages.java.lang.System.out.println("BIRT: DATA_LIST size = " + dataList.size());
+                } catch(e) {}]]></method>
+            <method name="fetch"><![CDATA[                if (iterator != null &amp;&amp; iterator.hasNext()) {
+
                     var rowData = iterator.next();
+
                     var col1Field = params["column1_field"];
-                    var col2Field = params["column2_field"]; 
+                    var col2Field = params["column2_field"];
                     var col3Field = params["column3_field"];
-                    
-                    // Получаем значения полей
-                    var value1 = rowData[col1Field] != null ? rowData[col1Field].toString() : "";
-                    var value2 = rowData[col2Field] != null ? rowData[col2Field].toString() : "";
-                    var value3 = rowData[col3Field] != null ? rowData[col3Field].toString() : "";
-                    
-                    // Устанавливаем значения для колонок
-                    row["column1"] = value1;
-                    row["column2"] = value2;
-                    row["column3"] = value3;
-                    
+
+                    try {
+                        Packages.java.lang.System.out.println(
+                           "BIRT params: " + col1Field + ", " + col2Field + ", " + col3Field
+                        );
+                    } catch(e) {}
+
+                    var col1Name = params["column1_name"];
+                    var col2Name = params["column2_name"];
+                    var col3Name = params["column3_name"];
+
+                    try {
+                        Packages.java.lang.System.out.println(
+                           "BIRT names: " + col1Name + ", " + col2Name + ", " + col3Name
+                        );
+                    } catch(e) {}
+
+                    function getValue(obj, key) {
+                        if (obj == null || key == null) return "";
+
+                        try {
+                            if (typeof obj.get == "function") {
+                                var v = obj.get(key);
+                                if (v != null) return String(v);
+                            }
+                        } catch(e) {}
+
+                        try {
+                            var v2 = obj[key];
+                            if (v2 != null) return String(v2);
+                        } catch(e) {}
+
+                        try {
+                            var getterName = "get" + key.substring(0,1).toUpperCase() + key.substring(1);
+                            if (typeof obj[getterName] == "function") {
+                                var v3 = obj[getterName]();
+                                if (v3 != null) return String(v3);
+                            }
+                        } catch(e) {}
+
+                        return "";
+                    }
+
+                    row["column1"] = getValue(rowData, col1Field);
+                    row["column2"] = getValue(rowData, col2Field);
+                    row["column3"] = getValue(rowData, col3Field);
+
+                    try {
+                        Packages.java.lang.System.out.println(
+                           "ROW: " + row["column1"] + " | " + row["column2"] + " | " + row["column3"]
+                        );
+                    } catch(e) {}
+
                     return true;
                 }
+
                 return false;]]></method>
             <method name="close"><![CDATA[iterator = null;]]></method>
         </script-data-set>
@@ -164,17 +214,44 @@
             <column id="20"/>
             <column id="21"/>
             <header>
-                <row id="7">
-                    <cell id="8"/>
-                    <cell id="9"/>
-                    <cell id="10"/>
-                </row>
-            </header>
+        <row id="7">
+            <cell id="8">
+                <text id="29">
+                    <property name="contentType">plain</property>
+                    <expression name="valueExpr">params["column1_name"]</expression>
+                </text>
+            </cell>
+            <cell id="9">
+                <text id="30">
+                    <property name="contentType">plain</property>
+                    <expression name="valueExpr">params["column2_name"]</expression>
+                </text>
+            </cell>
+            <cell id="10">
+                <text id="31">
+                    <property name="contentType">plain</property>
+                    <expression name="valueExpr">params["column3_name"]</expression>
+                </text>
+            </cell>
+        </row>
+    </header>
             <detail>
                 <row id="11">
-                    <cell id="12"/>
-                    <cell id="13"/>
-                    <cell id="14"/>
+                    <cell id="12">
+                        <data id="32">
+                            <property name="resultSetColumn">column1</property>
+                        </data>
+                    </cell>
+                    <cell id="13">
+                        <data id="33">
+                            <property name="resultSetColumn">column2</property>
+                        </data>
+                    </cell>
+                    <cell id="14">
+                        <data id="34">
+                            <property name="resultSetColumn">column3</property>
+                        </data>
+                    </cell>
                 </row>
             </detail>
             <footer>
