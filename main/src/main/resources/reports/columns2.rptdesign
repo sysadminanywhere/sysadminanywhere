@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report xmlns="http://www.eclipse.org/birt/2005/design" version="3.2.27" id="1">
+    <property name="createdBy">Eclipse BIRT Designer Version 4.21.0.v202508021620</property>
+    <property name="units">in</property>
+    <property name="iconFile">/templates/blank_report.gif</property>
+    <property name="bidiLayoutOrientation">ltr</property>
+    <property name="imageDPI">96</property>
+    <parameters>
+        <scalar-parameter name="column1_field" id="22">
+            <text-property name="promptText">Поле для колонки 1</text-property>
+            <property name="valueType">static</property>
+        </scalar-parameter>
+        <scalar-parameter name="column2_field" id="2">
+            <text-property name="promptText">Поле для колонки 2</text-property>
+            <property name="valueType">static</property>
+        </scalar-parameter>
+        <scalar-parameter name="column1_name" id="4">
+            <text-property name="promptText">Название колонки 1</text-property>
+            <property name="valueType">static</property>
+            <property name="dataType">string</property>
+            <simple-property-list name="defaultValue">
+                <value type="constant">Колонка 1</value>
+            </simple-property-list>
+        </scalar-parameter>
+        <scalar-parameter name="column2_name" id="5">
+            <text-property name="promptText">Название колонки 2</text-property>
+            <property name="valueType">static</property>
+            <property name="dataType">string</property>
+            <simple-property-list name="defaultValue">
+                <value type="constant">Колонка 2</value>
+            </simple-property-list>
+        </scalar-parameter>
+    </parameters>
+    <data-sources>
+        <script-data-source name="Data Source" id="23"/>
+    </data-sources>
+    <data-sets>
+        <script-data-set name="Data Set" id="24">
+            <list-property name="resultSetHints">
+                <structure>
+                    <property name="position">1</property>
+                    <property name="name">column1</property>
+                    <property name="dataType">string</property>
+                </structure>
+                <structure>
+                    <property name="position">2</property>
+                    <property name="name">column2</property>
+                    <property name="dataType">string</property>
+                </structure>
+            </list-property>
+            <list-property name="columnHints">
+                <structure>
+                    <property name="columnName">column1</property>
+                </structure>
+                <structure>
+                    <property name="columnName">column2</property>
+                </structure>
+            </list-property>
+            <structure name="cachedMetaData">
+                <list-property name="resultSet">
+                    <structure>
+                        <property name="position">1</property>
+                        <property name="name">column1</property>
+                        <property name="dataType">string</property>
+                    </structure>
+                    <structure>
+                        <property name="position">2</property>
+                        <property name="name">column2</property>
+                        <property name="dataType">string</property>
+                    </structure>
+                </list-property>
+            </structure>
+            <property name="dataSource">Data Source</property>
+            <method name="open"><![CDATA[                importPackage(Packages.java.util);
+
+                var dataList = reportContext.getAppContext().get("DATA_LIST");
+
+                if (dataList == null) {
+                    dataList = new ArrayList();
+                }
+
+                iterator = dataList.iterator();
+
+                // Debug
+                try {
+                    Packages.java.lang.System.out.println("BIRT: DATA_LIST size = " + dataList.size());
+                } catch(e) {}]]></method>
+            <method name="fetch"><![CDATA[                if (iterator != null &amp;&amp; iterator.hasNext()) {
+
+                    var rowData = iterator.next();
+
+                    var col1Field = params["column1_field"];
+                    var col2Field = params["column2_field"];
+
+                    function getValue(obj, key) {
+                        if (obj == null || key == null) return "";
+
+                        try {
+                            if (typeof obj.get == "function") {
+                                var v = obj.get(key);
+                                if (v != null) return String(v);
+                            }
+                        } catch(e) {}
+
+                        try {
+                            var v2 = obj[key];
+                            if (v2 != null) return String(v2);
+                        } catch(e) {}
+
+                        try {
+                            var getterName = "get" + key.substring(0,1).toUpperCase() + key.substring(1);
+                            if (typeof obj[getterName] == "function") {
+                                var v3 = obj[getterName]();
+                                if (v3 != null) return String(v3);
+                            }
+                        } catch(e) {}
+
+                        return "";
+                    }
+
+                    row["column1"] = getValue(rowData, col1Field);
+                    row["column2"] = getValue(rowData, col2Field);
+
+                    return true;
+                }
+
+                return false;]]></method>
+            <method name="close"><![CDATA[iterator = null;]]></method>
+        </script-data-set>
+    </data-sets>
+    <page-setup>
+        <simple-master-page name="Simple MasterPage" id="25">
+            <page-header>
+                <label id="28">
+                    <property name="fontWeight">bold</property>
+                    <text-property name="text">Sysadmin Anywhere</text-property>
+                </label>
+            </page-header>
+            <page-footer>
+                <text id="26">
+                    <property name="contentType">html</property>
+                    <text-property name="content"><![CDATA[<value-of>new Date()</value-of>]]></text-property>
+                </text>
+            </page-footer>
+        </simple-master-page>
+    </page-setup>
+    <body>
+        <table id="27">
+            <property name="dataSet">Data Set</property>
+            <list-property name="boundDataColumns">
+                <structure>
+                    <property name="name">column1</property>
+                    <text-property name="displayName">column1</text-property>
+                    <expression name="expression" type="javascript">dataSetRow["column1"]</expression>
+                    <property name="dataType">string</property>
+                </structure>
+                <structure>
+                    <property name="name">column2</property>
+                    <text-property name="displayName">column2</text-property>
+                    <expression name="expression" type="javascript">dataSetRow["column2"]</expression>
+                    <property name="dataType">string</property>
+                </structure>
+            </list-property>
+            <column id="19"/>
+            <column id="20"/>
+            <header>
+                <row id="7">
+                    <cell id="8">
+                        <data id="35">
+                            <list-property name="boundDataColumns">
+                                <structure>
+                                    <property name="name">column1_name</property>
+                                    <expression name="expression" type="javascript">params["column1_name"]</expression>
+                                    <property name="dataType">string</property>
+                                </structure>
+                            </list-property>
+                            <property name="resultSetColumn">column1_name</property>
+                        </data>
+                    </cell>
+                    <cell id="9">
+                        <data id="36">
+                            <list-property name="boundDataColumns">
+                                <structure>
+                                    <property name="name">column2_name</property>
+                                    <expression name="expression" type="javascript">params["column2_name"]</expression>
+                                    <property name="dataType">string</property>
+                                </structure>
+                            </list-property>
+                            <property name="resultSetColumn">column2_name</property>
+                        </data>
+                    </cell>
+                </row>
+            </header>
+            <detail>
+                <row id="11">
+                    <cell id="12">
+                        <data id="32">
+                            <property name="resultSetColumn">column1</property>
+                        </data>
+                    </cell>
+                    <cell id="13">
+                        <data id="33">
+                            <property name="resultSetColumn">column2</property>
+                        </data>
+                    </cell>
+                </row>
+            </detail>
+            <footer>
+                <row id="15">
+                    <cell id="16"/>
+                    <cell id="17"/>
+                </row>
+            </footer>
+        </table>
+    </body>
+</report>

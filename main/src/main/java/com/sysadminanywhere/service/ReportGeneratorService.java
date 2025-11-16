@@ -17,12 +17,13 @@ import java.util.Map;
 public class ReportGeneratorService {
 
     public byte[] generateReport(List<?> objectList,
-                                 String column1Field, String column2Field, String column3Field,
-                                 String column1Name, String column2Name, String column3Name) {
+                                 String[] attributes,
+                                 String[] names) {
 
         List<Map<String, Object>> dataList = ObjectToListMapConverter.convertToListMap(objectList);
 
         IReportEngine engine = null;
+        ClassPathResource resource = null;
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
@@ -32,20 +33,30 @@ public class ReportGeneratorService {
             IReportEngineFactory factory = (IReportEngineFactory) Platform.createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY);
             engine = factory.createReportEngine(config);
 
-            ClassPathResource resource = new ClassPathResource("reports/columns3.rptdesign");
+            HashMap<String, Object> params = new HashMap<>();
+
+            if(attributes.length == 2) {
+                resource = new ClassPathResource("reports/columns2.rptdesign");
+                params.put("column1_field", attributes[0]);
+                params.put("column2_field", attributes[1]);
+                params.put("column1_name", names[0]);
+                params.put("column2_name", names[1]);
+            }
+
+            if(attributes.length == 3) {
+                resource = new ClassPathResource("reports/columns3.rptdesign");
+                params.put("column1_field", attributes[0]);
+                params.put("column2_field", attributes[1]);
+                params.put("column3_field", attributes[2]);
+                params.put("column1_name", names[0]);
+                params.put("column2_name", names[1]);
+                params.put("column3_name", names[2]);
+            }
 
             IReportRunnable design = engine.openReportDesign(resource.getInputStream());
             IRunAndRenderTask task = engine.createRunAndRenderTask(design);
 
             task.getAppContext().put("DATA_LIST", dataList);
-
-            HashMap<String, Object> params = new HashMap<>();
-            params.put("column1_field", column1Field);
-            params.put("column2_field", column2Field);
-            params.put("column3_field", column3Field);
-            params.put("column1_name", column1Name);
-            params.put("column2_name", column2Name);
-            params.put("column3_name", column3Name);
 
             task.setParameterValues(params);
 

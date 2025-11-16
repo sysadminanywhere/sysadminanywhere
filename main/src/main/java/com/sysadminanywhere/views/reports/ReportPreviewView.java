@@ -120,8 +120,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
         String[] attributes = getAttributes(reportItem.getColumns(), ComputerEntry.class);
 
         byte[] result = reportGeneratorService.generateReport(computersService.getAll(reportItem.getFilter(), attributes),
-                "cn", "operatingSystem", "operatingSystemServicePack",
-                "cn", "operatingSystem", "operatingSystemServicePack");
+                attributes, attributes);
 
         PdfViewer pdfViewer = new PdfViewer();
         StreamResource resource = new StreamResource("example.pdf", () -> new ByteArrayInputStream(result));
