@@ -133,12 +133,22 @@ public class LdapService {
 
     public Page<Entry> search(Pageable pageable, String dn, String filter, SearchScope searchScope, Sort sort) {
         try {
-            List<EntryDto> dtos = ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal()));
+            List<EntryDto> dtos = ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal(),
+                    "cn", "objectclass", "description"));
+
             List<Entry> list = new ArrayList<>();
             for (EntryDto dto : dtos) {
                 list.add(convertToEntity(dto));
             }
-            return new PageImpl<>(list, pageable, list.size());
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), list.size());
+
+            if (start > list.size()) {
+                return new PageImpl<>(Collections.emptyList(), pageable, list.size());
+            }
+
+            List<Entry> pageContent = list.subList(start, end);
+            return new PageImpl<>(pageContent, pageable, list.size());
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
