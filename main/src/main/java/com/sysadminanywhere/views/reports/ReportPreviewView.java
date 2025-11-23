@@ -128,7 +128,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
 
         return reportGeneratorService.generateReport(computersService.getAll(reportItem.getFilter(), attributes),
                 reportItem.getName(), reportItem.getDescription(),
-                attributes, attributes);
+                attributes, reportItem.getNames());
     }
 
     private byte[] userReports(ReportItem reportItem) {
@@ -174,7 +174,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
 
         return reportGeneratorService.generateReport(usersService.getAll(reportItem.getFilter(), attributes),
                 reportItem.getName(), reportItem.getDescription(),
-                attributes, attributes);
+                attributes, reportItem.getNames());
     }
 
     private byte[] groupReports(ReportItem reportItem) {
@@ -182,7 +182,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
 
         return reportGeneratorService.generateReport(groupsService.getAll(reportItem.getFilter(), attributes),
                 reportItem.getName(), reportItem.getDescription(),
-                attributes, attributes);
+                attributes, reportItem.getNames());
     }
 
     private Long getFileTime(int days) {

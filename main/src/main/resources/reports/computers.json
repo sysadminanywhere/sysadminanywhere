@@ -3,35 +3,41 @@
   "name" : "Computers",
   "description" : "All computers",
   "filter" : "",
-  "columns" : ["cn","operatingSystem","operatingSystemServicePack"]
+  "columns" : ["cn","operatingSystem","operatingSystemServicePack"],
+  "names" : ["CN","Operating system","Operating system service pack"]
 }, {
   "id" : "controllers",
   "name" : "Controllers",
   "description" : "All controllers",
   "filter" : "(primaryGroupID=516)",
-  "columns" : ["cn","operatingSystem","operatingSystemServicePack"]
+  "columns" : ["cn","operatingSystem","operatingSystemServicePack"],
+  "names" : ["CN","Operating system","Operating system service pack"]
 }, {
   "id" : "disabled",
   "name" : "Disabled",
   "description" : "Disabled computers",
   "filter" : "(userAccountControl:1.2.840.113556.1.4.803:=2)",
-  "columns" : ["cn","operatingSystem","operatingSystemServicePack"]
+  "columns" : ["cn","operatingSystem","operatingSystemServicePack"],
+  "names" : ["CN","Operating system","Operating system service pack"]
 }, {
   "id" : "servers",
   "name" : "Servers",
   "description" : "All servers",
   "filter" : "(operatingSystem=Windows*Server*)",
-  "columns" : ["cn","operatingSystem","operatingSystemServicePack"]
+  "columns" : ["cn","operatingSystem","operatingSystemServicePack"],
+  "names" : ["CN","Operating system","Operating system service pack"]
 }, {
   "id" : "created",
   "name" : "Created",
   "description" : "Created dates",
   "filter" : "",
-  "columns" : ["cn","operatingSystem","created"]
+  "columns" : ["cn","operatingSystem","created"],
+  "names" : ["CN","Operating system","Created"]
 }, {
   "id" : "lastlogon",
   "name" : "Last logon",
   "description" : "Computers with last logon dates",
   "filter" : "",
-  "columns" : ["cn","operatingSystem","lastLogon"]
+  "columns" : ["cn","operatingSystem","lastLogon"],
+  "names" : ["CN","Operating system","Last logon"]
 } ]

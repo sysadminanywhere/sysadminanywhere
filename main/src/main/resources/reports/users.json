@@ -3,71 +3,83 @@
   "name" : "Users",
   "description" : "All users",
   "filter" : "",
-  "columns" : ["cn","description"]
+  "columns" : ["cn","description"],
+  "names" : ["CN","Description"]
 }, {
   "id" : "cpasswordatnextlogon",
   "name" : "Change password at next logon",
   "description" : "Users must change password at next logon",
   "filter" : "(pwdLastSet=0)",
-  "columns" : ["cn","description"]
+  "columns" : ["cn","description"],
+  "names" : ["CN","Description"]
 }, {
   "id" : "disabled",
   "name" : "Disabled",
   "description" : "Disabled users",
   "filter" : "(userAccountControl:1.2.840.113556.1.4.803:=2)",
-  "columns" : ["cn","description"]
+  "columns" : ["cn","description"],
+  "names" : ["CN","Description"]
 }, {
   "id" : "locked",
   "name" : "Locked",
   "description" : "Locked out users",
   "filter" : "(userAccountControl:1.2.840.113556.1.4.803:=10)",
-  "columns" : ["cn","description"]
+  "columns" : ["cn","description"],
+  "names" : ["CN","Description"]
 }, {
   "id" : "passwordneverexpires",
   "name" : "Password never expires",
   "description" : "Password never expires users",
   "filter" : "(userAccountControl:1.2.840.113556.1.4.803:=65536)",
-  "columns" : ["cn","description"]
+  "columns" : ["cn","description"],
+  "names" : ["CN","Description"]
 }, {
   "id" : "created",
   "name" : "Created",
   "description" : "Created dates",
   "filter" : "",
-  "columns" : ["cn","description","created"]
+  "columns" : ["cn","description","created"],
+  "names" : ["CN","Description", "Created"]
 }, {
   "id" : "logonscripts",
   "name" : "Logon scripts",
   "description" : "Logon scripts for users",
   "filter" : "",
-  "columns" : ["cn","description","scriptPath"]
+  "columns" : ["cn","description","scriptPath"],
+  "names" : ["CN","Description", "Script path"]
 }, {
   "id" : "profilepaths",
   "name" : "Profile paths",
   "description" : "Profile paths for users",
   "filter" : "",
-  "columns" : ["cn","description","profilePath"]
+  "columns" : ["cn","description","profilePath"],
+  "names" : ["CN","Description", "Profile path"]
 }, {
   "id" : "homefolders",
   "name" : "Home folders",
   "description" : "Home folders for users",
   "filter" : "",
-  "columns" : ["cn","description","homeDirectory"]
+  "columns" : ["cn","description","homeDirectory"],
+  "names" : ["CN","Description", "Home directory"]
 }, {
   "id" : "lastlogon",
   "name" : "Last logon",
   "description" : "Users with last logon dates",
   "filter" : "",
-  "columns" : ["cn","description","lastLogon"]
+  "columns" : ["cn","description","lastLogon"],
+  "names" : ["CN","Description", "Last logon"]
 }, {
   "id" : "didntchangepassword",
   "name" : "Users didn't change password",
   "description" : "Users didn't change password last 180 days",
   "filter" : "(&(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=65536)(pwdLastSet<={days:180}))",
-  "columns" : ["cn","description"]
+  "columns" : ["cn","description"],
+  "names" : ["CN","Description"]
 }, {
   "id" : "passwordexpiration",
   "name" : "Password expiration",
   "description" : "Password expiration less than 7 days",
   "filter" : "(&(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=65536)(pwdLastSet<={maxPwdAgeDays:7}))",
-  "columns" : ["cn","description"]
+  "columns" : ["cn","description"],
+  "names" : ["CN","Description"]
 } ]
