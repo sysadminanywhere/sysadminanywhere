@@ -15,6 +15,7 @@ import com.sysadminanywhere.views.domain.DomainView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
+import com.sysadminanywhere.views.management.container.ContainersView;
 import com.sysadminanywhere.views.management.groups.GroupsView;
 import com.sysadminanywhere.views.management.printers.PrintersView;
 import com.sysadminanywhere.views.management.users.UsersView;
@@ -105,7 +106,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         scroller.setClassName(LumoUtility.Padding.SMALL);
 
         topMenu = new VerticalLayout(createSelectedMainButtonItem(currentTitle, DashboardView.class, "/icons/dashboard.svg"),
-                createMainButtonItem("Management", UsersView.class, "/icons/management.svg"),
+                createMainButtonItem("Management", ContainersView.class, "/icons/management.svg"),
                 createMainButtonItem("Inventory", InventorySoftwareView.class, "/icons/inventory.svg"),
                 createMainButtonItem("Automation", AutomationsView.class, "/icons/monitoring.svg"),
                 createMainButtonItem("Reports", UserReportsView.class, "/icons/reports.svg"));
@@ -114,7 +115,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         bottomMenu = new VerticalLayout();
 
         if(authenticatedUser.getUser().isPresent()) {
-            //loginService.Login(authenticatedUser.getUser().get());
             bottomMenu.add(createMainButtonItem("Account", MeView.class, "/icons/user.svg"));
         }
 
@@ -130,7 +130,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 createSideNavItem("Domain", DomainView.class),
                 createSideNavItem("Audit", AuditView.class));
 
-        managementSubNavs.addItem(createSideNavItem("Users", UsersView.class),
+        managementSubNavs.addItem(
+                createSideNavItem("Containers", ContainersView.class),
+                createSideNavItem("Users", UsersView.class),
                 createSideNavItem("Computers", ComputersView.class),
                 createSideNavItem("Groups", GroupsView.class),
                 createSideNavItem("Printers", PrintersView.class),
