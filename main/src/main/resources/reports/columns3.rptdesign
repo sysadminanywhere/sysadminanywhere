@@ -353,9 +353,11 @@
                 <row id="7">
                     <property name="style">tableHeader</property>
                     <cell id="8">
+                        <property name="paddingTop">4pt</property>
+                        <property name="paddingBottom">4pt</property>
                         <data id="35">
-                            <property name="paddingTop">4pt</property>
-                            <property name="paddingBottom">4pt</property>
+                            <property name="paddingTop">1pt</property>
+                            <property name="paddingBottom">1pt</property>
                             <list-property name="boundDataColumns">
                                 <structure>
                                     <property name="name">column1_name</property>
@@ -367,9 +369,11 @@
                         </data>
                     </cell>
                     <cell id="9">
+                        <property name="paddingTop">4pt</property>
+                        <property name="paddingBottom">4pt</property>
                         <data id="36">
-                            <property name="paddingTop">4pt</property>
-                            <property name="paddingBottom">4pt</property>
+                            <property name="paddingTop">1pt</property>
+                            <property name="paddingBottom">1pt</property>
                             <list-property name="boundDataColumns">
                                 <structure>
                                     <property name="name">column2_name</property>
@@ -381,9 +385,11 @@
                         </data>
                     </cell>
                     <cell id="10">
+                        <property name="paddingTop">4pt</property>
+                        <property name="paddingBottom">4pt</property>
                         <data id="37">
-                            <property name="paddingTop">4pt</property>
-                            <property name="paddingBottom">4pt</property>
+                            <property name="paddingTop">1pt</property>
+                            <property name="paddingBottom">1pt</property>
                             <list-property name="boundDataColumns">
                                 <structure>
                                     <property name="name">column3_name</property>

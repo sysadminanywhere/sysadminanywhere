@@ -161,6 +161,8 @@
             <property name="marginLeft">2pt</property>
             <property name="marginBottom">2pt</property>
             <property name="marginRight">2pt</property>
+            <property name="paddingTop">1pt</property>
+            <property name="paddingBottom">1pt</property>
             <property name="textAlign">center</property>
             <property name="verticalAlign">middle</property>
         </style>
@@ -311,9 +313,11 @@
                 <row id="7">
                     <property name="style">tableHeader</property>
                     <cell id="8">
+                        <property name="paddingTop">4pt</property>
+                        <property name="paddingBottom">4pt</property>
                         <data id="35">
-                            <property name="paddingTop">4pt</property>
-                            <property name="paddingBottom">4pt</property>
+                            <property name="paddingTop">1pt</property>
+                            <property name="paddingBottom">1pt</property>
                             <list-property name="boundDataColumns">
                                 <structure>
                                     <property name="name">column1_name</property>
@@ -325,9 +329,11 @@
                         </data>
                     </cell>
                     <cell id="9">
+                        <property name="paddingTop">4pt</property>
+                        <property name="paddingBottom">4pt</property>
                         <data id="36">
-                            <property name="paddingTop">4pt</property>
-                            <property name="paddingBottom">4pt</property>
+                            <property name="paddingTop">1pt</property>
+                            <property name="paddingBottom">1pt</property>
                             <list-property name="boundDataColumns">
                                 <structure>
                                     <property name="name">column2_name</property>
