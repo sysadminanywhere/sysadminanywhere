@@ -354,6 +354,8 @@
                     <property name="style">tableHeader</property>
                     <cell id="8">
                         <data id="35">
+                            <property name="paddingTop">4pt</property>
+                            <property name="paddingBottom">4pt</property>
                             <list-property name="boundDataColumns">
                                 <structure>
                                     <property name="name">column1_name</property>
@@ -366,6 +368,8 @@
                     </cell>
                     <cell id="9">
                         <data id="36">
+                            <property name="paddingTop">4pt</property>
+                            <property name="paddingBottom">4pt</property>
                             <list-property name="boundDataColumns">
                                 <structure>
                                     <property name="name">column2_name</property>
@@ -378,6 +382,8 @@
                     </cell>
                     <cell id="10">
                         <data id="37">
+                            <property name="paddingTop">4pt</property>
+                            <property name="paddingBottom">4pt</property>
                             <list-property name="boundDataColumns">
                                 <structure>
                                     <property name="name">column3_name</property>
