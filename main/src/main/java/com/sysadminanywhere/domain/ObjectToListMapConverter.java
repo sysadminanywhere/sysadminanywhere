@@ -3,6 +3,8 @@ package com.sysadminanywhere.domain;
 import com.sysadminanywhere.common.directory.model.AD;
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class ObjectToListMapConverter {
@@ -35,8 +37,13 @@ public class ObjectToListMapConverter {
                 field.setAccessible(true);
                 Object value = field.get(obj);
                 AD property = field.getAnnotation(AD.class);
-                if(Arrays.asList(attributes).contains(property.name()))
+                if(Arrays.asList(attributes).contains(property.name())) {
+                    if(value instanceof LocalDateTime) {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                        value = ((LocalDateTime) value).format(formatter);
+                    }
                     fieldMap.put(property.name(), value);
+                }
             }
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Error", e);

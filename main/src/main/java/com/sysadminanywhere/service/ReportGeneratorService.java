@@ -33,7 +33,7 @@ public class ReportGeneratorService {
 
         try {
             EngineConfig config = new EngineConfig();
-            URL fontUrl = getClass().getClassLoader().getResource("/fonts");
+            URL fontUrl = getClass().getClassLoader().getResource("/reports/fonts");
             config.setFontConfig(fontUrl);
 
             Platform.startup(config);

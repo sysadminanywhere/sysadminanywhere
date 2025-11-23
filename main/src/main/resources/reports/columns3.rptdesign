@@ -127,11 +127,7 @@
                 }
 
                 iterator = dataList.iterator();
-
-                // Debug
-                try {
-                    Packages.java.lang.System.out.println("BIRT: DATA_LIST size = " + dataList.size());
-                } catch(e) {}]]></method>
+]]></method>
             <method name="fetch"><![CDATA[                if (iterator != null &amp;&amp; iterator.hasNext()) {
 
                     var rowData = iterator.next();
@@ -167,8 +163,8 @@
                     }
 
                     row["column1"] = getValue(rowData, col1Field);
-                    row["column2"] = getValue(rowData, col2Field);
-                    row["column3"] = getValue(rowData, col3Field);
+                    row["column2"] = getValue(rowData, col3Field);
+                    row["column3"] = getValue(rowData, col2Field);
 
                     return true;
                 }
@@ -216,6 +212,7 @@
         </style>
         <style name="reportBottom" id="42">
             <property name="fontFamily">"Roboto Light"</property>
+            <property name="fontSize">9pt</property>
         </style>
         <style name="reportName" id="48">
             <property name="fontFamily">"Roboto"</property>
@@ -230,6 +227,7 @@
             <property name="type">a4</property>
             <page-footer>
                 <grid id="137">
+                    <property name="marginTop">5pt</property>
                     <column id="744"/>
                     <column id="138"/>
                     <row id="139">
@@ -247,29 +245,29 @@
                         <cell id="140">
                             <property name="textAlign">right</property>
                             <label id="737">
+                                <property name="style">reportBottom</property>
                                 <property name="fontFamily">"Roboto"</property>
-                                <property name="fontSize">7pt</property>
                                 <property name="textAlign">left</property>
                                 <property name="display">inline</property>
                                 <text-property name="text" key="page"></text-property>
                             </label>
                             <auto-text id="738">
+                                <property name="style">reportBottom</property>
                                 <property name="fontFamily">"Roboto"</property>
-                                <property name="fontSize">7pt</property>
                                 <property name="textAlign">left</property>
                                 <property name="display">inline</property>
                                 <property name="type">page-number</property>
                             </auto-text>
                             <label id="742">
+                                <property name="style">reportBottom</property>
                                 <property name="fontFamily">"Roboto"</property>
-                                <property name="fontSize">7pt</property>
                                 <property name="textAlign">left</property>
                                 <property name="display">inline</property>
                                 <text-property name="text"> (</text-property>
                             </label>
                             <auto-text id="740">
+                                <property name="style">reportBottom</property>
                                 <property name="fontFamily">"Roboto"</property>
-                                <property name="fontSize">7pt</property>
                                 <property name="marginLeft">-4mm</property>
                                 <property name="marginRight">-4mm</property>
                                 <property name="textAlign">center</property>
@@ -278,8 +276,8 @@
                                 <property name="type">total-page</property>
                             </auto-text>
                             <label id="741">
+                                <property name="style">reportBottom</property>
                                 <property name="fontFamily">"Roboto"</property>
-                                <property name="fontSize">7pt</property>
                                 <property name="textAlign">left</property>
                                 <property name="display">inline</property>
                                 <text-property name="text">)</text-property>
