@@ -12,7 +12,6 @@ import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.function.SerializableSupplier;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
@@ -74,6 +73,8 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
         this.groupsService = groupsService;
         this.printersService = printersService;
         this.reportGeneratorService = reportGeneratorService;
+
+        setHeightFull();
     }
 
     private void updateView() {
@@ -118,8 +119,9 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
             PdfViewer pdfViewer = new PdfViewer();
             StreamResource resource = new StreamResource(reportItem.getId() + ".pdf", () -> new ByteArrayInputStream(finalResult));
             pdfViewer.setSrc(resource);
+            pdfViewer.setHeightFull();
 
-            add(new VerticalLayout(pdfViewer));
+            add(pdfViewer);
         }
     }
 
