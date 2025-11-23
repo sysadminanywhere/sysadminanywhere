@@ -133,9 +133,12 @@ public class LdapService {
 
     public Page<Entry> search(Pageable pageable, String dn, String filter, SearchScope searchScope, Sort sort) {
         try {
-//            Page<EntryDto> dtos = ldapServiceClient.getSearch(pageable, new SearchDto(dn, filter, searchScope.ordinal()));
-//            return dtos.map(this::convertToEntity);
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            List<EntryDto> dtos = ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal()));
+            List<Entry> list = new ArrayList<>();
+            for (EntryDto dto : dtos) {
+                list.add(convertToEntity(dto));
+            }
+            return new PageImpl<>(list, pageable, list.size());
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
@@ -144,7 +147,7 @@ public class LdapService {
     private Entry convertToEntity(EntryDto dto) {
         return Entry.builder()
                 .cn(dto.getAttributes().get("cn").toString())
-                .type(dto.getAttributes().get("objectClass").toString())
+                .type(dto.getAttributes().get("objectclass").toString())
                 .description(dto.getAttributes().get("description") != null ? dto.getAttributes().get("description").toString() : "")
                 .build();
     }
