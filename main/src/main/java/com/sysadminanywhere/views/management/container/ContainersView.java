@@ -80,7 +80,7 @@ public class ContainersView extends Div implements MenuControl {
 //
         grid.setItems(query -> ldapService.search(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                selected, "(cn=*)", SearchScope.ONELEVEL, null).stream());
+                selected, "(cn=*)", SearchScope.ONELEVEL).stream());
 
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
