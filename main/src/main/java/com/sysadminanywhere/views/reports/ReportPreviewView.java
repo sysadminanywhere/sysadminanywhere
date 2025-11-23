@@ -127,6 +127,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
         String[] attributes = getAttributes(reportItem.getColumns(), ComputerEntry.class);
 
         return reportGeneratorService.generateReport(computersService.getAll(reportItem.getFilter(), attributes),
+                reportItem.getName(), reportItem.getDescription(),
                 attributes, attributes);
     }
 
@@ -172,6 +173,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
         String[] attributes = getAttributes(reportItem.getColumns(), UserEntry.class);
 
         return reportGeneratorService.generateReport(usersService.getAll(reportItem.getFilter(), attributes),
+                reportItem.getName(), reportItem.getDescription(),
                 attributes, attributes);
     }
 
@@ -179,6 +181,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
         String[] attributes = getAttributes(reportItem.getColumns(), GroupEntry.class);
 
         return reportGeneratorService.generateReport(groupsService.getAll(reportItem.getFilter(), attributes),
+                reportItem.getName(), reportItem.getDescription(),
                 attributes, attributes);
     }
 

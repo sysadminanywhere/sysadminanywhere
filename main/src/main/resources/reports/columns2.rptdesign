@@ -30,6 +30,28 @@
                 <value type="constant">Колонка 2</value>
             </simple-property-list>
         </scalar-parameter>
+        <scalar-parameter name="report_name" id="52">
+            <property name="valueType">static</property>
+            <property name="dataType">string</property>
+            <property name="distinct">true</property>
+            <list-property name="selectionList"/>
+            <property name="paramType">simple</property>
+            <property name="controlType">text-box</property>
+            <structure name="format">
+                <property name="category">Unformatted</property>
+            </structure>
+        </scalar-parameter>
+        <scalar-parameter name="report_description" id="53">
+            <property name="valueType">static</property>
+            <property name="dataType">string</property>
+            <property name="distinct">true</property>
+            <list-property name="selectionList"/>
+            <property name="paramType">simple</property>
+            <property name="controlType">text-box</property>
+            <structure name="format">
+                <property name="category">Unformatted</property>
+            </structure>
+        </scalar-parameter>
     </parameters>
     <data-sources>
         <script-data-source name="Data Source" id="23"/>
@@ -131,7 +153,8 @@
     <styles>
         <style name="tableHeader" id="38">
             <property name="backgroundColor">#808080</property>
-            <property name="fontSize">12pt</property>
+            <property name="fontFamily">"Roboto"</property>
+            <property name="fontSize">11pt</property>
             <property name="fontWeight">bold</property>
             <property name="color">#FFFFFF</property>
             <property name="marginTop">2pt</property>
@@ -142,6 +165,7 @@
             <property name="verticalAlign">middle</property>
         </style>
         <style name="tableCell" id="39">
+            <property name="fontFamily">"Roboto Medium"</property>
             <property name="fontSize">10pt</property>
             <property name="marginTop">2pt</property>
             <property name="marginLeft">2pt</property>
@@ -149,32 +173,122 @@
             <property name="marginRight">2pt</property>
         </style>
         <style name="reportTitle" id="40">
+            <property name="fontFamily">"Roboto"</property>
             <property name="fontSize">18pt</property>
             <property name="fontWeight">bold</property>
             <property name="marginBottom">20px</property>
             <property name="textAlign">center</property>
         </style>
-        <style name="tableRow" id="41"/>
+        <style name="reportBottom" id="42">
+            <property name="fontFamily">"Roboto Light"</property>
+        </style>
+        <style name="reportName" id="56">
+            <property name="fontFamily">"Roboto"</property>
+            <property name="fontWeight">bold</property>
+        </style>
+        <style name="reportDescription" id="57">
+            <property name="fontFamily">"Roboto Light"</property>
+        </style>
     </styles>
     <page-setup>
         <simple-master-page name="Simple MasterPage" id="25">
             <property name="type">a4</property>
-            <page-header>
-                <label id="28">
-                    <property name="style">reportTitle</property>
-                    <property name="fontWeight">bold</property>
-                    <text-property name="text">Sysadmin Anywhere</text-property>
-                </label>
-            </page-header>
             <page-footer>
-                <text id="26">
-                    <property name="contentType">html</property>
-                    <text-property name="content"><![CDATA[<value-of>new Date()</value-of>]]></text-property>
-                </text>
+                <grid id="137">
+                    <column id="745"/>
+                    <column id="138"/>
+                    <row id="139">
+                        <property name="borderTopStyle">solid</property>
+                        <property name="borderTopWidth">medium</property>
+                        <cell id="744">
+                            <property name="textAlign">right</property>
+                            <label id="746">
+                                <property name="style">reportBottom</property>
+                                <property name="fontWeight">bold</property>
+                                <property name="textAlign">left</property>
+                                <text-property name="text">sysadminanywhere.com</text-property>
+                            </label>
+                        </cell>
+                        <cell id="140">
+                            <property name="textAlign">right</property>
+                            <label id="737">
+                                <property name="fontFamily">"Roboto"</property>
+                                <property name="fontSize">7pt</property>
+                                <property name="textAlign">left</property>
+                                <property name="display">inline</property>
+                                <text-property name="text" key="page"></text-property>
+                            </label>
+                            <auto-text id="738">
+                                <property name="fontFamily">"Roboto"</property>
+                                <property name="fontSize">7pt</property>
+                                <property name="textAlign">left</property>
+                                <property name="display">inline</property>
+                                <property name="type">page-number</property>
+                            </auto-text>
+                            <label id="742">
+                                <property name="fontFamily">"Roboto"</property>
+                                <property name="fontSize">7pt</property>
+                                <property name="textAlign">left</property>
+                                <property name="display">inline</property>
+                                <text-property name="text"> (</text-property>
+                            </label>
+                            <auto-text id="740">
+                                <property name="fontFamily">"Roboto"</property>
+                                <property name="fontSize">7pt</property>
+                                <property name="marginLeft">-4mm</property>
+                                <property name="marginRight">-4mm</property>
+                                <property name="textAlign">center</property>
+                                <property name="display">inline</property>
+                                <property name="canShrink">true</property>
+                                <property name="type">total-page</property>
+                            </auto-text>
+                            <label id="741">
+                                <property name="fontFamily">"Roboto"</property>
+                                <property name="fontSize">7pt</property>
+                                <property name="textAlign">left</property>
+                                <property name="display">inline</property>
+                                <text-property name="text">)</text-property>
+                            </label>
+                        </cell>
+                    </row>
+                </grid>
             </page-footer>
         </simple-master-page>
     </page-setup>
     <body>
+        <data id="54">
+            <property name="style">reportName</property>
+            <property name="paddingBottom">10pt</property>
+            <property name="display">inline</property>
+            <list-property name="boundDataColumns">
+                <structure>
+                    <property name="name">report_name</property>
+                    <expression name="expression" type="javascript">params["report_name"]</expression>
+                    <property name="dataType">string</property>
+                </structure>
+            </list-property>
+            <property name="resultSetColumn">report_name</property>
+        </data>
+        <label id="747">
+            <property name="paddingLeft">5pt</property>
+            <property name="paddingBottom">10pt</property>
+            <property name="paddingRight">5pt</property>
+            <property name="display">inline</property>
+            <text-property name="text">/</text-property>
+        </label>
+        <data id="55">
+            <property name="style">reportDescription</property>
+            <property name="paddingBottom">10pt</property>
+            <property name="display">inline</property>
+            <list-property name="boundDataColumns">
+                <structure>
+                    <property name="name">report_description</property>
+                    <expression name="expression" type="javascript">params["report_description"]</expression>
+                    <property name="dataType">string</property>
+                </structure>
+            </list-property>
+            <property name="resultSetColumn">report_description</property>
+        </data>
         <table id="27">
             <property name="dataSet">Data Set</property>
             <list-property name="boundDataColumns">
@@ -227,7 +341,6 @@
                     <method name="onRender"><![CDATA[if (row["__rownum"] % 2 == 0) {
 	this.getStyle().backgroundColor = "#E3E3E3";
 }]]></method>
-                    <property name="style">tableRow</property>
                     <property name="masterPage">Simple MasterPage</property>
                     <cell id="12">
                         <data id="32">
