@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @Route(value = "reports/report")
 @PermitAll
 @Uses(Icon.class)
-public class ReportPreviewView extends Div implements BeforeEnterObserver {
+public class ReportPreviewView extends VerticalLayout implements BeforeEnterObserver {
 
     private String id;
     private String entry;
@@ -74,7 +74,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
         this.printersService = printersService;
         this.reportGeneratorService = reportGeneratorService;
 
-        setHeightFull();
+        setSizeFull();
     }
 
     private void updateView() {
@@ -119,7 +119,7 @@ public class ReportPreviewView extends Div implements BeforeEnterObserver {
             PdfViewer pdfViewer = new PdfViewer();
             StreamResource resource = new StreamResource(reportItem.getId() + ".pdf", () -> new ByteArrayInputStream(finalResult));
             pdfViewer.setSrc(resource);
-            pdfViewer.setHeightFull();
+            pdfViewer.setSizeFull();
 
             add(pdfViewer);
         }

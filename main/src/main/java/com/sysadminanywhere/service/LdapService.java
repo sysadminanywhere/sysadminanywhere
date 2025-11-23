@@ -7,14 +7,13 @@ import com.sysadminanywhere.common.directory.dto.SearchDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.domain.SearchScope;
+import com.sysadminanywhere.model.Entry;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -130,6 +129,24 @@ public class LdapService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public Page<Entry> search(Pageable pageable, String dn, String filter, SearchScope searchScope, Sort sort) {
+        try {
+//            Page<EntryDto> dtos = ldapServiceClient.getSearch(pageable, new SearchDto(dn, filter, searchScope.ordinal()));
+//            return dtos.map(this::convertToEntity);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        } catch (Exception e) {
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    private Entry convertToEntity(EntryDto dto) {
+        return Entry.builder()
+                .cn(dto.getAttributes().get("cn").toString())
+                .type(dto.getAttributes().get("objectClass").toString())
+                .description(dto.getAttributes().get("description") != null ? dto.getAttributes().get("description").toString() : "")
+                .build();
     }
 
     public String getComputersContainer() {
