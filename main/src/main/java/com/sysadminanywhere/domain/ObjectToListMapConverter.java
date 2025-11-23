@@ -1,14 +1,13 @@
 package com.sysadminanywhere.domain;
 
+import com.sysadminanywhere.common.directory.model.AD;
+
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ObjectToListMapConverter {
 
-    public static List<Map<String, Object>> convertToListMap(List<?> objectList) {
+    public static List<Map<String, Object>> convertToListMap(List<?> objectList, String[] attributes) {
         List<Map<String, Object>> result = new ArrayList<>();
 
         if (objectList == null || objectList.isEmpty()) {
@@ -17,7 +16,7 @@ public class ObjectToListMapConverter {
 
         for (Object obj : objectList) {
             if (obj != null) {
-                Map<String, Object> fieldMap = convertObjectToMap(obj);
+                Map<String, Object> fieldMap = convertObjectToMap(obj, attributes);
                 result.add(fieldMap);
             }
         }
@@ -25,7 +24,7 @@ public class ObjectToListMapConverter {
         return result;
     }
 
-    private static Map<String, Object> convertObjectToMap(Object obj) {
+    private static Map<String, Object> convertObjectToMap(Object obj, String[] attributes) {
         Map<String, Object> fieldMap = new HashMap<>();
 
         try {
@@ -35,7 +34,9 @@ public class ObjectToListMapConverter {
             for (Field field : fields) {
                 field.setAccessible(true);
                 Object value = field.get(obj);
-                fieldMap.put(field.getName(), value);
+                AD property = field.getAnnotation(AD.class);
+                if(Arrays.asList(attributes).contains(property.name()))
+                    fieldMap.put(property.name(), value);
             }
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Error", e);

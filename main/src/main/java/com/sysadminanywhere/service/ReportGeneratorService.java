@@ -24,7 +24,7 @@ public class ReportGeneratorService {
                                  String[] attributes,
                                  String[] names) {
 
-        List<Map<String, Object>> dataList = ObjectToListMapConverter.convertToListMap(objectList);
+        List<Map<String, Object>> dataList = ObjectToListMapConverter.convertToListMap(objectList, attributes);
 
         IReportEngine engine = null;
         ClassPathResource resource = null;
