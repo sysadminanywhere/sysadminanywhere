@@ -69,11 +69,6 @@
                 <artifactId>xmlunit-core</artifactId>
                 <version>2.10.0</version>
             </dependency>
-<!--            <dependency>-->
-<!--                <groupId>org.apache.mina</groupId>-->
-<!--                <artifactId>mina-core</artifactId>-->
-<!--                <version>2.2.4</version>-->
-<!--            </dependency>-->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -113,6 +108,10 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
             <version>4.3.0</version>
@@ -133,21 +132,6 @@
             <artifactId>thumbnailator</artifactId>
             <version>0.4.20</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.vaadin.reportui</groupId>-->
-<!--            <artifactId>report-ui</artifactId>-->
-<!--            <version>4.0.2</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>ar.com.fdvs</groupId>-->
-<!--            <artifactId>DynamicJasper-core-fonts</artifactId>-->
-<!--            <version>2.1</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.poi</groupId>-->
-<!--            <artifactId>poi-ooxml</artifactId>-->
-<!--            <version>5.4.0</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>org.vaadin.tatu</groupId>
             <artifactId>tree</artifactId>
