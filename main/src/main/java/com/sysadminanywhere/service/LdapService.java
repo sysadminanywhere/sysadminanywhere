@@ -157,9 +157,18 @@ public class LdapService {
     private Entry convertToEntity(EntryDto dto) {
         return Entry.builder()
                 .cn(dto.getAttributes().get("cn").toString())
-                .type(dto.getAttributes().get("objectclass").toString())
+                .type(getType(dto.getAttributes().get("objectclass")))
                 .description(dto.getAttributes().get("description") != null ? dto.getAttributes().get("description").toString() : "")
                 .build();
+    }
+
+    private String getType(Object object) {
+        if (object instanceof ArrayList<?>) {
+            ArrayList<?> arrayList = (ArrayList<?>) object;
+            return arrayList.get(arrayList.size() - 1).toString();
+        } else {
+            return object.toString();
+        }
     }
 
     public String getComputersContainer() {

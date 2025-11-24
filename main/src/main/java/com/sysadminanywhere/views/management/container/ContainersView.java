@@ -71,13 +71,13 @@ public class ContainersView extends Div implements MenuControl {
         grid = new Grid<>(Entry.class, false);
         grid.addColumn("cn").setAutoWidth(true);
         grid.addColumn("type").setAutoWidth(true);
-        grid.addColumn("description").setAutoWidth(true);
+        grid.addColumn("description");
 
-//        grid.addItemClickListener(item -> {
-//            grid.getUI().ifPresent(ui ->
-//                    ui.navigate("management/computers/" + item.getItem().getCn() + "/details"));
-//        });
-//
+        grid.addItemClickListener(item -> {
+            grid.getUI().ifPresent(ui ->
+                    ui.navigate("management/" + item.getItem().getType() + "s/" + item.getItem().getCn() + "/details"));
+        });
+
         grid.setItems(query -> ldapService.search(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
                 selected, "(cn=*)", SearchScope.ONELEVEL).stream());
