@@ -162,6 +162,12 @@
             <groupId>eu.eureka-bpo.birt</groupId>
             <artifactId>birt-runtime</artifactId>
             <version>4.21.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.mongodb</groupId>
+                    <artifactId>mongo-java-driver</artifactId>
+                </exclusion>
+            </exclusions>
             <type>pom</type>
         </dependency>
 
