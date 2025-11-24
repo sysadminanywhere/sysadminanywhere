@@ -134,11 +134,12 @@ public class LdapService {
     public Page<Entry> search(Pageable pageable, String dn, String filter, SearchScope searchScope) {
         try {
             List<EntryDto> dtos = ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal(),
-                    "cn", "objectclass", "description"));
+                    "cn", "objectclass", "description", "showinadvancedviewonly"));
 
             List<Entry> list = new ArrayList<>();
             for (EntryDto dto : dtos) {
-                list.add(convertToEntity(dto));
+                if(!dto.getAttributes().containsKey("showinadvancedviewonly"))
+                    list.add(convertToEntity(dto));
             }
             int start = (int) pageable.getOffset();
             int end = Math.min((start + pageable.getPageSize()), list.size());
