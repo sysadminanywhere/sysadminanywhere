@@ -4,6 +4,7 @@ import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.Entry;
 import com.sysadminanywhere.service.LdapService;
@@ -94,7 +95,13 @@ public class ContainersView extends Div implements MenuControl {
 
     @Override
     public MenuBar getMenu() {
-        return new MenuBar();
+        MenuBar menuBar = new MenuBar();
+
+        MenuHelper.createIconItem(menuBar,"/icons/refresh.svg", menuItemClickEvent -> {
+            refreshGrid();
+        });
+
+        return menuBar;
     }
 
 }
