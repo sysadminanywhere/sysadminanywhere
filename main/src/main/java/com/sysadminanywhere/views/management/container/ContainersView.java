@@ -7,14 +7,23 @@ import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.Entry;
-import com.sysadminanywhere.service.LdapService;
+import com.sysadminanywhere.security.AuthenticatedUser;
+import com.sysadminanywhere.service.*;
+import com.sysadminanywhere.views.management.computers.AddComputerDialog;
+import com.sysadminanywhere.views.management.contacts.AddContactDialog;
+import com.sysadminanywhere.views.management.groups.AddGroupDialog;
+import com.sysadminanywhere.views.management.users.AddUserDialog;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.router.PageTitle;
@@ -34,12 +43,34 @@ import org.vaadin.tatu.Tree;
 public class ContainersView extends Div implements MenuControl {
 
     private final LdapService ldapService;
+    private final AuthenticatedUser authenticatedUser;
+    private final LoginService loginService;
+    private final SettingsService settingsService;
+    private final UsersService usersService;
+    private final ComputersService computersService;
+    private final GroupsService groupsService;
+    private final ContactsService contactsService;
 
     private Grid<Entry> grid;
     private String selected;
 
-    public ContainersView(LdapService ldapService) {
+    public ContainersView(LdapService ldapService,
+                          AuthenticatedUser authenticatedUser,
+                          LoginService loginService,
+                          SettingsService settingsService,
+                          UsersService usersService,
+                          ComputersService computersService,
+                          GroupsService groupsService,
+                          ContactsService contactsService) {
+
         this.ldapService = ldapService;
+        this.authenticatedUser = authenticatedUser;
+        this.loginService = loginService;
+        this.settingsService = settingsService;
+        this.usersService = usersService;
+        this.computersService = computersService;
+        this.groupsService = groupsService;
+        this.contactsService = contactsService;
 
         setSizeFull();
 
@@ -96,12 +127,45 @@ public class ContainersView extends Div implements MenuControl {
     @Override
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
 
-        MenuHelper.createIconItem(menuBar,"/icons/refresh.svg", menuItemClickEvent -> {
+        MenuHelper.createIconItem(menuBar, "/icons/refresh.svg", menuItemClickEvent -> {
             refreshGrid();
         });
 
+        MenuItem menuAdd = menuBar.addItem("New");
+
+        SubMenu subMenu = menuAdd.getSubMenu();
+        subMenu.addItem("User", menuItemClickEvent -> {
+            addUserDialog(this::refreshGrid).open();
+        });
+        subMenu.addItem("Computer", menuItemClickEvent -> {
+            addComputerDialog(this::refreshGrid).open();
+        });
+        subMenu.addItem("Group", menuItemClickEvent -> {
+            addComputerDialog(this::refreshGrid).open();
+        });
+        subMenu.addItem("Contact", menuItemClickEvent -> {
+            addComputerDialog(this::refreshGrid).open();
+        });
+
         return menuBar;
+    }
+
+    private Dialog addUserDialog(Runnable onSearch) {
+        return new AddUserDialog(usersService, loginService, authenticatedUser, settingsService, onSearch);
+    }
+
+    private Dialog addComputerDialog(Runnable onSearch) {
+        return new AddComputerDialog(computersService, onSearch);
+    }
+
+    private Dialog addGroupDialog(Runnable onSearch) {
+        return new AddGroupDialog(groupsService, onSearch);
+    }
+
+    private Dialog addContactDialog(Runnable onSearch) {
+        return new AddContactDialog(contactsService, onSearch);
     }
 
 }
