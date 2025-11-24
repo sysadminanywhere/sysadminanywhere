@@ -35,13 +35,6 @@ public class KeycloakFeignClientInterceptor implements RequestInterceptor {
                 template.header(AUTHORIZATION_HEADER, BEARER_TOKEN_TYPE + " " + accessToken);
             }
         }
-
-        log.debug("Feign Request: {} {}", template.method(), template.url());
-
-        if (template.body() != null) {
-            String body = new String(template.body(), StandardCharsets.UTF_8);
-            log.debug("Feign Body: {}", body);
-        }
     }
 
 }

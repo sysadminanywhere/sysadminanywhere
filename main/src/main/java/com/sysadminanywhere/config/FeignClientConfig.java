@@ -18,9 +18,4 @@ public class FeignClientConfig {
         return new KeycloakFeignClientInterceptor(authorizedClientService);
     }
 
-    @Bean
-    public Logger.Level feignLoggerLevel() {
-        return Logger.Level.FULL;
-    }
-
 }

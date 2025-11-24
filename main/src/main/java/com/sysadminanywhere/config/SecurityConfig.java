@@ -29,11 +29,6 @@ public class SecurityConfig extends VaadinWebSecurity {
     @Autowired
     private CustomOidcUserService customOidcUserService;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
