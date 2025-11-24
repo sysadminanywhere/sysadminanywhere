@@ -27,7 +27,7 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.PageRequest;
 
 @RolesAllowed("admins")
-@PageTitle("Automation flows")
+@PageTitle("Workflows")
 @Route(value = "automation/workflows")
 @PermitAll
 @Uses(Icon.class)

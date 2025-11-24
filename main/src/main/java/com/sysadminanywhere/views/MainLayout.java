@@ -143,7 +143,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
         inventorySubNavs.addItem(createSideNavItem("Software inventory", InventorySoftwareView.class));
 
-        automationSubNavs.addItem(createSideNavItem("Automations", AutomationsView.class));
+        automationSubNavs.addItem(createSideNavItem("Workflows", AutomationsView.class));
 
         reportsSubNavs.addItem(createSideNavItem("Users reports", UserReportsView.class),
                 createSideNavItem("Computer Reports", ComputerReportsView.class),

@@ -72,6 +72,7 @@ public class ContainersView extends Div implements MenuControl {
         this.groupsService = groupsService;
         this.contactsService = contactsService;
 
+        addClassNames("gridwith-filters-view");
         setSizeFull();
 
         Tree<Container> tree = new Tree<>(Container::getName);
