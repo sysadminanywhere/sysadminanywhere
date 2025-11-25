@@ -253,9 +253,13 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
 
         if (getUI().isEmpty()) return;
         getUI().get().access(() -> {
-            chartMemory.updateSeries(seriesMemory);
-            chartProcessor.updateSeries(seriesProcessor);
-            chartDisk.updateSeries(disk.doubleValue());
+            try {
+                chartMemory.updateSeries(seriesMemory);
+                chartProcessor.updateSeries(seriesProcessor);
+                chartDisk.updateSeries(disk.doubleValue());
+            } catch (Exception ex) {
+
+            }
         });
 
     }
