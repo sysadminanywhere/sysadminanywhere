@@ -118,6 +118,8 @@ public class PrintersView extends Div {
 
     private Component createGrid() {
         grid = new Grid<>(PrinterEntry.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         grid.addColumn(new ComponentRenderer<>(printer -> {
             HorizontalLayout layout = new HorizontalLayout();
             layout.setAlignItems(FlexComponent.Alignment.CENTER);

@@ -138,6 +138,8 @@ public class AutomationsView extends Div implements MenuControl {
 
     private Component createGrid() {
         grid = new Grid<>(Workflow.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         grid.addColumn("id").setAutoWidth(true);
         grid.addColumn("name").setAutoWidth(true);
         grid.addColumn("description").setAutoWidth(true);

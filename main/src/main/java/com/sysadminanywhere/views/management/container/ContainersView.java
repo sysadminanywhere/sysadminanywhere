@@ -107,6 +107,8 @@ public class ContainersView extends Div implements MenuControl {
 
     private Component createGrid() {
         grid = new Grid<>(Entry.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         grid.addColumn(new ComponentRenderer<>(item -> {
             HorizontalLayout layout = new HorizontalLayout();
             layout.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -140,7 +142,7 @@ public class ContainersView extends Div implements MenuControl {
             layout.setSpacing(true);
             return layout;
         })).setHeader("cn");
-        grid.addColumn("type").setAutoWidth(true);
+        grid.addColumn("type");
         grid.addColumn("description");
 
         grid.addItemClickListener(item -> {

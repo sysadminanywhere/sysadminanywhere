@@ -125,6 +125,8 @@ public class InventoryComputersWithSoftwareView  extends Div implements BeforeEn
 
     private Component createGrid() {
         grid = new Grid<>(ComputerItem.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         grid.addColumn("name").setAutoWidth(true);
 
         grid.setItems(query -> inventoryService.getComputersWithSoftware(id,

@@ -131,6 +131,8 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
 
     private Component createGrid() {
         grid = new Grid<>(SoftwareEntity.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         grid.addColumn("name").setAutoWidth(true);
         grid.addColumn("vendor").setAutoWidth(true);
         grid.addColumn("version").setAutoWidth(true);

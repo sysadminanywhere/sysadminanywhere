@@ -123,6 +123,8 @@ public class InventorySoftwareView extends Div {
 
     private Component createGrid() {
         grid = new Grid<>(SoftwareCount.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         grid.addColumn("name").setAutoWidth(true);
         grid.addColumn("vendor").setAutoWidth(true);
         grid.addColumn("version").setAutoWidth(true);

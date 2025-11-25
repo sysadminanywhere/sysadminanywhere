@@ -144,6 +144,8 @@ public class ContactsView extends Div implements MenuControl {
 
     private Component createGrid() {
         grid = new Grid<>(ContactEntry.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         grid.addColumn(new ComponentRenderer<>(contact -> {
             HorizontalLayout layout = new HorizontalLayout();
             layout.setAlignItems(FlexComponent.Alignment.CENTER);

@@ -131,6 +131,8 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver, M
 
     private Component createGrid() {
         grid = new Grid<>(ProcessEntity.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         grid.addColumn("caption").setAutoWidth(true);
         grid.addColumn("description").setAutoWidth(true);
 

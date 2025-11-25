@@ -104,7 +104,7 @@ public class UsersView extends Div implements MenuControl {
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
 
-        MenuHelper.createIconItem(menuBar,"/icons/refresh.svg", menuItemClickEvent -> {
+        MenuHelper.createIconItem(menuBar, "/icons/refresh.svg", menuItemClickEvent -> {
             refreshGrid();
         });
 
@@ -197,6 +197,8 @@ public class UsersView extends Div implements MenuControl {
 
     private Component createGrid() {
         grid = new Grid<>(UserEntry.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         grid.addColumn(new ComponentRenderer<>(user -> {
             HorizontalLayout layout = new HorizontalLayout();
             layout.setAlignItems(FlexComponent.Alignment.CENTER);

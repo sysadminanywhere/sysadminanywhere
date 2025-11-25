@@ -153,6 +153,8 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
 
     private Component createGrid() {
         grid = new Grid<>(EventEntity.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         grid.addColumn("sourceName").setAutoWidth(true);
         grid.addColumn("type").setAutoWidth(true);
         grid.addColumn("timeGenerated").setAutoWidth(true);

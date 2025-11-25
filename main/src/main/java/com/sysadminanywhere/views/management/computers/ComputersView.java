@@ -154,6 +154,8 @@ public class ComputersView extends Div implements MenuControl {
 
     private Component createGrid() {
         grid = new Grid<>(ComputerEntry.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         grid.addColumn(new ComponentRenderer<>(computer -> {
             HorizontalLayout layout = new HorizontalLayout();
             layout.setAlignItems(FlexComponent.Alignment.CENTER);

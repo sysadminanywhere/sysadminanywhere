@@ -135,6 +135,8 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver, Me
 
     private Component createGrid() {
         grid = new Grid<>(ServiceEntity.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         grid.addColumn("caption").setAutoWidth(true);
         grid.addColumn("description").setAutoWidth(true);
 

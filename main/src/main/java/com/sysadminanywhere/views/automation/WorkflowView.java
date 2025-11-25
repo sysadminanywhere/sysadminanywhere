@@ -11,6 +11,7 @@ import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
@@ -144,6 +145,8 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
 
     private Grid getExecutions() {
         Grid<Execution> grid = new Grid<>(Execution.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         grid.addColumn(Execution::getId).setHeader("Id").setAutoWidth(true);
 
         grid.addColumn(workflow ->
