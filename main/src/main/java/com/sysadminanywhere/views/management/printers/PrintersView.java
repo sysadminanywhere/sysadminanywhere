@@ -12,6 +12,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -124,16 +125,16 @@ public class PrintersView extends Div {
             HorizontalLayout layout = new HorizontalLayout();
             layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-            Image icon = new Image("icons/printer.svg", "User");
-            icon.setWidth("24px");
-            icon.setHeight("24px");
+            SvgIcon icon = new SvgIcon("icons/printer.svg");
+            icon.setColor("grey");
 
             Span text = new Span(printer.getCn());
 
             layout.add(icon, text);
             layout.setSpacing(true);
             return layout;
-        })).setHeader("cn");
+        })).setHeader("cn").setAutoWidth(true);
+
         grid.addColumn("description").setAutoWidth(true);
 
         grid.addItemClickListener(item -> {

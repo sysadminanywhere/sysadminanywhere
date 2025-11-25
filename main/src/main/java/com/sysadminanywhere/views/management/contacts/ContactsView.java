@@ -15,6 +15,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -150,16 +151,16 @@ public class ContactsView extends Div implements MenuControl {
             HorizontalLayout layout = new HorizontalLayout();
             layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-            Image icon = new Image("icons/contact.svg", "Contact");
-            icon.setWidth("24px");
-            icon.setHeight("24px");
+            SvgIcon icon = new SvgIcon("icons/contact.svg");
+            icon.setColor("grey");
 
             Span text = new Span(contact.getCn());
 
             layout.add(icon, text);
             layout.setSpacing(true);
             return layout;
-        })).setHeader("cn");
+        })).setHeader("cn").setAutoWidth(true);
+
         grid.addColumn("description").setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
