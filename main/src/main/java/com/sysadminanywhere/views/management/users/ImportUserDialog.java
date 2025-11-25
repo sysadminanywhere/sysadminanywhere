@@ -30,7 +30,7 @@ public class ImportUserDialog extends Dialog {
     public ImportUserDialog(UsersService usersService, Runnable onSearch) {
         this.usersService = usersService;
 
-        setHeaderTitle("Import users");
+        setHeaderTitle("Importing users");
         setMaxWidth("800px");
 
         FormLayout formLayout = new FormLayout();

@@ -19,7 +19,7 @@ public class UpdateGroupDialog extends Dialog {
         this.groupsService = groupsService;
         this.group = groupEntry;
 
-        setHeaderTitle("Updating user");
+        setHeaderTitle("Updating group");
         setWidth("800px");
 
         FormLayout formLayout = new FormLayout();

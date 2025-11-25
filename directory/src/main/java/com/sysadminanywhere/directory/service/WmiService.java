@@ -25,8 +25,16 @@ public class WmiService {
 
     private final int timeOut = 30000;
 
+    private final LdapService ldapService;
+
+    public WmiService(LdapService ldapService) {
+        this.ldapService = ldapService;
+    }
+
     @Cacheable(value = "wmi_execute", key = "{#hostName, #wqlQuery}")
     public List<Map<String, Object>> execute(String hostName, String wqlQuery) throws WmiComException, WqlQuerySyntaxException, TimeoutException {
+        hostName = checkHostName(hostName);
+
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
@@ -44,6 +52,8 @@ public class WmiService {
     }
 
     public Map<String, Object> invoke(String hostName, String path, String className, String methodName, Map<String, Object> inputMap) throws WmiComException {
+        hostName = checkHostName(hostName);
+
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
@@ -57,12 +67,23 @@ public class WmiService {
     }
 
     public void executeCommand(String hostName, String command, String workingDirectory) throws WmiComException, TimeoutException {
+        hostName = checkHostName(hostName);
+
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
         try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, userName, password.toCharArray())) {
             wbemServices.executeCommand(command, workingDirectory, Charset.defaultCharset(), timeOut);
         }
+    }
+
+    private String checkHostName(String hostName) {
+        String domainName = ldapService.getDomainName();
+
+//        if (!hostName.toLowerCase().endsWith(domainName))
+//            hostName += "." + domainName;
+
+        return hostName;
     }
 
 }

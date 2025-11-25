@@ -19,7 +19,7 @@ public class UpdateComputerDialog extends Dialog {
         this.computersService = computersService;
         this.computer = computerEntry;
 
-        setHeaderTitle("Updating user");
+        setHeaderTitle("Updating computer");
         setWidth("800px");
 
         FormLayout formLayout = new FormLayout();
