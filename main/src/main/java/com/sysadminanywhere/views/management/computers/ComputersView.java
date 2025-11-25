@@ -158,7 +158,7 @@ public class ComputersView extends Div implements MenuControl {
             HorizontalLayout layout = new HorizontalLayout();
             layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-            Image icon = new Image("icons/computer.svg", "User");
+            Image icon = new Image("icons/computer.svg", "Computer");
             icon.setWidth("24px");
             icon.setHeight("24px");
 
