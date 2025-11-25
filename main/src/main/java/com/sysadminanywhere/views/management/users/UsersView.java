@@ -18,13 +18,17 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -193,7 +197,21 @@ public class UsersView extends Div implements MenuControl {
 
     private Component createGrid() {
         grid = new Grid<>(UserEntry.class, false);
-        grid.addColumn("cn").setAutoWidth(true);
+        grid.addColumn(new ComponentRenderer<>(user -> {
+            HorizontalLayout layout = new HorizontalLayout();
+            layout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+            Image icon = new Image("icons/user.svg", "User");
+            icon.setWidth("24px");
+            icon.setHeight("24px");
+
+            Span text = new Span(user.getCn());
+
+            layout.add(icon, text);
+            layout.setSpacing(true);
+            return layout;
+        })).setHeader("cn");
+
         grid.addColumn("description").setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
