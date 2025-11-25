@@ -9,11 +9,14 @@ import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -115,7 +118,20 @@ public class PrintersView extends Div {
 
     private Component createGrid() {
         grid = new Grid<>(PrinterEntry.class, false);
-        grid.addColumn("cn").setAutoWidth(true);
+        grid.addColumn(new ComponentRenderer<>(printer -> {
+            HorizontalLayout layout = new HorizontalLayout();
+            layout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+            Image icon = new Image("icons/printer.svg", "User");
+            icon.setWidth("24px");
+            icon.setHeight("24px");
+
+            Span text = new Span(printer.getCn());
+
+            layout.add(icon, text);
+            layout.setSpacing(true);
+            return layout;
+        })).setHeader("cn");
         grid.addColumn("description").setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
