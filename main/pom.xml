@@ -152,11 +152,6 @@
             <artifactId>commons-csv</artifactId>
             <version>1.10.0</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.vaadin.addons.themeselect</groupId>-->
-<!--            <artifactId>themeselect</artifactId>-->
-<!--            <version>1.0.2</version>-->
-<!--        </dependency>-->
 
         <dependency>
             <groupId>eu.eureka-bpo.birt</groupId>
@@ -174,7 +169,7 @@
         <dependency>
             <groupId>org.vaadin.addons.componentfactory</groupId>
             <artifactId>vcf-pdf-viewer</artifactId>
-            <version>4.1.0</version>
+            <version>5.0.0</version>
         </dependency>
 
         <dependency>

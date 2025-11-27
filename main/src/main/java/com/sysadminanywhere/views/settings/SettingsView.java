@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.settings;
 
 import com.sysadminanywhere.common.directory.model.UserEntry;
+import com.sysadminanywhere.control.ThemeSwitcher;
 import com.sysadminanywhere.entity.LoginEntity;
 import com.sysadminanywhere.model.DisplayNamePattern;
 import com.sysadminanywhere.model.LoginPattern;
@@ -60,7 +61,7 @@ public class SettingsView extends VerticalLayout {
         card.setTitle("Theme");
         card.setWidthFull();
 
-        //card.add(new ThemeRadioGroup("Color Mode"));
+        card.add(new ThemeSwitcher());
 
         return card;
     }
