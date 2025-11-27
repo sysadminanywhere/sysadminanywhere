@@ -2,25 +2,25 @@ package com.sysadminanywhere.control;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.theme.lumo.Lumo;
 
-public class ThemeSwitcher extends HorizontalLayout {
+public class ThemeSwitcher extends Button {
 
-    private final Checkbox toggle = new Checkbox("Dark mode");
+    private boolean dark = false; // default (будет перезаписано после attach)
 
     public ThemeSwitcher() {
-        add(toggle);
+        getStyle().set("font-size", "1.4rem");
 
-        toggle.addValueChangeListener(e -> {
-            boolean dark = e.getValue();
+        addClickListener(e -> {
+            dark = !dark;
             applyTheme(dark);
-
-            UI.getCurrent().getPage().executeJs(
-                    "localStorage.setItem('theme', $0);", dark ? "dark" : "light"
-            );
+            saveTheme(dark);
+            updateIcon();
         });
+
+        updateIcon();
     }
 
     @Override
@@ -30,12 +30,14 @@ public class ThemeSwitcher extends HorizontalLayout {
         UI ui = attachEvent.getUI();
         ui.getPage().executeJs("return localStorage.getItem('theme');")
                 .then(String.class, theme -> {
-                    boolean dark = "dark".equals(theme);
-
+                    dark = "dark".equals(theme);
                     applyTheme(dark);
-
-                    toggle.setValue(dark);
+                    updateIcon();
                 });
+    }
+
+    private void updateIcon() {
+        setText(dark ? "🌙" : "☀️");
     }
 
     private void applyTheme(boolean dark) {
@@ -46,6 +48,13 @@ public class ThemeSwitcher extends HorizontalLayout {
         } else {
             ui.getElement().setAttribute("theme", Lumo.LIGHT);
         }
+    }
+
+    private void saveTheme(boolean dark) {
+        UI.getCurrent().getPage().executeJs(
+                "localStorage.setItem('theme', $0);",
+                dark ? "dark" : "light"
+        );
     }
 
 }
