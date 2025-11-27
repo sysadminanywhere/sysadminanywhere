@@ -11,14 +11,14 @@
 
     <properties>
         <java.version>21</java.version>
-        <vaadin.version>24.7.14</vaadin.version>
-        <spring-cloud.version>2024.0.1</spring-cloud.version>
+        <vaadin.version>24.9.5</vaadin.version>
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
     </properties>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.12</version>
+        <version>3.5.8</version>
     </parent>
 
     <repositories>
@@ -114,7 +114,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
-            <version>4.3.0</version>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.sysadminanywhere</groupId>
@@ -152,11 +152,11 @@
             <artifactId>commons-csv</artifactId>
             <version>1.10.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.vaadin.addons.themeselect</groupId>
-            <artifactId>themeselect</artifactId>
-            <version>1.0.1</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.vaadin.addons.themeselect</groupId>-->
+<!--            <artifactId>themeselect</artifactId>-->
+<!--            <version>1.0.2</version>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>eu.eureka-bpo.birt</groupId>
@@ -180,11 +180,6 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>

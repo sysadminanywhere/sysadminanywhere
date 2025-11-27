@@ -17,7 +17,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.button.Button;
-import org.vaadin.addons.themeselect.ThemeRadioGroup;
+//import org.vaadin.addons.themeselect.ThemeRadioGroup;
 import com.vaadin.flow.component.card.Card;
 
 import java.util.Arrays;
@@ -60,7 +60,7 @@ public class SettingsView extends VerticalLayout {
         card.setTitle("Theme");
         card.setWidthFull();
 
-        card.add(new ThemeRadioGroup("Color Mode"));
+        //card.add(new ThemeRadioGroup("Color Mode"));
 
         return card;
     }
