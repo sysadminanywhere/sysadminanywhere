@@ -2,13 +2,12 @@ package com.sysadminanywhere.config;
 
 import com.sysadminanywhere.service.CustomOidcUserService;
 import com.vaadin.flow.spring.security.VaadinAwareSecurityContextHolderStrategyConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.*;
@@ -42,6 +41,27 @@ public class SecurityConfig {
                         .loginPage("/oauth2/authorization/keycloak")
                         .userInfoEndpoint(userInfo -> userInfo
                                 .oidcUserService(customOidcUserService))
+                )
+
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            String idToken = null;
+                            if (authentication != null && authentication.getPrincipal() instanceof OidcUser) {
+                                OidcUser oidcUser = (OidcUser) authentication.getPrincipal();
+                                idToken = oidcUser.getIdToken().getTokenValue();
+                            }
+
+                            String keycloakLogoutUrl = "http://localhost:8880/realms/sysadminanywhere/protocol/openid-connect/logout";
+                            if (idToken != null) {
+                                keycloakLogoutUrl += "?id_token_hint=" + idToken + "&post_logout_redirect_uri=" + request.getRequestURL().toString().replace(request.getRequestURI(), "");
+                            }
+
+                            request.getSession().invalidate();
+                            response.sendRedirect(keycloakLogoutUrl);
+                        })
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                 );
 
         return http.build();

@@ -8,6 +8,7 @@ import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.Entry;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +27,6 @@ public class LdapService {
     private final LdapServiceClient ldapServiceClient;
 
     private EntryDto rootDse;
-
-    @Autowired
-    private AuthenticationContext authenticationContext;
 
     private final String ContainerMicrosoft = "B:32:F4BE92A4C777485E878E9421D53087DB:";                 //NOSONAR CN=Microsoft,CN=Program Data,DC=example,DC=com
     private final String ContainerProgramData = "B:32:09460C08AE1E4A4EA0F64AEE7DAA1E5A:";               //NOSONAR CN=Program Data,DC=example,DC=com
@@ -75,7 +73,8 @@ public class LdapService {
         } catch (feign.FeignException fx) {
             log.error("Feign error with status: {}", fx.status(), fx);
             if (fx.status() == 401) {
-                authenticationContext.logout();
+                //authenticationContext.logout();
+                VaadinSession.getCurrent().getSession().invalidate();
             }
         } catch (NullPointerException ne) {
         }

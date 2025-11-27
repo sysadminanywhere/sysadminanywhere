@@ -7,6 +7,7 @@ import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.management.users.UpdateUserDialog;
 import com.sysadminanywhere.views.management.users.UpdateUserPhotoDialog;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -23,11 +24,10 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.io.ByteArrayInputStream;
+import java.util.Base64;
 import java.util.Optional;
 
 @PageTitle("Me")
@@ -128,11 +128,11 @@ public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuC
             lblDescription.setText(user.getDescription());
 
             avatar.setName(user.getName());
-            avatar.setImageResource(null);
+            avatar.setImage(null);
             if (user.getJpegPhoto() != null) {
-                StreamResource resource = new StreamResource("profile-pic",
-                        () -> new ByteArrayInputStream(user.getJpegPhoto()));
-                avatar.setImageResource(resource);
+                String base64 = Base64.getEncoder().encodeToString(user.getJpegPhoto());
+                String dataUrl = "data:image/jpeg;base64," + base64;
+                avatar.setImage(dataUrl);
             }
         }
 
@@ -165,7 +165,7 @@ public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuC
             updatePhotoDialog().open();
         });
         MenuHelper.createIconItem(menuBar, "/icons/sign-out.svg", "Sign out", event -> {
-            authenticatedUser.logout();
+            UI.getCurrent().getPage().setLocation("/logout");
         });
 
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
