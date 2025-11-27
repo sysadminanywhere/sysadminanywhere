@@ -2,6 +2,7 @@ package com.sysadminanywhere.config;
 
 import com.sysadminanywhere.service.CustomOidcUserService;
 import com.vaadin.flow.spring.security.VaadinAwareSecurityContextHolderStrategyConfiguration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -16,6 +17,9 @@ import java.util.*;
 @Configuration
 @Import(VaadinAwareSecurityContextHolderStrategyConfiguration.class)
 public class SecurityConfig {
+
+    @Value("${app.keycloak.logout-uri}")
+    String keycloakLogoutUrl;
 
     private final CustomOidcUserService customOidcUserService;
 
@@ -52,7 +56,7 @@ public class SecurityConfig {
                                 idToken = oidcUser.getIdToken().getTokenValue();
                             }
 
-                            String keycloakLogoutUrl = "http://localhost:8880/realms/sysadminanywhere/protocol/openid-connect/logout";
+                            //String keycloakLogoutUrl = "http://localhost:8880/realms/sysadminanywhere/protocol/openid-connect/logout";
                             if (idToken != null) {
                                 keycloakLogoutUrl += "?id_token_hint=" + idToken + "&post_logout_redirect_uri=" + request.getRequestURL().toString().replace(request.getRequestURI(), "");
                             }
