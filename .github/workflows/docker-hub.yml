@@ -2,7 +2,7 @@ name: Build & Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main", "3.0" ]
   workflow_dispatch:
 
 jobs:
@@ -22,7 +22,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - uses: actions/checkout@v4.1.7
       - name: Set up JDK 21
         uses: actions/setup-java@v4.2.2
         with:
@@ -30,9 +29,29 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Docker Build and Push to DockerHub
+      - name: Build all modules with Maven
         run: |
           mvn clean package -Pproduction
-          docker build -t sysadminanywhere/sysadminanywhere:${{ env.VERSION }} -t sysadminanywhere/sysadminanywhere:latest .
-          docker push sysadminanywhere/sysadminanywhere:${{ env.VERSION }}
-          docker push sysadminanywhere/sysadminanywhere:latest
+
+      - name: Build and Push Docker images
+        run: |
+          # Build and push directory module
+          if [ -d "directory" ] && [ -f "directory/Dockerfile" ]; then
+            docker build -t sysadminanywhere/directory:${{ env.VERSION }} -t sysadminanywhere/directory:latest ./directory
+            docker push sysadminanywhere/directory:${{ env.VERSION }}
+            docker push sysadminanywhere/directory:latest
+          fi
+
+          # Build and push inventory module
+          if [ -d "inventory" ] && [ -f "inventory/Dockerfile" ]; then
+            docker build -t sysadminanywhere/inventory:${{ env.VERSION }} -t sysadminanywhere/inventory:latest ./inventory
+            docker push sysadminanywhere/inventory:${{ env.VERSION }}
+            docker push sysadminanywhere/inventory:latest
+          fi
+
+          # Build and push main module
+          if [ -d "main" ] && [ -f "main/Dockerfile" ]; then
+            docker build -t sysadminanywhere/sysadminanywhere:${{ env.VERSION }} -t sysadminanywhere/sysadminanywhere:latest ./main
+            docker push sysadminanywhere/sysadminanywhere:${{ env.VERSION }}
+            docker push sysadminanywhere/sysadminanywhere:latest
+          fi
