@@ -30,9 +30,10 @@ public class AboutView extends VerticalLayout {
         card.setWidthFull();
         Span version = new Span("Version: " + versionService.getVersion());
         Anchor homePage = new Anchor("https://sysadminanywhere.com/", "Home page", AnchorTarget.BLANK);
+        Anchor docsPage = new Anchor("https://docs.sysadminanywhere.com/", "Documentation", AnchorTarget.BLANK);
         Anchor sourceCode = new Anchor("https://github.com/sysadminanywhere/sysadminanywhere/", "Source code", AnchorTarget.BLANK);
 
-        card.add(new VerticalLayout(version, homePage, sourceCode));
+        card.add(new VerticalLayout(version, homePage, docsPage, sourceCode));
         return card;
     }
 
