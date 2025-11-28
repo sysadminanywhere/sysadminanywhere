@@ -2,51 +2,31 @@ version: '3.8'
 
 services:
 
-  vault-dev:
+  vault:
     image: hashicorp/vault:latest
-    container_name: vault-dev
-    environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=myroottoken
-      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+    container_name: vault
     ports:
       - "8200:8200"
-    command: >
-      sh -c "
-        vault server -dev -dev-listen-address=0.0.0.0:8200 -dev-root-token-id=myroottoken &
-      
-        sleep 5
-      
-        export VAULT_ADDR='http://127.0.0.1:8200'
-        export VAULT_TOKEN='myroottoken'
-      
-        vault kv put secret/sysadminanywhere username=admin password='Secret2#'
-      
-        wait
-      "
+
   keycloak:
     image: quay.io/keycloak/keycloak:latest
-    container_name: keycloak-dev
+    container_name: keycloak
     ports:
       - "8880:8080"
     environment:
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://db_dev:5432/keycloak
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: password
       KC_HOSTNAME: localhost
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-    volumes:
-      - ./keycloak:/opt/keycloak/data/import
-    command:
-      - start-dev
-      - --import-realm
     depends_on:
       - db
 
   db:
     image: postgres:16
-    container_name: db_dev
+    container_name: db
     environment:
       POSTGRES_DB: sysadminanywhere
       POSTGRES_USER: postgres
@@ -58,7 +38,7 @@ services:
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
-    container_name: zookeeper_dev
+    container_name: zookeeper
     ports:
       - "2181:2181"
     environment:
@@ -67,7 +47,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
-    container_name: kafka_dev
+    container_name: kafka
     restart: always
     ports:
       - "9092:9092"
@@ -83,7 +63,7 @@ services:
       - zookeeper
 
   kafka-ui:
-    container_name: kafka-ui_dev
+    container_name: kafka-ui
     image: provectuslabs/kafka-ui:latest
     ports:
       - 9090:8080
@@ -94,12 +74,24 @@ services:
 
   n8n:
     image: n8nio/n8n
-    container_name: n8n_dev
+    container_name: n8n
     ports:
       - "5678:5678"
     environment:
       - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=password
       - N8N_ENDPOINT_WEBHOOK=true
       - N8N_PROTOCOL=http
+
+  directory:
+    image: sysadminanywhere/directory
+    container_name: directory
+
+  inventory:
+    image: sysadminanywhere/inventory
+    container_name: inventory
+
+  sysadminanywhere:
+    image: sysadminanywhere/sysadminanywhere
+    container_name: directory
+    ports:
+      - "8080:8080"
