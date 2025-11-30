@@ -36,7 +36,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt.decoder(jwtDecoder()))
+                        .jwt(Customizer.withDefaults())
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -44,40 +44,6 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable());
 
         return http.build();
-    }
-
-    @Bean
-    public JwtDecoder jwtDecoder() {
-        String jwkSetUri = "http://keycloak:8080/realms/sysadminanywhere/protocol/openid-connect/certs";
-
-        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
-
-        OAuth2TokenValidator<Jwt> customValidator = jwt -> {
-            List<String> allowedIssuers = Arrays.asList(
-                    "http://keycloak:8080/realms/sysadminanywhere",
-                    "http://localhost:8880/realms/sysadminanywhere"
-            );
-
-            if (allowedIssuers.contains(jwt.getIssuer().toString())) {
-                return OAuth2TokenValidatorResult.success();
-            } else {
-                return OAuth2TokenValidatorResult.failure(
-                        new org.springframework.security.oauth2.core.OAuth2Error(
-                                "invalid_issuer",
-                                "Issuer not allowed: " + jwt.getIssuer(),
-                                null
-                        )
-                );
-            }
-        };
-
-        OAuth2TokenValidator<Jwt> timestampValidator = new JwtTimestampValidator();
-        OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(
-                timestampValidator, customValidator
-        );
-
-        jwtDecoder.setJwtValidator(validator);
-        return jwtDecoder;
     }
 
 }
