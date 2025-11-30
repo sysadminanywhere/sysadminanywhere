@@ -1,40 +1,50 @@
-version: '3.8'
 
 services:
 
   vault:
-    image: hashicorp/vault:latest
+    image: hashicorp/vault:1.21.1
     container_name: vault
     ports:
       - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_TOKEN}
+      VAULT_ADDR: http://0.0.0.0:8200
+    volumes:
+      - vault_data:/vault/file
+    restart: unless-stopped
 
   keycloak:
-    image: quay.io/keycloak/keycloak:latest
+    image: quay.io/keycloak/keycloak:26.3
     container_name: keycloak
     ports:
       - "8880:8080"
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://db:5432/keycloak
-      KC_DB_USERNAME: postgres
-      KC_DB_PASSWORD: password
-      KC_HOSTNAME: localhost
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB_USERNAME: ${DB_USER}
+      KC_DB_PASSWORD: ${DB_PASSWORD}
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    command:
+      - start-dev
     depends_on:
       - db
+    restart: unless-stopped
 
   db:
     image: postgres:16
     container_name: db
     environment:
-      POSTGRES_DB: sysadminanywhere
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
+      - postgres_data:/var/lib/postgresql/data
       - ./db/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
     ports:
       - "5432:5432"
+    restart: unless-stopped
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -44,54 +54,121 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+    restart: unless-stopped
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
-    restart: always
+    restart: unless-stopped
     ports:
       - "9092:9092"
       - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://${KAFKA_HOST:-localhost}:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    volumes:
+      - kafka_data:/var/lib/kafka/data
     depends_on:
       - zookeeper
 
-  kafka-ui:
-    container_name: kafka-ui
-    image: provectuslabs/kafka-ui:latest
-    ports:
-      - 9090:8080
-    environment:
-      DYNAMIC_CONFIG_ENABLED: true
-    volumes:
-      - ./kui/config.yaml:/etc/kafkaui/dynamic_config.yaml
-
   n8n:
-    image: n8nio/n8n
+    image: n8nio/n8n:1.118.2
     container_name: n8n
     ports:
       - "5678:5678"
     environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_ENDPOINT_WEBHOOK=true
-      - N8N_PROTOCOL=http
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_ENDPOINT_WEBHOOK: "true"
+      N8N_PROTOCOL: "https"
+      N8N_PORT: "5678"
+      N8N_SECURE_COOKIE: "true"
+      GENERIC_TIMEZONE: "Europe/Moscow"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
 
   directory:
-    image: sysadminanywhere/directory
+    image: sysadminanywhere/directory:latest
     container_name: directory
+    environment:
+      LDAP_SERVER: ${LDAP_SERVER}
+      LDAP_PORT: ${LDAP_PORT}
+      LDAP_USE_SSL: ${LDAP_USE_SSL}
+      LDAP_USERNAME: ${LDAP_USERNAME}
+      LDAP_PASSWORD: ${LDAP_PASSWORD}
+      VAULT_URI: http://vault:8200
+      VAULT_TOKEN: ${VAULT_TOKEN}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_REDIRECT_URI: ${KEYCLOAK_REDIRECT_URI}
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
+      SPRING_PROFILES_ACTIVE: prod
+    restart: unless-stopped
+    depends_on:
+      - vault
+      - keycloak
 
   inventory:
-    image: sysadminanywhere/inventory
+    image: sysadminanywhere/inventory:latest
     container_name: inventory
+    environment:
+      DB_ADDRESS: db
+      DB_PORT: 5432
+      DB_BASE: inventory
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SCAN.CRON: "0 0 * * * *"
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_REDIRECT_URI: ${KEYCLOAK_REDIRECT_URI}
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
+      DIRECTORY_SERVICE: http://directory:8080
+      SPRING_PROFILES_ACTIVE: prod
+    restart: unless-stopped
+    depends_on:
+      - db
+      - directory
 
   sysadminanywhere:
-    image: sysadminanywhere/sysadminanywhere
-    container_name: directory
+    image: sysadminanywhere/sysadminanywhere:latest
+    container_name: sysadminanywhere
     ports:
       - "8080:8080"
+    environment:
+      DB_ADDRESS: db
+      DB_PORT: 5432
+      DB_BASE: sysadminanywhere
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      LDAP_GROUPS_ADMINS: "Domain Admins"
+      LDAP_GROUPS_USERS: "Domain Users"
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_REDIRECT_URI: ${KEYCLOAK_REDIRECT_URI}
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
+      KEYCLOAK_LOGOUT_URI: ${KEYCLOAK_LOGOUT_URI}
+      DIRECTORY_SERVICE: http://directory:8080
+      INVENTORY_SERVICE: http://inventory:8080
+      N8N_API_KEY: ${N8N_API_KEY}
+      SPRING_PROFILES_ACTIVE: prod
+    restart: unless-stopped
+    depends_on:
+      - db
+      - directory
+
+volumes:
+  postgres_data:
+  vault_data:
+  zookeeper_data:
+  zookeeper_log:
+  kafka_data:
+  n8n_data:
