@@ -8,9 +8,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.*;
@@ -25,6 +27,9 @@ public class SecurityConfig {
 
     @Value("${app.keycloak.issuer-uri}")
     String issuerUri;
+
+    @Value("${app.keycloak.certs-uri}")
+    String jwkSetUri;
 
     private final CustomOidcUserService customOidcUserService;
 
@@ -77,7 +82,23 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        return JwtDecoders.fromIssuerLocation(issuerUri);
-    }
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
 
+        OAuth2TokenValidator<Jwt> issuerValidator = token -> {
+            if (issuerUri.equals(token.getIssuer().toString())) {
+                return OAuth2TokenValidatorResult.success();
+            } else {
+                return OAuth2TokenValidatorResult.failure(
+                        new org.springframework.security.oauth2.core.OAuth2Error("invalid_token", "Invalid issuer", null)
+                );
+            }
+        };
+
+        OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(
+                JwtValidators.createDefault(), issuerValidator
+        );
+
+        jwtDecoder.setJwtValidator(validator);
+        return jwtDecoder;
+    }
 }
