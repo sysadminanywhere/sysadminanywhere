@@ -20,7 +20,7 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
+    @Value("${app.issuer-uri}")
     String issuerLocation;
 
     @Bean
