@@ -20,6 +20,9 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Value("${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
+    String issuerLocation;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -44,6 +47,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable());
 
         return http.build();
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        return JwtDecoders.fromIssuerLocation(issuerLocation);
     }
 
 }
