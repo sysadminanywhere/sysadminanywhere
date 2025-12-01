@@ -6,16 +6,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.web.SecurityFilterChain;
-
-import java.util.*;
 
 @EnableWebSecurity
 @Configuration
@@ -57,21 +57,28 @@ public class SecurityConfig {
                                 .oidcUserService(customOidcUserService))
                 )
 
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(Customizer.withDefaults())
+                )
+
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessHandler((request, response, authentication) -> {
-                            String idToken = null;
-                            if (authentication != null && authentication.getPrincipal() instanceof OidcUser) {
-                                OidcUser oidcUser = (OidcUser) authentication.getPrincipal();
-                                idToken = oidcUser.getIdToken().getTokenValue();
-                            }
 
-                            if (idToken != null) {
-                                keycloakLogoutUrl += "?id_token_hint=" + idToken + "&post_logout_redirect_uri=" + request.getRequestURL().toString().replace(request.getRequestURI(), "");
+                            String redirectBase = request.getRequestURL()
+                                    .toString()
+                                    .replace(request.getRequestURI(), "");
+
+                            String logoutUrl = keycloakLogoutUrl;
+
+                            if (authentication instanceof OidcUser oidcUser) {
+                                String idToken = oidcUser.getIdToken().getTokenValue();
+                                logoutUrl += "?id_token_hint=" + idToken
+                                        + "&post_logout_redirect_uri=" + redirectBase;
                             }
 
                             request.getSession().invalidate();
-                            response.sendRedirect(keycloakLogoutUrl);
+                            response.sendRedirect(logoutUrl);
                         })
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
@@ -80,22 +87,26 @@ public class SecurityConfig {
         return http.build();
     }
 
+
     @Bean
     public JwtDecoder jwtDecoder() {
-        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+
+        NimbusJwtDecoder jwtDecoder =
+                NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
 
         OAuth2TokenValidator<Jwt> issuerValidator = token -> {
             if (issuerUri.equals(token.getIssuer().toString())) {
                 return OAuth2TokenValidatorResult.success();
             } else {
                 return OAuth2TokenValidatorResult.failure(
-                        new org.springframework.security.oauth2.core.OAuth2Error("invalid_token", "Invalid issuer", null)
+                        new OAuth2Error("invalid_token", "Invalid issuer", null)
                 );
             }
         };
 
         OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(
-                JwtValidators.createDefault(), issuerValidator
+                JwtValidators.createDefault(),
+                issuerValidator
         );
 
         jwtDecoder.setJwtValidator(validator);
