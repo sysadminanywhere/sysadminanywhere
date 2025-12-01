@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.*;
@@ -20,6 +22,9 @@ public class SecurityConfig {
 
     @Value("${app.keycloak.logout-uri}")
     String keycloakLogoutUrl;
+
+    @Value("${app.keycloak.issuer-uri}")
+    String issuerUri;
 
     private final CustomOidcUserService customOidcUserService;
 
@@ -56,7 +61,6 @@ public class SecurityConfig {
                                 idToken = oidcUser.getIdToken().getTokenValue();
                             }
 
-                            //String keycloakLogoutUrl = "http://localhost:8880/realms/sysadminanywhere/protocol/openid-connect/logout";
                             if (idToken != null) {
                                 keycloakLogoutUrl += "?id_token_hint=" + idToken + "&post_logout_redirect_uri=" + request.getRequestURL().toString().replace(request.getRequestURI(), "");
                             }
@@ -69,6 +73,11 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        return JwtDecoders.fromIssuerLocation(issuerUri);
     }
 
 }

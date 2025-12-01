@@ -27,11 +27,11 @@ services:
       KC_DB_PASSWORD: ${DB_PASSWORD}
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HTTP_ENABLED: true
       KC_HOSTNAME: localhost
       KC_HOSTNAME_PORT: 8880
-      KC_PROXY: edge
       KC_HOSTNAME_STRICT: false
-      KC_HOSTNAME_STRICT_BACKCHANNEL: false
+      KC_PROXY: edge
     command: ["start-dev"]
     depends_on:
       - db
@@ -60,6 +60,7 @@ services:
       LDAP_PASSWORD: ${LDAP_PASSWORD}
       VAULT_URI: http://vault:8200
       VAULT_TOKEN: ${VAULT_TOKEN}
+      KAFKA_HOST: ${KAFKA_HOST}
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
       - vault
