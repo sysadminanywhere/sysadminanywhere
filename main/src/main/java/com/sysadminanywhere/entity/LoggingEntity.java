@@ -19,7 +19,7 @@ public class LoggingEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "logdate", columnDefinition = "DATETIME", nullable = false)
+    @Column(name = "logdate", nullable = false)
     private LocalDateTime logDate;
 
     @Column(name = "username", nullable = false)
