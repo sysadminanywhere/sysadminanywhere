@@ -23,6 +23,9 @@ public class SecurityConfig {
     @Value("${app.issuer-uri}")
     String issuerLocation;
 
+    @Value("${app.certs-uri}")
+    String jwkSetUri;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -51,7 +54,26 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        return JwtDecoders.fromIssuerLocation(issuerLocation);
+
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+
+        // Валидатор, который сверяет issuer
+        OAuth2TokenValidator<Jwt> issuerValidator = token -> {
+            if (issuerLocation.equals(token.getIssuer().toString())) {
+                return OAuth2TokenValidatorResult.success();
+            } else {
+                return OAuth2TokenValidatorResult.failure(
+                        new org.springframework.security.oauth2.core.OAuth2Error("invalid_token", "Invalid issuer", null)
+                );
+            }
+        };
+
+        OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(
+                JwtValidators.createDefault(), issuerValidator
+        );
+
+        jwtDecoder.setJwtValidator(validator);
+        return jwtDecoder;
     }
 
 }

@@ -7,8 +7,10 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -17,6 +19,9 @@ public class SecurityConfig {
 
     @Value("${app.issuer-uri}")
     String issuerLocation;
+
+    @Value("${app.certs-uri}")
+    String jwkSetUri;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -46,7 +51,26 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        return JwtDecoders.fromIssuerLocation(issuerLocation);
+
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+
+        // Валидатор, который сверяет issuer
+        OAuth2TokenValidator<Jwt> issuerValidator = token -> {
+            if (issuerLocation.equals(token.getIssuer().toString())) {
+                return OAuth2TokenValidatorResult.success();
+            } else {
+                return OAuth2TokenValidatorResult.failure(
+                        new org.springframework.security.oauth2.core.OAuth2Error("invalid_token", "Invalid issuer", null)
+                );
+            }
+        };
+
+        OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(
+                JwtValidators.createDefault(), issuerValidator
+        );
+
+        jwtDecoder.setJwtValidator(validator);
+        return jwtDecoder;
     }
 
 }
