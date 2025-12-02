@@ -25,12 +25,6 @@ public class SecurityConfig {
     @Value("${app.keycloak.logout-uri}")
     String keycloakLogoutUrl;
 
-    @Value("${app.keycloak.issuer-uri}")
-    String issuerUri;
-
-    @Value("${app.keycloak.certs-uri}")
-    String jwkSetUri;
-
     private final CustomOidcUserService customOidcUserService;
 
     public SecurityConfig(CustomOidcUserService customOidcUserService) {
@@ -87,29 +81,4 @@ public class SecurityConfig {
         return http.build();
     }
 
-
-    @Bean
-    public JwtDecoder jwtDecoder() {
-
-        NimbusJwtDecoder jwtDecoder =
-                NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
-
-        OAuth2TokenValidator<Jwt> issuerValidator = token -> {
-            if (issuerUri.equals(token.getIssuer().toString())) {
-                return OAuth2TokenValidatorResult.success();
-            } else {
-                return OAuth2TokenValidatorResult.failure(
-                        new OAuth2Error("invalid_token", "Invalid issuer", null)
-                );
-            }
-        };
-
-        OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(
-                JwtValidators.createDefault(),
-                issuerValidator
-        );
-
-        jwtDecoder.setJwtValidator(validator);
-        return jwtDecoder;
-    }
 }
