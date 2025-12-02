@@ -19,7 +19,7 @@ services:
     image: quay.io/keycloak/keycloak:26.3
     container_name: keycloak
     ports:
-      - "8880:8080"
+      - "8080:8080"
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://db:5432/keycloak
@@ -28,14 +28,16 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HTTP_ENABLED: true
-      KC_HOSTNAME: host.docker.internal
-      KC_HOSTNAME_PORT: 8880
+      KC_HOSTNAME: keycloak
+      KC_HOSTNAME_PORT: 8080
       KC_HOSTNAME_STRICT: false
       KC_PROXY: edge
     command: ["start-dev"]
     depends_on:
       - db
     restart: unless-stopped
+    extra_hosts:
+      - "keycloak.local:host-gateway"
 
   vault:
     image: hashicorp/vault:1.21.1
@@ -64,6 +66,8 @@ services:
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
       - vault
+    ports:
+      - "8081:8080"
 
   inventory:
     image: sysadminanywhere/inventory:latest
@@ -80,12 +84,14 @@ services:
     depends_on:
       - db
       - directory
+    ports:
+      - "8082:8080"
 
   sysadminanywhere:
     image: sysadminanywhere/sysadminanywhere:latest
     container_name: sysadminanywhere
     ports:
-      - "8080:8080"
+      - "9090:8080"
     environment:
       DB_ADDRESS: db
       DB_PORT: 5432
@@ -99,8 +105,8 @@ services:
       KEYCLOAK_REDIRECT_URI: ${KEYCLOAK_REDIRECT_URI}
       KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
       KEYCLOAK_LOGOUT_URI: ${KEYCLOAK_LOGOUT_URI}
-      DIRECTORY_SERVICE: http://directory:8080
-      INVENTORY_SERVICE: http://inventory:8080
+      DIRECTORY_SERVICE: http://directory:8081
+      INVENTORY_SERVICE: http://inventory:8082
       N8N_API_KEY: ${N8N_API_KEY}
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
