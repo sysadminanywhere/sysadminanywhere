@@ -25,7 +25,7 @@ Web-based services for administering your Active Directory network that provides
 
 #### Inventory
 - Retrieving information about installed software
-- Retrieving information about installed hardware
+- Retrieving information about installed hardware (Coming soon)
 
 #### Automation
 - Building workflows based on n8n for automation and monitoring
