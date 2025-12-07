@@ -40,11 +40,11 @@ public class MessageService {
     @KafkaListener(topics = "directory-request", groupId = "directory")
     private void handleRequest(@Headers MessageHeaders headers, @Payload String message) {
 
-        String action = headers.get("action").toString();
-        String correlationId = headers.get("correlationId").toString();
-        String sender = headers.get("sender").toString();
-        String recipient = headers.get("recipient").toString();
-        String method = headers.get("method").toString();
+        String action = headers.containsKey("action") ? headers.get("action").toString() : "";
+        String sender = headers.containsKey("sender") ? headers.get("sender").toString() : "";
+        String recipient = headers.containsKey("recipient") ? headers.get("recipient").toString() : "";
+        String method = headers.containsKey("method") ? headers.get("method").toString() : "";
+        String correlationId = headers.containsKey("correlationId") ? headers.get("correlationId").toString() : "";
 
         if (!recipient.equalsIgnoreCase("directory"))
             return;
@@ -73,7 +73,8 @@ public class MessageService {
                 break;
 
             default:
-                throw new IllegalArgumentException("Unknown action: " + action);
+                log.error("Unknown action: " + action);
+                return;
         }
 
         Message<String> kafkaMessage = MessageBuilder
