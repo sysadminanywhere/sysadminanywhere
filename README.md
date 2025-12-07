@@ -3,7 +3,7 @@
 Web-based services for administering your Active Directory network that provides a one interface to simplify administrative tasks.
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
-![Static Badge](https://img.shields.io/badge/version-3.0.0-blue)
+![Static Badge](https://img.shields.io/badge/version-3.0.1-blue)
 
 ![Sysadmin Screenshot](images/screen.png)
 
