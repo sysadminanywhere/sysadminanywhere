@@ -14,6 +14,7 @@
         <module>common</module>
         <module>directory</module>
         <module>inventory</module>
+        <module>incident</module>
         <module>main</module>
     </modules>
 
