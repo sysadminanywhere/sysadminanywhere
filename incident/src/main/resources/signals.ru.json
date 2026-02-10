@@ -1,0 +1,244 @@
+{
+  "S1": {
+    "name": "Failed Logon",
+    "eventIds": [4625],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 5,
+    "groupBy": ["user_name", "source_host"],
+    "severity": {"default": "medium"},
+    "filters": [],
+    "recommendationTemplate": "Проверить источник {{source_host}} и пользователя {{user_name}}."
+  },
+  "S2": {
+    "name": "Successful Logon after Failures",
+    "eventIds": [4624],
+    "correlatedEventIds": [4625],
+    "aggregationWindowMinutes": 5,
+    "groupBy": ["user_name", "source_host"],
+    "severity": {"default": "medium"},
+    "filters": [],
+    "recommendationTemplate": "Пользователь {{user_name}} успешно вошел после нескольких неудачных попыток. Проверьте источник {{source_host}}."
+  },
+  "S3": {
+    "name": "Account Lockout",
+    "eventIds": [4740],
+    "correlatedEventIds": [4625],
+    "aggregationWindowMinutes": 10,
+    "groupBy": ["user_name", "source_host"],
+    "severity": {
+      "default": "high",
+      "rules": [
+        {
+          "condition": "user_name IN ('Domain Admins','Enterprise Admins')",
+          "severity": "critical"
+        }
+      ]
+    },
+    "filters": [],
+    "recommendationTemplate": "Пользователь {{user_name}} заблокирован. Проверьте задачи и сервисы, использующие этот аккаунт."
+  },
+  "S4": {
+    "name": "Kerberos Pre-Auth Failure",
+    "eventIds": [4771],
+    "correlatedEventIds": [4768, 4769],
+    "aggregationWindowMinutes": 10,
+    "groupBy": ["user_name", "source_host"],
+    "severity": {"default": "medium"},
+    "filters": [],
+    "recommendationTemplate": "Ошибка Kerberos pre-auth для пользователя {{user_name}}. Проверьте время на DC и правильность пароля."
+  },
+  "S5": {
+    "name": "Kerberos TGT/TGS Failure",
+    "eventIds": [4768, 4769],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 10,
+    "groupBy": ["user_name", "source_host"],
+    "severity": {"default": "medium"},
+    "filters": [],
+    "recommendationTemplate": "Ошибка выдачи Kerberos тикета для пользователя {{user_name}}. Проверьте корректность тикетов и работу сервисов."
+  },
+  "S6": {
+    "name": "User Created",
+    "eventIds": [4720],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 60,
+    "groupBy": ["user_name"],
+    "severity": {"default": "low"},
+    "filters": [],
+    "recommendationTemplate": "Создан новый пользователь {{user_name}}. Проверьте назначенные права и группы."
+  },
+  "S7": {
+    "name": "User Deleted",
+    "eventIds": [4726],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 60,
+    "groupBy": ["user_name"],
+    "severity": {"default": "high"},
+    "filters": [],
+    "recommendationTemplate": "Удален пользователь {{user_name}}. Проверьте кто удалил и зачем."
+  },
+  "S8": {
+    "name": "Added to Group",
+    "eventIds": [4728, 4732],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 60,
+    "groupBy": ["user_name", "target_group"],
+    "severity": {
+      "default": "high",
+      "rules": [
+        {
+          "condition": "target_group IN ('Domain Admins','Enterprise Admins')",
+          "severity": "critical"
+        }
+      ]
+    },
+    "filters": [],
+    "recommendationTemplate": "Пользователь {{user_name}} добавлен в группу {{target_group}}. Проверьте критичность группы."
+  },
+  "S9": {
+    "name": "Removed from Group",
+    "eventIds": [4729, 4733],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 60,
+    "groupBy": ["user_name", "target_group"],
+    "severity": {"default": "high"},
+    "filters": [],
+    "recommendationTemplate": "Пользователь {{user_name}} удален из группы {{target_group}}. Проверьте критичность группы."
+  },
+  "S10": {
+    "name": "AD Object Change",
+    "eventIds": [5136],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 60,
+    "groupBy": ["object_name"],
+    "severity": {"default": "medium"},
+    "filters": [],
+    "recommendationTemplate": "Объект {{object_name}} изменен. Проверьте кто и какие поля изменил."
+  },
+  "S11": {
+    "name": "GPO Changed",
+    "eventIds": [5136],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 60,
+    "groupBy": ["object_name"],
+    "severity": {"default": "high"},
+    "filters": [
+      {"field": "object_type", "operator": "=", "value": "groupPolicyContainer"}
+    ],
+    "recommendationTemplate": "GPO {{object_name}} изменен. Проверьте критичность и авторство изменений."
+  },
+  "S12": {
+    "name": "GPO Application Error",
+    "eventIds": [1058, 1030, 7016],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 60,
+    "groupBy": ["target_host", "policy_name"],
+    "severity": {"default": "medium"},
+    "filters": [],
+    "recommendationTemplate": "Ошибка применения GPO {{policy_name}} на {{target_host}}. Проверьте доступность DC и сети."
+  },
+  "S13": {
+    "name": "Service Account Login from New Host",
+    "eventIds": [4624],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 10,
+    "groupBy": ["user_name", "source_host"],
+    "severity": {"default": "high"},
+    "filters": [
+      {"field": "user_type", "operator": "=", "value": "service"}
+    ],
+    "recommendationTemplate": "Сервисный аккаунт {{user_name}} вошел с нового хоста {{source_host}}. Проверьте легитимность."
+  },
+  "S14": {
+    "name": "Frequent Service Account Login Failures",
+    "eventIds": [4625],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 10,
+    "groupBy": ["user_name", "source_host"],
+    "severity": {"default": "medium"},
+    "filters": [
+      {"field": "user_type", "operator": "=", "value": "service"}
+    ],
+    "recommendationTemplate": "Сервисный аккаунт {{user_name}} имеет частые неудачные попытки входа. Проверьте пароль и сервисы."
+  },
+  "S15": {
+    "name": "AD Replication Issue",
+    "eventIds": [1311, 1865, 2042],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 30,
+    "groupBy": ["target_host"],
+    "severity": {"default": "high"},
+    "filters": [],
+    "recommendationTemplate": "Проблемы репликации на {{target_host}}. Проверьте сеть и состояние DC."
+  },
+  "S16": {
+    "name": "DC Restart / Unavailable",
+    "eventIds": [6005, 6006, 1074],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 30,
+    "groupBy": ["target_host"],
+    "severity": {"default": "high"},
+    "filters": [],
+    "recommendationTemplate": "Контроллер домена {{target_host}} перезапущен или недоступен. Проверьте причины."
+  },
+  "S17": {
+    "name": "Time Skew / Kerberos Issue",
+    "eventIds": [4768, 4771],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 10,
+    "groupBy": ["target_host"],
+    "severity": {"default": "medium"},
+    "filters": [],
+    "recommendationTemplate": "Рассинхронизация времени или Kerberos ошибки на {{target_host}}. Проверьте синхронизацию времени."
+  },
+  "S18": {
+    "name": "Logon from Unusual Host",
+    "eventIds": [4624],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 10,
+    "groupBy": ["user_name", "source_host"],
+    "severity": {"default": "medium"},
+    "filters": [],
+    "recommendationTemplate": "Пользователь {{user_name}} вошел с нетипичного хоста {{source_host}}. Проверьте соответствие."
+  },
+  "S19": {
+    "name": "Logon at Unusual Time",
+    "eventIds": [4624],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 10,
+    "groupBy": ["user_name"],
+    "severity": {"default": "medium"},
+    "filters": [],
+    "recommendationTemplate": "Пользователь {{user_name}} вошел в необычное время. Проверьте график работы."
+  },
+  "S20": {
+    "name": "Mass Failed Logons (Password Spraying)",
+    "eventIds": [4625],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 10,
+    "groupBy": ["source_host"],
+    "severity": {"default": "high"},
+    "filters": [],
+    "recommendationTemplate": "Массовые неудачные попытки входа с {{source_host}}. Проверьте возможный подбор пароля."
+  },
+  "S21": {
+    "name": "Repeated Incident",
+    "eventIds": [],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 60,
+    "groupBy": ["signal_id", "affected_user"],
+    "severity": {"default": "medium"},
+    "filters": [],
+    "recommendationTemplate": "Инцидент повторился. Проверьте историю и прошлые решения."
+  },
+  "S22": {
+    "name": "New / Unseen Event",
+    "eventIds": [],
+    "correlatedEventIds": [],
+    "aggregationWindowMinutes": 60,
+    "groupBy": ["source_host", "event_type"],
+    "severity": {"default": "medium"},
+    "filters": [],
+    "recommendationTemplate": "Новый или ранее не встречавшийся тип события {{event_type}}. Проверьте источник {{source_host}}."
+  }
+}
