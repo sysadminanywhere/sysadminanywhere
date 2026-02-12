@@ -1,16 +1,15 @@
-package com.sysadminanywhere.model;
+package com.sysadminanywhere.common.directory.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class Person {
+public class LoginRequest {
 
-    private String login;
+    private String username;
     private String password;
-    private String role;
 
 }

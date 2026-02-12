@@ -3,7 +3,7 @@ package com.sysadminanywhere.client.inventory;
 import com.sysadminanywhere.common.inventory.model.ComputerItem;
 import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareOnComputer;
-import com.sysadminanywhere.config.FeignClientConfig;
+import com.sysadminanywhere.config.FeignConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @FeignClient(
         name = "inventory",
         url = "${app.services.inventory.uri}",
-        configuration = FeignClientConfig.class
+        configuration = FeignConfiguration.class
 )
 public interface InventoryServiceClient {
 

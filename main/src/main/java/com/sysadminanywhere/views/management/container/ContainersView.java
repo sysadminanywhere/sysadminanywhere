@@ -50,7 +50,6 @@ public class ContainersView extends Div implements MenuControl {
 
     private final LdapService ldapService;
     private final AuthenticatedUser authenticatedUser;
-    private final LoginService loginService;
     private final SettingsService settingsService;
     private final UsersService usersService;
     private final ComputersService computersService;
@@ -62,7 +61,6 @@ public class ContainersView extends Div implements MenuControl {
 
     public ContainersView(LdapService ldapService,
                           AuthenticatedUser authenticatedUser,
-                          LoginService loginService,
                           SettingsService settingsService,
                           UsersService usersService,
                           ComputersService computersService,
@@ -71,7 +69,6 @@ public class ContainersView extends Div implements MenuControl {
 
         this.ldapService = ldapService;
         this.authenticatedUser = authenticatedUser;
-        this.loginService = loginService;
         this.settingsService = settingsService;
         this.usersService = usersService;
         this.computersService = computersService;
@@ -194,7 +191,7 @@ public class ContainersView extends Div implements MenuControl {
     }
 
     private Dialog addUserDialog(Runnable onSearch) {
-        return new AddUserDialog(usersService, loginService, authenticatedUser, settingsService, onSearch);
+        return new AddUserDialog(usersService, authenticatedUser, settingsService, onSearch);
     }
 
     private Dialog addComputerDialog(Runnable onSearch) {

@@ -2,12 +2,10 @@ package com.sysadminanywhere.views.settings;
 
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.control.ThemeSwitcher;
-import com.sysadminanywhere.entity.LoginEntity;
 import com.sysadminanywhere.model.DisplayNamePattern;
 import com.sysadminanywhere.model.LoginPattern;
 import com.sysadminanywhere.model.Settings;
 import com.sysadminanywhere.security.AuthenticatedUser;
-import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.service.SettingsService;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.notification.Notification;
@@ -31,27 +29,15 @@ import java.util.stream.Collectors;
 public class SettingsView extends VerticalLayout {
 
     private AuthenticatedUser authenticatedUser;
-    private final LoginService loginService;
     private final SettingsService settingsService;
 
-    private Optional<LoginEntity> loginEntity;
     private Settings settings;
 
     public SettingsView(AuthenticatedUser authenticatedUser,
-                        LoginService loginService,
                         SettingsService settingsService) {
-        this.loginService = loginService;
+
         this.authenticatedUser = authenticatedUser;
         this.settingsService = settingsService;
-
-        Optional<UserEntry> maybeUser = authenticatedUser.getUser();
-        if (maybeUser.isPresent()) {
-            UserEntry user = maybeUser.get();
-            loginEntity = loginService.getLogin(user);
-            if (loginEntity.isPresent()) {
-                settings = settingsService.getSettings(loginEntity.get());
-            }
-        }
 
         add(getColorMode(), getUserPatterns());
     }
@@ -109,12 +95,10 @@ public class SettingsView extends VerticalLayout {
             settings.setLoginPattern(loginPattern);
             settings.setDefaultPassword(defaultPassword);
 
-            if (loginEntity.isPresent()) {
-                settingsService.setSettings(loginEntity.get(), settings);
+            settingsService.setSettings(settings);
 
-                Notification notification = Notification.show("Settings saved");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            }
+            Notification notification = Notification.show("Settings saved");
+            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
         card.add(new VerticalLayout(cmbDisplayNamePattern, cmbLoginPattern, txtDefaultPassword, saveButton));

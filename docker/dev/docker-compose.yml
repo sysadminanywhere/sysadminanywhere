@@ -9,43 +9,10 @@ services:
       - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
     ports:
       - "8200:8200"
-    command: >
-      sh -c "
-        vault server -dev -dev-listen-address=0.0.0.0:8200 -dev-root-token-id=myroottoken &
-      
-        sleep 5
-      
-        export VAULT_ADDR='http://127.0.0.1:8200'
-        export VAULT_TOKEN='myroottoken'
-      
-        vault kv put secret/sysadminanywhere username=admin password='Secret2#'
-      
-        wait
-      "
-  keycloak:
-    image: quay.io/keycloak/keycloak:latest
-    container_name: keycloak-dev
-    ports:
-      - "8880:8080"
-    environment:
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://db_dev:5432/keycloak
-      KC_DB_USERNAME: postgres
-      KC_DB_PASSWORD: password
-      KC_HOSTNAME: localhost
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-    volumes:
-      - ./keycloak:/opt/keycloak/data/import
-    command:
-      - start-dev
-      - --import-realm
-    depends_on:
-      - db
 
-  db:
-    image: postgres:16
-    container_name: db_dev
+  db-dev:
+    image: postgres:17
+    container_name: db-dev
     environment:
       POSTGRES_DB: sysadminanywhere
       POSTGRES_USER: postgres
@@ -54,50 +21,3 @@ services:
       - ./db/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
     ports:
       - "5432:5432"
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: zookeeper_dev
-    ports:
-      - "2181:2181"
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-
-  kafka:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: kafka_dev
-    ports:
-      - "9092:9092"
-      - "29092:29092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper_dev:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    depends_on:
-      - zookeeper
-
-  kafka-ui:
-    container_name: kafka-ui_dev
-    image: provectuslabs/kafka-ui:latest
-    ports:
-      - 9090:8080
-    environment:
-      DYNAMIC_CONFIG_ENABLED: true
-    volumes:
-      - ./kui/config.yaml:/etc/kafkaui/dynamic_config.yaml
-
-  n8n:
-    image: n8nio/n8n
-    container_name: n8n_dev
-    ports:
-      - "5678:5678"
-    environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=password
-      - N8N_ENDPOINT_WEBHOOK=true
-      - N8N_PROTOCOL=http

@@ -3,10 +3,8 @@ package com.sysadminanywhere.views.management.users;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
-import com.sysadminanywhere.entity.LoginEntity;
 import com.sysadminanywhere.model.Settings;
 import com.sysadminanywhere.security.AuthenticatedUser;
-import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.service.SettingsService;
 import com.sysadminanywhere.service.UsersService;
 import com.vaadin.flow.component.Component;
@@ -18,11 +16,9 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.SvgIcon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -54,22 +50,19 @@ public class UsersView extends Div implements MenuControl {
     private final UsersService usersService;
 
     private AuthenticatedUser authenticatedUser;
-    private final LoginService loginService;
     private final SettingsService settingsService;
 
-    private Optional<LoginEntity> loginEntity;
     private Settings settings;
 
-    public UsersView(UsersService usersService, AuthenticatedUser authenticatedUser, LoginService loginService, SettingsService settingsService) {
+    public UsersView(UsersService usersService, AuthenticatedUser authenticatedUser, SettingsService settingsService) {
         this.usersService = usersService;
-        this.loginService = loginService;
         this.settingsService = settingsService;
         this.authenticatedUser = authenticatedUser;
 
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid(), usersService, authenticatedUser, loginService, settingsService);
+        filters = new Filters(() -> refreshGrid(), usersService, authenticatedUser, settingsService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
@@ -121,7 +114,7 @@ public class UsersView extends Div implements MenuControl {
     }
 
     private Dialog addDialog(Runnable onSearch) {
-        return new AddUserDialog(usersService, loginService, authenticatedUser, settingsService, onSearch);
+        return new AddUserDialog(usersService, authenticatedUser, settingsService, onSearch);
     }
 
     private Dialog importDialog(Runnable onSearch) {
@@ -132,18 +125,15 @@ public class UsersView extends Div implements MenuControl {
 
         private final UsersService usersService;
         private AuthenticatedUser authenticatedUser;
-        private final LoginService loginService;
         private final SettingsService settingsService;
 
-        private Optional<LoginEntity> loginEntity;
         private Settings settings;
 
         private final TextField cn = new TextField("CN");
         private final ComboBox<String> availability = new ComboBox<>("Filters");
 
-        public Filters(Runnable onSearch, UsersService usersService, AuthenticatedUser authenticatedUser, LoginService loginService, SettingsService settingsService) {
+        public Filters(Runnable onSearch, UsersService usersService, AuthenticatedUser authenticatedUser, SettingsService settingsService) {
             this.usersService = usersService;
-            this.loginService = loginService;
             this.settingsService = settingsService;
             this.authenticatedUser = authenticatedUser;
 

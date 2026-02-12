@@ -2,12 +2,11 @@ package com.sysadminanywhere.views.management.users;
 
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.control.ContainerField;
-import com.sysadminanywhere.entity.LoginEntity;
+import com.sysadminanywhere.entity.User;
 import com.sysadminanywhere.model.DisplayNamePattern;
 import com.sysadminanywhere.model.LoginPattern;
 import com.sysadminanywhere.model.Settings;
 import com.sysadminanywhere.security.AuthenticatedUser;
-import com.sysadminanywhere.service.LoginService;
 import com.sysadminanywhere.service.SettingsService;
 import com.sysadminanywhere.service.UsersService;
 import com.vaadin.flow.component.button.Button;
@@ -29,15 +28,12 @@ public class AddUserDialog extends Dialog {
     private final UsersService usersService;
 
     private final AuthenticatedUser authenticatedUser;
-    private final LoginService loginService;
     private final SettingsService settingsService;
 
-    private Optional<LoginEntity> loginEntity;
     private Settings settings;
 
-    public AddUserDialog(UsersService usersService, LoginService loginService, AuthenticatedUser authenticatedUser, SettingsService settingsService, Runnable onSearch) {
+    public AddUserDialog(UsersService usersService, AuthenticatedUser authenticatedUser, SettingsService settingsService, Runnable onSearch) {
         this.usersService = usersService;
-        this.loginService = loginService;
         this.settingsService = settingsService;
         this.authenticatedUser = authenticatedUser;
 
@@ -45,19 +41,12 @@ public class AddUserDialog extends Dialog {
         Pattern userLoginPattern = Pattern.compile("");
         String userLoginFormat = "";
 
-        Optional<UserEntry> maybeUser = authenticatedUser.getUser();
-        if (maybeUser.isPresent()) {
-            UserEntry user = maybeUser.get();
-            loginEntity = loginService.getLogin(user);
-            if (loginEntity.isPresent()) {
-                settings = settingsService.getSettings(loginEntity.get());
+        settings = settingsService.getSettings();
 
-                userDisplayNameFormat = Pattern.compile(DisplayNamePattern.valueOf(settings.getDisplayNamePattern()).getPattern());
-                LoginPattern loginPattern = LoginPattern.valueOf(settings.getLoginPattern());
-                userLoginPattern = Pattern.compile(loginPattern.getPattern());
-                userLoginFormat = loginPattern.getFormat();
-            }
-        }
+        userDisplayNameFormat = Pattern.compile(DisplayNamePattern.valueOf(settings.getDisplayNamePattern()).getPattern());
+        LoginPattern loginPattern = LoginPattern.valueOf(settings.getLoginPattern());
+        userLoginPattern = Pattern.compile(loginPattern.getPattern());
+        userLoginFormat = loginPattern.getFormat();
 
         setHeaderTitle("New user");
         setMaxWidth("800px");
@@ -119,7 +108,7 @@ public class AddUserDialog extends Dialog {
         Pattern finalUserLoginPattern = userLoginPattern;
         String finalUserLoginFormat = userLoginFormat;
 
-        if(!finalUserDisplayNameFormat.pattern().isEmpty()
+        if (!finalUserDisplayNameFormat.pattern().isEmpty()
                 && !finalUserLoginPattern.pattern().isEmpty()
                 && !finalUserLoginFormat.isEmpty()) {
             txtDisplayName.addValueChangeListener(event -> {

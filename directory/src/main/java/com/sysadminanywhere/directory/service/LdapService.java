@@ -4,6 +4,9 @@ import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
@@ -21,9 +24,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -41,6 +47,9 @@ public class LdapService {
     private String domainName;
     private String defaultNamingContext;
     private Dn baseDn;
+
+    private static final String SECRET = "MySuperSecretKeyForJWTValidation123456";
+    private static final Key KEY = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
     private final String ContainerMicrosoft = "B:32:F4BE92A4C777485E878E9421D53087DB:";                 //NOSONAR CN=Microsoft,CN=Program Data,DC=example,DC=com
     private final String ContainerProgramData = "B:32:09460C08AE1E4A4EA0F64AEE7DAA1E5A:";               //NOSONAR CN=Program Data,DC=example,DC=com
@@ -527,6 +536,18 @@ public class LdapService {
         } catch (Exception ex) {
             return false;
         }
+    }
+
+    public Map<String, String> authenticate(String username, String password) {
+        String jwt = Jwts.builder()
+                .setSubject(username)
+                .claim("roles", username.equals("admin") ? new String[]{"ROLE_ADMIN"} : new String[]{"ROLE_USER"})
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 час
+                .signWith(KEY, SignatureAlgorithm.HS256)
+                .compact();
+
+        return Map.of("token", jwt);
     }
 
 }

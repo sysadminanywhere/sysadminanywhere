@@ -1,7 +1,7 @@
 package com.sysadminanywhere.client.directory;
 
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
-import com.sysadminanywhere.config.FeignClientConfig;
+import com.sysadminanywhere.config.FeignConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,7 +12,7 @@ import java.util.List;
 @FeignClient(
         name = "printers",
         url = "${app.services.directory.uri}",
-        configuration = FeignClientConfig.class
+        configuration = FeignConfiguration.class
 )
 public interface PrintersServiceClient {
 

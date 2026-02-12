@@ -261,12 +261,12 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
         subMenuManagement.addItem("Processes", listener);
         subMenuManagement.addItem("Services", listener);
         subMenuManagement.addItem("Events", listener);
-        subMenuManagement.add(new Hr());
+        subMenuManagement.addSeparator();
         subMenuManagement.addItem("Software", listener);
         subMenuManagement.addItem("Hardware", listener);
-        subMenuManagement.add(new Hr());
+        subMenuManagement.addSeparator();
         subMenuManagement.addItem("Performance", listener);
-        subMenuManagement.add(new Hr());
+        subMenuManagement.addSeparator();
         subMenuManagement.addItem("Reboot", menuItemClickEvent -> {
             rebootDialog().open();
         });
