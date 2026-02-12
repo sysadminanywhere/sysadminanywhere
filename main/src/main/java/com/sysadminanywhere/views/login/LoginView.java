@@ -33,7 +33,6 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
 
     public LoginView(AuthenticatedUser authenticatedUser, AuthService authService) {
         this.authenticatedUser = authenticatedUser;
-        //setAction(RouteUtil.getRoutePath(VaadinService.getCurrent().getContext(), getClass()));
 
         LoginI18n i18n = LoginI18n.createDefault();
         i18n.setHeader(new LoginI18n.Header());
@@ -73,7 +72,6 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         if (authenticatedUser.get().isPresent()) {
-            // Already logged in
             setOpened(false);
             event.forwardTo("");
         }
@@ -82,18 +80,13 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
     }
 
     private Collection<? extends GrantedAuthority> extractAuthorities(String token) {
-        // 1. Распаковываем токен (без верификации подписи, если доверяем своему сервису,
-        // или с верификацией через секретный ключ)
         Claims claims = Jwts.parser()
                 .setSigningKey(SECRET)
                 .parseClaimsJws(token)
                 .getBody();
 
-        // 2. Достаем список ролей, который ваш внешний сервис положил в токен
-        // Обычно это поле "roles" или "auth"
         List<String> roles = claims.get("roles", List.class);
 
-        // 3. Преобразуем строки в объекты SimpleGrantedAuthority
         return roles.stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
