@@ -5,12 +5,9 @@ import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.JwtResponse;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.*;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -18,18 +15,16 @@ import org.apache.directory.api.ldap.model.message.*;
 import org.apache.directory.api.ldap.model.message.controls.*;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.ldap.client.api.LdapConnection;
-import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.apache.directory.ldap.client.api.LdapConnectionPool;
-import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.LocalDate;
@@ -43,8 +38,9 @@ import java.util.stream.Collectors;
 @Service
 public class LdapService {
 
-    private final ConnectionService connection;
     private final JwtService jwtService;
+    private final VaultService vaultService;
+    private final ConnectionService connection;
 
     private String domainName;
     private String defaultNamingContext;
@@ -68,9 +64,13 @@ public class LdapService {
 
 
     @SneakyThrows
-    public LdapService(ConnectionService connection, JwtService jwtService) {
-        this.connection = connection;
+    public LdapService(JwtService jwtService,
+                       VaultService vaultService,
+                       ConnectionService connection) {
+
         this.jwtService = jwtService;
+        this.vaultService = vaultService;
+        this.connection = connection;
 
         domainEntry = connection.getRootDse();
         baseDn = new Dn(domainEntry.get("rootdomainnamingcontext").get().getString());
@@ -392,6 +392,7 @@ public class LdapService {
     public void updateProperty(String dn, String name, String value) {
         Attribute attribute = new DefaultAttribute(name, value);
         Modification modification = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, attribute);
+
         connection.modify(dn, modification);
     }
 
@@ -508,6 +509,7 @@ public class LdapService {
             modifyRequest.setName(new Dn(group));
 
             modifyRequest.addModification(removeMember);
+
             ModifyResponse response = connection.modify(modifyRequest);
 
             return true;
@@ -545,6 +547,14 @@ public class LdapService {
         }
 
         return new JwtResponse(jwt, username, roles);
+    }
+
+    private BindRequest createBindRequest(String username, String password) {
+        BindRequest bindRequest = new BindRequestImpl();
+        bindRequest.setName(username);
+        bindRequest.setCredentials(password);
+        bindRequest.setSimple(true);
+        return bindRequest;
     }
 
 }

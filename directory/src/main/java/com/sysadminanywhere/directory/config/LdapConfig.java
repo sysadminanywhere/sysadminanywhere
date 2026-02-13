@@ -32,19 +32,6 @@ public class LdapConfig {
     @Value("${ldap.host.use.ssl:false}")
     private boolean useSsl;
 
-    @SneakyThrows
-    @Bean
-    public LdapConnectionPool createConnectionPool(LdapConnectionConfig config) {
-        ValidatingPoolableLdapConnectionFactory factory = new ValidatingPoolableLdapConnectionFactory(config);
-
-        GenericObjectPoolConfig<LdapConnection> poolConfig = new GenericObjectPoolConfig<>();
-        poolConfig.setTestOnBorrow(true);
-        poolConfig.setMaxTotal(10);
-
-        LdapConnectionPool pool = new LdapConnectionPool(factory, poolConfig);
-        return pool;
-    }
-
     @Bean
     public LdapConnectionConfig sslConfig() {
         LdapConnectionConfig sslConfig = new LdapConnectionConfig();

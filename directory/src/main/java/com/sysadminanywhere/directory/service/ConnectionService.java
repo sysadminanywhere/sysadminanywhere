@@ -7,8 +7,8 @@ import org.apache.directory.api.ldap.model.entry.Modification;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.message.*;
 import org.apache.directory.api.ldap.model.name.Dn;
-import org.apache.directory.ldap.client.api.LdapConnection;
-import org.apache.directory.ldap.client.api.LdapConnectionPool;
+import org.apache.directory.ldap.client.api.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -16,11 +16,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class ConnectionService {
 
-    private final LdapConnectionPool pool;
+    @Value("${ldap.host.server:localhost}")
+    private String server;
+
+    @Value("${ldap.host.port:389}")
+    private int port;
+
+    @Value("${ldap.host.use.ssl:false}")
+    private boolean useSsl;
+
     private final VaultService vaultService;
 
-    public ConnectionService(LdapConnectionPool ldapConnectionPool, VaultService vaultService) {
-        this.pool = ldapConnectionPool;
+    public ConnectionService(VaultService vaultService) {
         this.vaultService = vaultService;
     }
 
@@ -30,7 +37,7 @@ public class ConnectionService {
         if (authentication != null && authentication.isAuthenticated()) {
             String username = authentication.getName();
             String password = vaultService.getPassword(username);
-            connection = pool.getConnection();
+            connection = new LdapNetworkConnection(ldapConfig());
             connection.bind(createBindRequest(username, password));
         }
         return connection;
@@ -40,7 +47,7 @@ public class ConnectionService {
     public Entry getRootDse() {
         LdapConnection connection = null;
         try {
-            connection = pool.getConnection();
+            connection = new LdapNetworkConnection(ldapConfig());
             connection.bind();
             return connection.getRootDse();
         } catch (LdapException e) {
@@ -48,7 +55,7 @@ public class ConnectionService {
         } finally {
             if (connection != null) {
                 connection.unBind();
-                pool.releaseConnection(connection);
+                connection.close();
             }
         }
     }
@@ -64,7 +71,7 @@ public class ConnectionService {
         } finally {
             if (connection != null) {
                 connection.unBind();
-                pool.releaseConnection(connection);
+                connection.close();
             }
         }
     }
@@ -80,7 +87,7 @@ public class ConnectionService {
         } finally {
             if (connection != null) {
                 connection.unBind();
-                pool.releaseConnection(connection);
+                connection.close();
             }
         }
     }
@@ -96,7 +103,7 @@ public class ConnectionService {
         } finally {
             if (connection != null) {
                 connection.unBind();
-                pool.releaseConnection(connection);
+                connection.close();
             }
         }
     }
@@ -112,7 +119,7 @@ public class ConnectionService {
         } finally {
             if (connection != null) {
                 connection.unBind();
-                pool.releaseConnection(connection);
+                connection.close();
             }
         }
     }
@@ -128,7 +135,7 @@ public class ConnectionService {
         } finally {
             if (connection != null) {
                 connection.unBind();
-                pool.releaseConnection(connection);
+                connection.close();
             }
         }
     }
@@ -137,7 +144,7 @@ public class ConnectionService {
     public boolean authenticate(String username, String password) {
         LdapConnection connection = null;
         try {
-            connection = pool.getConnection();
+            connection = new LdapNetworkConnection(ldapConfig());
             connection.bind(createBindRequest(username, password));
             vaultService.savePassword(username, password);
             return true;
@@ -146,7 +153,7 @@ public class ConnectionService {
         } finally {
             if (connection != null) {
                 connection.unBind();
-                pool.releaseConnection(connection);
+                connection.close();
             }
         }
     }
@@ -157,6 +164,15 @@ public class ConnectionService {
         bindRequest.setCredentials(password);
         bindRequest.setSimple(true);
         return bindRequest;
+    }
+
+    private LdapConnectionConfig ldapConfig() {
+        LdapConnectionConfig sslConfig = new LdapConnectionConfig();
+        sslConfig.setLdapHost(server);
+        sslConfig.setUseSsl(useSsl);
+        sslConfig.setLdapPort(port);
+        sslConfig.setTrustManagers(new NoVerificationTrustManager());
+        return sslConfig;
     }
 
 }

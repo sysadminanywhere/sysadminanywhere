@@ -1,5 +1,6 @@
 package com.sysadminanywhere.config;
 
+import com.sysadminanywhere.security.LogoutOnAccessDeniedHandler;
 import com.sysadminanywhere.views.login.LoginView;
 import com.vaadin.flow.spring.security.VaadinAwareSecurityContextHolderStrategyConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -24,12 +25,13 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain vaadinSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain vaadinSecurityFilterChain(HttpSecurity http, LogoutOnAccessDeniedHandler logoutOnAccessDeniedHandler) throws Exception {
 
         http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/images/*.png", "/*.css").permitAll());
 
-        // Icons from the line-awesome addon
         http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/line-awesome/**").permitAll());
+
+        http.exceptionHandling(ex->ex.accessDeniedHandler(logoutOnAccessDeniedHandler));
 
         http.with(vaadin(), vaadin -> {
             vaadin.loginView(LoginView.class);

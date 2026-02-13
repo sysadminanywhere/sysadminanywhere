@@ -64,13 +64,11 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     String currentTitle = "Domain";
 
-    private final AuthenticatedUser authenticatedUser;
     private final LdapService ldapService;
 
     public MainLayout(AuthenticatedUser authenticatedUser,
                       LdapService ldapService) {
 
-        this.authenticatedUser = authenticatedUser;
         this.ldapService = ldapService;
 
         setPrimarySection(Section.DRAWER);

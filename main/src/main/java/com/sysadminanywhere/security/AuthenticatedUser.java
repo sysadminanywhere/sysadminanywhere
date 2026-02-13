@@ -28,8 +28,12 @@ public class AuthenticatedUser {
 
     @Transactional
     public Optional<User> get() {
-        return authenticationContext.getAuthenticatedUser(UserDetails.class)
-                .flatMap(userDetails -> userRepository.findByUsername(userDetails.getUsername()));
+        Optional<String> username = authenticationContext.getAuthenticatedUser(String.class);
+        if (username.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return userRepository.findByUsername(username.get());
+        }
     }
 
     public void logout() {

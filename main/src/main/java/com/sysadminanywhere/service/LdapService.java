@@ -65,19 +65,14 @@ public class LdapService {
     }
 
     public EntryDto getRootDse() {
-//        try {
-//            if (rootDse == null) {
-//                rootDse = ldapServiceClient.getRootDse();
-//            }
-//            return rootDse;
-//        } catch (feign.FeignException fx) {
-//            log.error("Feign error with status: {}", fx.status(), fx);
-//            if (fx.status() == 401) {
-//                //authenticationContext.logout();
-//                VaadinSession.getCurrent().getSession().invalidate();
-//            }
-//        } catch (NullPointerException ne) {
-//        }
+        try {
+            if (rootDse == null) {
+                rootDse = ldapServiceClient.getRootDse();
+            }
+            return rootDse;
+        } catch (Exception e) {
+            log.error("Error : {}", e.getMessage());
+        }
         return null;
     }
 
