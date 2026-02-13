@@ -167,12 +167,12 @@ public class ConnectionService {
     }
 
     private LdapConnectionConfig ldapConfig() {
-        LdapConnectionConfig sslConfig = new LdapConnectionConfig();
-        sslConfig.setLdapHost(server);
-        sslConfig.setUseSsl(useSsl);
-        sslConfig.setLdapPort(port);
-        sslConfig.setTrustManagers(new NoVerificationTrustManager());
-        return sslConfig;
+        LdapConnectionConfig config = new LdapConnectionConfig();
+        config.setLdapHost(server);
+        config.setUseSsl(useSsl);
+        config.setLdapPort(port);
+        config.setTrustManagers(new NoVerificationTrustManager());
+        return config;
     }
 
 }
