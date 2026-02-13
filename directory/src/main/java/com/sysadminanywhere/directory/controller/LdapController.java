@@ -1,9 +1,6 @@
 package com.sysadminanywhere.directory.controller;
 
-import com.sysadminanywhere.common.directory.dto.AuditDto;
-import com.sysadminanywhere.common.directory.dto.EntryDto;
-import com.sysadminanywhere.common.directory.dto.LoginRequest;
-import com.sysadminanywhere.common.directory.dto.SearchDto;
+import com.sysadminanywhere.common.directory.dto.*;
 import com.sysadminanywhere.directory.service.LdapService;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.message.SearchScope;
@@ -76,12 +73,12 @@ public class LdapController {
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<Map<String, String>> authenticate(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<JwtResponse> authenticate(@RequestBody LoginRequest loginRequest) {
         String username = loginRequest.getUsername();
         String password = loginRequest.getPassword();
 
         if (username == null || password == null) {
-            return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
+            return ResponseEntity.status(401).body(null);
         }
         return new ResponseEntity<>(ldapService.authenticate(username, password), HttpStatus.OK);
     }

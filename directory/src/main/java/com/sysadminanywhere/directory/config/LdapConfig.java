@@ -2,12 +2,13 @@ package com.sysadminanywhere.directory.config;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.apache.directory.api.ldap.codec.api.LdapApiService;
+import org.apache.directory.api.ldap.codec.standalone.StandaloneLdapApiService;
 import org.apache.directory.api.ldap.model.message.BindRequest;
 import org.apache.directory.api.ldap.model.message.BindRequestImpl;
-import org.apache.directory.ldap.client.api.LdapConnection;
-import org.apache.directory.ldap.client.api.LdapConnectionConfig;
-import org.apache.directory.ldap.client.api.LdapNetworkConnection;
-import org.apache.directory.ldap.client.api.NoVerificationTrustManager;
+import org.apache.directory.ldap.client.api.*;
+import org.apache.directory.ldap.client.template.LdapConnectionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -22,9 +23,6 @@ import java.util.Arrays;
 @Configuration
 public class LdapConfig {
 
-    @Autowired
-    private VaultTemplate vaultTemplate;
-
     @Value("${ldap.host.server:localhost}")
     private String server;
 
@@ -34,36 +32,17 @@ public class LdapConfig {
     @Value("${ldap.host.use.ssl:false}")
     private boolean useSsl;
 
-    @Value("${ldap.host.username:}")
-    private String userName;
-
-    @Value("${ldap.host.password:}")
-    private String password;
-
     @SneakyThrows
     @Bean
-    public LdapConnection createConnection(LdapConnectionConfig sslConfig) {
-        LdapConnection connection = new LdapNetworkConnection(sslConfig);
+    public LdapConnectionPool createConnectionPool(LdapConnectionConfig config) {
+        ValidatingPoolableLdapConnectionFactory factory = new ValidatingPoolableLdapConnectionFactory(config);
 
-        if(userName.isEmpty() && password.isEmpty()) {
-            VaultResponse response = vaultTemplate
-                    .opsForKeyValue("secret", VaultKeyValueOperationsSupport.KeyValueBackend.KV_2).get("sysadminanywhere");
+        GenericObjectPoolConfig<LdapConnection> poolConfig = new GenericObjectPoolConfig<>();
+        poolConfig.setTestOnBorrow(true);
+        poolConfig.setMaxTotal(10);
 
-            password = response.getData().get("password").toString();
-            userName = response.getData().get("username").toString();
-        }
-
-        BindRequest bindRequest = new BindRequestImpl();
-        bindRequest.setCredentials(password);
-        bindRequest.setSimple(true);
-        bindRequest.setName(userName);
-
-        connection.bind(bindRequest);
-
-        log.info("Is Connected: {}", connection.isConnected());
-        log.info("Is Authenticated: {}", connection.isAuthenticated());
-
-        return connection;
+        LdapConnectionPool pool = new LdapConnectionPool(factory, poolConfig);
+        return pool;
     }
 
     @Bean

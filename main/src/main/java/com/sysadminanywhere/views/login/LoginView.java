@@ -13,11 +13,14 @@ import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,11 +31,13 @@ import java.util.stream.Collectors;
 public class LoginView extends LoginOverlay implements BeforeEnterObserver {
 
     private static final String SECRET = "MySuperSecretKeyForJWTValidation123456";
+    private final Key key;
 
     private final AuthenticatedUser authenticatedUser;
 
     public LoginView(AuthenticatedUser authenticatedUser, AuthService authService) {
         this.authenticatedUser = authenticatedUser;
+        this.key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
         LoginI18n i18n = LoginI18n.createDefault();
         i18n.setHeader(new LoginI18n.Header());
@@ -46,12 +51,10 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
 
         addLoginListener(event -> {
             try {
-                JwtResponse response = authService.authenticate(
-                        event.getUsername(), event.getPassword()
-                );
+                JwtResponse response = authService.authenticate(event.getUsername(), event.getPassword());
 
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        event.getUsername(), null, extractAuthorities(response.getToken())
+                        event.getUsername(), null, extractAuthorities(response.token())
                 );
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
@@ -60,7 +63,7 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
                         "SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext()
                 );
 
-                VaadinSession.getCurrent().setAttribute("jwt_token", response.getToken());
+                VaadinSession.getCurrent().setAttribute("jwt_token", response.token());
 
                 getUI().ifPresent(ui -> ui.navigate(""));
             } catch (Exception e) {
@@ -80,16 +83,22 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
     }
 
     private Collection<? extends GrantedAuthority> extractAuthorities(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(SECRET)
+
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
 
         List<String> roles = claims.get("roles", List.class);
 
+        if (roles == null) {
+            return List.of();
+        }
+
         return roles.stream()
                 .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
 }

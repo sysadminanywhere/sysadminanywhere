@@ -14,6 +14,6 @@ import com.sysadminanywhere.common.directory.dto.JwtResponse;
 public interface AuthServiceClient {
 
     @PostMapping("/api/ldap/authenticate")
-    JwtResponse authenticate(@RequestBody LoginRequest request);;
+    JwtResponse authenticate(@RequestBody LoginRequest request);
 
 }

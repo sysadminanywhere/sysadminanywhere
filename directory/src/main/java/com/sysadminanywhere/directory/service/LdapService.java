@@ -2,6 +2,7 @@ package com.sysadminanywhere.directory.service;
 
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
+import com.sysadminanywhere.common.directory.dto.JwtResponse;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import io.jsonwebtoken.Jwts;
@@ -18,6 +19,7 @@ import org.apache.directory.api.ldap.model.message.controls.*;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
+import org.apache.directory.ldap.client.api.LdapConnectionPool;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -41,12 +43,13 @@ import java.util.stream.Collectors;
 @Service
 public class LdapService {
 
-    private final LdapConnection connection;
-    private final LdapConnectionConfig ldapConnectionConfig;
+    private final ConnectionService connection;
+    private final JwtService jwtService;
 
     private String domainName;
     private String defaultNamingContext;
     private Dn baseDn;
+    private Entry domainEntry;
 
     private static final String SECRET = "MySuperSecretKeyForJWTValidation123456";
     private static final Key KEY = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
@@ -65,12 +68,12 @@ public class LdapService {
 
 
     @SneakyThrows
-    public LdapService(LdapConnection connection, LdapConnectionConfig ldapConnectionConfig) {
+    public LdapService(ConnectionService connection, JwtService jwtService) {
         this.connection = connection;
-        this.ldapConnectionConfig = ldapConnectionConfig;
+        this.jwtService = jwtService;
 
-        Entry entry = connection.getRootDse();
-        baseDn = new Dn(entry.get("rootdomainnamingcontext").get().getString());
+        domainEntry = connection.getRootDse();
+        baseDn = new Dn(domainEntry.get("rootdomainnamingcontext").get().getString());
         defaultNamingContext = baseDn.getName();
         domainName = defaultNamingContext.toUpperCase().replace("DC=", "").replace(",", ".").toLowerCase();
     }
@@ -85,7 +88,7 @@ public class LdapService {
 
     @SneakyThrows
     public Entry getDomainEntry() {
-        return connection.getRootDse();
+        return domainEntry;
     }
 
     public Dn getBaseDn() {
@@ -160,25 +163,23 @@ public class LdapService {
     public Long count(Dn dn, String filter, SearchScope searchScope) {
         long totalElements = 0;
 
-        if (connection.isConnected() && connection.isAuthenticated()) {
-            try {
-                SearchRequest countRequest = new SearchRequestImpl();
-                countRequest.setBase(dn);
-                countRequest.setFilter(filter);
-                countRequest.setScope(searchScope);
-                countRequest.setTypesOnly(true);
-                countRequest.addAttributes();
-                countRequest.setTimeLimit(0);
+        try {
+            SearchRequest countRequest = new SearchRequestImpl();
+            countRequest.setBase(dn);
+            countRequest.setFilter(filter);
+            countRequest.setScope(searchScope);
+            countRequest.setTypesOnly(true);
+            countRequest.addAttributes();
+            countRequest.setTimeLimit(0);
 
-                try (SearchCursor countCursor = connection.search(countRequest)) {
-                    while (countCursor.next()) {
-                        countCursor.get();
-                        totalElements++;
-                    }
+            try (SearchCursor countCursor = connection.search(countRequest)) {
+                while (countCursor.next()) {
+                    countCursor.get();
+                    totalElements++;
                 }
-            } catch (LdapException le) {
-                log.error("LdapException: {}", le);
             }
+        } catch (LdapException le) {
+            log.error("LdapException: {}", le);
         }
 
         return totalElements;
@@ -204,59 +205,56 @@ public class LdapService {
 
         List<Entry> list = new ArrayList<>();
 
-        if (connection.isConnected() && connection.isAuthenticated()) {
+        try {
+            SearchRequest searchRequest = new SearchRequestImpl();
+            searchRequest.setScope(searchScope);
+            searchRequest.addAttributes(attributes);
+            searchRequest.setTypesOnly(false);
+            searchRequest.setTimeLimit(0);
+            searchRequest.setBase(dn);
 
-            try {
-                SearchRequest searchRequest = new SearchRequestImpl();
-                searchRequest.setScope(searchScope);
-                searchRequest.addAttributes(attributes);
-                searchRequest.setTypesOnly(false);
-                searchRequest.setTimeLimit(0);
-                searchRequest.setBase(dn);
+            searchRequest.setFilter(filter);
 
-                searchRequest.setFilter(filter);
+            int pageSize = 100;
+            String sortKey = "cn";
 
-                int pageSize = 100;
-                String sortKey = "cn";
+            if (sort != null && !sort.isEmpty()) {
+                Optional<Sort.Order> order = sort.get().findFirst();
+                if (order.isPresent())
+                    sortKey = order.get().getProperty();
+            }
 
-                if (sort != null && !sort.isEmpty()) {
-                    Optional<Sort.Order> order = sort.get().findFirst();
-                    if (order.isPresent())
-                        sortKey = order.get().getProperty();
-                }
+            SortRequest sortRequest = new SortRequestImpl();
+            sortRequest.addSortKey(new SortKey(sortKey));
+            searchRequest.addControl(sortRequest);
 
-                SortRequest sortRequest = new SortRequestImpl();
-                sortRequest.addSortKey(new SortKey(sortKey));
-                searchRequest.addControl(sortRequest);
+            PagedResults pagedResults = new PagedResultsImpl();
+            pagedResults.setSize(pageSize);
+            searchRequest.addControl(pagedResults);
 
-                PagedResults pagedResults = new PagedResultsImpl();
-                pagedResults.setSize(pageSize);
-                searchRequest.addControl(pagedResults);
-
-                while (true) {
-                    try (SearchCursor searchCursor = connection.search(searchRequest)) {
-                        while (searchCursor.next()) {
-                            Response response = searchCursor.get();
-                            if (response instanceof SearchResultEntry) {
-                                Entry resultEntry = ((SearchResultEntry) response).getEntry();
-                                list.add(resultEntry);
-                            }
+            while (true) {
+                try (SearchCursor searchCursor = connection.search(searchRequest)) {
+                    while (searchCursor.next()) {
+                        Response response = searchCursor.get();
+                        if (response instanceof SearchResultEntry) {
+                            Entry resultEntry = ((SearchResultEntry) response).getEntry();
+                            list.add(resultEntry);
                         }
-                        SearchResultDone resultDone = searchCursor.getSearchResultDone();
-                        if (resultDone != null) {
-                            PagedResults pageResultResponseControl = (PagedResults) resultDone.getControl(PagedResults.OID);
-                            if (pageResultResponseControl == null || pageResultResponseControl.getCookie().length == 0) {
-                                break;
-                            } else {
-                                pagedResults.setCookie(pageResultResponseControl.getCookie());
-                            }
+                    }
+                    SearchResultDone resultDone = searchCursor.getSearchResultDone();
+                    if (resultDone != null) {
+                        PagedResults pageResultResponseControl = (PagedResults) resultDone.getControl(PagedResults.OID);
+                        if (pageResultResponseControl == null || pageResultResponseControl.getCookie().length == 0) {
+                            break;
+                        } else {
+                            pagedResults.setCookie(pageResultResponseControl.getCookie());
                         }
                     }
                 }
-
-            } catch (LdapException le) {
-                log.error("LdapException: {}", le);
             }
+
+        } catch (LdapException le) {
+            log.error("LdapException: {}", le);
         }
 
         return list;
@@ -272,77 +270,75 @@ public class LdapService {
 
         long totalElements = 0;
 
-        if (connection.isConnected() && connection.isAuthenticated()) {
-            try {
-                SearchRequest searchRequest = new SearchRequestImpl();
-                searchRequest.setScope(searchScope);
-                searchRequest.addAttributes(attributes);
-                searchRequest.setTypesOnly(false);
-                searchRequest.setTimeLimit(0);
-                searchRequest.setBase(dn);
-                searchRequest.setFilter(filter);
+        try {
+            SearchRequest searchRequest = new SearchRequestImpl();
+            searchRequest.setScope(searchScope);
+            searchRequest.addAttributes(attributes);
+            searchRequest.setTypesOnly(false);
+            searchRequest.setTimeLimit(0);
+            searchRequest.setBase(dn);
+            searchRequest.setFilter(filter);
 
-                // сортировка
-                String sortKey = "cn";
-                if (sort != null && !sort.isEmpty()) {
-                    Optional<Sort.Order> order = sort.get().findFirst();
-                    if (order.isPresent()) {
-                        sortKey = order.get().getProperty();
-                    }
+            // сортировка
+            String sortKey = "cn";
+            if (sort != null && !sort.isEmpty()) {
+                Optional<Sort.Order> order = sort.get().findFirst();
+                if (order.isPresent()) {
+                    sortKey = order.get().getProperty();
                 }
-                SortRequest sortRequest = new SortRequestImpl();
-                sortRequest.addSortKey(new SortKey(sortKey));
-                searchRequest.addControl(sortRequest);
-
-                PagedResults pagedResults = new PagedResultsImpl();
-                pagedResults.setSize(pageSize);
-
-                int skipped = 0;
-
-                while (true) {
-                    if (cookie != null) {
-                        pagedResults.setCookie(cookie);
-                    }
-                    searchRequest.addControl(pagedResults);
-
-                    try (SearchCursor searchCursor = connection.search(searchRequest)) {
-                        while (searchCursor.next()) {
-                            Response response = searchCursor.get();
-                            if (response instanceof SearchResultEntry) {
-                                totalElements++;
-
-                                if (skipped < offset) {
-                                    skipped++;
-                                    continue;
-                                }
-
-                                if (pageList.size() < pageSize) {
-                                    Entry resultEntry = ((SearchResultEntry) response).getEntry();
-                                    pageList.add(resultEntry);
-                                }
-                            }
-                        }
-
-                        SearchResultDone resultDone = searchCursor.getSearchResultDone();
-                        if (resultDone != null) {
-                            PagedResults pageResultResponseControl = (PagedResults) resultDone.getControl(PagedResults.OID);
-                            if (pageResultResponseControl != null && pageResultResponseControl.getCookie().length > 0) {
-                                cookie = pageResultResponseControl.getCookie();
-                            } else {
-                                cookie = null;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (cookie == null) {
-                        break;
-                    }
-                }
-
-            } catch (LdapException le) {
-                log.error("LdapException: {}", le);
             }
+            SortRequest sortRequest = new SortRequestImpl();
+            sortRequest.addSortKey(new SortKey(sortKey));
+            searchRequest.addControl(sortRequest);
+
+            PagedResults pagedResults = new PagedResultsImpl();
+            pagedResults.setSize(pageSize);
+
+            int skipped = 0;
+
+            while (true) {
+                if (cookie != null) {
+                    pagedResults.setCookie(cookie);
+                }
+                searchRequest.addControl(pagedResults);
+
+                try (SearchCursor searchCursor = connection.search(searchRequest)) {
+                    while (searchCursor.next()) {
+                        Response response = searchCursor.get();
+                        if (response instanceof SearchResultEntry) {
+                            totalElements++;
+
+                            if (skipped < offset) {
+                                skipped++;
+                                continue;
+                            }
+
+                            if (pageList.size() < pageSize) {
+                                Entry resultEntry = ((SearchResultEntry) response).getEntry();
+                                pageList.add(resultEntry);
+                            }
+                        }
+                    }
+
+                    SearchResultDone resultDone = searchCursor.getSearchResultDone();
+                    if (resultDone != null) {
+                        PagedResults pageResultResponseControl = (PagedResults) resultDone.getControl(PagedResults.OID);
+                        if (pageResultResponseControl != null && pageResultResponseControl.getCookie().length > 0) {
+                            cookie = pageResultResponseControl.getCookie();
+                        } else {
+                            cookie = null;
+                            break;
+                        }
+                    }
+                }
+
+                if (cookie == null) {
+                    break;
+                }
+            }
+
+        } catch (LdapException le) {
+            log.error("LdapException: {}", le);
         }
 
         return new PageImpl<>(pageList, pageable, totalElements);
@@ -538,16 +534,17 @@ public class LdapService {
         }
     }
 
-    public Map<String, String> authenticate(String username, String password) {
-        String jwt = Jwts.builder()
-                .setSubject(username)
-                .claim("roles", username.equals("admin") ? new String[]{"ROLE_ADMIN"} : new String[]{"ROLE_USER"})
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 час
-                .signWith(KEY, SignatureAlgorithm.HS256)
-                .compact();
+    public JwtResponse authenticate(String username, String password) {
+        boolean authenticated = connection.authenticate(username, password);
 
-        return Map.of("token", jwt);
+        String jwt = null;
+        List<String> roles = List.of("ROLE_ADMIN");
+
+        if (authenticated) {
+            jwt = jwtService.generateToken(username, roles);
+        }
+
+        return new JwtResponse(jwt, username, roles);
     }
 
 }
