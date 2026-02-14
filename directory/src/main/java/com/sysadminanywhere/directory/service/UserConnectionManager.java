@@ -63,17 +63,4 @@ public class UserConnectionManager {
         return config;
     }
 
-    public void closePool(String username) {
-        // remove() возвращает объект пула и удаляет его из Map атомарно
-        LdapConnectionPool pool = userPools.remove(username);
-        if (pool != null) {
-            try {
-                log.info("Закрытие и удаление пула для пользователя: {}", username);
-                pool.close(); // Физически закрывает все открытые SSL-соединения в этом пуле
-            } catch (Exception e) {
-                log.warn("Ошибка при закрытии пула пользователя {}: {}", username, e.getMessage());
-            }
-        }
-    }
-
 }
