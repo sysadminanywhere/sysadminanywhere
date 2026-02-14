@@ -42,7 +42,7 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
         LoginI18n i18n = LoginI18n.createDefault();
         i18n.setHeader(new LoginI18n.Header());
         i18n.getHeader().setTitle("Sysadmin Anywhere");
-        i18n.getHeader().setDescription("Login using user/user or admin/admin");
+        i18n.getHeader().setDescription("Login using domain credentials");
         i18n.setAdditionalInformation(null);
         setI18n(i18n);
 
@@ -53,19 +53,23 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
             try {
                 JwtResponse response = authService.authenticate(event.getUsername(), event.getPassword());
 
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        event.getUsername(), null, extractAuthorities(response.token())
-                );
+                if (response.token() != null) {
+                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                            event.getUsername(), null, extractAuthorities(response.token())
+                    );
 
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                    SecurityContextHolder.getContext().setAuthentication(auth);
 
-                VaadinSession.getCurrent().getSession().setAttribute(
-                        "SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext()
-                );
+                    VaadinSession.getCurrent().getSession().setAttribute(
+                            "SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext()
+                    );
 
-                VaadinSession.getCurrent().setAttribute("jwt_token", response.token());
+                    VaadinSession.getCurrent().setAttribute("jwt_token", response.token());
 
-                getUI().ifPresent(ui -> ui.navigate(""));
+                    getUI().ifPresent(ui -> ui.navigate(""));
+                } else {
+                    setError(true);
+                }
             } catch (Exception e) {
                 setError(true);
             }
