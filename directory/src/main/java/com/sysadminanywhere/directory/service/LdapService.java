@@ -41,7 +41,7 @@ public class LdapService {
     private final VaultService vaultService;
 
     private final LdapConnectionPool sharedPool;
-    private final LdapConnectionFactory factory;
+    private final UserConnectionManager userConnectionManager;
 
     private String domainName;
     private String defaultNamingContext;
@@ -68,12 +68,12 @@ public class LdapService {
     public LdapService(JwtService jwtService,
                        VaultService vaultService,
                        LdapConnectionPool sharedPool,
-                       LdapConnectionFactory factory) {
+                       UserConnectionManager userConnectionManager) {
 
         this.jwtService = jwtService;
         this.vaultService = vaultService;
         this.sharedPool = sharedPool;
-        this.factory = factory;
+        this.userConnectionManager = userConnectionManager;
 
         domainEntry = getRootDse();
         baseDn = new Dn(domainEntry.get("rootdomainnamingcontext").get().getString());
@@ -554,20 +554,16 @@ public class LdapService {
     @SneakyThrows
     public JwtResponse authenticate(String username, String password) {
         boolean authenticated = execute(conn -> {
-            try {
-                conn.bind(createBindRequest(username, password));
-                vaultService.savePassword(username, password);
-                return true;
-            } catch (LdapException e) {
-                log.warn("Authentication failed for user: {}", username);
-            }
-            return false;
+            conn.bind(createBindRequest(username, password));
+            vaultService.savePassword(username, password);
+            return true;
         });
 
         String jwt = null;
-        List<String> roles = List.of("ROLE_ADMIN");
+        List<String> roles = new ArrayList<>();
 
         if (authenticated) {
+            roles = List.of("ROLE_ADMIN");
             jwt = jwtService.generateToken(username, roles);
         }
 
@@ -614,29 +610,17 @@ public class LdapService {
 
         LdapConnection connection = null;
         try {
-            connection = factory.newLdapConnection(); // Создаем новое
-            connection.connect();
-            connection.bind(createBindRequest(username, password));
-
+            // Пул сам сделает connect и bind под этим юзером
+            connection = userConnectionManager.getConnection(username, password);
             return operation.execute(connection);
-
         } catch (Exception e) {
-            log.error("User LDAP operation failed for: {}", username, e);
+            log.error("LDAP error", e);
             throw new RuntimeException(e);
         } finally {
             if (connection != null) {
-                try {
-                    // Сначала отвязываемся (это асинхронно в MINA)
-                    if (connection.isAuthenticated()) {
-                        connection.unBind();
-                    }
-                    // close() в этой библиотеке должен дождаться closeTimeout
-                    connection.close();
-                } catch (Exception e) {
-                    // Здесь часто вылетает WARN, мы его просто гасим,
-                    // так как данные уже получены и возвращены
-                    log.trace("Suppressed close error", e);
-                }
+                // ВАЖНО: просто закрываем, чтобы вернуть в пул.
+                // НЕ вызывайте unBind() здесь!
+                try { connection.close(); } catch (Exception e) { /* ignore */ }
             }
         }
     }

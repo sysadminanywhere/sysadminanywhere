@@ -1,6 +1,5 @@
 package com.sysadminanywhere.views.settings;
 
-import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.control.ThemeSwitcher;
 import com.sysadminanywhere.model.DisplayNamePattern;
 import com.sysadminanywhere.model.LoginPattern;
@@ -14,15 +13,14 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.button.Button;
-//import org.vaadin.addons.themeselect.ThemeRadioGroup;
 import com.vaadin.flow.component.card.Card;
+import jakarta.annotation.security.RolesAllowed;
 
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
+@RolesAllowed("ADMIN")
 @PageTitle("Settings")
 @Route(value = "settings/settings")
 public class SettingsView extends VerticalLayout {
