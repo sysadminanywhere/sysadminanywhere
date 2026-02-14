@@ -627,7 +627,7 @@ public class LdapService {
             }
         }
     }
-    // Функциональный интерфейс для лямбда-выражений
+
     @FunctionalInterface
     interface LdapConnectionOperation<T> {
         T execute(LdapConnection connection) throws Exception;
