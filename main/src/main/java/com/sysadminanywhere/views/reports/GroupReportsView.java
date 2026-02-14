@@ -27,10 +27,9 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.stream.Collectors;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Group Reports")
 @Route(value = "reports/groups")
-@PermitAll
 @Uses(Icon.class)
 public class GroupReportsView extends Div {
 

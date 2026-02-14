@@ -27,10 +27,9 @@ import org.springframework.data.domain.PageRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Software inventory")
 @Route(value = "inventory/software/:id?/computer")
-@PermitAll
 @Uses(Icon.class)
 public class InventoryComputersWithSoftwareView  extends Div implements BeforeEnterObserver {
 

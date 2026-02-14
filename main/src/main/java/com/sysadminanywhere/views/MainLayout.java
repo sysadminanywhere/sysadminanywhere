@@ -38,7 +38,6 @@ import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 
-import java.util.Optional;
 
 @Layout
 @PermitAll

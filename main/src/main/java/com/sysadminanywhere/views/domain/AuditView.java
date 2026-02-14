@@ -33,10 +33,9 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Audit")
 @Route(value = "domain/audit")
-@PermitAll
 public class AuditView extends Div {
 
     private String id;

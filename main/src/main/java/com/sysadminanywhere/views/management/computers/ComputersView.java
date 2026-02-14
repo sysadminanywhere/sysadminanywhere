@@ -31,10 +31,9 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.PageRequest;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Computers")
 @Route(value = "management/computers")
-@PermitAll
 @Uses(Icon.class)
 public class ComputersView extends Div implements MenuControl {
 

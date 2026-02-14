@@ -51,10 +51,6 @@ public class LdapService {
     private static final String SECRET = "MySuperSecretKeyForJWTValidation123456";
     private static final Key KEY = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
-    private String server = "192.168.245.132";
-    private int port = 636;
-    private boolean useSsl = true;
-
     private final String ContainerMicrosoft = "B:32:F4BE92A4C777485E878E9421D53087DB:";                 //NOSONAR CN=Microsoft,CN=Program Data,DC=example,DC=com
     private final String ContainerProgramData = "B:32:09460C08AE1E4A4EA0F64AEE7DAA1E5A:";               //NOSONAR CN=Program Data,DC=example,DC=com
     private final String ContainerForeignSecurityPrincipals = "B:32:22B70C67D56E4EFB91E9300FCA3DC1AA:"; //NOSONAR CN=ForeignSecurityPrincipals,DC=example,DC=com
@@ -150,7 +146,7 @@ public class LdapService {
 
     @SneakyThrows
     public Page<Entry> searchPage(String filter, Sort sort, Pageable pageable, String... attributes) {
-        return searchPage(baseDn, filter, SearchScope.SUBTREE, sort, pageable, attributes);
+        return searchPage(baseDn, filter, SearchScope.SUBTREE, pageable, attributes);
     }
 
     @SneakyThrows
@@ -175,36 +171,30 @@ public class LdapService {
 
     @SneakyThrows
     public Long count(Dn dn, String filter, SearchScope searchScope) {
-        long totalElements = 0;
+        return executeAsUser(conn -> {
+            long totalElements = 0;
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            String password = vaultService.getPassword(username);
-            try (LdapConnection connection = new LdapNetworkConnection(ldapConfig())) {
-                connection.connect();
-                connection.bind(createBindRequest(username, password));
+            SearchRequest countRequest = new SearchRequestImpl();
+            countRequest.setBase(dn);
+            countRequest.setFilter(filter);
+            countRequest.setScope(searchScope);
 
-                SearchRequest countRequest = new SearchRequestImpl();
-                countRequest.setBase(dn);
-                countRequest.setFilter(filter);
-                countRequest.setScope(searchScope);
-                countRequest.setTypesOnly(true);
-                countRequest.addAttributes();
-                countRequest.setTimeLimit(0);
+            // Оптимизация сетевого трафика:
+            countRequest.setTypesOnly(true);
+            // Запрашиваем только спец. атрибут "1.1" (означает "без атрибутов")
+            countRequest.addAttributes("1.1");
 
-                try (SearchCursor countCursor = connection.search(countRequest)) {
-                    while (countCursor.next()) {
-                        countCursor.get();
-                        totalElements++;
-                    }
+            countRequest.setTimeLimit(0); // Без ограничений по времени (осторожно!)
+
+            try (SearchCursor countCursor = conn.search(countRequest)) {
+                while (countCursor.next()) {
+                    // Нам не нужно делать .get(), просто считаем наличие следующей записи
+                    totalElements++;
                 }
-            } catch (LdapException le) {
-                log.error("LdapException: {}", le);
             }
-        }
 
-        return totalElements;
+            return totalElements;
+        });
     }
 
     @SneakyThrows
@@ -224,211 +214,170 @@ public class LdapService {
 
     @SneakyThrows
     public List<Entry> search(Dn dn, String filter, SearchScope searchScope, Sort sort, String... attributes) {
+        return executeAsUser(conn -> {
+            List<Entry> list = new ArrayList<>();
+            int pageSize = 100;
 
-        List<Entry> list = new ArrayList<>();
+            SearchRequest searchRequest = new SearchRequestImpl();
+            searchRequest.setBase(dn);
+            searchRequest.setFilter(filter);
+            searchRequest.setScope(searchScope);
+            searchRequest.addAttributes(attributes);
+            searchRequest.setTimeLimit(0);
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            String password = vaultService.getPassword(username);
-            try (LdapConnection connection = new LdapNetworkConnection(ldapConfig())) {
-                connection.connect();
-                connection.bind(createBindRequest(username, password));
+            // 1. Настройка сортировки
+            String sortKey = "cn";
+            boolean reverseOrder = false;
+            if (sort != null && sort.isSorted()) {
+                Sort.Order order = sort.iterator().next();
+                sortKey = order.getProperty();
+                reverseOrder = order.isDescending();
+            }
 
-                SearchRequest searchRequest = new SearchRequestImpl();
-                searchRequest.setScope(searchScope);
-                searchRequest.addAttributes(attributes);
-                searchRequest.setTypesOnly(false);
-                searchRequest.setTimeLimit(0);
-                searchRequest.setBase(dn);
+            SortRequest sortControl = new SortRequestImpl();
+            sortControl.addSortKey(new SortKey(sortKey, "2.5.13.1", reverseOrder)); // 2.5.13.1 - стандартное правило сопоставления
+            searchRequest.addControl(sortControl);
 
-                searchRequest.setFilter(filter);
+            // 2. Настройка пагинации
+            PagedResults pagedControl = new PagedResultsImpl();
+            pagedControl.setSize(pageSize);
+            searchRequest.addControl(pagedControl);
 
-                int pageSize = 100;
-                String sortKey = "cn";
+            byte[] cookie = null;
 
-                if (sort != null && !sort.isEmpty()) {
-                    Optional<Sort.Order> order = sort.get().findFirst();
-                    if (order.isPresent())
-                        sortKey = order.get().getProperty();
-                }
+            do {
+                // ОБЯЗАТЕЛЬНО обновляем куку в контроле перед каждым поиском
+                pagedControl.setCookie(cookie);
 
-                SortRequest sortRequest = new SortRequestImpl();
-                sortRequest.addSortKey(new SortKey(sortKey));
-                searchRequest.addControl(sortRequest);
-
-                PagedResults pagedResults = new PagedResultsImpl();
-                pagedResults.setSize(pageSize);
-                searchRequest.addControl(pagedResults);
-
-                while (true) {
-                    try (SearchCursor searchCursor = connection.search(searchRequest)) {
-                        while (searchCursor.next()) {
-                            Response response = searchCursor.get();
-                            if (response instanceof SearchResultEntry) {
-                                Entry resultEntry = ((SearchResultEntry) response).getEntry();
-                                list.add(resultEntry);
-                            }
-                        }
-                        SearchResultDone resultDone = searchCursor.getSearchResultDone();
-                        if (resultDone != null) {
-                            PagedResults pageResultResponseControl = (PagedResults) resultDone.getControl(PagedResults.OID);
-                            if (pageResultResponseControl == null || pageResultResponseControl.getCookie().length == 0) {
-                                break;
-                            } else {
-                                pagedResults.setCookie(pageResultResponseControl.getCookie());
-                            }
+                try (SearchCursor cursor = conn.search(searchRequest)) {
+                    while (cursor.next()) {
+                        Response response = cursor.get();
+                        if (response instanceof SearchResultEntry) {
+                            list.add((Entry) ((SearchResultEntry) response).getEntry().clone());
                         }
                     }
+
+                    // 3. Получение новой куки из ответа сервера
+                    SearchResultDone done = cursor.getSearchResultDone();
+                    PagedResults responseControl = (PagedResults) done.getControl(PagedResults.OID);
+
+                    if (responseControl != null) {
+                        cookie = responseControl.getCookie();
+                    } else {
+                        cookie = null;
+                    }
                 }
+            } while (cookie != null && cookie.length > 0);
 
-            } catch (LdapException le) {
-                log.error("LdapException: {}", le);
-            }
-        }
-
-        return list;
+            return list;
+        });
     }
 
     @SneakyThrows
-    public Page<Entry> searchPage(Dn dn, String filter, SearchScope searchScope, Sort sort, Pageable pageable, String... attributes) {
+    public Page<Entry> searchPage(Dn dn, String filter, SearchScope searchScope, Pageable pageable, String... attributes) {
+        // 1. Получаем общее количество (Total)
+        long totalElements = count(dn, filter, searchScope);
 
-        List<Entry> pageList = new ArrayList<>();
-        byte[] cookie = null;
-        int pageSize = pageable.getPageSize();
-        int offset = (int) pageable.getOffset();
-
-        long totalElements = 0;
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            String password = vaultService.getPassword(username);
-            try (LdapConnection connection = new LdapNetworkConnection(ldapConfig())) {
-                connection.connect();
-                connection.bind(createBindRequest(username, password));
-
-                SearchRequest searchRequest = new SearchRequestImpl();
-                searchRequest.setScope(searchScope);
-                searchRequest.addAttributes(attributes);
-                searchRequest.setTypesOnly(false);
-                searchRequest.setTimeLimit(0);
-                searchRequest.setBase(dn);
-                searchRequest.setFilter(filter);
-
-                // сортировка
-                String sortKey = "cn";
-                if (sort != null && !sort.isEmpty()) {
-                    Optional<Sort.Order> order = sort.get().findFirst();
-                    if (order.isPresent()) {
-                        sortKey = order.get().getProperty();
-                    }
-                }
-                SortRequest sortRequest = new SortRequestImpl();
-                sortRequest.addSortKey(new SortKey(sortKey));
-                searchRequest.addControl(sortRequest);
-
-                PagedResults pagedResults = new PagedResultsImpl();
-                pagedResults.setSize(pageSize);
-
-                int skipped = 0;
-
-                while (true) {
-                    if (cookie != null) {
-                        pagedResults.setCookie(cookie);
-                    }
-                    searchRequest.addControl(pagedResults);
-
-                    try (SearchCursor searchCursor = connection.search(searchRequest)) {
-                        while (searchCursor.next()) {
-                            Response response = searchCursor.get();
-                            if (response instanceof SearchResultEntry) {
-                                totalElements++;
-
-                                if (skipped < offset) {
-                                    skipped++;
-                                    continue;
-                                }
-
-                                if (pageList.size() < pageSize) {
-                                    Entry resultEntry = ((SearchResultEntry) response).getEntry();
-                                    pageList.add(resultEntry);
-                                }
-                            }
-                        }
-
-                        SearchResultDone resultDone = searchCursor.getSearchResultDone();
-                        if (resultDone != null) {
-                            PagedResults pageResultResponseControl = (PagedResults) resultDone.getControl(PagedResults.OID);
-                            if (pageResultResponseControl != null && pageResultResponseControl.getCookie().length > 0) {
-                                cookie = pageResultResponseControl.getCookie();
-                            } else {
-                                cookie = null;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (cookie == null) {
-                        break;
-                    }
-                }
-
-            } catch (LdapException le) {
-                log.error("LdapException: {}", le);
-            }
+        if (totalElements == 0) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
-        return new PageImpl<>(pageList, pageable, totalElements);
+        // 2. Получаем контент страницы
+        List<Entry> content = executeAsUser(conn -> {
+            List<Entry> pageList = new ArrayList<>();
+            int pageSize = pageable.getPageSize();
+            int offset = (int) pageable.getOffset();
+            int currentCount = 0;
+
+            SearchRequest request = new SearchRequestImpl();
+            request.setBase(dn);
+            request.setFilter(filter);
+            request.setScope(searchScope);
+            request.addAttributes(attributes);
+            request.setTimeLimit(0);
+
+            // Настройка сортировки (важно для стабильности страниц)
+            String sortKey = "cn";
+            boolean isDesc = false;
+            if (pageable.getSort().isSorted()) {
+                Sort.Order order = pageable.getSort().iterator().next();
+                sortKey = order.getProperty();
+                isDesc = order.isDescending();
+            }
+            SortRequest sortControl = new SortRequestImpl();
+            sortControl.addSortKey(new SortKey(sortKey, "2.5.13.1", isDesc));
+            request.addControl(sortControl);
+
+            // Настройка пагинации
+            PagedResults pagedControl = new PagedResultsImpl();
+            pagedControl.setSize(pageSize);
+            request.addControl(pagedControl);
+
+            byte[] cookie = null;
+
+            outerLoop: // Метка для выхода из всех циклов сразу
+            do {
+                pagedControl.setCookie(cookie);
+                request.removeControl(pagedControl);
+                pagedControl.setCookie(cookie);
+                request.addControl(pagedControl);
+
+                try (SearchCursor cursor = conn.search(request)) {
+                    while (cursor.next()) {
+                        // Если мы дошли до нужного смещения (offset)
+                        if (currentCount >= offset) {
+                            Response response = cursor.get();
+                            if (response instanceof SearchResultEntry) {
+                                Entry entry = ((SearchResultEntry) response).getEntry();
+                                pageList.add((Entry) entry.clone());
+                            }
+                        }
+
+                        currentCount++;
+
+                        // Если страница заполнена - ПРЕРЫВАЕМ всё
+                        if (pageList.size() >= pageSize) {
+                            break outerLoop;
+                        }
+                    }
+
+                    SearchResultDone done = cursor.getSearchResultDone();
+                    PagedResults responseControl = (PagedResults) done.getControl(PagedResults.OID);
+                    cookie = (responseControl != null) ? responseControl.getCookie() : null;
+                }
+            } while (cookie != null && cookie.length > 0);
+
+            return pageList;
+        });
+
+        return new PageImpl<>(content, pageable, totalElements);
     }
 
     @SneakyThrows
     public void add(Entry entry) {
-        AddRequest addRequest = new AddRequestImpl();
-        addRequest.setEntry(entry);
-        addRequest.addControl(new ManageDsaITImpl());
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            String password = vaultService.getPassword(username);
-            try (LdapConnection connection = new LdapNetworkConnection(ldapConfig())) {
-                connection.connect();
-                connection.bind(createBindRequest(username, password));
-
-                connection.add(addRequest);
-            }
-        }
+        executeAsUser(conn -> {
+            AddRequest addRequest = new AddRequestImpl();
+            addRequest.setEntry(entry);
+            addRequest.addControl(new ManageDsaITImpl());
+            conn.add(addRequest);
+            return null;
+        });
     }
 
     @SneakyThrows
     public void update(ModifyRequest modifyRequest) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            String password = vaultService.getPassword(username);
-            try (LdapConnection connection = new LdapNetworkConnection(ldapConfig())) {
-                connection.connect();
-                connection.bind(createBindRequest(username, password));
-
-                connection.modify(modifyRequest);
-            }
-        }
+        executeAsUser(conn -> {
+            conn.modify(modifyRequest);
+            return null;
+        });
     }
 
     @SneakyThrows
     public void delete(Entry entry) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            String password = vaultService.getPassword(username);
-            try (LdapConnection connection = new LdapNetworkConnection(ldapConfig())) {
-                connection.connect();
-                connection.bind(createBindRequest(username, password));
-
-                connection.delete(entry.getDn());
-            }
-        }
+        executeAsUser(conn -> {
+            conn.delete(entry.getDn());
+            return null;
+        });
     }
 
     public String getComputersContainer() {
@@ -458,20 +407,12 @@ public class LdapService {
 
     @SneakyThrows
     public void updateProperty(String dn, String name, String value) {
-        Attribute attribute = new DefaultAttribute(name, value);
-        Modification modification = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, attribute);
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            String password = vaultService.getPassword(username);
-            try (LdapConnection connection = new LdapNetworkConnection(ldapConfig())) {
-                connection.connect();
-                connection.bind(createBindRequest(username, password));
-
-                connection.modify(dn, modification);
-            }
-        }
+        executeAsUser(conn -> {
+            Attribute attribute = new DefaultAttribute(name, value);
+            Modification modification = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, attribute);
+            conn.modify(dn, modification);
+            return null;
+        });
     }
 
     @Cacheable(value = "containers")
@@ -578,69 +519,50 @@ public class LdapService {
     }
 
     public boolean deleteMember(String dn, String group) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            String password = vaultService.getPassword(username);
-            try (LdapConnection connection = new LdapNetworkConnection(ldapConfig())) {
-                connection.connect();
-                connection.bind(createBindRequest(username, password));
+        return executeAsUser(conn -> {
+            Modification removeMember = new DefaultModification(
+                    ModificationOperation.REMOVE_ATTRIBUTE, "member", dn
+            );
 
-                Modification removeMember = new DefaultModification(
-                        ModificationOperation.REMOVE_ATTRIBUTE, "member", dn
-                );
+            ModifyRequest modifyRequest = new ModifyRequestImpl();
+            modifyRequest.setName(new Dn(group));
 
-                ModifyRequest modifyRequest = new ModifyRequestImpl();
-                modifyRequest.setName(new Dn(group));
+            modifyRequest.addModification(removeMember);
 
-                modifyRequest.addModification(removeMember);
+            ModifyResponse response = conn.modify(modifyRequest);
 
-                ModifyResponse response = connection.modify(modifyRequest);
-
-                return true;
-            } catch (Exception ex) {
-                return false;
-            }
-        }
-        return false;
+            return true;
+        });
     }
 
     public boolean addMember(String dn, String group) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            String password = vaultService.getPassword(username);
-            try (LdapConnection connection = new LdapNetworkConnection(ldapConfig())) {
-                connection.connect();
-                connection.bind(createBindRequest(username, password));
+        return executeAsUser(conn -> {
+            Modification removeMember = new DefaultModification(
+                    ModificationOperation.ADD_ATTRIBUTE, "member", dn
+            );
 
-                Modification removeMember = new DefaultModification(
-                        ModificationOperation.ADD_ATTRIBUTE, "member", dn
-                );
+            ModifyRequest modifyRequest = new ModifyRequestImpl();
+            modifyRequest.setName(new Dn(group));
 
-                ModifyRequest modifyRequest = new ModifyRequestImpl();
-                modifyRequest.setName(new Dn(group));
+            modifyRequest.addModification(removeMember);
+            ModifyResponse response = conn.modify(modifyRequest);
 
-                modifyRequest.addModification(removeMember);
-                ModifyResponse response = connection.modify(modifyRequest);
-
-                return true;
-            } catch (Exception ex) {
-                return false;
-            }
-        }
-        return false;
+            return true;
+        });
     }
 
     @SneakyThrows
     public JwtResponse authenticate(String username, String password) {
-        boolean authenticated = false;
-
-        try (LdapConnection connection = new LdapNetworkConnection(ldapConfig())) {
-            connection.connect();
-            connection.bind(createBindRequest(username, password));
-            authenticated = connection.isAuthenticated();
-        }
+        boolean authenticated = execute(conn -> {
+            try {
+                conn.bind(createBindRequest(username, password));
+                vaultService.savePassword(username, password);
+                return true;
+            } catch (LdapException e) {
+                log.warn("Authentication failed for user: {}", username);
+            }
+            return false;
+        });
 
         String jwt = null;
         List<String> roles = List.of("ROLE_ADMIN");
@@ -658,15 +580,6 @@ public class LdapService {
         bindRequest.setCredentials(password);
         bindRequest.setSimple(true);
         return bindRequest;
-    }
-
-    private LdapConnectionConfig ldapConfig() {
-        LdapConnectionConfig config = new LdapConnectionConfig();
-        config.setLdapHost(server);
-        config.setUseSsl(useSsl);
-        config.setLdapPort(port);
-        config.setTrustManagers(new NoVerificationTrustManager());
-        return config;
     }
 
     private <T> T execute(LdapConnectionOperation<T> operation) {
@@ -690,6 +603,39 @@ public class LdapService {
                     sharedPool.releaseConnection(connection);
                 } catch (Exception e) {
                     log.warn("Failed to release connection to pool", e);
+                }
+            }
+        }
+    }
+
+    private <T> T executeAsUser(LdapConnectionOperation<T> operation) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String password = vaultService.getPassword(username);
+
+        LdapConnection connection = null;
+        try {
+            connection = factory.newLdapConnection(); // Создаем новое
+            connection.connect();
+            connection.bind(createBindRequest(username, password));
+
+            return operation.execute(connection);
+
+        } catch (Exception e) {
+            log.error("User LDAP operation failed for: {}", username, e);
+            throw new RuntimeException(e);
+        } finally {
+            if (connection != null) {
+                try {
+                    // Сначала отвязываемся (это асинхронно в MINA)
+                    if (connection.isAuthenticated()) {
+                        connection.unBind();
+                    }
+                    // close() в этой библиотеке должен дождаться closeTimeout
+                    connection.close();
+                } catch (Exception e) {
+                    // Здесь часто вылетает WARN, мы его просто гасим,
+                    // так как данные уже получены и возвращены
+                    log.trace("Suppressed close error", e);
                 }
             }
         }

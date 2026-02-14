@@ -22,10 +22,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Domain")
 @Route(value = "domain/info")
-@PermitAll
 public class DomainView extends VerticalLayout {
 
     private final LdapService ldapService;

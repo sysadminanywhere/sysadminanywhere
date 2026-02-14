@@ -32,10 +32,9 @@ import org.springframework.data.domain.PageRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Processes")
 @Route(value = "management/computers/:id?/processes")
-@PermitAll
 @Uses(Icon.class)
 public class ComputerProcessesView extends Div implements BeforeEnterObserver, MenuControl {
 

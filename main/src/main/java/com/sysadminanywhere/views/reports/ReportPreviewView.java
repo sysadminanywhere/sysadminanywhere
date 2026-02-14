@@ -29,10 +29,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Report")
 @Route(value = "reports/report")
-@PermitAll
 @Uses(Icon.class)
 public class ReportPreviewView extends VerticalLayout implements BeforeEnterObserver {
 

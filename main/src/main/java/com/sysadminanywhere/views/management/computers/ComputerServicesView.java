@@ -35,10 +35,9 @@ import org.springframework.data.domain.PageRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Services")
 @Route(value = "management/computers/:id?/services")
-@PermitAll
 @Uses(Icon.class)
 @Uses(TextArea.class)
 public class ComputerServicesView extends Div implements BeforeEnterObserver, MenuControl {

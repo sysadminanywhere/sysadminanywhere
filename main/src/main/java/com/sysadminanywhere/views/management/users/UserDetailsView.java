@@ -38,10 +38,9 @@ import jakarta.annotation.security.RolesAllowed;
 
 import java.io.ByteArrayInputStream;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("User details")
 @Route(value = "management/users/:id?/details")
-@PermitAll
 @Uses(Upload.class)
 @Uses(Icon.class)
 @Uses(ListBox.class)

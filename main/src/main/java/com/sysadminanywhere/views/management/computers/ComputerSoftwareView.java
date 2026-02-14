@@ -29,10 +29,9 @@ import org.springframework.data.domain.PageRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Software")
 @Route(value = "management/computers/:id?/software")
-@PermitAll
 @Uses(Icon.class)
 public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
 

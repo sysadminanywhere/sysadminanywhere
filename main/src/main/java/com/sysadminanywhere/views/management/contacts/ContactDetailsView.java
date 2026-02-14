@@ -27,10 +27,9 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Contact details")
 @Route(value = "management/contacts/:id?/details")
-@PermitAll
 @Uses(Upload.class)
 @Uses(Icon.class)
 public class ContactDetailsView extends Div implements BeforeEnterObserver, MenuControl {

@@ -26,10 +26,9 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.PageRequest;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Printers")
 @Route(value = "management/printers")
-@PermitAll
 @Uses(Icon.class)
 public class PrintersView extends Div {
 

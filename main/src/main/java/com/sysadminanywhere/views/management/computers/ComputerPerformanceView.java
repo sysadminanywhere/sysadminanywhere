@@ -34,10 +34,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Performance")
 @Route(value = "management/computers/:id?/performance")
-@PermitAll
 @Uses(Icon.class)
 public class ComputerPerformanceView extends Div implements BeforeEnterObserver {
 

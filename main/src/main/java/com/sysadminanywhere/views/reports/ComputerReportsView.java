@@ -21,16 +21,13 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
 import java.util.stream.Collectors;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Computer Reports")
 @Route(value = "reports/computers")
-@PermitAll
 @Uses(Icon.class)
 public class ComputerReportsView extends Div {
 

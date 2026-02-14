@@ -30,10 +30,9 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.PageRequest;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Contacts")
 @Route(value = "management/contacts")
-@PermitAll
 @Uses(Icon.class)
 public class ContactsView extends Div implements MenuControl {
 

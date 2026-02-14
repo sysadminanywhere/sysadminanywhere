@@ -33,10 +33,9 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Group details")
 @Route(value = "management/groups/:id?/details")
-@PermitAll
 @Uses(Icon.class)
 @Uses(ListBox.class)
 @Uses(TabSheet.class)

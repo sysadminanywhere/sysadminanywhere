@@ -41,10 +41,9 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.PageRequest;
 import org.vaadin.tatu.Tree;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Containers")
 @Route(value = "management/containers")
-@PermitAll
 @Uses(Icon.class)
 public class ContainersView extends Div implements MenuControl {
 

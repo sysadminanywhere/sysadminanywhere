@@ -36,10 +36,9 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Events")
 @Route(value = "management/computers/:id?/events")
-@PermitAll
 @Uses(Icon.class)
 @Uses(DatePicker.class)
 @Uses(TextArea.class)

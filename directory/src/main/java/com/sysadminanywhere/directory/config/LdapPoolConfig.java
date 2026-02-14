@@ -18,6 +18,7 @@ public class LdapPoolConfig {
         config.setLdapPort(port);
         config.setUseSsl(useSsl);
         config.setTrustManagers(new NoVerificationTrustManager());
+        config.setCloseTimeout(500L); // Даем 500мс на корректное закрытие сессии
         return config;
     }
 
@@ -30,7 +31,6 @@ public class LdapPoolConfig {
     @Bean(destroyMethod = "close")
     public LdapConnectionPool ldapConnectionPool(LdapConnectionFactory factory) {
         // Используем Validating... если хотим, чтобы пул проверял соединения перед выдачей
-        // Он находится в пакете org.apache.directory.ldap.client.api
         ValidatingPoolableLdapConnectionFactory poolFactory =
                 new ValidatingPoolableLdapConnectionFactory(factory);
 
@@ -38,7 +38,7 @@ public class LdapPoolConfig {
 
         // Настройки жизненного цикла соединений
         pool.setTestOnBorrow(true); // Проверка при взятии
-        pool.setMaxTotal(10);       // Лимит соединений
+        pool.setMaxTotal(100);       // Лимит соединений
         pool.setBlockWhenExhausted(true);
 
         return pool;

@@ -26,9 +26,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
-import java.io.ByteArrayInputStream;
 import java.util.Base64;
-import java.util.Optional;
 
 @PageTitle("Me")
 @Route(value = "account/me")

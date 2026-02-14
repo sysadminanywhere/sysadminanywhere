@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 
 @PageTitle("Settings")
 @Route(value = "settings/settings")
-@PermitAll
 public class SettingsView extends VerticalLayout {
 
     private AuthenticatedUser authenticatedUser;

@@ -31,10 +31,9 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.PageRequest;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Groups")
 @Route(value = "management/groups")
-@PermitAll
 @Uses(Icon.class)
 public class GroupsView extends Div implements MenuControl {
 

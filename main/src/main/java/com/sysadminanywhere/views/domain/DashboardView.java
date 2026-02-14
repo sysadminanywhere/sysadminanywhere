@@ -25,6 +25,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
@@ -33,7 +34,7 @@ import java.util.concurrent.CompletableFuture;
 @Route(value = "")
 @RouteAlias(value = "domain/dashboard")
 @RouteAlias(value = "dashboard")
-@PermitAll
+@RolesAllowed("ADMIN")
 public class DashboardView extends VerticalLayout implements HasDynamicTitle {
 
     private final String ColumnWidth = "55%";
@@ -68,21 +69,6 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         List<GroupEntry> groups = groupsService.getAll();
         List<PrinterEntry> printers = printersService.getAll();
         List<ContactEntry> contacts = contactsService.getAll();
-
-        if(computers.isEmpty() && users.isEmpty() && groups.isEmpty()) {
-            title = "Error";
-
-            add(new H1("Domain Service Unavailable"));
-            add(new Paragraph("Failed to connect to Domain service"));
-
-            Anchor docsPage = new Anchor("https://docs.sysadminanywhere.com/", "Documentation", AnchorTarget.BLANK);
-            add(docsPage);
-
-            Notification notification = Notification.show("Domain service is unavailable!");
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-
-            return;
-        }
 
         getStoredTheme().thenAccept(v -> {
             boolean isDarkTheme = false;

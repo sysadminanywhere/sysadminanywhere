@@ -37,10 +37,9 @@ import jakarta.annotation.security.RolesAllowed;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Computer details")
 @Route(value = "management/computers/:id?/details")
-@PermitAll
 @Uses(Icon.class)
 @Uses(ListBox.class)
 public class ComputerDetailsView extends Div implements BeforeEnterObserver, MenuControl {

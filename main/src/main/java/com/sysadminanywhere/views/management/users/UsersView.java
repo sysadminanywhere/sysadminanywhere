@@ -34,12 +34,10 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.PageRequest;
 
-import java.util.Optional;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Users")
 @Route(value = "management/users")
-@PermitAll
 @Uses(Icon.class)
 @Uses(Upload.class)
 public class UsersView extends Div implements MenuControl {

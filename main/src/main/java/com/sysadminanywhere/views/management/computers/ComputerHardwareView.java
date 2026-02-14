@@ -23,10 +23,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RolesAllowed("admins")
+@RolesAllowed("ADMIN")
 @PageTitle("Hardware")
 @Route(value = "management/computers/:id?/hardware")
-@PermitAll
 @Uses(Icon.class)
 public class ComputerHardwareView extends Div implements BeforeEnterObserver {
 
