@@ -21,11 +21,11 @@ public class UserConnectionManager {
         this.baseConfig = baseConfig;
     }
 
-    public LdapConnection getConnection(String username, String password) throws Exception {
+    public LdapConnection getConnection(String username) throws Exception {
         LdapConnectionPool pool = userPools.computeIfAbsent(username, dn -> {
             try {
                 // 1. Создаем персональный конфиг для пользователя
-                LdapConnectionConfig userConfig = createSpecificConfig(username, password);
+                LdapConnectionConfig userConfig = createSpecificConfig();
 
                 // 2. Создаем фабрику на базе этого конфига
                 DefaultLdapConnectionFactory factory = new DefaultLdapConnectionFactory(userConfig);
@@ -46,21 +46,30 @@ public class UserConnectionManager {
         return pool.getConnection();
     }
 
-    private LdapConnectionConfig createSpecificConfig(String username, String password) {
+    private LdapConnectionConfig createSpecificConfig() {
         LdapConnectionConfig config = new LdapConnectionConfig();
         config.setLdapHost(baseConfig.getLdapHost());
         config.setLdapPort(baseConfig.getLdapPort());
         config.setUseSsl(baseConfig.isUseSsl());
         config.setTrustManagers(baseConfig.getTrustManagers());
 
-        // ВОТ ЗДЕСЬ УСТАНАВЛИВАЕМ КРЕДЕНШЛЫ ДЛЯ ПУЛА
-        config.setCredentials(password);
-        config.setName(username);
-
-        // Важно для SSL: даем время на закрытие, чтобы не было WARN
+        // Обязательно для SSL, чтобы MINA успевала закрыться
         config.setCloseTimeout(500L);
+        config.setTimeout(30000L);
 
         return config;
+    }
+
+    public void closePool(String username) {
+        LdapConnectionPool pool = userPools.remove(username);
+        if (pool != null) {
+            try {
+                log.info("Закрытие и удаление пула для пользователя: {}", username);
+                pool.close(); // Физически закрывает все открытые SSL-соединения в этом пуле
+            } catch (Exception e) {
+                log.warn("Ошибка при закрытии пула пользователя {}: {}", username, e.getMessage());
+            }
+        }
     }
 
 }

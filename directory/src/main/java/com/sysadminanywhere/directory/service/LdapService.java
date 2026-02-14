@@ -24,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.LocalDate;
@@ -610,21 +611,22 @@ public class LdapService {
 
         LdapConnection connection = null;
         try {
-            // Пул сам сделает connect и bind под этим юзером
-            connection = userConnectionManager.getConnection(username, password);
+            connection = userConnectionManager.getConnection(username);
+            connection.bind(createBindRequest(username, password));
             return operation.execute(connection);
         } catch (Exception e) {
-            log.error("LDAP error", e);
+            log.error("LDAP error for user: {}", username, e);
             throw new RuntimeException(e);
         } finally {
             if (connection != null) {
-                // ВАЖНО: просто закрываем, чтобы вернуть в пул.
-                // НЕ вызывайте unBind() здесь!
-                try { connection.close(); } catch (Exception e) { /* ignore */ }
+                try {
+                    userConnectionManager.closePool(username);
+                } catch (Exception e) {
+                    log.warn("Failed to return connection to pool", e);
+                }
             }
         }
     }
-
     // Функциональный интерфейс для лямбда-выражений
     @FunctionalInterface
     interface LdapConnectionOperation<T> {
