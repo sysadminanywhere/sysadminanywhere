@@ -86,36 +86,10 @@ public class LdapService {
     }
 
     public Entry getRootDse() {
-        LdapConnection connection = null;
-        try {
-            // 1. Берем соединение из пула
-            connection = sharedPool.getConnection();
-
-            // ВАЖНО: Пул в 2.1.7 сам делает connect/bind, если фабрика настроена.
-            // Если нет — проверяем состояние:
-            if (!connection.isConnected()) {
-                connection.connect();
-            }
-
-            Entry rootDse = connection.getRootDse();
-
-            // 2. Обязательно клонируем, чтобы данные были доступны после возврата в пул
-            return (rootDse != null) ? (Entry) rootDse.clone() : null;
-
-        } catch (Exception e) {
-            log.error("LDAP Pool Error", e);
-            // Если соединение "протухло", пулу нужно об этом знать
-            return null;
-        } finally {
-            // 3. Возвращаем в пул ВРУЧНУЮ, если try-with-resources сходит с ума
-            if (connection != null) {
-                try {
-                    sharedPool.releaseConnection(connection);
-                } catch (Exception e) {
-                    log.warn("Error releasing connection to pool", e);
-                }
-            }
-        }
+        return execute(conn -> {
+            Entry root = conn.getRootDse();
+            return (root != null) ? (Entry) root.clone() : null;
+        });
     }
 
     public String getDefaultNamingContext() {
@@ -693,6 +667,38 @@ public class LdapService {
         config.setLdapPort(port);
         config.setTrustManagers(new NoVerificationTrustManager());
         return config;
+    }
+
+    private <T> T execute(LdapConnectionOperation<T> operation) {
+        LdapConnection connection = null;
+        try {
+            connection = sharedPool.getConnection();
+
+            // Базовая проверка состояния (пул обычно это делает сам, но для надежности)
+            if (!connection.isConnected()) {
+                connection.connect();
+            }
+
+            return operation.execute(connection);
+
+        } catch (Exception e) {
+            log.error("LDAP operation failed", e);
+            throw new RuntimeException("LDAP error", e);
+        } finally {
+            if (connection != null) {
+                try {
+                    sharedPool.releaseConnection(connection);
+                } catch (Exception e) {
+                    log.warn("Failed to release connection to pool", e);
+                }
+            }
+        }
+    }
+
+    // Функциональный интерфейс для лямбда-выражений
+    @FunctionalInterface
+    interface LdapConnectionOperation<T> {
+        T execute(LdapConnection connection) throws Exception;
     }
 
 }
