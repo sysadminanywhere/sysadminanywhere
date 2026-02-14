@@ -80,9 +80,9 @@ public class LdapService {
         this.factory = factory;
 
         domainEntry = getRootDse();
-//        baseDn = new Dn(domainEntry.get("rootdomainnamingcontext").get().getString());
-//        defaultNamingContext = baseDn.getName();
-//        domainName = defaultNamingContext.toUpperCase().replace("DC=", "").replace(",", ".").toLowerCase();
+        baseDn = new Dn(domainEntry.get("rootdomainnamingcontext").get().getString());
+        defaultNamingContext = baseDn.getName();
+        domainName = defaultNamingContext.toUpperCase().replace("DC=", "").replace(",", ".").toLowerCase();
     }
 
     public Entry getRootDse() {
