@@ -93,7 +93,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
         topMenu = new VerticalLayout(createSelectedMainButtonItem(currentTitle, DashboardView.class, "icons/dashboard.svg"),
                 createMainButtonItem("Management", ContainersView.class, "icons/management.svg"),
-                createMainButtonItem("Incidents", IncidentsView.class, "icons/management.svg"),
+                createMainButtonItem("Incidents", IncidentsView.class, "icons/incident.svg"),
                 createMainButtonItem("Inventory", InventorySoftwareView.class, "icons/automation.svg"),
                 createMainButtonItem("Reports", UserReportsView.class, "icons/reports.svg"));
         topMenu.setMargin(false);
