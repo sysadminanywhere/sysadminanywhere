@@ -63,12 +63,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     String currentTitle = "Domain";
 
-    private final LdapService ldapService;
+    public MainLayout(AuthenticatedUser authenticatedUser) {
 
-    public MainLayout(AuthenticatedUser authenticatedUser,
-                      LdapService ldapService) {
-
-        this.ldapService = ldapService;
 
         setPrimarySection(Section.DRAWER);
         getElement().setAttribute("theme", "teams-nav");
@@ -162,16 +158,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     @Override
     public void afterNavigation(AfterNavigationEvent event) {
+        super.afterNavigation();
 
         viewTitle.setText(getCurrentPageTitle());
-
-        menuLayout.removeAll();
-
-        if(ldapService.getDomainName().isEmpty()) {
-            drawerContent.removeAll();
-            setDrawerOpened(false);
-            return;
-        }
 
         Component view = getContent();
         if (view instanceof MenuControl) {
