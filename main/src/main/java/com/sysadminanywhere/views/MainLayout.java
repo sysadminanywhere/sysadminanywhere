@@ -63,7 +63,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     public MainLayout(AuthenticatedUser authenticatedUser) {
 
-
         setPrimarySection(Section.DRAWER);
         getElement().setAttribute("theme", "teams-nav");
 
@@ -94,15 +93,14 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
         topMenu = new VerticalLayout(createSelectedMainButtonItem(currentTitle, DashboardView.class, "icons/dashboard.svg"),
                 createMainButtonItem("Management", ContainersView.class, "icons/management.svg"),
-                createMainButtonItem("Inventory", InventorySoftwareView.class, "icons/inventory.svg"),
+                createMainButtonItem("Incidents", IncidentsView.class, "icons/management.svg"),
+                createMainButtonItem("Inventory", InventorySoftwareView.class, "icons/automation.svg"),
                 createMainButtonItem("Reports", UserReportsView.class, "icons/reports.svg"));
         topMenu.setMargin(false);
 
         bottomMenu = new VerticalLayout();
 
-        if(authenticatedUser.get().isPresent()) {
-            bottomMenu.add(createMainButtonItem("Account", MeView.class, "icons/user.svg"));
-        }
+        bottomMenu.add(createMainButtonItem("Account", MeView.class, "icons/user.svg"));
 
         bottomMenu.add(createMainButtonItem("Settings", SettingsView.class, "icons/settings.svg"));
 

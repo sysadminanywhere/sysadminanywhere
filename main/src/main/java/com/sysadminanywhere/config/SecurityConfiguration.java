@@ -27,7 +27,7 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain vaadinSecurityFilterChain(HttpSecurity http, LogoutOnAccessDeniedHandler logoutOnAccessDeniedHandler) throws Exception {
 
-        http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/images/*.png", "/*.css").permitAll());
+        http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/images/*.png", "/*.css", "/icons/*.svg").permitAll());
 
         http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/line-awesome/**").permitAll());
 
