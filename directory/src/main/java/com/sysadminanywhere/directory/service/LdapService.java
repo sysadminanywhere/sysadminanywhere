@@ -552,7 +552,7 @@ public class LdapService {
     @SneakyThrows
     public JwtResponse authenticate(String username, String password) {
         boolean authenticated = execute(conn -> {
-            conn.bind(createBindRequest(username, password));
+            conn.bind(userConnectionManager.createBindRequest(username, password));
             vaultService.savePassword(username, password);
             return true;
         });
@@ -568,22 +568,13 @@ public class LdapService {
         return new JwtResponse(jwt, username, roles);
     }
 
-    private BindRequest createBindRequest(String username, String password) {
-        BindRequest bindRequest = new BindRequestImpl();
-        bindRequest.setName(username);
-        bindRequest.setCredentials(password);
-        bindRequest.setSimple(true);
-        return bindRequest;
-    }
-
     private <T> T execute(LdapConnectionOperation<T> operation) {
         LdapConnection connection = null;
         try {
-            connection = userConnectionManager.getConnection();
+            connection = new LdapNetworkConnection(userConnectionManager.createSpecificConfig());
             return operation.execute(connection);
         } catch (Exception e) {
-            log.error("LDAP error: {}", e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Could not create connection", e);
         } finally {
             if (connection != null) {
                 try {
