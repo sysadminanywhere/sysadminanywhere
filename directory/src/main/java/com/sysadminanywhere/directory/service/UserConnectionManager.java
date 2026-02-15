@@ -21,6 +21,17 @@ public class UserConnectionManager {
         this.baseConfig = baseConfig;
     }
 
+    public LdapConnection getConnection() throws Exception {
+        LdapConnection connection = null;
+            try {
+                LdapConnection ldapConnection = new LdapNetworkConnection(createSpecificConfig());
+                ldapConnection.connect();
+                return ldapConnection;
+            } catch (Exception e) {
+                throw new RuntimeException("Could not create connection", e);
+            }
+    }
+
     public LdapConnection getConnection(String username, String password) throws Exception {
         LdapConnection connection = connections.computeIfAbsent(username, dn -> {
             try {

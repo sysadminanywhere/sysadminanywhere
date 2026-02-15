@@ -41,7 +41,6 @@ public class LdapService {
     private final JwtService jwtService;
     private final VaultService vaultService;
 
-    private final LdapConnectionPool sharedPool;
     private final UserConnectionManager userConnectionManager;
 
     private String domainName;
@@ -68,12 +67,10 @@ public class LdapService {
     @SneakyThrows
     public LdapService(JwtService jwtService,
                        VaultService vaultService,
-                       LdapConnectionPool sharedPool,
                        UserConnectionManager userConnectionManager) {
 
         this.jwtService = jwtService;
         this.vaultService = vaultService;
-        this.sharedPool = sharedPool;
         this.userConnectionManager = userConnectionManager;
 
         domainEntry = getRootDse();
@@ -582,21 +579,17 @@ public class LdapService {
     private <T> T execute(LdapConnectionOperation<T> operation) {
         LdapConnection connection = null;
         try {
-            connection = sharedPool.getConnection();
-            if (!connection.isConnected()) {
-                connection.connect();
-            }
+            connection = userConnectionManager.getConnection();
             return operation.execute(connection);
-
         } catch (Exception e) {
-            log.error("LDAP operation failed", e);
-            throw new RuntimeException("LDAP error", e);
+            log.error("LDAP error: {}", e);
+            throw new RuntimeException(e);
         } finally {
             if (connection != null) {
                 try {
-                    sharedPool.releaseConnection(connection);
-                } catch (Exception e) {
-                    log.warn("Failed to release connection to pool", e);
+                    connection.close();
+                } catch (IOException e) {
+                    log.error("Failed to close LDAP connection", e);
                 }
             }
         }
