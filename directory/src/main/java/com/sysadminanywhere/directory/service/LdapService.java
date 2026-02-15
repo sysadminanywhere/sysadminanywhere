@@ -583,12 +583,9 @@ public class LdapService {
         LdapConnection connection = null;
         try {
             connection = sharedPool.getConnection();
-
-            // Базовая проверка состояния (пул обычно это делает сам, но для надежности)
             if (!connection.isConnected()) {
                 connection.connect();
             }
-
             return operation.execute(connection);
 
         } catch (Exception e) {
@@ -611,20 +608,11 @@ public class LdapService {
 
         LdapConnection connection = null;
         try {
-            connection = userConnectionManager.getConnection(username);
-            connection.bind(createBindRequest(username, password));
+            connection = userConnectionManager.getConnection(username, password);
             return operation.execute(connection);
         } catch (Exception e) {
             log.error("LDAP error for user: {}", username, e);
             throw new RuntimeException(e);
-        } finally {
-            if (connection != null) {
-                try {
-                    userConnectionManager.closePool(username);
-                } catch (Exception e) {
-                    log.warn("Failed to return connection to pool", e);
-                }
-            }
         }
     }
 

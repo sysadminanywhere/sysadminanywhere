@@ -1,7 +1,8 @@
 package com.sysadminanywhere.directory.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
+import org.apache.directory.api.ldap.model.message.BindRequest;
+import org.apache.directory.api.ldap.model.message.BindRequestImpl;
 import org.apache.directory.ldap.client.api.*;
 import org.springframework.stereotype.Service;
 
@@ -11,8 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @Slf4j
 public class UserConnectionManager {
-    // Храним пулы: UserDN -> LdapConnectionPool
-    private final Map<String, LdapConnectionPool> userPools = new ConcurrentHashMap<>();
+    private final Map<String, LdapConnection> connections = new ConcurrentHashMap<>();
 
     // Базовые настройки (хост, порт, ssl) из вашего основного конфига
     private final LdapConnectionConfig baseConfig;
@@ -21,29 +21,21 @@ public class UserConnectionManager {
         this.baseConfig = baseConfig;
     }
 
-    public LdapConnection getConnection(String username) throws Exception {
-        LdapConnectionPool pool = userPools.computeIfAbsent(username, dn -> {
+    public LdapConnection getConnection(String username, String password) throws Exception {
+        LdapConnection connection = connections.computeIfAbsent(username, dn -> {
             try {
-                // 1. Создаем персональный конфиг для пользователя
-                LdapConnectionConfig userConfig = createSpecificConfig();
+                LdapConnection ldapConnection = new LdapNetworkConnection(createSpecificConfig());
+                ldapConnection.connect();
+                ldapConnection.bind(createBindRequest(dn, password));
+                log.info("Created new connection for user: {}", dn);
 
-                // 2. Создаем фабрику на базе этого конфига
-                DefaultLdapConnectionFactory factory = new DefaultLdapConnectionFactory(userConfig);
-
-                // 3. Создаем пул с валидацией
-                ValidatingPoolableLdapConnectionFactory poolFactory =
-                        new ValidatingPoolableLdapConnectionFactory(factory);
-
-                LdapConnectionPool newPool = new LdapConnectionPool(poolFactory);
-                newPool.setMaxTotal(10);
-                newPool.setTestOnBorrow(true);
-                return newPool;
+                return ldapConnection;
             } catch (Exception e) {
-                throw new RuntimeException("Could not create pool for user: " + dn, e);
+                throw new RuntimeException("Could not create connection for user: " + dn, e);
             }
         });
 
-        return pool.getConnection();
+        return connection;
     }
 
     private LdapConnectionConfig createSpecificConfig() {
@@ -53,23 +45,18 @@ public class UserConnectionManager {
         config.setUseSsl(baseConfig.isUseSsl());
         config.setTrustManagers(baseConfig.getTrustManagers());
 
-        // Обязательно для SSL, чтобы MINA успевала закрыться
         config.setCloseTimeout(5000L);
         config.setTimeout(30000L);
 
         return config;
     }
 
-    public void closePool(String username) {
-        LdapConnectionPool pool = userPools.remove(username);
-        if (pool != null) {
-            try {
-                log.info("Закрытие и удаление пула для пользователя: {}", username);
-                pool.close(); // Физически закрывает все открытые SSL-соединения в этом пуле
-            } catch (Exception e) {
-                log.warn("Ошибка при закрытии пула пользователя {}: {}", username, e.getMessage());
-            }
-        }
+    private BindRequest createBindRequest(String username, String password) {
+        BindRequest bindRequest = new BindRequestImpl();
+        bindRequest.setName(username);
+        bindRequest.setCredentials(password);
+        bindRequest.setSimple(true);
+        return bindRequest;
     }
 
 }
