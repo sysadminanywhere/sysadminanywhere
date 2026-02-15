@@ -35,7 +35,7 @@ public class UserConnectionManager {
                         new ValidatingPoolableLdapConnectionFactory(factory);
 
                 LdapConnectionPool newPool = new LdapConnectionPool(poolFactory);
-                newPool.setMaxTotal(5);
+                newPool.setMaxTotal(10);
                 newPool.setTestOnBorrow(true);
                 return newPool;
             } catch (Exception e) {
@@ -54,7 +54,7 @@ public class UserConnectionManager {
         config.setTrustManagers(baseConfig.getTrustManagers());
 
         // Обязательно для SSL, чтобы MINA успевала закрыться
-        config.setCloseTimeout(500L);
+        config.setCloseTimeout(5000L);
         config.setTimeout(30000L);
 
         return config;

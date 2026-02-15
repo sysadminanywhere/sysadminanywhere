@@ -162,6 +162,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
         viewTitle.setText(getCurrentPageTitle());
 
+        menuLayout.removeAll();
+
         Component view = getContent();
         if (view instanceof MenuControl) {
             menuLayout.add(((MenuControl) view).getMenu());
