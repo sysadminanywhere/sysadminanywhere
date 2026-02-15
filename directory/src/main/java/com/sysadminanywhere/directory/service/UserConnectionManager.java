@@ -66,7 +66,7 @@ public class UserConnectionManager {
         config.setUseSsl(baseConfig.isUseSsl());
         config.setTrustManagers(baseConfig.getTrustManagers());
 
-        config.setCloseTimeout(5000L);
+        config.setCloseTimeout(500L);
         config.setTimeout(30000L);
 
         return config;
