@@ -49,6 +49,13 @@ jobs:
             docker push sysadminanywhere/inventory:latest
           fi
 
+          # Build and push incident module
+          if [ -d "incident" ] && [ -f "incident/Dockerfile" ]; then
+            docker build -t sysadminanywhere/incident:${{ env.VERSION }} -t sysadminanywhere/incident:latest ./incident
+            docker push sysadminanywhere/incident:${{ env.VERSION }}
+            docker push sysadminanywhere/incident:latest
+          fi
+
           # Build and push main module
           if [ -d "main" ] && [ -f "main/Dockerfile" ]; then
             docker build -t sysadminanywhere/sysadminanywhere:${{ env.VERSION }} -t sysadminanywhere/sysadminanywhere:latest ./main
