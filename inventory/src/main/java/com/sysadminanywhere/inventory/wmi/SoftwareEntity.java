@@ -21,7 +21,4 @@ public class SoftwareEntity {
     @WMIAttribute(name = "InstallDate")
     String installDate;
 
-    @WMIAttribute(name = "__SERVER")
-    String hostName;
-
 }
