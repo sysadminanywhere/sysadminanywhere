@@ -43,8 +43,6 @@ public class InventoryService {
     @Value("${ldap.host.password}")
     private String password;
 
-    private final ObjectMapper mapper;
-
     private final AuthService authService;
     private final ComputersServiceClient computersServiceClient;
     private final WmiServiceClient wmiServiceClient;
@@ -53,15 +51,13 @@ public class InventoryService {
     private final SoftwareRepository softwareRepository;
     private final InstallationRepository installationRepository;
 
-    public InventoryService(ObjectMapper mapper,
-                            AuthService authService,
+    public InventoryService(AuthService authService,
                             ComputersServiceClient computersServiceClient,
                             WmiServiceClient wmiServiceClient,
                             ComputerRepository computerRepository,
                             SoftwareRepository softwareRepository,
                             InstallationRepository installationRepository) {
 
-        this.mapper = mapper;
         this.authService = authService;
         this.computersServiceClient = computersServiceClient;
         this.wmiServiceClient = wmiServiceClient;

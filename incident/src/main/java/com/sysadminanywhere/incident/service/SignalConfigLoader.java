@@ -5,8 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Set;
 
@@ -18,8 +19,17 @@ public class SignalConfigLoader {
     @PostConstruct
     public void loadConfig() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
+
+        // Загрузка из classpath (resources)
+        InputStream inputStream = getClass().getClassLoader()
+                .getResourceAsStream("signals.json");
+
+        if (inputStream == null) {
+            throw new FileNotFoundException("File 'signals.json' not found in classpath");
+        }
+
         signalConfig = mapper.readValue(
-                new File("signals.ru.json"),
+                inputStream,
                 new TypeReference<Map<String, Map<String, Object>>>(){}
         );
     }
