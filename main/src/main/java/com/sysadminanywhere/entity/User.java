@@ -1,6 +1,5 @@
 package com.sysadminanywhere.entity;
 
-import com.sysadminanywhere.model.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,10 +19,6 @@ public class User {
     private Long id;
 
     private String username;
-
-    @Enumerated(EnumType.STRING)
-    @ElementCollection(fetch = FetchType.EAGER)
-    private Set<Role> roles;
 
     @Column(name = "settings")
     private String settings;

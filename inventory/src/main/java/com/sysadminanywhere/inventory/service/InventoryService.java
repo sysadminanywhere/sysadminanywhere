@@ -1,6 +1,5 @@
 package com.sysadminanywhere.inventory.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
@@ -22,14 +21,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.handler.annotation.Headers;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,18 +37,17 @@ import java.util.UUID;
 @Service
 public class InventoryService {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper mapper;
 
     private final ComputerRepository computerRepository;
     private final SoftwareRepository softwareRepository;
     private final InstallationRepository installationRepository;
 
-    public InventoryService(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper mapper,
+    public InventoryService(ObjectMapper mapper,
                             ComputerRepository computerRepository,
                             SoftwareRepository softwareRepository,
                             InstallationRepository installationRepository) {
-        this.kafkaTemplate = kafkaTemplate;
+
         this.mapper = mapper;
         this.computerRepository = computerRepository;
         this.softwareRepository = softwareRepository;

@@ -1,5 +1,6 @@
 package com.sysadminanywhere.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
@@ -13,18 +14,12 @@ import java.util.List;
 @Service
 public class JwtService {
 
-    private static final String SECRET = "MySuperSecretKeyForJWTValidation123456";
+    @Value("${app.jwt.secret}")
+    private String secret;
 
-    private final Key key;
-
-    public JwtService() {
-        this.key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
-    }
-
-    /**
-     * Валидирует JWT и возвращает principal с username и ролями
-     */
     public JwtPrincipal parseAndValidate(String token) {
+        Key key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()

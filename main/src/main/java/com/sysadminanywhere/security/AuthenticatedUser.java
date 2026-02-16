@@ -1,16 +1,11 @@
 package com.sysadminanywhere.security;
 
-import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.entity.User;
 import com.sysadminanywhere.repository.UserRepository;
-import com.sysadminanywhere.service.UsersService;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +19,15 @@ public class AuthenticatedUser {
     public AuthenticatedUser(AuthenticationContext authenticationContext, UserRepository userRepository) {
         this.userRepository = userRepository;
         this.authenticationContext = authenticationContext;
+    }
+
+    public void save(String username) {
+        Optional<User> user = get();
+        if (!user.isPresent()) {
+            User newUser = new User();
+            newUser.setUsername(username);
+            userRepository.save(newUser);
+        }
     }
 
     @Transactional

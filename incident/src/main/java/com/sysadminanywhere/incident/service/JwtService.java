@@ -1,4 +1,4 @@
-package com.sysadminanywhere.directory.service;
+package com.sysadminanywhere.incident.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

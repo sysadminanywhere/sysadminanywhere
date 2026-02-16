@@ -66,6 +66,8 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
 
                     VaadinSession.getCurrent().setAttribute("jwt_token", response.token());
 
+                    authenticatedUser.save(event.getUsername());
+
                     getUI().ifPresent(ui -> ui.navigate(""));
                 } else {
                     setError(true);

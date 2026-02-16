@@ -15,6 +15,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class UserConnectionManager {
 
+    @Value("${ldap.host.server:localhost}")
+    private String server;
+
+    @Value("${ldap.host.port:389}")
+    private int port;
+
+    @Value("${ldap.host.use.ssl:false}")
+    private boolean useSsl;
+
     @Value("${ldap.pool.ttl-ms:600000}")
     private long poolTtlMs;
 
@@ -32,12 +41,6 @@ public class UserConnectionManager {
         void touch() {
             this.lastUsed = System.currentTimeMillis();
         }
-    }
-
-    private final LdapConnectionConfig baseConfig;
-
-    public UserConnectionManager(LdapConnectionConfig baseConfig) {
-        this.baseConfig = baseConfig;
     }
 
     public LdapConnection getConnection(String username, String password) throws Exception {
@@ -61,10 +64,10 @@ public class UserConnectionManager {
 
     public LdapConnectionConfig createSpecificConfig() {
         LdapConnectionConfig config = new LdapConnectionConfig();
-        config.setLdapHost(baseConfig.getLdapHost());
-        config.setLdapPort(baseConfig.getLdapPort());
-        config.setUseSsl(baseConfig.isUseSsl());
-        config.setTrustManagers(baseConfig.getTrustManagers());
+        config.setLdapHost(server);
+        config.setLdapPort(port);
+        config.setUseSsl(useSsl);
+        config.setTrustManagers(new NoVerificationTrustManager());
 
         config.setCloseTimeout(500L);
         config.setTimeout(30000L);
