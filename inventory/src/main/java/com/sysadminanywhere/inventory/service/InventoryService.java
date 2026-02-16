@@ -3,12 +3,17 @@ package com.sysadminanywhere.inventory.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
+import com.sysadminanywhere.common.directory.dto.JwtResponse;
 import com.sysadminanywhere.common.directory.dto.SearchDto;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.inventory.model.ComputerItem;
 import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareOnComputer;
 import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
+import com.sysadminanywhere.inventory.client.AuthServiceClient;
+import com.sysadminanywhere.inventory.client.ComputersServiceClient;
+import com.sysadminanywhere.inventory.client.LdapServiceClient;
+import com.sysadminanywhere.inventory.client.WmiServiceClient;
 import com.sysadminanywhere.inventory.entity.Computer;
 import com.sysadminanywhere.inventory.entity.Installation;
 import com.sysadminanywhere.inventory.entity.Software;
@@ -19,36 +24,55 @@ import com.sysadminanywhere.inventory.wmi.HardwareEntity;
 import com.sysadminanywhere.inventory.wmi.SoftwareEntity;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
 public class InventoryService {
 
+    @Value("${ldap.host.username}")
+    private String username;
+
+    @Value("${ldap.host.password}")
+    private String password;
+
     private final ObjectMapper mapper;
+
+    private final AuthService authService;
+    private final ComputersServiceClient computersServiceClient;
+    private final WmiServiceClient wmiServiceClient;
+    private final LdapServiceClient ldapServiceClient;
 
     private final ComputerRepository computerRepository;
     private final SoftwareRepository softwareRepository;
     private final InstallationRepository installationRepository;
 
     public InventoryService(ObjectMapper mapper,
+                            AuthService authService,
+                            ComputersServiceClient computersServiceClient,
+                            WmiServiceClient wmiServiceClient, LdapServiceClient ldapServiceClient,
                             ComputerRepository computerRepository,
                             SoftwareRepository softwareRepository,
                             InstallationRepository installationRepository) {
 
         this.mapper = mapper;
+        this.authService = authService;
+        this.computersServiceClient = computersServiceClient;
+        this.wmiServiceClient = wmiServiceClient;
+        this.ldapServiceClient = ldapServiceClient;
         this.computerRepository = computerRepository;
         this.softwareRepository = softwareRepository;
         this.installationRepository = installationRepository;
@@ -73,59 +97,52 @@ public class InventoryService {
     @SneakyThrows
     @Scheduled(cron = "${cron.expression}")
     public void scan() {
-
         log.info("Scan started");
 
-        Message<String> kafkaMessage = MessageBuilder
-                .withPayload(mapper.writeValueAsString(new SearchDto("", "(objectClass=computer)", 2, "cn", "useraccountcontrol", "dnshostname")))
-                .setHeader(KafkaHeaders.TOPIC, "directory-request")
-                .setHeader("correlationId", UUID.randomUUID().toString())
-                .setHeader("action", "ldap.search")
-                .setHeader("sender", "inventory")
-                .setHeader("recipient", "directory")
-                .setHeader("method", "computers")
-                .build();
+        log.info("Logging in to directory service");
+        boolean authenticated = authenticate();
+        if (!authenticated) {
+            log.error("Failed to authenticate with directory service. Aborting scan.");
+            return;
+        }
 
-        kafkaTemplate.send(kafkaMessage);
+        log.info("Requesting computers from directory service");
+        List<ComputerEntry> computers = getComputers();
+        log.info("Found {} computers", computers.size());
+
+        for (ComputerEntry computerEntry : computers) {
+            if (!computerEntry.isDisabled()) {
+                scanSoftware(computerEntry.getCn());
+                //scanHardware(computer);
+            }
+        }
+
     }
 
-    @KafkaListener(topics = "directory-response", groupId = "inventory")
-    void listener(@Headers MessageHeaders headers, @Payload String message) {
+    private boolean authenticate() {
+        if(username.isEmpty() || password.isEmpty()) {
+            log.error("Username or password for directory service is not set. Aborting scan.");
+            return false;
+        }
 
-        String action = headers.get("action").toString();
-        String correlationId = headers.get("correlationId").toString();
-        String sender = headers.get("sender").toString();
-        String recipient = headers.get("recipient").toString();
-        String method = headers.get("method").toString();
-
-        if (!recipient.equalsIgnoreCase("inventory"))
-            return;
-
-        switch (method) {
-            case "computers":
-                List<ComputerEntry> computers = getComputers(message);
-
-                log.info("Found {} computers", computers.size());
-
-                for (ComputerEntry computerEntry : computers) {
-                    if (!computerEntry.isDisabled()) {
-                        requestSoftware(computerEntry.getCn());
-                        //scanHardware(computer);
-                    }
-                }
-                break;
-
-            case "software":
-                scanSoftware(message);
-                break;
+        try {
+            JwtResponse jwtResponse = authService.authenticate(username, password);
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
+            auth.setDetails(jwtResponse.token());
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            return true;
+        } catch (Exception ex) {
+            log.error("Failed to authenticate with directory service: {}", ex.getMessage());
+            return false;
         }
     }
 
     @SneakyThrows
-    private void scanSoftware(String message) {
+    private void scanSoftware(String hostName) {
+        log.info("Scanning software on computer {}", hostName);
 
-        List<Map<String, Object>> list = mapper.readValue(message, new TypeReference<List<Map<String, Object>>>() {});
-
+        String query = "Select Name, Vendor, Version From Win32_Product";
+        List<Map<String, Object>> list = wmiServiceClient.execute(new ExecuteDto(hostName, query));
         WmiResolveService<SoftwareEntity> wmiResolveService = new WmiResolveService<>(SoftwareEntity.class);
         List<SoftwareEntity> software = wmiResolveService.getValues(list);
 
@@ -140,8 +157,9 @@ public class InventoryService {
         }
     }
 
-
     private void scanHardware(Computer computer) {
+        log.info("Scanning software on computer {}", computer.getName());
+
         List<HardwareEntity> hardware = getHardware(computer.getName());
         for (HardwareEntity hardwareEntity : hardware) {
             checkHardware(computer, hardwareEntity);
@@ -235,45 +253,8 @@ public class InventoryService {
     }
 
     @SneakyThrows
-    private void requestSoftware(String hostName) {
-        String query = "Select Name, Vendor, Version, InstallDate, __SERVER From Win32_Product";
-        Message<String> kafkaMessage = MessageBuilder
-                .withPayload(mapper.writeValueAsString(new ExecuteDto(hostName, query)))
-                .setHeader(KafkaHeaders.TOPIC, "directory-request")
-                .setHeader("correlationId", UUID.randomUUID().toString())
-                .setHeader("action", "wmi.execute")
-                .setHeader("sender", "inventory")
-                .setHeader("recipient", "directory")
-                .setHeader("method", "software")
-                .build();
-
-        kafkaTemplate.send(kafkaMessage);
-    }
-
-    @SneakyThrows
-    private List<ComputerEntry> getComputers(String message) {
-        List<ComputerEntry> list = new ArrayList<>();
-
-        List<EntryDto> result = List.of(mapper.readValue(message, EntryDto[].class));
-
-        if(result != null) {
-            for (EntryDto entry : result) {
-
-                ComputerEntry computerEntry = new ComputerEntry();
-                computerEntry.setUserAccountControl(Integer.parseInt(entry.getAttributes().get("useraccountcontrol").toString()));
-                computerEntry.setCn(entry.getAttributes().get("cn").toString());
-
-                if (entry.getAttributes().get("dnshostname") != null) {
-                    computerEntry.setDnsHostName(entry.getAttributes().get("dnshostname").toString());
-                } else {
-                    computerEntry.setDnsHostName("");
-                }
-
-                list.add(computerEntry);
-            }
-        }
-
-        return list;
+    private List<ComputerEntry> getComputers() {
+        return computersServiceClient.getList("", "cn", "useraccountcontrol", "dnshostname");
     }
 
     private LocalDateTime getLocalDateTime(String installDate) {

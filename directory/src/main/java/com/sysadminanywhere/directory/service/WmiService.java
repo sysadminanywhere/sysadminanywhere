@@ -7,6 +7,7 @@ import org.sentrysoftware.wmi.wbem.WmiWbemServices;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.Charset;
@@ -17,18 +18,14 @@ import java.util.concurrent.TimeoutException;
 @Service
 public class WmiService {
 
-    @Value("${ldap.host.username:}")
-    private String userName;
-
-    @Value("${ldap.host.password:}")
-    private String password;
-
     private final int timeOut = 30000;
 
     private final LdapService ldapService;
+    private final VaultService vaultService;
 
-    public WmiService(LdapService ldapService) {
+    public WmiService(LdapService ldapService, VaultService vaultService) {
         this.ldapService = ldapService;
+        this.vaultService = vaultService;
     }
 
     @Cacheable(value = "wmi_execute", key = "{#hostName, #wqlQuery}")
@@ -39,6 +36,9 @@ public class WmiService {
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
         List<Map<String, Object>> result;
+
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        String password = vaultService.getPassword(userName);
 
         try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, userName, password.toCharArray())) {
             result = wbemServices.executeWql(wqlQuery, timeOut);
@@ -59,6 +59,9 @@ public class WmiService {
 
         Map<String, Object> result;
 
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        String password = vaultService.getPassword(userName);
+
         try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, userName, password.toCharArray())) {
             result = wbemServices.executeMethod(path, className, methodName, inputMap);
         }
@@ -71,6 +74,9 @@ public class WmiService {
 
         final String namespace = WmiHelper.DEFAULT_NAMESPACE;
         String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
+
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        String password = vaultService.getPassword(userName);
 
         try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, userName, password.toCharArray())) {
             wbemServices.executeCommand(command, workingDirectory, Charset.defaultCharset(), timeOut);

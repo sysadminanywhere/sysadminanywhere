@@ -1,0 +1,18 @@
+package com.sysadminanywhere.inventory.client;
+
+import com.sysadminanywhere.common.directory.dto.JwtResponse;
+import com.sysadminanywhere.common.directory.dto.LoginRequest;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+@FeignClient(
+        name = "auth",
+        url = "${app.services.directory.uri}"
+)
+public interface AuthServiceClient {
+
+    @PostMapping("/api/ldap/authenticate")
+    JwtResponse authenticate(@RequestBody LoginRequest request);
+
+}

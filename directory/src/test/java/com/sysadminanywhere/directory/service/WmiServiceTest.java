@@ -16,11 +16,14 @@ class WmiServiceTest {
     @Mock
     private LdapService ldapService;
 
+    @Mock
+    private VaultService vaultService;
+
     private WmiService wmiService;
 
     @BeforeEach
     void setUp() {
-        wmiService = new WmiService(ldapService);
+        wmiService = new WmiService(ldapService, vaultService);
         ReflectionTestUtils.setField(wmiService, "userName", "testuser");
         ReflectionTestUtils.setField(wmiService, "password", "testpassword");
     }
