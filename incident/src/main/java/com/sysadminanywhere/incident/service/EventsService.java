@@ -104,9 +104,9 @@ public class EventsService {
     @SneakyThrows
     private List<ComputerEntry> getControllers() {
         try {
-            List<ComputerEntry> computers = computersServiceClient.getList("", "cn", "useraccountcontrol", "dnshostname");
+            List<ComputerEntry> computers = computersServiceClient.getList("", "cn", "useraccountcontrol", "dnshostname", "primarygroupid");
             return computers.stream()
-                    .filter(c -> (c.getUserAccountControl() & 0x200) != 0) // Check if the computer is a domain controller
+                    .filter(c -> c.isDomainController())
                     .toList();
         } catch (Exception ex) {
             log.error("Error getting computers from directory service: {}", ex.getMessage(), ex);
