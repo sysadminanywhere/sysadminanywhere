@@ -2,6 +2,7 @@ package com.sysadminanywhere.incident.service;
 
 import com.sysadminanywhere.common.directory.dto.JwtResponse;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
+import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
 import com.sysadminanywhere.incident.client.ComputersServiceClient;
 import com.sysadminanywhere.incident.client.WmiServiceClient;
 import lombok.SneakyThrows;
@@ -12,12 +13,18 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
 public class EventsService {
+
+    @Value("${ldap.host.server}")
+    private String hostName;
 
     @Value("${ldap.host.username}")
     private String username;
@@ -71,6 +78,8 @@ public class EventsService {
             return;
         }
 
+        getEvents();
+
         log.info("Events loaded successfully");
     }
 
@@ -114,5 +123,26 @@ public class EventsService {
         }
     }
 
+    private void getEvents() {
+        List<Map<String, Object>> list;
+
+        LocalDate date = LocalDate.now();
+        String startDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "000000.000000000";
+        String query = "SELECT RecordNumber, EventType FROM Win32_NTLogEvent WHERE EventType = 1 AND  TimeGenerated >= '" + startDate + "'";
+
+        try {
+            list = wmiServiceClient.execute(new ExecuteDto(hostName, query));
+
+            log.info("Events size: {}", list.size());
+        } catch (Exception ex) {
+            log.error("Failed to execute WMI query on computer {}: {}", hostName, ex.getMessage());
+            return;
+        }
+
+        if (list == null) {
+            log.error("WMI client returned null for host {}", hostName);
+            return;
+        }
+    }
 
 }
