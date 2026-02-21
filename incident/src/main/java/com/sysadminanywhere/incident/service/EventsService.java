@@ -14,14 +14,20 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class EventsService {
 
-    @Value("${ldap.host.server}")
+    @Value("${wef.server}")
     private String hostname;
 
-    @Value("${ldap.host.username}")
+    @Value("${wef.port}")
+    private int port;
+
+    @Value("${wef.username}")
     private String username;
 
-    @Value("${ldap.host.password}")
+    @Value("${wef.password}")
     private String password;
+
+    @Value("${wef.use.ssl}")
+    private boolean useSsl;
 
     /*
 
@@ -55,13 +61,12 @@ public class EventsService {
 
         WinRmTool tool = WinRmTool.Builder.builder(hostname, username, password)
                 .authenticationScheme(AuthSchemes.BASIC)
-                .port(5985)
-                .useHttps(false)
+                .port(port)
+                .useHttps(useSsl)
                 .context(context)
                 //.disableCertificateChecks(true)
                 .build();
 
-        // Чтение последних 10 событий из Forwarded Events
         String psCommand =
                 "Get-WinEvent -LogName 'ForwardedEvents' -MaxEvents 10 | " +
                         "Select-Object TimeCreated, Id, LevelDisplayName, ProviderName, Message | " +
@@ -70,15 +75,12 @@ public class EventsService {
         WinRmToolResponse response = tool.executePs(psCommand);
 
         if (response.getStdOut() != null && !response.getStdOut().isEmpty()) {
-            System.out.println("Forwarded Events:");
             System.out.println(response.getStdOut());
         }
 
-        // Проверяем stderr, но игнорируем CLIXML прогресс
         if (response.getStdErr() != null && !response.getStdErr().isEmpty()) {
-            // Проверяем, не является ли stderr просто CLIXML прогрессом
             if (!response.getStdErr().contains("<Objs") && !response.getStdErr().contains("progress")) {
-                System.err.println("Real errors: " + response.getStdErr());
+                log.error("Real errors: {}", response.getStdErr());
             }
         }
 
