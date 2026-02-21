@@ -1,46 +1,27 @@
 package com.sysadminanywhere.incident.service;
 
-import com.sysadminanywhere.common.directory.dto.JwtResponse;
-import com.sysadminanywhere.common.directory.model.ComputerEntry;
-import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
-import com.sysadminanywhere.incident.client.ComputersServiceClient;
-import com.sysadminanywhere.incident.client.WmiServiceClient;
+import io.cloudsoft.winrm4j.client.*;
+import io.cloudsoft.winrm4j.winrm.WinRmTool;
+import io.cloudsoft.winrm4j.winrm.WinRmToolResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.config.AuthSchemes;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @Slf4j
 public class EventsService {
 
     @Value("${ldap.host.server}")
-    private String hostName;
+    private String hostname;
 
     @Value("${ldap.host.username}")
     private String username;
 
     @Value("${ldap.host.password}")
     private String password;
-
-    private final AuthService authService;
-    private final ComputersServiceClient computersServiceClient;
-    private final WmiServiceClient wmiServiceClient;
-
-    public EventsService(AuthService authService, ComputersServiceClient computersServiceClient, WmiServiceClient wmiServiceClient) {
-        this.authService = authService;
-        this.computersServiceClient = computersServiceClient;
-        this.wmiServiceClient = wmiServiceClient;
-    }
 
     /*
 
@@ -63,86 +44,45 @@ public class EventsService {
     public void load() {
         log.info("Load events started");
 
-        log.info("Logging in to directory service");
-        boolean authenticated = authenticate();
-        if (!authenticated) {
-            log.error("Failed to authenticate with directory service. Aborting scan.");
-            return;
-        }
-
-        log.info("Requesting controllers from directory service");
-        List<ComputerEntry> controllers = getControllers();
-
-        if (controllers == null) {
-            log.error("Received null controllers list from directory service. Aborting scan.");
-            return;
-        }
-
-        getEvents();
+        execute();
 
         log.info("Events loaded successfully");
     }
 
-    private boolean authenticate() {
-        if (username == null || password == null || username.isEmpty() || password.isEmpty()) {
-            log.error("Username or password for directory service is not set. Aborting scan.");
-            return false;
-        }
-
-        try {
-            JwtResponse jwtResponse = authService.authenticate(username, password);
-
-            if (jwtResponse == null || jwtResponse.token() == null) {
-                log.error("Received null JWT response or token");
-                return false;
-            }
-
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    username, null, Collections.emptyList());
-            auth.setDetails(jwtResponse.token());
-            SecurityContextHolder.getContext().setAuthentication(auth);
-
-            log.info("Successfully authenticated with directory service");
-            return true;
-        } catch (Exception ex) {
-            log.error("Failed to authenticate with directory service: {}", ex.getMessage(), ex);
-            return false;
-        }
-    }
-
     @SneakyThrows
-    private List<ComputerEntry> getControllers() {
-        try {
-            List<ComputerEntry> computers = computersServiceClient.getList("", "cn", "useraccountcontrol", "dnshostname", "primarygroupid");
-            return computers.stream()
-                    .filter(c -> c.isDomainController())
-                    .toList();
-        } catch (Exception ex) {
-            log.error("Error getting computers from directory service: {}", ex.getMessage(), ex);
-            return Collections.emptyList();
-        }
-    }
+    private void execute() {
+        WinRmClientContext context = WinRmClientContext.newInstance();
 
-    private void getEvents() {
-        List<Map<String, Object>> list;
+        WinRmTool tool = WinRmTool.Builder.builder(hostname, username, password)
+                .authenticationScheme(AuthSchemes.BASIC)
+                .port(5985)
+                .useHttps(false)
+                .context(context)
+                //.disableCertificateChecks(true)
+                .build();
 
-        LocalDate date = LocalDate.now();
-        String startDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "000000.000000000";
-        String query = "SELECT RecordNumber, EventType FROM Win32_NTLogEvent WHERE EventType = 1 AND  TimeGenerated >= '" + startDate + "'";
+        // Чтение последних 10 событий из Forwarded Events
+        String psCommand =
+                "Get-WinEvent -LogName 'ForwardedEvents' -MaxEvents 10 | " +
+                        "Select-Object TimeCreated, Id, LevelDisplayName, ProviderName, Message | " +
+                        "ConvertTo-Json -Compress";
 
-        try {
-            list = wmiServiceClient.execute(new ExecuteDto(hostName, query));
+        WinRmToolResponse response = tool.executePs(psCommand);
 
-            log.info("Events size: {}", list.size());
-        } catch (Exception ex) {
-            log.error("Failed to execute WMI query on computer {}: {}", hostName, ex.getMessage());
-            return;
+        if (response.getStdOut() != null && !response.getStdOut().isEmpty()) {
+            System.out.println("Forwarded Events:");
+            System.out.println(response.getStdOut());
         }
 
-        if (list == null) {
-            log.error("WMI client returned null for host {}", hostName);
-            return;
+        // Проверяем stderr, но игнорируем CLIXML прогресс
+        if (response.getStdErr() != null && !response.getStdErr().isEmpty()) {
+            // Проверяем, не является ли stderr просто CLIXML прогрессом
+            if (!response.getStdErr().contains("<Objs") && !response.getStdErr().contains("progress")) {
+                System.err.println("Real errors: " + response.getStdErr());
+            }
         }
+
+        context.shutdown();
     }
 
 }
