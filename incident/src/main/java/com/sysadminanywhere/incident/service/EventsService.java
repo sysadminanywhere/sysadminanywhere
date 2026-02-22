@@ -50,13 +50,13 @@ public class EventsService {
     public void load() {
         log.info("Load events started");
 
-        execute();
+        execute(100l);
 
         log.info("Events loaded successfully");
     }
 
     @SneakyThrows
-    private void execute() {
+    private void execute(long lastRecordId) {
         WinRmClientContext context = WinRmClientContext.newInstance();
 
         WinRmTool tool = WinRmTool.Builder.builder(hostname, username, password)
@@ -67,12 +67,40 @@ public class EventsService {
                 //.disableCertificateChecks(true)
                 .build();
 
-        String psCommand =
-                "Get-WinEvent -LogName 'ForwardedEvents' -MaxEvents 10 | " +
-                        "Select-Object TimeCreated, Id, LevelDisplayName, ProviderName, Message | " +
-                        "ConvertTo-Json -Compress";
+//        String psScript = """
+//                Get-WinEvent -FilterHashtable @{
+//                    LogName='ForwardedEvents';
+//                    Id=4624,4625,4740,4720,4726,4728,4732,5136
+//                } -MaxEvents 500 |
+//                Select-Object RecordId, Id, TimeCreated, MachineName, LevelDisplayName, Message |
+//                ConvertTo-Json -Depth 3
+//                """;
 
-        WinRmToolResponse response = tool.executePs(psCommand);
+        String psScript = """
+                Get-WinEvent -FilterHashtable @{
+                    LogName='ForwardedEvents';
+                    Id=4624,4625,4740,4720,4726,4728,4732,5136
+                } -MaxEvents 200 |
+                ForEach-Object {
+                
+                    $xml = [xml]$_.ToXml()
+                
+                    $eventData = @{}
+                    foreach ($d in $xml.Event.EventData.Data) {
+                        $eventData[$d.Name] = $d.'#text'
+                    }
+                
+                    [PSCustomObject]@{
+                        RecordId    = $_.RecordId
+                        EventId     = $_.Id
+                        TimeCreated = $_.TimeCreated.ToString("o")
+                        MachineName = $_.MachineName
+                        EventData   = $eventData
+                    }
+                } | ConvertTo-Json -Depth 6
+                """;
+
+        WinRmToolResponse response = tool.executePs(psScript);
 
         if (response.getStdOut() != null && !response.getStdOut().isEmpty()) {
             System.out.println(response.getStdOut());
