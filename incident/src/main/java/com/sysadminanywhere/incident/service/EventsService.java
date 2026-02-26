@@ -1,19 +1,29 @@
 package com.sysadminanywhere.incident.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.sysadminanywhere.incident.model.SecurityEvent;
 import io.cloudsoft.winrm4j.client.*;
 import io.cloudsoft.winrm4j.winrm.WinRmToolResponse;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @Slf4j
 public class EventsService {
 
     private final PowerShellExecutor powerShellExecutor;
+    private final ObjectMapper objectMapper;
 
-    public EventsService(PowerShellExecutor powerShellExecutor) {
+    public EventsService(PowerShellExecutor powerShellExecutor, ObjectMapper objectMapper) {
         this.powerShellExecutor = powerShellExecutor;
+        this.objectMapper = objectMapper;
     }
 
     @Scheduled(cron = "${cron.expression}")
@@ -25,6 +35,7 @@ public class EventsService {
         log.info("Events loaded successfully");
     }
 
+    @SneakyThrows
     private void execute(long lastRecordId) {
         String psScript = """
                 Get-WinEvent -FilterHashtable @{
@@ -55,7 +66,10 @@ public class EventsService {
         WinRmToolResponse response = powerShellExecutor.execute(psScript);
 
         if (response.getStdOut() != null && !response.getStdOut().isEmpty()) {
-            System.out.println(response.getStdOut());
+            List<SecurityEvent> events = objectMapper.readValue(response.getStdOut(), new TypeReference<>() {});
+
+            log.info("Loaded {} events", events.size());
+            events.forEach(event -> log.debug("Event: {}", event));
         }
 
         if (response.getStdErr() != null && !response.getStdErr().isEmpty()) {
