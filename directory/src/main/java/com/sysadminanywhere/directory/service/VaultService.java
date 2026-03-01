@@ -1,11 +1,10 @@
 package com.sysadminanywhere.directory.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.vault.core.VaultKeyValueOperationsSupport;
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultResponse;
 
+import java.util.Base64;
 import java.util.Map;
 
 @Service
@@ -19,7 +18,9 @@ public class VaultService {
 
     public void savePassword(String username, String password) {
         String path = "secret/data/users/" + username;
-        Map<String, Object> data = Map.of("data", Map.of("password", password));
+        // Кодируем пароль в base64
+        String encodedPassword = Base64.getEncoder().encodeToString(password.getBytes());
+        Map<String, Object> data = Map.of("data", Map.of("password", encodedPassword));
         vaultTemplate.write(path, data);
     }
 
@@ -30,7 +31,18 @@ public class VaultService {
             return null;
         }
         Map<String, Object> data = (Map<String, Object>) response.getData().get("data");
-        return data != null ? (String) data.get("password") : null;
+        if (data == null) {
+            return null;
+        }
+
+        String encodedPassword = (String) data.get("password");
+        if (encodedPassword == null) {
+            return null;
+        }
+
+        // Декодируем пароль из base64
+        byte[] decodedBytes = Base64.getDecoder().decode(encodedPassword);
+        return new String(decodedBytes);
     }
 
 }
