@@ -2,10 +2,9 @@ package com.sysadminanywhere.incident.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.sysadminanywhere.incident.model.SecurityEvent;
-import io.cloudsoft.winrm4j.client.*;
+import com.sysadminanywhere.incident.entity.EventEntity;
+import com.sysadminanywhere.incident.model.Event;
+import com.sysadminanywhere.incident.repository.EventRepository;
 import io.cloudsoft.winrm4j.winrm.WinRmToolResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -20,28 +19,45 @@ public class EventsService {
 
     private final PowerShellExecutor powerShellExecutor;
     private final ObjectMapper objectMapper;
+    private final EventRepository eventRepository;
+    private final IncidentService incidentService;
 
-    public EventsService(PowerShellExecutor powerShellExecutor, ObjectMapper objectMapper) {
+    public EventsService(PowerShellExecutor powerShellExecutor,
+                         ObjectMapper objectMapper,
+                         EventRepository eventRepository,
+                         IncidentService incidentService) {
+
         this.powerShellExecutor = powerShellExecutor;
         this.objectMapper = objectMapper;
+        this.eventRepository = eventRepository;
+        this.incidentService = incidentService;
     }
 
     @Scheduled(cron = "${cron.expression}")
     public void load() {
         log.info("Load events started");
 
-        execute(100L);
+        execute();
 
         log.info("Events loaded successfully");
     }
 
     @SneakyThrows
-    private void execute(long lastRecordId) {
+    private void execute() {
+
+        Long lastRecordId = eventRepository
+                .findTopByOrderByRecordIdDesc()
+                .map(EventEntity::getRecordId)
+                .orElse(0L);
+
         String psScript = """
+                $lastId = %d
+                
                 Get-WinEvent -FilterHashtable @{
                     LogName='ForwardedEvents';
                     Id=4624,4625,4740,4720,4726,4728,4732,5136
                 } -MaxEvents 200 |
+                Where-Object { $_.RecordId -gt $lastId } |
                 ForEach-Object {
                 
                     $xml = [xml]$_.ToXml()
@@ -61,15 +77,29 @@ public class EventsService {
                         EventData   = $eventData
                     }
                 } | ConvertTo-Json -Depth 6
-                """;
+                """.formatted(lastRecordId);
 
         WinRmToolResponse response = powerShellExecutor.execute(psScript);
 
         if (response.getStdOut() != null && !response.getStdOut().isEmpty()) {
-            List<SecurityEvent> events = objectMapper.readValue(response.getStdOut(), new TypeReference<>() {});
+            List<Event> events = objectMapper.readValue(response.getStdOut(), new TypeReference<>() {
+            });
 
             log.info("Loaded {} events", events.size());
-            events.forEach(event -> log.debug("Event: {}", event));
+
+            for (Event event : events) {
+                if (event.getRecordId() > lastRecordId) {
+                    EventEntity eventEntity = new EventEntity();
+                    eventEntity.setRecordId(event.getRecordId());
+                    eventEntity.setEventId(event.getEventId());
+                    eventEntity.setTimeCreated(event.getTimeCreated());
+                    eventEntity.setMachineName(event.getMachineName());
+                    eventEntity.setLevelDisplayName(event.getLevelDisplayName());
+                    eventEntity.setMessage(event.getMessage());
+                    eventEntity.setExtra(objectMapper.writeValueAsString(event.getEventData()));
+                    eventRepository.save(eventEntity);
+                }
+            }
         }
 
         if (response.getStdErr() != null && !response.getStdErr().isEmpty()) {
@@ -77,6 +107,8 @@ public class EventsService {
                 log.error("Real errors: {}", response.getStdErr());
             }
         }
+
+        incidentService.processEvents();
     }
 
 }

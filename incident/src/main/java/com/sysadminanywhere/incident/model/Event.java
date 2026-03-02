@@ -1,6 +1,5 @@
 package com.sysadminanywhere.incident.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,7 +11,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SecurityEvent {
+public class Event {
 
     @JsonProperty("RecordId")
     private Long recordId;

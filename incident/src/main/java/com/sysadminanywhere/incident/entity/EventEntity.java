@@ -5,31 +5,35 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "events")
-public class Event {
+public class EventEntity {
 
     @Id
     @GeneratedValue
     private Long id;
+
+    private Long recordId;
+
     private Integer eventId;
-    private String signalId;
-    private String eventType;
-    private LocalDateTime timestamp;
-    private String userName;
-    private String sourceHost;
-    private String targetHost;
-    private String domain;
-    private String logName;
+
+    private OffsetDateTime timeCreated;
+
+    private String machineName;
+
+    private String levelDisplayName;
+
     @Column(columnDefinition = "TEXT")
     private String message;
+
     @Column(columnDefinition = "jsonb")
     private String extra; // JSONB как строка
+
     private Boolean processed = false;
 
 }
