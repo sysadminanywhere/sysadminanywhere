@@ -2,243 +2,225 @@
   "S1": {
     "name": "Failed Logon",
     "eventIds": [4625],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 5,
-    "groupBy": ["user_name", "source_host"],
-    "severity": {"default": "medium"},
+    "groupBy": ["TargetUserName", "MachineName"],
+    "threshold": 3,
+    "severity": { "default": "MEDIUM" },
     "filters": [],
-    "recommendationTemplate": "Check the source host {{source_host}} and the user {{user_name}}."
+    "recommendationTemplate": "Check the machine {{MachineName}} and the user {{TargetUserName}}."
   },
   "S2": {
     "name": "Successful Logon after Failures",
-    "eventIds": [4624],
-    "correlatedEventIds": [4625],
+    "eventIds": [4624, 4625],
+    "orderedSequence": [4625, 4625, 4624],
     "aggregationWindowMinutes": 5,
-    "groupBy": ["user_name", "source_host"],
-    "severity": {"default": "medium"},
+    "groupBy": ["TargetUserName", "MachineName"],
+    "severity": { "default": "MEDIUM" },
     "filters": [],
-    "recommendationTemplate": "User {{user_name}} successfully logged in after several failed attempts. Check the source host {{source_host}}."
+    "recommendationTemplate": "User {{TargetUserName}} successfully logged in after failed attempts on machine {{MachineName}}."
   },
   "S3": {
     "name": "Account Lockout",
     "eventIds": [4740],
     "correlatedEventIds": [4625],
     "aggregationWindowMinutes": 10,
-    "groupBy": ["user_name", "source_host"],
+    "groupBy": ["TargetUserName", "MachineName"],
     "severity": {
-      "default": "high",
+      "default": "HIGH",
       "rules": [
         {
-          "condition": "user_name IN ('Domain Admins','Enterprise Admins')",
-          "severity": "critical"
+          "condition": "#TargetUserName in {'Domain Admins','Enterprise Admins'}",
+          "severity": "CRITICAL"
         }
       ]
     },
     "filters": [],
-    "recommendationTemplate": "User {{user_name}} has been locked out. Check scheduled tasks and services using this account."
+    "recommendationTemplate": "User {{TargetUserName}} has been locked out on machine {{MachineName}}."
   },
   "S4": {
     "name": "Kerberos Pre-Auth Failure",
     "eventIds": [4771],
     "correlatedEventIds": [4768, 4769],
     "aggregationWindowMinutes": 10,
-    "groupBy": ["user_name", "source_host"],
-    "severity": {"default": "medium"},
+    "groupBy": ["TargetUserName", "MachineName"],
+    "severity": {"default": "MEDIUM"},
     "filters": [],
-    "recommendationTemplate": "Kerberos pre-authentication failure for user {{user_name}}. Check domain controller time synchronization and verify the password."
+    "recommendationTemplate": "Kerberos pre-authentication failure for user {{TargetUserName}} on machine {{MachineName}}."
   },
   "S5": {
     "name": "Kerberos TGT/TGS Failure",
     "eventIds": [4768, 4769],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 10,
-    "groupBy": ["user_name", "source_host"],
-    "severity": {"default": "medium"},
+    "groupBy": ["TargetUserName", "MachineName"],
+    "severity": {"default": "MEDIUM"},
     "filters": [],
-    "recommendationTemplate": "Kerberos ticket issuance failure for user {{user_name}}. Check ticket validity and related services."
+    "recommendationTemplate": "Kerberos ticket issuance failure for user {{TargetUserName}} on machine {{MachineName}}."
   },
   "S6": {
     "name": "User Created",
     "eventIds": [4720],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 60,
-    "groupBy": ["user_name"],
-    "severity": {"default": "low"},
+    "groupBy": ["TargetUserName"],
+    "severity": {"default": "LOW"},
     "filters": [],
-    "recommendationTemplate": "A new user {{user_name}} was created. Review assigned permissions and group memberships."
+    "recommendationTemplate": "A new user {{TargetUserName}} was created. Review assigned permissions and group memberships."
   },
   "S7": {
     "name": "User Deleted",
     "eventIds": [4726],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 60,
-    "groupBy": ["user_name"],
-    "severity": {"default": "high"},
+    "groupBy": ["TargetUserName"],
+    "severity": {"default": "HIGH"},
     "filters": [],
-    "recommendationTemplate": "User {{user_name}} was deleted. Verify who deleted the account and for what purpose."
+    "recommendationTemplate": "User {{TargetUserName}} was deleted."
   },
   "S8": {
     "name": "Added to Group",
     "eventIds": [4728, 4732],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 60,
-    "groupBy": ["user_name", "target_group"],
+    "groupBy": ["TargetUserName", "TargetGroupName"],
     "severity": {
-      "default": "high",
+      "default": "HIGH",
       "rules": [
         {
-          "condition": "target_group IN ('Domain Admins','Enterprise Admins')",
-          "severity": "critical"
+          "condition": "TargetGroupName IN ('Domain Admins','Enterprise Admins')",
+          "severity": "CRITICAL"
         }
       ]
     },
     "filters": [],
-    "recommendationTemplate": "User {{user_name}} was added to group {{target_group}}. Verify the criticality of this group."
+    "recommendationTemplate": "User {{TargetUserName}} was added to group {{TargetGroupName}}."
   },
   "S9": {
     "name": "Removed from Group",
     "eventIds": [4729, 4733],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 60,
-    "groupBy": ["user_name", "target_group"],
-    "severity": {"default": "high"},
+    "groupBy": ["TargetUserName", "TargetGroupName"],
+    "severity": {"default": "HIGH"},
     "filters": [],
-    "recommendationTemplate": "User {{user_name}} was removed from group {{target_group}}. Verify the criticality of this group."
+    "recommendationTemplate": "User {{TargetUserName}} was removed from group {{TargetGroupName}}."
   },
   "S10": {
     "name": "AD Object Change",
     "eventIds": [5136],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 60,
-    "groupBy": ["object_name"],
-    "severity": {"default": "medium"},
+    "groupBy": ["ObjectName"],
+    "severity": {"default": "MEDIUM"},
     "filters": [],
-    "recommendationTemplate": "Active Directory object {{object_name}} was modified. Review which attributes were changed and by whom."
+    "recommendationTemplate": "Active Directory object {{ObjectName}} was modified."
   },
   "S11": {
     "name": "GPO Changed",
     "eventIds": [5136],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 60,
-    "groupBy": ["object_name"],
-    "severity": {"default": "high"},
+    "groupBy": ["ObjectName"],
+    "severity": {"default": "HIGH"},
     "filters": [
-      {"field": "object_type", "operator": "=", "value": "groupPolicyContainer"}
+      {"field": "object_type", "operator": "EQ", "value": "groupPolicyContainer"}
     ],
-    "recommendationTemplate": "Group Policy Object {{object_name}} was modified. Review the criticality and author of the changes."
+    "recommendationTemplate": "Group Policy Object {{ObjectName}} was modified."
   },
   "S12": {
     "name": "GPO Application Error",
     "eventIds": [1058, 1030, 7016],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 60,
-    "groupBy": ["target_host", "policy_name"],
-    "severity": {"default": "medium"},
+    "groupBy": ["MachineName", "policy_name"],
+    "severity": {"default": "MEDIUM"},
     "filters": [],
-    "recommendationTemplate": "Failed to apply GPO {{policy_name}} on {{target_host}}. Check domain controller availability and network connectivity."
+    "recommendationTemplate": "Failed to apply GPO {{policy_name}} on {{MachineName}}."
   },
   "S13": {
     "name": "Service Account Login from New Host",
     "eventIds": [4624],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 10,
-    "groupBy": ["user_name", "source_host"],
-    "severity": {"default": "high"},
+    "groupBy": ["TargetUserName", "MachineName"],
+    "severity": {"default": "HIGH"},
     "filters": [
-      {"field": "user_type", "operator": "=", "value": "service"}
+      {"field": "user_type", "operator": "EQ", "value": "service"}
     ],
-    "recommendationTemplate": "Service account {{user_name}} logged in from a new host {{source_host}}. Verify whether this activity is legitimate."
+    "recommendationTemplate": "Service account {{TargetUserName}} logged in from new host {{MachineName}}."
   },
   "S14": {
     "name": "Frequent Service Account Login Failures",
     "eventIds": [4625],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 10,
-    "groupBy": ["user_name", "source_host"],
-    "severity": {"default": "medium"},
+    "groupBy": ["TargetUserName", "MachineName"],
+    "severity": {"default": "MEDIUM"},
     "filters": [
-      {"field": "user_type", "operator": "=", "value": "service"}
+      {"field": "user_type", "operator": "EQ", "value": "service"}
     ],
-    "recommendationTemplate": "Service account {{user_name}} has frequent failed login attempts. Check the password and dependent services."
+    "recommendationTemplate": "Service account {{TargetUserName}} has frequent failed logins on {{MachineName}}."
   },
   "S15": {
     "name": "AD Replication Issue",
     "eventIds": [1311, 1865, 2042],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 30,
-    "groupBy": ["target_host"],
-    "severity": {"default": "high"},
+    "groupBy": ["MachineName"],
+    "severity": {"default": "HIGH"},
     "filters": [],
-    "recommendationTemplate": "Active Directory replication issues detected on {{target_host}}. Check network connectivity and domain controller health."
+    "recommendationTemplate": "Active Directory replication issues detected on {{MachineName}}."
   },
   "S16": {
     "name": "DC Restart / Unavailable",
     "eventIds": [6005, 6006, 1074],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 30,
-    "groupBy": ["target_host"],
-    "severity": {"default": "high"},
+    "groupBy": ["MachineName"],
+    "severity": {"default": "HIGH"},
     "filters": [],
-    "recommendationTemplate": "Domain controller {{target_host}} was restarted or became unavailable. Investigate the root cause."
+    "recommendationTemplate": "Domain controller {{MachineName}} restarted or unavailable."
   },
   "S17": {
     "name": "Time Skew / Kerberos Issue",
     "eventIds": [4768, 4771],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 10,
-    "groupBy": ["target_host"],
-    "severity": {"default": "medium"},
+    "groupBy": ["MachineName"],
+    "severity": {"default": "MEDIUM"},
     "filters": [],
-    "recommendationTemplate": "Time skew or Kerberos-related issues detected on {{target_host}}. Verify time synchronization settings."
+    "recommendationTemplate": "Time skew or Kerberos issues on {{MachineName}}."
   },
   "S18": {
     "name": "Logon from Unusual Host",
     "eventIds": [4624],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 10,
-    "groupBy": ["user_name", "source_host"],
-    "severity": {"default": "medium"},
+    "groupBy": ["TargetUserName", "MachineName"],
+    "severity": {"default": "MEDIUM"},
     "filters": [],
-    "recommendationTemplate": "User {{user_name}} logged in from an unusual host {{source_host}}. Verify whether this behavior is expected."
+    "recommendationTemplate": "User {{TargetUserName}} logged in from unusual host {{MachineName}}."
   },
   "S19": {
     "name": "Logon at Unusual Time",
     "eventIds": [4624],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 10,
-    "groupBy": ["user_name"],
-    "severity": {"default": "medium"},
+    "groupBy": ["TargetUserName"],
+    "severity": {"default": "MEDIUM"},
     "filters": [],
-    "recommendationTemplate": "User {{user_name}} logged in at an unusual time. Verify working hours and expected activity."
+    "recommendationTemplate": "User {{TargetUserName}} logged in at unusual time."
   },
   "S20": {
     "name": "Mass Failed Logons (Password Spraying)",
     "eventIds": [4625],
-    "correlatedEventIds": [],
     "aggregationWindowMinutes": 10,
-    "groupBy": ["source_host"],
-    "severity": {"default": "high"},
+    "groupBy": ["MachineName"],
+    "threshold": 10,
+    "severity": { "default": "HIGH" },
     "filters": [],
-    "recommendationTemplate": "Multiple failed login attempts detected from host {{source_host}}. Investigate possible password spraying activity."
+    "recommendationTemplate": "Multiple failed login attempts detected from {{MachineName}}."
   },
   "S21": {
     "name": "Repeated Incident",
-    "eventIds": [],
-    "correlatedEventIds": [],
+    "meta": true,
     "aggregationWindowMinutes": 60,
-    "groupBy": ["signal_id", "affected_user"],
-    "severity": {"default": "medium"},
-    "filters": [],
-    "recommendationTemplate": "This incident has occurred repeatedly. Review incident history and previously applied resolutions."
+    "groupBy": ["EventId", "TargetUserName"],
+    "threshold": 3,
+    "severity": { "default": "MEDIUM" },
+    "recommendationTemplate": "This incident has occurred repeatedly for user {{TargetUserName}} and event {{EventId}}."
   },
   "S22": {
     "name": "New / Unseen Event",
-    "eventIds": [],
-    "correlatedEventIds": [],
+    "meta": true,
     "aggregationWindowMinutes": 60,
-    "groupBy": ["source_host", "event_type"],
-    "severity": {"default": "medium"},
-    "filters": [],
-    "recommendationTemplate": "A new or previously unseen event type {{event_type}} was detected. Check the source host {{source_host}}."
+    "groupBy": ["MachineName", "EventId"],
+    "severity": { "default": "MEDIUM" },
+    "recommendationTemplate": "A new event type {{EventId}} detected on {{MachineName}}."
   }
 }

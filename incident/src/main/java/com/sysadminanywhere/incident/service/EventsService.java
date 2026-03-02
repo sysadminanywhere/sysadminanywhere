@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -45,8 +46,7 @@ public class EventsService {
     @SneakyThrows
     private void execute() {
 
-        Long lastRecordId = eventRepository
-                .findTopByOrderByRecordIdDesc()
+        Long lastRecordId = Optional.ofNullable(eventRepository.findTopByOrderByRecordIdDesc())
                 .map(EventEntity::getRecordId)
                 .orElse(0L);
 
@@ -92,7 +92,7 @@ public class EventsService {
                     EventEntity eventEntity = new EventEntity();
                     eventEntity.setRecordId(event.getRecordId());
                     eventEntity.setEventId(event.getEventId());
-                    eventEntity.setTimeCreated(event.getTimeCreated());
+                    eventEntity.setTimeCreated(event.getTimeCreated().toLocalDateTime());
                     eventEntity.setMachineName(event.getMachineName());
                     eventEntity.setLevelDisplayName(event.getLevelDisplayName());
                     eventEntity.setMessage(event.getMessage());

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @Data
@@ -22,7 +23,7 @@ public class EventEntity {
 
     private Integer eventId;
 
-    private OffsetDateTime timeCreated;
+    private LocalDateTime timeCreated;
 
     private String machineName;
 
@@ -31,9 +32,10 @@ public class EventEntity {
     @Column(columnDefinition = "TEXT")
     private String message;
 
-    @Column(columnDefinition = "jsonb")
-    private String extra; // JSONB как строка
+    private String extra;
 
     private Boolean processed = false;
+
+    private Long incidentId;
 
 }
