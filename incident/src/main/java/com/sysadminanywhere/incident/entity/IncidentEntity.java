@@ -119,12 +119,6 @@ public class IncidentEntity {
      */
     private LocalDateTime closedAt;
 
-    /**
-     * Комментарий аналитика
-     */
-    @Column(columnDefinition = "TEXT")
-    private String analystComment;
-
     @PrePersist
     public void prePersist() {
         createdAt = LocalDateTime.now();

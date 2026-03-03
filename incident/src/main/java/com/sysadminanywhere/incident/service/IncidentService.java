@@ -180,6 +180,8 @@ public class IncidentService {
                 .deduplicationKey(signal.getId() + "|" + groupKey + "|" +
                         events.get(0).getTimeCreated())
                 .status(IncidentStatus.OPEN)
+                .machineName(events.get(0).getMachineName())
+                .recommendation(renderRecommendation(signal, events))
                 .build();
 
         incidentRepository.save(incident);
@@ -227,6 +229,57 @@ public class IncidentService {
         }
 
         return true;
+    }
+
+    private String renderRecommendation(
+            Signal signal,
+            List<EventEntity> events) {
+
+        if (signal.getRecommendationTemplate() == null || signal.getRecommendationTemplate().isBlank()) {
+            return "";
+        }
+
+        EventEntity first = events.get(0);
+        EventEntity last = events.get(events.size() - 1);
+
+        Map<String, Object> context = new HashMap<>();
+
+        // 🔹 1. Все поля из EventData
+        context.putAll(parseExtra(first));
+
+        // 🔹 2. Системные поля события
+        context.put("MachineName", first.getMachineName());
+        context.put("EventId", first.getEventId());
+
+        // 🔹 3. Групповые поля
+        context.put("eventCount", events.size());
+        context.put("firstEventTime", first.getTimeCreated());
+        context.put("lastEventTime", last.getTimeCreated());
+
+        // 🔹 4. Поля сигнала
+        context.put("signalId", signal.getId());
+        context.put("signalName", signal.getName());
+
+        return replacePlaceholders(signal.getRecommendationTemplate(), context);
+    }
+
+    private String replacePlaceholders(String template, Map<String, Object> context) {
+
+        String result = template;
+
+        for (Map.Entry<String, Object> entry : context.entrySet()) {
+            String key = "{{" + entry.getKey() + "}}";
+            String value = entry.getValue() != null
+                    ? entry.getValue().toString()
+                    : "";
+
+            result = result.replace(key, value);
+        }
+
+        // 🔥 Если остались незаполненные {{...}} — убираем
+        result = result.replaceAll("\\{\\{.*?}}", "");
+
+        return result;
     }
 
 }
