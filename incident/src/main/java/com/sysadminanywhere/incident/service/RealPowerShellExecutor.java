@@ -35,15 +35,23 @@ public class RealPowerShellExecutor implements PowerShellExecutor {
     public WinRmToolResponse execute(String script) {
         log.info("Executing PowerShell on {}:{}", hostname, port);
 
-        WinRmTool tool = WinRmTool.Builder.builder(hostname, username, password)
-                .authenticationScheme(AuthSchemes.BASIC)
-                .port(port)
-                .useHttps(useSsl)
-                .context(context)
-                .disableCertificateChecks(true) // только если нужно (не для prod!)
-                .build();
+        try {
 
-        return tool.executePs(script);
+            WinRmTool tool = WinRmTool.Builder.builder(hostname, username, password)
+                    .authenticationScheme(AuthSchemes.BASIC)
+                    .port(port)
+                    .useHttps(useSsl)
+                    .context(context)
+                    .disableCertificateChecks(true)
+                    .build();
+
+            return tool.executePs(script);
+
+        } catch (Exception e) {
+            log.error("Error executing PowerShell script: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to execute PowerShell script", e);
+        }
+
     }
 
     // Очистка ресурсов при уничтожении бина

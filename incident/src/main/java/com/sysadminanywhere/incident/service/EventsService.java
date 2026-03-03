@@ -43,7 +43,6 @@ public class EventsService {
         log.info("Events loaded successfully");
     }
 
-    @SneakyThrows
     private void execute() {
 
         Long lastRecordId = Optional.ofNullable(eventRepository.findTopByOrderByRecordIdDesc())
@@ -79,33 +78,39 @@ public class EventsService {
                 } | ConvertTo-Json -Depth 6
                 """.formatted(lastRecordId);
 
-        WinRmToolResponse response = powerShellExecutor.execute(psScript);
+        try {
 
-        if (response.getStdOut() != null && !response.getStdOut().isEmpty()) {
-            List<Event> events = objectMapper.readValue(response.getStdOut(), new TypeReference<>() {
-            });
+            WinRmToolResponse response = powerShellExecutor.execute(psScript);
 
-            log.info("Loaded {} events", events.size());
+            if (response.getStdOut() != null && !response.getStdOut().isEmpty()) {
+                List<Event> events = objectMapper.readValue(response.getStdOut(), new TypeReference<>() {
+                });
 
-            for (Event event : events) {
-                if (event.getRecordId() > lastRecordId) {
-                    EventEntity eventEntity = new EventEntity();
-                    eventEntity.setRecordId(event.getRecordId());
-                    eventEntity.setEventId(event.getEventId());
-                    eventEntity.setTimeCreated(event.getTimeCreated().toLocalDateTime());
-                    eventEntity.setMachineName(event.getMachineName());
-                    eventEntity.setLevelDisplayName(event.getLevelDisplayName());
-                    eventEntity.setMessage(event.getMessage());
-                    eventEntity.setExtra(objectMapper.writeValueAsString(event.getEventData()));
-                    eventRepository.save(eventEntity);
+                log.info("Loaded {} events", events.size());
+
+                for (Event event : events) {
+                    if (event.getRecordId() > lastRecordId) {
+                        EventEntity eventEntity = new EventEntity();
+                        eventEntity.setRecordId(event.getRecordId());
+                        eventEntity.setEventId(event.getEventId());
+                        eventEntity.setTimeCreated(event.getTimeCreated().toLocalDateTime());
+                        eventEntity.setMachineName(event.getMachineName());
+                        eventEntity.setLevelDisplayName(event.getLevelDisplayName());
+                        eventEntity.setMessage(event.getMessage());
+                        eventEntity.setExtra(objectMapper.writeValueAsString(event.getEventData()));
+                        eventRepository.save(eventEntity);
+                    }
                 }
             }
-        }
 
-        if (response.getStdErr() != null && !response.getStdErr().isEmpty()) {
-            if (!response.getStdErr().contains("<Objs") && !response.getStdErr().contains("progress")) {
-                log.error("Real errors: {}", response.getStdErr());
+            if (response.getStdErr() != null && !response.getStdErr().isEmpty()) {
+                if (!response.getStdErr().contains("<Objs") && !response.getStdErr().contains("progress")) {
+                    log.error("Real errors: {}", response.getStdErr());
+                }
             }
+
+        } catch (Exception e) {
+            log.error("Error loading events", e);
         }
 
         incidentService.processEvents();
