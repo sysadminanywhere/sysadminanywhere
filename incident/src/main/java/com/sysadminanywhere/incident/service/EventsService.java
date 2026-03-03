@@ -70,7 +70,7 @@ public class EventsService {
                     [PSCustomObject]@{
                         RecordId    = $_.RecordId
                         EventId     = $_.Id
-                        TimeCreated = $_.TimeCreated.ToString("o")
+                        TimeCreated = $_.TimeCreated.ToString("yyyy-MM-ddTHH:mm:ss.fffzzz")
                         MachineName = $_.MachineName
                         LevelDisplayName = $_.LevelDisplayName
                         Message = $_.Message

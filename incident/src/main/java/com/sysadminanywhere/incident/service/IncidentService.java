@@ -9,10 +9,6 @@ import com.sysadminanywhere.incident.repository.EventRepository;
 import com.sysadminanywhere.incident.repository.IncidentRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -30,268 +26,207 @@ public class IncidentService {
     private final SignalLoader signalLoader;
     private final ObjectMapper mapper;
 
-    private final ExpressionParser spel = new SpelExpressionParser();
-
     public void processEvents() {
 
-        // 1️⃣ Загружаем только новые события (не связанные с инцидентами)
-        List<EventEntity> newEvents = eventRepository.findByIncidentIdIsNull();
-        if (newEvents.isEmpty()) return;
+        // 🔥 Берем ВСЕ необработанные события
+        List<EventEntity> unprocessed = eventRepository.findByIncidentIdIsNull();
+        if (unprocessed.isEmpty()) return;
 
-        LocalDateTime now = LocalDateTime.now();
+        // сортируем один раз
+        unprocessed.sort(Comparator.comparing(EventEntity::getTimeCreated));
 
-        // 2️⃣ Обработка обычных сигналов
         for (Signal signal : signalLoader.getAll()) {
+
             if (signal.isMeta()) continue;
 
-            LocalDateTime windowStart =
-                    now.minusMinutes(signal.getAggregationWindowMinutes());
-
-            List<EventEntity> signalEvents =
-                    eventRepository.findEventsForSignal(
-                            signal.getEventIds(),
-                            windowStart,
-                            now
-                    );
+            // фильтруем только события этого сигнала
+            List<EventEntity> signalEvents = unprocessed.stream()
+                    .filter(e -> signal.getEventIds().contains(e.getEventId()))
+                    .collect(Collectors.toList());
 
             if (signalEvents.isEmpty()) continue;
 
             signalEvents = applyFilters(signal, signalEvents);
 
-            Map<String, List<EventEntity>> grouped =
-                    groupBy(signal, signalEvents);
+            // группировка
+            Map<String, List<EventEntity>> grouped = groupBy(signal, signalEvents);
 
             for (var entry : grouped.entrySet()) {
-                List<EventEntity> groupEvents = entry.getValue();
 
-                if (!withinWindow(signal, groupEvents)) continue;
-                if (!thresholdOk(signal, groupEvents)) continue;
-                if (!correlationOk(signal, groupEvents)) continue;
+                List<EventEntity> events = entry.getValue();
 
-                createOrUpdateIncident(signal, groupEvents, entry.getKey());
+                // 🔥 теперь окно считается относительно первого события группы
+                List<List<EventEntity>> windows =
+                        splitByAggregationWindow(signal, events);
+
+                for (List<EventEntity> windowEvents : windows) {
+
+                    if (!thresholdOk(signal, windowEvents)) continue;
+                    if (!correlationOk(signal, windowEvents)) continue;
+
+                    createIncident(signal, windowEvents, entry.getKey());
+                }
+            }
+        }
+    }
+
+    // =========================
+    // Разбиваем события на окна
+    // =========================
+    private List<List<EventEntity>> splitByAggregationWindow(
+            Signal signal,
+            List<EventEntity> events) {
+
+        List<List<EventEntity>> result = new ArrayList<>();
+
+        events.sort(Comparator.comparing(EventEntity::getTimeCreated));
+
+        List<EventEntity> current = new ArrayList<>();
+        EventEntity first = null;
+
+        for (EventEntity e : events) {
+
+            if (first == null) {
+                first = e;
+                current.add(e);
+                continue;
+            }
+
+            long minutes = Duration.between(
+                    first.getTimeCreated(),
+                    e.getTimeCreated()
+            ).toMinutes();
+
+            if (minutes <= signal.getAggregationWindowMinutes()) {
+                current.add(e);
+            } else {
+                result.add(current);
+                current = new ArrayList<>();
+                current.add(e);
+                first = e;
             }
         }
 
-        // 3️⃣ Обработка meta сигналов
-        processMetaSignals(now);
+        if (!current.isEmpty()) result.add(current);
+
+        return result;
     }
 
-    // -------------------------
-    // Группировка по groupBy
-    private Map<String, List<EventEntity>> groupBy(Signal signal, List<EventEntity> events) {
-        return events.stream().collect(Collectors.groupingBy(e -> {
-            Map<String, Object> extra = parseExtra(e);
-            return signal.getGroupBy().stream()
-                    .map(f -> String.valueOf(extra.get(f)))
-                    .collect(Collectors.joining("|"));
-        }));
-    }
-
-    // -------------------------
-    // Threshold
     private boolean thresholdOk(Signal s, List<EventEntity> events) {
         return s.getThreshold() == null || events.size() >= s.getThreshold();
     }
 
-    // -------------------------
-    // Проверка времени окна
-    private boolean withinWindow(Signal s, List<EventEntity> events) {
-        events.sort(Comparator.comparing(EventEntity::getTimeCreated));
-        long minutes = Duration.between(
-                events.get(0).getTimeCreated(),
-                events.get(events.size() - 1).getTimeCreated()
-        ).toMinutes();
-        return minutes <= s.getAggregationWindowMinutes();
-    }
-
-    // -------------------------
-    // Корреляция и последовательность
     private boolean correlationOk(Signal s, List<EventEntity> events) {
-        if (!s.getOrderedSequence().isEmpty()) return checkSequence(events, s.getOrderedSequence());
+
+        if (!s.getOrderedSequence().isEmpty()) {
+            return checkSequence(events, s.getOrderedSequence());
+        }
+
         if (!s.getCorrelatedEventIds().isEmpty()) {
             Set<Integer> present = events.stream()
                     .map(EventEntity::getEventId)
                     .collect(Collectors.toSet());
             return present.containsAll(s.getCorrelatedEventIds());
         }
+
         return true;
     }
 
     private boolean checkSequence(List<EventEntity> events, List<Integer> sequence) {
+
         events.sort(Comparator.comparing(EventEntity::getTimeCreated));
+
         int idx = 0;
+
         for (EventEntity e : events) {
             if (e.getEventId().equals(sequence.get(idx))) {
                 idx++;
                 if (idx == sequence.size()) return true;
             }
         }
+
         return false;
     }
 
-    // -------------------------
-    // Создание или обновление инцидента
-    private void createOrUpdateIncident(Signal signal,
-                                        List<EventEntity> events,
-                                        String groupKey) {
+    private Map<String, List<EventEntity>> groupBy(
+            Signal signal,
+            List<EventEntity> events) {
 
-        String dedupKey = signal.getId() + "|" + groupKey;
-        IncidentEntity incident = incidentRepository.findByDeduplicationKey(dedupKey);
+        return events.stream().collect(Collectors.groupingBy(e -> {
 
-        Map<String, Object> context = buildContext(signal, events);
+            Map<String, Object> extra = parseExtra(e);
 
-        if (incident == null) {
-            // Создаём новый инцидент
-            incident = IncidentEntity.builder()
-                    .signalId(signal.getId())
-                    .name(signal.getName())
-                    .severity(resolveSeverity(signal, context))
-                    .createdAt(LocalDateTime.now())
-                    .firstEventTime(events.get(0).getTimeCreated())
-                    .lastEventTime(events.get(events.size() - 1).getTimeCreated())
-                    .deduplicationKey(dedupKey)
-                    .eventCount(events.size())
-                    .recommendation(render(signal.getRecommendationTemplate(), context))
-                    .context(toJson(context))
-                    .status(IncidentStatus.OPEN)
-                    .build();
-            incidentRepository.save(incident);
-        } else {
-            // Обновляем существующий инцидент
-            incident.setEventCount(incident.getEventCount() + events.size());
-            incident.setLastEventTime(events.get(events.size() - 1).getTimeCreated());
-            incident.setUpdatedAt(LocalDateTime.now());
-            incidentRepository.save(incident);
-        }
-
-        // Связываем события с инцидентом
-        IncidentEntity finalIncident = incident;
-        events.forEach(e -> e.setIncidentId(finalIncident.getId()));
-        eventRepository.saveAll(events);
+            return signal.getGroupBy().stream()
+                    .map(f -> String.valueOf(extra.getOrDefault(f, "")))
+                    .collect(Collectors.joining("|"));
+        }));
     }
 
-    // -------------------------
-    // Построение контекста
-    private Map<String, Object> buildContext(Signal signal, List<EventEntity> events) {
-        Map<String, Object> ctx = new HashMap<>();
-        ctx.putAll(parseExtra(events.get(0)));
-        ctx.put("event_count", events.size());
-        ctx.put("signal_id", signal.getId());
-        return ctx;
+    private void createIncident(
+            Signal signal,
+            List<EventEntity> events,
+            String groupKey) {
+
+        events.sort(Comparator.comparing(EventEntity::getTimeCreated));
+
+        IncidentEntity incident = IncidentEntity.builder()
+                .signalId(signal.getId())
+                .name(signal.getName())
+                .severity(signal.getSeverity().getDefaultSeverity())
+                .createdAt(LocalDateTime.now())
+                .firstEventTime(events.get(0).getTimeCreated())
+                .lastEventTime(events.get(events.size() - 1).getTimeCreated())
+                .eventCount(events.size())
+                .deduplicationKey(signal.getId() + "|" + groupKey + "|" +
+                        events.get(0).getTimeCreated())
+                .status(IncidentStatus.OPEN)
+                .build();
+
+        incidentRepository.save(incident);
+
+        long incidentId = incident.getId();
+
+        events.forEach(e -> e.setIncidentId(incidentId));
+        eventRepository.saveAll(events);
     }
 
     private Map<String, Object> parseExtra(EventEntity e) {
         try {
-            return mapper.readValue(e.getExtra(), new TypeReference<>() {});
+            return mapper.readValue(
+                    e.getExtra(),
+                    new TypeReference<Map<String, Object>>() {}
+            );
         } catch (Exception ex) {
             return Map.of();
         }
     }
 
-    private String render(String template, Map<String, Object> ctx) {
-        String result = template;
-        for (var entry : ctx.entrySet()) {
-            result = result.replace("{{" + entry.getKey() + "}}", String.valueOf(entry.getValue()));
-        }
-        return result;
-    }
+    private List<EventEntity> applyFilters(
+            Signal signal,
+            List<EventEntity> events) {
 
-    private String toJson(Object obj) {
-        try { return mapper.writeValueAsString(obj); }
-        catch (Exception e) { return "{}"; }
-    }
-
-    // -------------------------
-    // Severity rules
-    private Severity resolveSeverity(Signal signal, Map<String, Object> ctx) {
-        if (signal.getSeverity() == null) return Severity.MEDIUM;
-        if (signal.getSeverity().getRules() != null) {
-            for (SeverityRule rule : signal.getSeverity().getRules()) {
-                if (evaluate(rule.getCondition(), ctx)) return rule.getSeverity();
-            }
-        }
-        return signal.getSeverity().getDefaultSeverity();
-    }
-
-    private boolean evaluate(String condition, Map<String, Object> ctx) {
-        StandardEvaluationContext context = new StandardEvaluationContext();
-        ctx.forEach(context::setVariable);
-        Expression exp = spel.parseExpression(condition);
-        return Boolean.TRUE.equals(exp.getValue(context, Boolean.class));
-    }
-
-    // -------------------------
-    // Meta сигналы (S21, S22)
-    private void processMetaSignals(LocalDateTime now) {
-        Signal repeated = signalLoader.get("S21");
-        if (repeated != null) {
-            List<IncidentEntity> recent = incidentRepository.findRecent(repeated.getAggregationWindowMinutes());
-            Map<String, List<IncidentEntity>> grouped = recent.stream()
-                    .collect(Collectors.groupingBy(i -> i.getSignalId() + "|" + i.getAffectedUser()));
-
-            for (var entry : grouped.entrySet()) {
-                if (entry.getValue().size() >= repeated.getThreshold()) {
-                    IncidentEntity inc = IncidentEntity.builder()
-                            .signalId("S21")
-                            .name("Repeated Incident")
-                            .severity(Severity.MEDIUM)
-                            .meta(true)
-                            .createdAt(now)
-                            .deduplicationKey("S21|" + entry.getKey())
-                            .eventCount(entry.getValue().size())
-                            .build();
-                    incidentRepository.save(inc);
-                }
-            }
-        }
-    }
-
-    private List<EventEntity> applyFilters(Signal signal, List<EventEntity> events) {
-        if (signal.getFilters() == null || signal.getFilters().isEmpty()) return events;
+        if (signal.getFilters() == null || signal.getFilters().isEmpty())
+            return events;
 
         return events.stream()
                 .filter(e -> passesAllFilters(signal.getFilters(), e))
                 .collect(Collectors.toList());
     }
 
-    private boolean passesAllFilters(List<FilterRule> filters, EventEntity event) {
+    private boolean passesAllFilters(
+            List<FilterRule> filters,
+            EventEntity event) {
+
         Map<String, Object> extra = parseExtra(event);
 
         for (FilterRule filter : filters) {
             Object value = extra.get(filter.getField());
-            if (!matches(value, filter.getOperator(), filter.getValue())) {
+            if (!Objects.equals(String.valueOf(value),
+                    String.valueOf(filter.getValue())))
                 return false;
-            }
         }
+
         return true;
-    }
-
-    private boolean matches(Object actual, Operator operator, Object expected) {
-        if (actual == null) return false;
-        String act = String.valueOf(actual);
-        String exp = String.valueOf(expected);
-
-        return switch (operator) {
-            case EQ -> act.equals(exp);
-            case NE -> !act.equals(exp);
-            case IN -> List.of(exp.split(",")).contains(act);
-            case NOT_IN -> !List.of(exp.split(",")).contains(act);
-            case GT -> compare(act, exp) > 0;
-            case GTE -> compare(act, exp) >= 0;
-            case LT -> compare(act, exp) < 0;
-            case LTE -> compare(act, exp) <= 0;
-            default -> false;
-        };
-    }
-
-    private int compare(String a, String b) {
-        try {
-            double da = Double.parseDouble(a);
-            double db = Double.parseDouble(b);
-            return Double.compare(da, db);
-        } catch (NumberFormatException ex) {
-            return a.compareTo(b);
-        }
     }
 
 }

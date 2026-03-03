@@ -1,226 +1,90 @@
 {
   "S1": {
-    "name": "Failed Logon",
+    "name": "Single Failed Logon",
     "eventIds": [4625],
     "aggregationWindowMinutes": 5,
-    "groupBy": ["TargetUserName", "MachineName"],
-    "threshold": 3,
+    "groupBy": ["MachineName", "TargetUserName"],
+    "threshold": 1,
     "severity": { "default": "MEDIUM" },
-    "filters": [],
-    "recommendationTemplate": "Check the machine {{MachineName}} and the user {{TargetUserName}}."
+    "recommendationTemplate": "Investigate failed logon for user {{TargetUserName}} on host {{MachineName}}."
   },
+
   "S2": {
-    "name": "Successful Logon after Failures",
-    "eventIds": [4624, 4625],
-    "orderedSequence": [4625, 4625, 4624],
-    "aggregationWindowMinutes": 5,
-    "groupBy": ["TargetUserName", "MachineName"],
-    "severity": { "default": "MEDIUM" },
-    "filters": [],
-    "recommendationTemplate": "User {{TargetUserName}} successfully logged in after failed attempts on machine {{MachineName}}."
+    "name": "Brute Force Attempt",
+    "eventIds": [4625],
+    "aggregationWindowMinutes": 2,
+    "groupBy": ["MachineName", "IpAddress"],
+    "threshold": 3,
+    "severity": { "default": "HIGH" },
+    "recommendationTemplate": "Multiple failed logons detected from IP {{IpAddress}} on {{MachineName}}."
   },
+
   "S3": {
     "name": "Account Lockout",
     "eventIds": [4740],
-    "correlatedEventIds": [4625],
     "aggregationWindowMinutes": 10,
-    "groupBy": ["TargetUserName", "MachineName"],
-    "severity": {
-      "default": "HIGH",
-      "rules": [
-        {
-          "condition": "#TargetUserName in {'Domain Admins','Enterprise Admins'}",
-          "severity": "CRITICAL"
-        }
-      ]
-    },
-    "filters": [],
-    "recommendationTemplate": "User {{TargetUserName}} has been locked out on machine {{MachineName}}."
-  },
-  "S4": {
-    "name": "Kerberos Pre-Auth Failure",
-    "eventIds": [4771],
-    "correlatedEventIds": [4768, 4769],
-    "aggregationWindowMinutes": 10,
-    "groupBy": ["TargetUserName", "MachineName"],
-    "severity": {"default": "MEDIUM"},
-    "filters": [],
-    "recommendationTemplate": "Kerberos pre-authentication failure for user {{TargetUserName}} on machine {{MachineName}}."
-  },
-  "S5": {
-    "name": "Kerberos TGT/TGS Failure",
-    "eventIds": [4768, 4769],
-    "aggregationWindowMinutes": 10,
-    "groupBy": ["TargetUserName", "MachineName"],
-    "severity": {"default": "MEDIUM"},
-    "filters": [],
-    "recommendationTemplate": "Kerberos ticket issuance failure for user {{TargetUserName}} on machine {{MachineName}}."
-  },
-  "S6": {
-    "name": "User Created",
-    "eventIds": [4720],
-    "aggregationWindowMinutes": 60,
-    "groupBy": ["TargetUserName"],
-    "severity": {"default": "LOW"},
-    "filters": [],
-    "recommendationTemplate": "A new user {{TargetUserName}} was created. Review assigned permissions and group memberships."
-  },
-  "S7": {
-    "name": "User Deleted",
-    "eventIds": [4726],
-    "aggregationWindowMinutes": 60,
-    "groupBy": ["TargetUserName"],
-    "severity": {"default": "HIGH"},
-    "filters": [],
-    "recommendationTemplate": "User {{TargetUserName}} was deleted."
-  },
-  "S8": {
-    "name": "Added to Group",
-    "eventIds": [4728, 4732],
-    "aggregationWindowMinutes": 60,
-    "groupBy": ["TargetUserName", "TargetGroupName"],
-    "severity": {
-      "default": "HIGH",
-      "rules": [
-        {
-          "condition": "TargetGroupName IN ('Domain Admins','Enterprise Admins')",
-          "severity": "CRITICAL"
-        }
-      ]
-    },
-    "filters": [],
-    "recommendationTemplate": "User {{TargetUserName}} was added to group {{TargetGroupName}}."
-  },
-  "S9": {
-    "name": "Removed from Group",
-    "eventIds": [4729, 4733],
-    "aggregationWindowMinutes": 60,
-    "groupBy": ["TargetUserName", "TargetGroupName"],
-    "severity": {"default": "HIGH"},
-    "filters": [],
-    "recommendationTemplate": "User {{TargetUserName}} was removed from group {{TargetGroupName}}."
-  },
-  "S10": {
-    "name": "AD Object Change",
-    "eventIds": [5136],
-    "aggregationWindowMinutes": 60,
-    "groupBy": ["ObjectName"],
-    "severity": {"default": "MEDIUM"},
-    "filters": [],
-    "recommendationTemplate": "Active Directory object {{ObjectName}} was modified."
-  },
-  "S11": {
-    "name": "GPO Changed",
-    "eventIds": [5136],
-    "aggregationWindowMinutes": 60,
-    "groupBy": ["ObjectName"],
-    "severity": {"default": "HIGH"},
-    "filters": [
-      {"field": "object_type", "operator": "EQ", "value": "groupPolicyContainer"}
-    ],
-    "recommendationTemplate": "Group Policy Object {{ObjectName}} was modified."
-  },
-  "S12": {
-    "name": "GPO Application Error",
-    "eventIds": [1058, 1030, 7016],
-    "aggregationWindowMinutes": 60,
-    "groupBy": ["MachineName", "policy_name"],
-    "severity": {"default": "MEDIUM"},
-    "filters": [],
-    "recommendationTemplate": "Failed to apply GPO {{policy_name}} on {{MachineName}}."
-  },
-  "S13": {
-    "name": "Service Account Login from New Host",
-    "eventIds": [4624],
-    "aggregationWindowMinutes": 10,
-    "groupBy": ["TargetUserName", "MachineName"],
-    "severity": {"default": "HIGH"},
-    "filters": [
-      {"field": "user_type", "operator": "EQ", "value": "service"}
-    ],
-    "recommendationTemplate": "Service account {{TargetUserName}} logged in from new host {{MachineName}}."
-  },
-  "S14": {
-    "name": "Frequent Service Account Login Failures",
-    "eventIds": [4625],
-    "aggregationWindowMinutes": 10,
-    "groupBy": ["TargetUserName", "MachineName"],
-    "severity": {"default": "MEDIUM"},
-    "filters": [
-      {"field": "user_type", "operator": "EQ", "value": "service"}
-    ],
-    "recommendationTemplate": "Service account {{TargetUserName}} has frequent failed logins on {{MachineName}}."
-  },
-  "S15": {
-    "name": "AD Replication Issue",
-    "eventIds": [1311, 1865, 2042],
-    "aggregationWindowMinutes": 30,
-    "groupBy": ["MachineName"],
-    "severity": {"default": "HIGH"},
-    "filters": [],
-    "recommendationTemplate": "Active Directory replication issues detected on {{MachineName}}."
-  },
-  "S16": {
-    "name": "DC Restart / Unavailable",
-    "eventIds": [6005, 6006, 1074],
-    "aggregationWindowMinutes": 30,
-    "groupBy": ["MachineName"],
-    "severity": {"default": "HIGH"},
-    "filters": [],
-    "recommendationTemplate": "Domain controller {{MachineName}} restarted or unavailable."
-  },
-  "S17": {
-    "name": "Time Skew / Kerberos Issue",
-    "eventIds": [4768, 4771],
-    "aggregationWindowMinutes": 10,
-    "groupBy": ["MachineName"],
-    "severity": {"default": "MEDIUM"},
-    "filters": [],
-    "recommendationTemplate": "Time skew or Kerberos issues on {{MachineName}}."
-  },
-  "S18": {
-    "name": "Logon from Unusual Host",
-    "eventIds": [4624],
-    "aggregationWindowMinutes": 10,
-    "groupBy": ["TargetUserName", "MachineName"],
-    "severity": {"default": "MEDIUM"},
-    "filters": [],
-    "recommendationTemplate": "User {{TargetUserName}} logged in from unusual host {{MachineName}}."
-  },
-  "S19": {
-    "name": "Logon at Unusual Time",
-    "eventIds": [4624],
-    "aggregationWindowMinutes": 10,
-    "groupBy": ["TargetUserName"],
-    "severity": {"default": "MEDIUM"},
-    "filters": [],
-    "recommendationTemplate": "User {{TargetUserName}} logged in at unusual time."
-  },
-  "S20": {
-    "name": "Mass Failed Logons (Password Spraying)",
-    "eventIds": [4625],
-    "aggregationWindowMinutes": 10,
-    "groupBy": ["MachineName"],
-    "threshold": 10,
+    "groupBy": ["MachineName", "TargetUserName"],
+    "threshold": 1,
     "severity": { "default": "HIGH" },
-    "filters": [],
-    "recommendationTemplate": "Multiple failed login attempts detected from {{MachineName}}."
+    "recommendationTemplate": "Account {{TargetUserName}} was locked out on {{MachineName}}."
   },
-  "S21": {
-    "name": "Repeated Incident",
-    "meta": true,
-    "aggregationWindowMinutes": 60,
-    "groupBy": ["EventId", "TargetUserName"],
-    "threshold": 3,
+
+  "S4": {
+    "name": "Suspicious NTLM Validation",
+    "eventIds": [4776],
+    "aggregationWindowMinutes": 5,
+    "groupBy": ["MachineName", "Workstation"],
+    "threshold": 1,
     "severity": { "default": "MEDIUM" },
-    "recommendationTemplate": "This incident has occurred repeatedly for user {{TargetUserName}} and event {{EventId}}."
+    "recommendationTemplate": "NTLM validation attempt from workstation {{Workstation}}."
   },
-  "S22": {
-    "name": "New / Unseen Event",
+
+  "S5": {
+    "name": "Kerberos TGT Request",
+    "eventIds": [4768],
+    "aggregationWindowMinutes": 5,
+    "groupBy": ["MachineName", "ClientName"],
+    "threshold": 1,
+    "severity": { "default": "LOW" },
+    "recommendationTemplate": "Kerberos TGT requested by {{ClientName}}."
+  },
+
+  "S6": {
+    "name": "Kerberos Service Ticket",
+    "eventIds": [4769],
+    "aggregationWindowMinutes": 5,
+    "groupBy": ["MachineName", "ClientName"],
+    "threshold": 1,
+    "severity": { "default": "LOW" },
+    "recommendationTemplate": "Service ticket requested by {{ClientName}} for {{ServiceName}}."
+  },
+
+  "S7": {
+    "name": "Multiple Kerberos Tickets",
+    "eventIds": [4769],
+    "aggregationWindowMinutes": 2,
+    "groupBy": ["MachineName", "ClientName"],
+    "threshold": 2,
+    "severity": { "default": "MEDIUM" },
+    "recommendationTemplate": "Multiple Kerberos service tickets requested by {{ClientName}}."
+  },
+
+  "S21": {
+    "name": "Repeated Signal",
     "meta": true,
     "aggregationWindowMinutes": 60,
+    "groupBy": ["signalId", "MachineName"],
+    "threshold": 2,
+    "severity": { "default": "MEDIUM" },
+    "recommendationTemplate": "Signal {{signalId}} occurred repeatedly on {{MachineName}}."
+  },
+
+  "S22": {
+    "name": "New Event Type On Host",
+    "meta": true,
+    "aggregationWindowMinutes": 1440,
     "groupBy": ["MachineName", "EventId"],
     "severity": { "default": "MEDIUM" },
-    "recommendationTemplate": "A new event type {{EventId}} detected on {{MachineName}}."
+    "recommendationTemplate": "New event type {{EventId}} detected on {{MachineName}}."
   }
 }

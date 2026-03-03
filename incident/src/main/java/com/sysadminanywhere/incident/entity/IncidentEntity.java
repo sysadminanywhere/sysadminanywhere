@@ -142,4 +142,6 @@ public class IncidentEntity {
         updatedAt = LocalDateTime.now();
     }
 
+    String machineName;
+
 }
