@@ -12,7 +12,12 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "events")
+@Table(name = "events",
+        indexes = {
+                @Index(name = "idx_events_processed", columnList = "processed"),
+                @Index(name = "idx_events_recordId", columnList = "recordId"),
+                @Index(name = "idx_events_incidentId", columnList = "incidentId")
+        })
 public class EventEntity {
 
     @Id
