@@ -11,6 +11,6 @@ public class SeverityRule {
      */
     private String condition;
 
-    private Severity severity;
+    private com.sysadminanywhere.common.incident.model.Severity severity;
 
 }

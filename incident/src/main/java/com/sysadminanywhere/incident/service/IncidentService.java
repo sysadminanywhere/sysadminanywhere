@@ -2,6 +2,7 @@ package com.sysadminanywhere.incident.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sysadminanywhere.common.incident.model.IncidentStatus;
 import com.sysadminanywhere.incident.entity.EventEntity;
 import com.sysadminanywhere.incident.entity.IncidentEntity;
 import com.sysadminanywhere.incident.model.*;

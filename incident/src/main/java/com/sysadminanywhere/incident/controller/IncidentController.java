@@ -1,7 +1,9 @@
 package com.sysadminanywhere.incident.controller;
 
+import com.sysadminanywhere.common.incident.model.IncidentItem;
 import com.sysadminanywhere.incident.entity.IncidentEntity;
-import com.sysadminanywhere.incident.model.IncidentStatus;
+import com.sysadminanywhere.common.incident.model.IncidentStatus;
+import com.sysadminanywhere.incident.mapper.IncidentMapper;
 import com.sysadminanywhere.incident.repository.IncidentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("/api/incident")
+@RequestMapping("/api/incidents")
 @RequiredArgsConstructor
 public class IncidentController {
 
@@ -22,14 +24,17 @@ public class IncidentController {
     // -------------------------
     // Получение списка инцидентов с фильтрацией и постраничным выводом
     @GetMapping
-    public Page<IncidentEntity> getIncidents(
+    public Page<IncidentItem> getIncidents(
+            Pageable pageable,
             @RequestParam(required = false) IncidentStatus status,
-            @RequestParam(required = false) String signalId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
-            Pageable pageable
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to
     ) {
-        return incidentRepository.findWithFilters(status, signalId, from, to, pageable);
+        if (status == null) status = IncidentStatus.OPEN;
+        if(from == null) from = LocalDateTime.now().minusDays(1);
+        if(to == null) to = LocalDateTime.now();
+
+        return incidentRepository.findWithFilters(status, from, to, pageable).map(IncidentMapper::toItem);
     }
 
     // -------------------------

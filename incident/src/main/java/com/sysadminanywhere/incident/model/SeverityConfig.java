@@ -9,7 +9,7 @@ import java.util.List;
 public class SeverityConfig {
 
     @JsonProperty("default")
-    private Severity defaultSeverity;
+    private com.sysadminanywhere.common.incident.model.Severity defaultSeverity;
 
     private List<SeverityRule> rules;
 

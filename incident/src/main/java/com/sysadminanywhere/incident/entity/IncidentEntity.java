@@ -1,7 +1,7 @@
 package com.sysadminanywhere.incident.entity;
 
-import com.sysadminanywhere.incident.model.IncidentStatus;
-import com.sysadminanywhere.incident.model.Severity;
+import com.sysadminanywhere.common.incident.model.IncidentStatus;
+import com.sysadminanywhere.common.incident.model.Severity;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,4 +1,4 @@
-package com.sysadminanywhere.incident.model;
+package com.sysadminanywhere.common.incident.model;
 
 public enum IncidentStatus {
     OPEN,

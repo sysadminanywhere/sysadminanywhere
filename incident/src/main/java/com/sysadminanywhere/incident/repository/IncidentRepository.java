@@ -1,7 +1,7 @@
 package com.sysadminanywhere.incident.repository;
 
 import com.sysadminanywhere.incident.entity.IncidentEntity;
-import com.sysadminanywhere.incident.model.IncidentStatus;
+import com.sysadminanywhere.common.incident.model.IncidentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -51,15 +51,12 @@ public interface IncidentRepository extends JpaRepository<IncidentEntity, Long> 
 
     @Query("""
         SELECT i FROM IncidentEntity i
-        WHERE (:status IS NULL OR i.status = :status)
-          AND (:signalId IS NULL OR i.signalId = :signalId)
-          AND (:from IS NULL OR i.createdAt >= :from)
-          AND (:to IS NULL OR i.createdAt <= :to)
+        WHERE i.status = :status
+            AND i.createdAt BETWEEN :from AND :to
         ORDER BY i.createdAt DESC
         """)
     Page<IncidentEntity> findWithFilters(
             @Param("status") IncidentStatus status,
-            @Param("signalId") String signalId,
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to,
             Pageable pageable
