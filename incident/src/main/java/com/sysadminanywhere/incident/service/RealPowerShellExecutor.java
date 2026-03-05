@@ -42,7 +42,7 @@ public class RealPowerShellExecutor implements PowerShellExecutor {
                     .port(port)
                     .useHttps(useSsl)
                     .context(context)
-                    //.disableCertificateChecks(true)
+                    .disableCertificateChecks(true)
                     .build();
 
             return tool.executePs(script);
