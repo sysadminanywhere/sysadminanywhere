@@ -29,34 +29,30 @@ public class RealPowerShellExecutor implements PowerShellExecutor {
     @Value("${wef.use.ssl}")
     private boolean useSsl;
 
-    private final WinRmClientContext context = WinRmClientContext.newInstance();
 
     @Override
     public WinRmToolResponse execute(String script) {
         log.info("Executing PowerShell on {}:{}", hostname, port);
 
-        try {
+        WinRmClientContext context = WinRmClientContext.newInstance();
 
+        try {
             WinRmTool tool = WinRmTool.Builder.builder(hostname, username, password)
                     .authenticationScheme(AuthSchemes.BASIC)
                     .port(port)
                     .useHttps(useSsl)
                     .context(context)
-                    .disableCertificateChecks(true)
+                    //.disableCertificateChecks(true)
                     .build();
 
             return tool.executePs(script);
 
         } catch (Exception e) {
             log.error("Error executing PowerShell script: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to execute PowerShell script", e);
+            return new WinRmToolResponse("", e.getMessage(), 1);
+        } finally {
+            context.shutdown();
         }
-
-    }
-
-    // Очистка ресурсов при уничтожении бина
-    public void destroy() {
-        context.shutdown();
     }
 
 }

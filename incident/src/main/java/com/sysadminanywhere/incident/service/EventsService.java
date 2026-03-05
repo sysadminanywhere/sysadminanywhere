@@ -50,13 +50,10 @@ public class EventsService {
                 .orElse(0L);
 
         String psScript = """
-                $lastId = %d
-                
                 Get-WinEvent -FilterHashtable @{
                     LogName='ForwardedEvents';
                     Id=4624,4625,4740,4720,4726,4728,4732,5136
                 } -MaxEvents 200 |
-                Where-Object { $_.RecordId -gt $lastId } |
                 ForEach-Object {
                 
                     $xml = [xml]$_.ToXml()
@@ -69,14 +66,14 @@ public class EventsService {
                     [PSCustomObject]@{
                         RecordId    = $_.RecordId
                         EventId     = $_.Id
-                        TimeCreated = $_.TimeCreated.ToString("yyyy-MM-ddTHH:mm:ss.fffzzz")
+                        TimeCreated = $_.TimeCreated.ToString("o")
                         MachineName = $_.MachineName
                         LevelDisplayName = $_.LevelDisplayName
                         Message = $_.Message
                         EventData   = $eventData
                     }
                 } | ConvertTo-Json -Depth 6
-                """.formatted(lastRecordId);
+                """;
 
         try {
 
