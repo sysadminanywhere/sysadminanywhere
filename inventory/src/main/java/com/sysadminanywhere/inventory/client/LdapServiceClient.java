@@ -7,6 +7,7 @@ import com.sysadminanywhere.inventory.config.FeignConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,21 +21,24 @@ import java.util.Map;
 public interface LdapServiceClient {
 
     @GetMapping("/api/ldap/audit")
-    Page<AuditDto> getAudit(Pageable pageable, @RequestParam("filters") Map<String, Object> filters);
+    ResponseEntity<Page<AuditDto>> getAudit(Pageable pageable, @RequestParam("filters") Map<String, String> filters);
 
     @GetMapping("/api/ldap/audit/list")
-    List<AuditDto> getAuditList(@RequestParam("filters") Map<String, Object> filters);
+    ResponseEntity<List<AuditDto>> getAuditList(@RequestParam("filters") Map<String, String> filters);
 
     @PostMapping("/api/ldap/search")
-    List<EntryDto> getSearch(@RequestBody SearchDto searchDto);
+    ResponseEntity<List<EntryDto>> getSearch(@RequestBody SearchDto searchDto);
+
+    @PostMapping("/api/ldap/count")
+    ResponseEntity<Long> count(@RequestBody SearchDto searchDto);
 
     @GetMapping("/api/ldap/rootdse")
-    EntryDto getRootDse();
+    ResponseEntity<EntryDto> getRootDse();
 
     @PostMapping("/api/ldap/members")
-    Boolean addMember(@RequestParam("dn") String dn, @RequestParam("group") String group);
+    ResponseEntity<?> addMember(@RequestParam("dn") String dn, @RequestParam("group") String group);
 
     @DeleteMapping("/api/ldap/members")
-    Boolean deleteMember(@RequestParam("dn") String dn, @RequestParam("group") String group);
+    ResponseEntity<?> deleteMember(@RequestParam("dn") String dn, @RequestParam("group") String group);
 
 }

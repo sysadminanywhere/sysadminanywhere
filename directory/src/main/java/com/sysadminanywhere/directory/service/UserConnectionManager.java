@@ -43,25 +43,37 @@ public class UserConnectionManager {
         }
     }
 
-    public LdapConnection getConnection(String username, String password) throws Exception {
+    /**
+     * Получить LDAP соединение для пользователя
+     * @param username имя пользователя (DN)
+     * @param password пароль пользователя
+     * @return LDAP соединение
+     */
+    public LdapConnection getConnection(String username, String password) {
         UserConnectionHolder holder = connections.computeIfAbsent(username, dn -> {
             try {
                 LdapConnection ldapConnection = new LdapNetworkConnection(createSpecificConfig());
                 ldapConnection.connect();
                 ldapConnection.bind(createBindRequest(dn, password));
-                log.info("Created new connection for user: {}", dn);
+                log.info("Created new LDAP connection for user: {}", dn);
 
                 return new UserConnectionHolder(ldapConnection);
             } catch (Exception e) {
+                log.error("Failed to create LDAP connection for user {}: {}", dn, e.getMessage());
                 throw new RuntimeException("Could not create connection for user: " + dn, e);
             }
         });
 
         holder.touch();
+        log.debug("Using existing LDAP connection for user: {}", username);
 
         return holder.connection;
     }
 
+    /**
+     * Создать конфигурацию LDAP соединения
+     * @return конфигурация LDAP соединения
+     */
     public LdapConnectionConfig createSpecificConfig() {
         LdapConnectionConfig config = new LdapConnectionConfig();
         config.setLdapHost(server);
@@ -72,42 +84,57 @@ public class UserConnectionManager {
         config.setCloseTimeout(500L);
         config.setTimeout(30000L);
 
+        log.debug("Created LDAP connection config for host: {}:{} (SSL: {})", server, port, useSsl);
         return config;
     }
 
+    /**
+     * Создать BIND запрос для аутентификации
+     * @param username имя пользователя (DN)
+     * @param password пароль пользователя
+     * @return BIND запрос
+     */
     public BindRequest createBindRequest(String username, String password) {
         BindRequest bindRequest = new BindRequestImpl();
         bindRequest.setName(username);
         bindRequest.setCredentials(password);
         bindRequest.setSimple(true);
+        log.debug("Created BIND request for user: {}", username);
         return bindRequest;
     }
 
+    /**
+     * Периодическая очистка неиспользуемых LDAP соединений (запускается каждые 60 сек)
+     */
     @Scheduled(fixedDelay = 60_000)
     public void cleanupIdlePools() {
-
         long now = System.currentTimeMillis();
+        int closedConnections = 0;
 
-        connections.forEach((username, holder) -> {
-
+        for (Map.Entry<String, UserConnectionHolder> entry : connections.entrySet()) {
+            String username = entry.getKey();
+            UserConnectionHolder holder = entry.getValue();
             long idleTime = now - holder.lastUsed;
 
             if (idleTime > poolTtlMs) {
-
                 if (connections.remove(username, holder)) {
                     try {
-                        log.info("Авто-закрытие LDAP-пула пользователя {} (idle {} ms)",
+                        log.info("Auto-closing LDAP pool for user {} (idle {} ms)",
                                 username, idleTime);
-
                         holder.connection.close();
+                        closedConnections++;
 
                     } catch (Exception e) {
-                        log.warn("Ошибка при авто-закрытии пула {}: {}",
+                        log.warn("Error auto-closing pool for {}: {}",
                                 username, e.getMessage());
                     }
                 }
             }
-        });
+        }
+
+        if (closedConnections > 0) {
+            log.debug("Cleanup completed. Closed {} idle connections", closedConnections);
+        }
     }
 
 }

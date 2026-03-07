@@ -2,6 +2,7 @@ package com.sysadminanywhere.inventory.service;
 
 import com.sysadminanywhere.inventory.wmi.WMIAttribute;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class WmiResolveService<T> {
 
     private Class<T> typeArgumentClass;
@@ -32,7 +34,11 @@ public class WmiResolveService<T> {
                 end = list.size();
 
             for (int i = start; i < end; i++) {
-                content.add(getValue(list.get(i)));
+                try {
+                    content.add(getValue(list.get(i)));
+                } catch (Exception e) {
+                    log.warn("Error converting WMI object at index {}: {}", i, e.getMessage());
+                }
             }
 
         }
@@ -45,7 +51,11 @@ public class WmiResolveService<T> {
         List<T> content = new ArrayList<>();
 
         for (int i = 0; i < list.size(); i++) {
-            content.add(getValue(list.get(i)));
+            try {
+                content.add(getValue(list.get(i)));
+            } catch (Exception e) {
+                log.warn("Error converting WMI object at index {}: {}", i, e.getMessage());
+            }
         }
 
         return content;
@@ -68,26 +78,30 @@ public class WmiResolveService<T> {
 
                         String fieldType = field.getType().getName();
 
-                        switch (fieldType) {
-                            case "java.lang.String":
-                                field.set(result, item.get(property.name()).toString());
-                                break;
-                            case "int":
-                                field.set(result, Integer.parseInt(item.get(property.name()).toString()));
-                                break;
-                            case "long":
-                                field.set(result, Long.parseLong(item.get(property.name()).toString()));
-                                break;
-                            case "[Ljava.lang.String;":
-                                Object[] objects = (Object[]) item.get(property.name());
-                                String[] list = new String[objects.length];
+                        try {
+                            switch (fieldType) {
+                                case "java.lang.String":
+                                    field.set(result, item.get(property.name()).toString());
+                                    break;
+                                case "int":
+                                    field.set(result, Integer.parseInt(item.get(property.name()).toString()));
+                                    break;
+                                case "long":
+                                    field.set(result, Long.parseLong(item.get(property.name()).toString()));
+                                    break;
+                                case "[Ljava.lang.String;":
+                                    Object[] objects = (Object[]) item.get(property.name());
+                                    String[] list = new String[objects.length];
 
-                                for (int i = 0; i < objects.length; i++) {
-                                    list[i] = objects[i].toString();
-                                }
+                                    for (int i = 0; i < objects.length; i++) {
+                                        list[i] = objects[i].toString();
+                                    }
 
-                                field.set(result, list);
-                                break;
+                                    field.set(result, list);
+                                    break;
+                            }
+                        } catch (NumberFormatException e) {
+                            log.warn("Error converting field {} with value {}: {}", property.name(), value, e.getMessage());
                         }
                     }
                 }

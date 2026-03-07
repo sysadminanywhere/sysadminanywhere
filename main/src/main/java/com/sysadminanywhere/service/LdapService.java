@@ -67,7 +67,7 @@ public class LdapService {
     public EntryDto getRootDse() {
         try {
             if (rootDse == null) {
-                rootDse = ldapServiceClient.getRootDse();
+                rootDse = ldapServiceClient.getRootDse().getBody();
             }
             return rootDse;
         } catch (Exception e) {
@@ -100,7 +100,7 @@ public class LdapService {
 
     public List<EntryDto> searchWithAttributes(String filter, String... attributes) {
         try {
-            return ldapServiceClient.getSearch(new SearchDto(getBaseDn(), filter, SearchScope.SUBTREE.ordinal(), attributes));
+            return ldapServiceClient.getSearch(new SearchDto(getBaseDn(), filter, SearchScope.SUBTREE.ordinal(), attributes)).getBody();
         } catch (Exception e) {
             return null;
         }
@@ -119,7 +119,7 @@ public class LdapService {
     @SneakyThrows
     public List<EntryDto> search(String dn, String filter, SearchScope searchScope, Sort sort) {
         try {
-            return ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal()));
+            return ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal())).getBody();
         } catch (Exception e) {
             return null;
         }
@@ -128,7 +128,7 @@ public class LdapService {
     public Page<Entry> search(Pageable pageable, String dn, String filter, SearchScope searchScope) {
         try {
             List<EntryDto> dtos = ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal(),
-                    "cn", "objectclass", "description", "showinadvancedviewonly"));
+                    "cn", "objectclass", "description", "showinadvancedviewonly")).getBody();
 
             List<Entry> list = new ArrayList<>();
             for (EntryDto dto : dtos) {
@@ -245,15 +245,15 @@ public class LdapService {
 
     public Page<AuditDto> getAudit(Pageable pageable, Map<String, Object> filters) {
         try {
-            return ldapServiceClient.getAudit(pageable, filters);
+            return ldapServiceClient.getAudit(pageable, filters).getBody();
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
     }
 
-    public List<AuditDto> getAuditList(Map<String, Object> filters) {
+    public List<AuditDto> getAuditList(Map<String, String> filters) {
         try {
-            return ldapServiceClient.getAuditList(filters);
+            return ldapServiceClient.getAuditList(filters).getBody();
         } catch (Exception e) {
             return null;
         }
@@ -261,7 +261,7 @@ public class LdapService {
 
     public boolean deleteMember(String dn, String group) {
         try {
-            return ldapServiceClient.deleteMember(dn, group);
+            return Boolean.valueOf(ldapServiceClient.deleteMember(dn, group).getBody().toString());
         } catch (Exception e) {
             return false;
         }
@@ -269,7 +269,7 @@ public class LdapService {
 
     public boolean addMember(String dn, String group) {
         try {
-            return ldapServiceClient.addMember(dn, group);
+            return Boolean.valueOf(ldapServiceClient.addMember(dn, group).getBody().toString());
         } catch (Exception e) {
             return false;
         }

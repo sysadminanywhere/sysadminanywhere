@@ -2,7 +2,10 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.directory.dto.*;
 import com.sysadminanywhere.directory.service.LdapService;
-import lombok.SneakyThrows;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.springdoc.core.annotations.ParameterObject;
@@ -10,77 +13,300 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/ldap")
+@RequiredArgsConstructor
 public class LdapController {
 
     private final LdapService ldapService;
 
-    public LdapController(LdapService ldapService) {
-        this.ldapService = ldapService;
-    }
-
+    /**
+     * Получение логов аудита с постраничным выводом
+     */
     @GetMapping("/audit")
-    public ResponseEntity<Page<AuditDto>> getAudit(@ParameterObject Pageable pageable, @RequestParam Map<String, String> filters) {
-        return new ResponseEntity<>(ldapService.getAudit(pageable, filters), HttpStatus.OK);
-    }
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<AuditDto>> getAudit(
+            @ParameterObject Pageable pageable,
+            @RequestParam Map<String, String> filters) {
 
-    @GetMapping("/audit/list")
-    public ResponseEntity<List<AuditDto>> getAudit(@RequestParam Map<String, String> filters) {
-        return new ResponseEntity<>(ldapService.getAuditList(filters), HttpStatus.OK);
-    }
+        try {
+            validateAuditFilters(filters);
+            Page<AuditDto> result = ldapService.getAudit(pageable, filters);
+            log.info("Retrieved audit logs");
 
-    @SneakyThrows
-    @PostMapping("/search")
-    public ResponseEntity<List<EntryDto>> search(@RequestBody SearchDto searchDto) {
-        Dn dn = new Dn(searchDto.getDistinguishedName());
-        String filter = searchDto.getFilter();
-        SearchScope searchScope = SearchScope.getSearchScope(searchDto.getSearchScope());
-        String[] attributes = new String[]{"*"};
-        if (searchDto.getAttributes() != null)
-            attributes = searchDto.getAttributes();
+            return ResponseEntity.ok(result);
 
-        return new ResponseEntity<>(ldapService.convertEntryList(ldapService.searchWithAttributes(dn, filter, searchScope, attributes)), HttpStatus.OK);
-    }
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid audit filters: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
 
-    @SneakyThrows
-    @PostMapping("/count")
-    public ResponseEntity<Long> count(@RequestBody SearchDto searchDto) {
-        Dn dn = new Dn(searchDto.getDistinguishedName());
-        String filter = searchDto.getFilter();
-        SearchScope searchScope = SearchScope.getSearchScope(searchDto.getSearchScope());
-        return new ResponseEntity<>(ldapService.count(dn, filter, searchScope), HttpStatus.OK);
-    }
-
-    @GetMapping("/rootdse")
-    public ResponseEntity<EntryDto> getRootDse() {
-        return new ResponseEntity<>(ldapService.convertEntry(ldapService.getDomainEntry()), HttpStatus.OK);
-    }
-
-    @PostMapping("/members")
-    public ResponseEntity<Boolean> addMember(@RequestParam String dn, @RequestParam String group) {
-        return new ResponseEntity<>(ldapService.addMember(dn, group), HttpStatus.OK);
-    }
-
-    @DeleteMapping("/members")
-    public ResponseEntity<Boolean> deleteMember(@RequestParam String dn, @RequestParam String group) {
-        return new ResponseEntity<>(ldapService.deleteMember(dn, group), HttpStatus.OK);
-    }
-
-    @PostMapping("/authenticate")
-    public ResponseEntity<JwtResponse> authenticate(@RequestBody LoginRequest loginRequest) {
-        String username = loginRequest.getUsername();
-        String password = loginRequest.getPassword();
-
-        if (username == null || password == null) {
-            return ResponseEntity.status(401).body(null);
+        } catch (Exception e) {
+            log.error("Error retrieving audit logs", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        return new ResponseEntity<>(ldapService.authenticate(username, password), HttpStatus.OK);
     }
 
+    /**
+     * Получение списка логов аудита без постраничного вывода
+     */
+    @GetMapping("/audit/list")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<AuditDto>> getAuditList(@RequestParam Map<String, String> filters) {
+        try {
+            validateAuditFilters(filters);
+            List<AuditDto> result = ldapService.getAuditList(filters);
+            log.info("Retrieved audit logs list");
+
+            return ResponseEntity.ok(result);
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid audit filters: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+
+        } catch (Exception e) {
+            log.error("Error retrieving audit logs list", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Поиск записей в LDAP с фильтром
+     */
+    @PostMapping("/search")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<EntryDto>> search(@Valid @RequestBody SearchDto searchDto) {
+        try {
+            validateSearchDto(searchDto);
+
+            Dn dn = new Dn(searchDto.getDistinguishedName());
+            String filter = sanitizeLdapFilter(searchDto.getFilter());
+            SearchScope searchScope = SearchScope.getSearchScope(searchDto.getSearchScope());
+
+            String[] attributes = searchDto.getAttributes() != null ?
+                    searchDto.getAttributes() : new String[]{"*"};
+
+            List<EntryDto> result = ldapService.convertEntryList(
+                    ldapService.searchWithAttributes(dn, filter, searchScope, attributes));
+
+            log.info("LDAP search executed");
+
+            return ResponseEntity.ok(result);
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid search parameters: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+
+        } catch (Exception e) {
+            log.error("Error executing LDAP search", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Подсчет записей по фильтру
+     */
+    @PostMapping("/count")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Long> count(@Valid @RequestBody SearchDto searchDto) {
+        try {
+            validateSearchDto(searchDto);
+
+            Dn dn = new Dn(searchDto.getDistinguishedName());
+            String filter = sanitizeLdapFilter(searchDto.getFilter());
+            SearchScope searchScope = SearchScope.getSearchScope(searchDto.getSearchScope());
+
+            Long result = ldapService.count(dn, filter, searchScope);
+            log.info("LDAP count executed, result: {}", result);
+
+            return ResponseEntity.ok(result);
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid count parameters: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+
+        } catch (Exception e) {
+            log.error("Error executing LDAP count", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Получение корневого DSE записи
+     */
+    @GetMapping("/rootdse")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<EntryDto> getRootDse() {
+        try {
+            EntryDto result = ldapService.convertEntry(ldapService.getDomainEntry());
+            log.info("Retrieved root DSE");
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            log.error("Error retrieving root DSE", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Добавление члена в группу
+     */
+    @PostMapping("/members")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> addMember(
+            @RequestParam @NotBlank(message = "DN cannot be empty") String dn,
+            @RequestParam @NotBlank(message = "Group cannot be empty") String group) {
+
+        try {
+            validateDn(dn);
+            validateDn(group);
+
+            boolean result = ldapService.addMember(dn, group);
+            log.info("Member added to group: {}", group);
+
+            return ResponseEntity.ok(Map.of("success", result));
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid DN format: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (Exception e) {
+            log.error("Error adding member to group", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to add member"));
+        }
+    }
+
+    /**
+     * Удаление члена из группы
+     */
+    @DeleteMapping("/members")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteMember(
+            @RequestParam @NotBlank(message = "DN cannot be empty") String dn,
+            @RequestParam @NotBlank(message = "Group cannot be empty") String group) {
+
+        try {
+            validateDn(dn);
+            validateDn(group);
+
+            boolean result = ldapService.deleteMember(dn, group);
+            log.info("Member removed from group: {}", group);
+
+            return ResponseEntity.ok(Map.of("success", result));
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid DN format: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (Exception e) {
+            log.error("Error removing member from group", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to remove member"));
+        }
+    }
+
+    /**
+     * Аутентификация пользователя
+     */
+    @PostMapping("/authenticate")
+    public ResponseEntity<?> authenticate(@Valid @RequestBody LoginRequest loginRequest) {
+        try {
+            if (loginRequest == null || loginRequest.getUsername() == null || loginRequest.getUsername().isBlank() ||
+                loginRequest.getPassword() == null || loginRequest.getPassword().isBlank()) {
+
+                log.warn("Authentication attempt with empty credentials");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid username or password"));
+            }
+
+            JwtResponse response = ldapService.authenticate(loginRequest.getUsername(), loginRequest.getPassword());
+
+            if (response == null) {
+                log.warn("Authentication failed for user: {}", loginRequest.getUsername());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid username or password"));
+            }
+
+            log.info("User authenticated successfully: {}", loginRequest.getUsername());
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error during authentication", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Authentication failed"));
+        }
+    }
+
+    /**
+     * Валидация SearchDto
+     */
+    private void validateSearchDto(SearchDto searchDto) {
+        if (searchDto == null || searchDto.getDistinguishedName() == null ||
+            searchDto.getDistinguishedName().isBlank()) {
+
+            throw new IllegalArgumentException("DistinguishedName cannot be empty");
+        }
+
+        if (searchDto.getFilter() == null || searchDto.getFilter().isBlank()) {
+            throw new IllegalArgumentException("Filter cannot be empty");
+        }
+
+        if (searchDto.getSearchScope() < 0 || searchDto.getSearchScope() > 2) {
+            throw new IllegalArgumentException("Invalid search scope");
+        }
+    }
+
+    /**
+     * Валидация фильтров аудита
+     */
+    private void validateAuditFilters(Map<String, String> filters) {
+        if (filters != null) {
+            filters.forEach((key, value) -> {
+                if (key == null || key.isBlank()) {
+                    throw new IllegalArgumentException("Filter key cannot be empty");
+                }
+            });
+        }
+    }
+
+    /**
+     * Валидация DN
+     */
+    private void validateDn(String dn) {
+        if (dn == null || dn.isBlank()) {
+            throw new IllegalArgumentException("DN cannot be empty");
+        }
+
+        try {
+            new Dn(dn);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid DN format: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Санитизация LDAP фильтра
+     */
+    private String sanitizeLdapFilter(String filter) {
+        if (filter == null || filter.isBlank()) {
+            throw new IllegalArgumentException("Filter cannot be empty");
+        }
+
+        // Базовая санитизация - экранирование специальных символов
+        return filter.replace("\\", "\\5c")
+                     .replace("*", "\\2a")
+                     .replace("(", "\\28")
+                     .replace(")", "\\29")
+                     .replace("\u0000", "\\00");
+    }
 }

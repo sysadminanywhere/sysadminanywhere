@@ -8,6 +8,7 @@ import com.sysadminanywhere.config.FeignConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,9 +39,9 @@ public interface UsersServiceClient {
     void delete(@RequestParam("distinguishedName") String distinguishedName);
 
     @PostMapping("/api/users/resetpassword")
-    void resetPassword(@RequestBody ResetPasswordDto resetPasswordDto);
+    ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto);
 
     @PostMapping("/api/users/changeuac")
-    void changeUserAccountControl(@RequestBody ChangeUserAccountControlDto changeUserAccountControlDto);
+    ResponseEntity<?> changeUserAccountControl(@RequestBody ChangeUserAccountControlDto changeUserAccountControlDto);
 
 }

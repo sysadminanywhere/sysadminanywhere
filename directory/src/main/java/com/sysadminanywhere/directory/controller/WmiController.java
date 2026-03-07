@@ -4,65 +4,169 @@ import com.sysadminanywhere.common.wmi.dto.CommandDto;
 import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
 import com.sysadminanywhere.common.wmi.dto.InvokeDto;
 import com.sysadminanywhere.directory.service.WmiService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/wmi")
+@RequiredArgsConstructor
 public class WmiController {
 
     private final WmiService wmiService;
 
-    public WmiController(WmiService wmiService) {
-        this.wmiService = wmiService;
-    }
-
+    /**
+     * Выполнение WMI запроса на удаленном хосте
+     */
     @PostMapping("/execute")
-    public ResponseEntity<List<Map<String, Object>>> execute(@RequestBody ExecuteDto executeDto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> execute(@Valid @RequestBody ExecuteDto executeDto) {
         try {
-            return new ResponseEntity<>(wmiService.execute(executeDto.getHostName(), executeDto.getWqlQuery()), HttpStatus.OK);
+            validateExecuteDto(executeDto);
+            List<Map<String, Object>> result = wmiService.execute(
+                    executeDto.getHostName(),
+                    executeDto.getWqlQuery());
+
+            log.info("WMI execute successful for host: {}", executeDto.getHostName());
+            return ResponseEntity.ok(result);
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid request for execute: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+
         } catch (Exception e) {
-            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.BAD_REQUEST);
+            log.error("Error executing WMI query on host: {}", executeDto.getHostName(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to execute WMI query"));
         }
     }
 
+    /**
+     * Очистка кэша WMI запроса
+     */
     @PostMapping("/execute/clear")
-    public void clearExecuteCache(@RequestBody ExecuteDto executeDto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> clearExecuteCache(@Valid @RequestBody ExecuteDto executeDto) {
         try {
+            validateExecuteDto(executeDto);
             wmiService.clearExecuteCache(executeDto.getHostName(), executeDto.getWqlQuery());
+
+            log.info("WMI execute cache cleared for host: {}", executeDto.getHostName());
+            return ResponseEntity.ok(Map.of("message", "Cache cleared successfully"));
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid request for cache clear: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+
         } catch (Exception e) {
+            log.error("Error clearing WMI cache for host: {}", executeDto.getHostName(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to clear cache"));
         }
     }
 
+    /**
+     * Вызов WMI метода на удаленном хосте
+     */
     @PostMapping("/invoke")
-    public ResponseEntity<Map<String, Object>> invoke(@RequestBody InvokeDto invokeDto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> invoke(@Valid @RequestBody InvokeDto invokeDto) {
         try {
-            return new ResponseEntity<>(wmiService.invoke(invokeDto.getHostName(),
+            validateInvokeDto(invokeDto);
+            Map<String, Object> result = wmiService.invoke(
+                    invokeDto.getHostName(),
                     invokeDto.getPath(),
                     invokeDto.getClassName(),
                     invokeDto.getMethodName(),
-                    invokeDto.getInputMap()), HttpStatus.OK);
+                    invokeDto.getInputMap());
+
+            log.info("WMI invoke successful for host: {}, method: {}",
+                    invokeDto.getHostName(), invokeDto.getMethodName());
+            return ResponseEntity.ok(result);
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid request for invoke: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+
         } catch (Exception e) {
-            return new ResponseEntity<>(new HashMap<>(), HttpStatus.BAD_REQUEST);
+            log.error("Error invoking WMI method on host: {}", invokeDto.getHostName(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to invoke WMI method"));
         }
     }
 
-    @PostMapping("/api/wmi/command")
-    public void command(@RequestBody CommandDto commandDto) {
+    /**
+     * Выполнение системной команды на удаленном хосте
+     */
+    @PostMapping("/command")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> command(@Valid @RequestBody CommandDto commandDto) {
         try {
-            wmiService.executeCommand(commandDto.getHostName(),
+            validateCommandDto(commandDto);
+            wmiService.executeCommand(
+                    commandDto.getHostName(),
                     commandDto.getCommand(),
                     commandDto.getWorkingDirectory());
+
+            log.info("Command executed successfully on host: {}", commandDto.getHostName());
+            return ResponseEntity.ok(Map.of("message", "Command executed successfully"));
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid request for command execution: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+
         } catch (Exception e) {
+            log.error("Error executing command on host: {}", commandDto.getHostName(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to execute command"));
         }
     }
 
+    /**
+     * Валидация ExecuteDto
+     */
+    private void validateExecuteDto(ExecuteDto executeDto) {
+        if (executeDto == null || executeDto.getHostName() == null || executeDto.getHostName().isBlank()) {
+            throw new IllegalArgumentException("HostName cannot be empty");
+        }
+        if (executeDto.getWqlQuery() == null || executeDto.getWqlQuery().isBlank()) {
+            throw new IllegalArgumentException("WQL query cannot be empty");
+        }
+    }
+
+    /**
+     * Валидация InvokeDto
+     */
+    private void validateInvokeDto(InvokeDto invokeDto) {
+        if (invokeDto == null || invokeDto.getHostName() == null || invokeDto.getHostName().isBlank()) {
+            throw new IllegalArgumentException("HostName cannot be empty");
+        }
+        if (invokeDto.getClassName() == null || invokeDto.getClassName().isBlank()) {
+            throw new IllegalArgumentException("ClassName cannot be empty");
+        }
+        if (invokeDto.getMethodName() == null || invokeDto.getMethodName().isBlank()) {
+            throw new IllegalArgumentException("MethodName cannot be empty");
+        }
+    }
+
+    /**
+     * Валидация CommandDto
+     */
+    private void validateCommandDto(CommandDto commandDto) {
+        if (commandDto == null || commandDto.getHostName() == null || commandDto.getHostName().isBlank()) {
+            throw new IllegalArgumentException("HostName cannot be empty");
+        }
+        if (commandDto.getCommand() == null || commandDto.getCommand().isBlank()) {
+            throw new IllegalArgumentException("Command cannot be empty");
+        }
+    }
 }
+

@@ -1,6 +1,5 @@
 package com.sysadminanywhere.inventory.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.common.directory.dto.JwtResponse;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.inventory.model.ComputerItem;
@@ -146,6 +145,7 @@ public class InventoryService {
     }
 
     @SneakyThrows
+    @SuppressWarnings("unchecked")
     private void scanSoftware(String hostName) {
         if (hostName == null || hostName.isEmpty()) {
             log.error("Host name is null or empty for software scan");
@@ -158,7 +158,15 @@ public class InventoryService {
         List<Map<String, Object>> list;
 
         try {
-            list = wmiServiceClient.execute(new ExecuteDto(hostName, query));
+            var response = wmiServiceClient.execute(new ExecuteDto(hostName, query));
+
+            if (response == null || !response.getStatusCode().is2xxSuccessful()) {
+                log.error("Failed to execute WMI query on computer {}: HTTP {}",
+                        hostName, response != null ? response.getStatusCode() : "NULL");
+                return;
+            }
+
+            list = (List<Map<String, Object>>) response.getBody();
         } catch (Exception ex) {
             log.error("Failed to execute WMI query on computer {}: {}", hostName, ex.getMessage());
             return;
