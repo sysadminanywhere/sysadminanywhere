@@ -53,7 +53,7 @@ public class EventsService {
                 Get-WinEvent -FilterHashtable @{
                     LogName='ForwardedEvents';
                     Id=4624,4625,4740,4720,4726,4728,4732,5136
-                } -MaxEvents 200 |
+                } -MaxEvents 1000 |
                 ForEach-Object {
                 
                     $xml = [xml]$_.ToXml()
@@ -72,7 +72,7 @@ public class EventsService {
                         Message = $_.Message
                         EventData   = $eventData
                     }
-                } | ConvertTo-Json -Depth 6
+                } | ConvertTo-Json -Depth 6 -Compress
                 """;
 
         try {
