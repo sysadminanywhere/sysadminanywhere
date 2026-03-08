@@ -34,10 +34,6 @@
             <name>Maven Central</name>
             <url>https://repo.maven.apache.org/maven2/</url>
         </repository>
-        <repository>
-            <id>birt-4.21.0</id>
-            <url>https://p2repository.com/mvn4/birt-4.21.0/</url>
-        </repository>
     </repositories>
 
     <dependencyManagement>
@@ -154,20 +150,26 @@
             <artifactId>commons-csv</artifactId>
             <version>1.10.0</version>
         </dependency>
-
         <dependency>
-            <groupId>eu.eureka-bpo.birt</groupId>
-            <artifactId>birt-runtime</artifactId>
-            <version>4.21.0.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.mongodb</groupId>
-                    <artifactId>mongo-java-driver</artifactId>
-                </exclusion>
-            </exclusions>
-            <type>pom</type>
+            <groupId>org.eclipse.birt</groupId>
+            <artifactId>org.eclipse.birt.report.engine</artifactId>
+            <version>4.22.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.eclipse.birt</groupId>
+            <artifactId>org.eclipse.birt.report.model</artifactId>
+            <version>4.22.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.birt</groupId>
+            <artifactId>org.eclipse.birt.report.engine.emitter.pdf</artifactId>
+            <version>4.22.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>1.3.30</version>
+        </dependency>
         <dependency>
             <groupId>org.vaadin.addons.componentfactory</groupId>
             <artifactId>vcf-pdf-viewer</artifactId>
