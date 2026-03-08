@@ -33,13 +33,10 @@ public class ContactsController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<ContactEntry>> getAll(
             @ParameterObject Pageable pageable,
-            @RequestParam @NotBlank(message = "Filters cannot be empty") String filters,
+            @RequestParam String filters,
             @RequestParam String[] attributes) {
 
         try {
-            validateLdapFilter(filters);
-            validateAttributes(attributes);
-
             Page<ContactEntry> result = contactsService.getAll(pageable, filters, attributes);
             log.info("Retrieved contacts with filters");
 
@@ -61,13 +58,10 @@ public class ContactsController {
     @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ContactEntry>> getList(
-            @RequestParam @NotBlank(message = "Filters cannot be empty") String filters,
+            @RequestParam String filters,
             @RequestParam String[] attributes) {
 
         try {
-            validateLdapFilter(filters);
-            validateAttributes(attributes);
-
             List<ContactEntry> result = contactsService.getAll(filters, attributes);
             log.info("Retrieved contacts list with filters");
 
@@ -185,31 +179,4 @@ public class ContactsController {
         }
     }
 
-    /**
-     * Валидация LDAP фильтра на предмет LDAP injection
-     */
-    private void validateLdapFilter(String filter) {
-        if (filter == null || filter.isBlank()) {
-            throw new IllegalArgumentException("LDAP filter cannot be empty");
-        }
-
-        if (filter.contains("*") && filter.length() > 100) {
-            throw new IllegalArgumentException("Invalid LDAP filter format");
-        }
-    }
-
-    /**
-     * Валидация атрибутов
-     */
-    private void validateAttributes(String[] attributes) {
-        if (attributes == null || attributes.length == 0) {
-            throw new IllegalArgumentException("Attributes cannot be empty");
-        }
-
-        for (String attr : attributes) {
-            if (attr == null || attr.isBlank()) {
-                throw new IllegalArgumentException("Attribute cannot be empty");
-            }
-        }
-    }
 }

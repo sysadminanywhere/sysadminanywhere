@@ -35,13 +35,10 @@ public class UsersController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<UserEntry>> getAll(
             @ParameterObject Pageable pageable,
-            @RequestParam @NotBlank(message = "Filters cannot be empty") String filters,
+            @RequestParam String filters,
             @RequestParam String[] attributes) {
 
         try {
-            validateLdapFilter(filters);
-            validateAttributes(attributes);
-
             Page<UserEntry> result = usersService.getAll(pageable, filters, attributes);
             log.info("Retrieved users with filters");
 
@@ -63,13 +60,10 @@ public class UsersController {
     @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserEntry>> getList(
-            @RequestParam @NotBlank(message = "Filters cannot be empty") String filters,
+            @RequestParam String filters,
             @RequestParam String[] attributes) {
 
         try {
-            validateLdapFilter(filters);
-            validateAttributes(attributes);
-
             List<UserEntry> result = usersService.getAll(filters, attributes);
             log.info("Retrieved users list with filters");
 
@@ -251,34 +245,6 @@ public class UsersController {
             log.error("Error changing user account control", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to change user account control"));
-        }
-    }
-
-    /**
-     * Валидация LDAP фильтра на предмет LDAP injection
-     */
-    private void validateLdapFilter(String filter) {
-        if (filter == null || filter.isBlank()) {
-            throw new IllegalArgumentException("LDAP filter cannot be empty");
-        }
-
-        if (filter.contains("*") && filter.length() > 100) {
-            throw new IllegalArgumentException("Invalid LDAP filter format");
-        }
-    }
-
-    /**
-     * Валидация атрибутов
-     */
-    private void validateAttributes(String[] attributes) {
-        if (attributes == null || attributes.length == 0) {
-            throw new IllegalArgumentException("Attributes cannot be empty");
-        }
-
-        for (String attr : attributes) {
-            if (attr == null || attr.isBlank()) {
-                throw new IllegalArgumentException("Attribute cannot be empty");
-            }
         }
     }
 
