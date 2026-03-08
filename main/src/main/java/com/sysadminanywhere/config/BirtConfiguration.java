@@ -15,9 +15,8 @@ public class BirtConfiguration {
     @Bean
     public IReportEngine reportEngine() throws BirtException {
         EngineConfig config = new EngineConfig();
-        // Обязательно для работы в JAR:
         config.getAppContext().put(EngineConstants.APPCONTEXT_CLASSLOADER_KEY,
-                this.getClass().getClassLoader());
+                Thread.currentThread().getContextClassLoader());
 
         Platform.startup(config);
         IReportEngineFactory factory = (IReportEngineFactory) Platform
