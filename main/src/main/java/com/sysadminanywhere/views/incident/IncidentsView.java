@@ -40,16 +40,16 @@ public class IncidentsView extends Div {
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new IncidentsView.Filters(() -> refreshGrid());
-        VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
-        layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
-        add(layout);
-
         if (!incidentService.ping()) {
-            Notification notification = Notification.show("Inventory service is unavailable!");
+            Notification notification = Notification.show("Incidents service is unavailable!");
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } else {
+            filters = new IncidentsView.Filters(() -> refreshGrid());
+            VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
+            layout.setSizeFull();
+            layout.setPadding(false);
+            layout.setSpacing(false);
+            add(layout);
         }
     }
 

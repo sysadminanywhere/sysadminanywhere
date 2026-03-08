@@ -53,13 +53,8 @@ public class InventoryController {
             @RequestParam @NotBlank(message = "Vendor cannot be empty") String vendor,
             Pageable pageable) {
 
-        // Параметры уже валидны благодаря @NotBlank
-        // Используйте % в SQL запросе, а не здесь
-        String namePattern = "%" + sanitizeSearchTerm(name) + "%";
-        String vendorPattern = "%" + sanitizeSearchTerm(vendor) + "%";
-
         Page<SoftwareCount> result = softwareRepository.getSoftwareInstallationCount(
-                namePattern, vendorPattern, pageable);
+                name, vendor, pageable);
 
         log.info("Retrieved software count for name: {}, vendor: {}", name, vendor);
 
@@ -81,26 +76,12 @@ public class InventoryController {
             return ResponseEntity.badRequest().build();
         }
 
-        String namePattern = "%" + sanitizeSearchTerm(name) + "%";
         Page<ComputerItem> result = computerRepository.getComputersWithSoftware(
-                softwareId, namePattern, pageable);
+                softwareId, name, pageable);
 
         log.info("Retrieved computers with software: {}", softwareId);
 
         return ResponseEntity.ok(result);
-    }
-
-    /**
-     * Санитизация поисковых терминов для предотвращения SQL injection
-     */
-    private String sanitizeSearchTerm(String term) {
-        if (term == null) {
-            return "";
-        }
-        // Экранирование специальных символов SQL LIKE
-        return term.replace("'", "''")
-                .replace("%", "\\%")
-                .replace("_", "\\_");
     }
 
 }

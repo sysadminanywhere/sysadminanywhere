@@ -43,16 +43,16 @@ public class InventorySoftwareView extends Div {
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid());
-        VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
-        layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
-        add(layout);
-
         if (!inventoryService.ping()) {
             Notification notification = Notification.show("Inventory service is unavailable!");
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } else {
+            filters = new Filters(() -> refreshGrid());
+            VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
+            layout.setSizeFull();
+            layout.setPadding(false);
+            layout.setSpacing(false);
+            add(layout);
         }
     }
 

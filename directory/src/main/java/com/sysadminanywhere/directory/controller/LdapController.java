@@ -86,7 +86,7 @@ public class LdapController {
             validateSearchDto(searchDto);
 
             Dn dn = new Dn(searchDto.getDistinguishedName());
-            String filter = sanitizeLdapFilter(searchDto.getFilter());
+            String filter = searchDto.getFilter();
             SearchScope searchScope = SearchScope.getSearchScope(searchDto.getSearchScope());
 
             String[] attributes = searchDto.getAttributes() != null ?
@@ -119,7 +119,7 @@ public class LdapController {
             validateSearchDto(searchDto);
 
             Dn dn = new Dn(searchDto.getDistinguishedName());
-            String filter = sanitizeLdapFilter(searchDto.getFilter());
+            String filter = searchDto.getFilter();
             SearchScope searchScope = SearchScope.getSearchScope(searchDto.getSearchScope());
 
             Long result = ldapService.count(dn, filter, searchScope);
@@ -294,19 +294,4 @@ public class LdapController {
         }
     }
 
-    /**
-     * Санитизация LDAP фильтра
-     */
-    private String sanitizeLdapFilter(String filter) {
-        if (filter == null || filter.isBlank()) {
-            throw new IllegalArgumentException("Filter cannot be empty");
-        }
-
-        // Базовая санитизация - экранирование специальных символов
-        return filter.replace("\\", "\\5c")
-                     .replace("*", "\\2a")
-                     .replace("(", "\\28")
-                     .replace(")", "\\29")
-                     .replace("\u0000", "\\00");
-    }
 }
