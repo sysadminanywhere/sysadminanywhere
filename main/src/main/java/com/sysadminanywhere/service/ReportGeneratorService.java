@@ -17,6 +17,12 @@ import java.util.Map;
 @Service
 public class ReportGeneratorService {
 
+    private final IReportEngine engine;
+
+    public ReportGeneratorService(IReportEngine engine) {
+        this.engine = engine;
+    }
+
     public byte[] generateReport(List<?> objectList,
                                  String name,
                                  String description,
@@ -25,19 +31,15 @@ public class ReportGeneratorService {
 
         List<Map<String, Object>> dataList = ObjectToListMapConverter.convertToListMap(objectList, attributes);
 
-        IReportEngine engine = null;
         ClassPathResource resource = null;
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        IRunAndRenderTask task = null;
 
         try {
             EngineConfig config = new EngineConfig();
             URL fontUrl = getClass().getClassLoader().getResource("/reports/fonts");
             config.setFontConfig(fontUrl);
-
-            Platform.startup(config);
-            IReportEngineFactory factory = (IReportEngineFactory) Platform.createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY);
-            engine = factory.createReportEngine(config);
 
             HashMap<String, Object> params = new HashMap<>();
             params.put("report_name", name);
@@ -62,7 +64,7 @@ public class ReportGeneratorService {
             }
 
             IReportRunnable design = engine.openReportDesign(resource.getInputStream());
-            IRunAndRenderTask task = engine.createRunAndRenderTask(design);
+            task = engine.createRunAndRenderTask(design);
 
             task.getAppContext().put("DATA_LIST", dataList);
 
@@ -71,18 +73,18 @@ public class ReportGeneratorService {
             PDFRenderOption options = new PDFRenderOption();
             options.setOutputFormat("pdf");
             options.setOutputStream(outputStream);
+
+            options.setEmbededFont(true);
+
             task.setRenderOption(options);
 
             task.run();
-            task.close();
 
             return outputStream.toByteArray();
         } catch (Exception ex) {
             log.error(ex.getMessage());
         } finally {
-            if (engine != null)
-                engine.destroy();
-            Platform.shutdown();
+            if (task != null) task.close();
         }
 
         return null;
