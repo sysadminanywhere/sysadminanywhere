@@ -30,7 +30,6 @@ public class WmiController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> execute(@Valid @RequestBody ExecuteDto executeDto) {
         try {
-            validateExecuteDto(executeDto);
             List<Map<String, Object>> result = wmiService.execute(
                     executeDto.getHostName(),
                     executeDto.getWqlQuery());
@@ -56,7 +55,6 @@ public class WmiController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> clearExecuteCache(@Valid @RequestBody ExecuteDto executeDto) {
         try {
-            validateExecuteDto(executeDto);
             wmiService.clearExecuteCache(executeDto.getHostName(), executeDto.getWqlQuery());
 
             log.info("WMI execute cache cleared for host: {}", executeDto.getHostName());
@@ -80,7 +78,6 @@ public class WmiController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> invoke(@Valid @RequestBody InvokeDto invokeDto) {
         try {
-            validateInvokeDto(invokeDto);
             Map<String, Object> result = wmiService.invoke(
                     invokeDto.getHostName(),
                     invokeDto.getPath(),
@@ -110,7 +107,6 @@ public class WmiController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> command(@Valid @RequestBody CommandDto commandDto) {
         try {
-            validateCommandDto(commandDto);
             wmiService.executeCommand(
                     commandDto.getHostName(),
                     commandDto.getCommand(),
@@ -130,43 +126,5 @@ public class WmiController {
         }
     }
 
-    /**
-     * Валидация ExecuteDto
-     */
-    private void validateExecuteDto(ExecuteDto executeDto) {
-        if (executeDto == null || executeDto.getHostName() == null || executeDto.getHostName().isBlank()) {
-            throw new IllegalArgumentException("HostName cannot be empty");
-        }
-        if (executeDto.getWqlQuery() == null || executeDto.getWqlQuery().isBlank()) {
-            throw new IllegalArgumentException("WQL query cannot be empty");
-        }
-    }
-
-    /**
-     * Валидация InvokeDto
-     */
-    private void validateInvokeDto(InvokeDto invokeDto) {
-        if (invokeDto == null || invokeDto.getHostName() == null || invokeDto.getHostName().isBlank()) {
-            throw new IllegalArgumentException("HostName cannot be empty");
-        }
-        if (invokeDto.getClassName() == null || invokeDto.getClassName().isBlank()) {
-            throw new IllegalArgumentException("ClassName cannot be empty");
-        }
-        if (invokeDto.getMethodName() == null || invokeDto.getMethodName().isBlank()) {
-            throw new IllegalArgumentException("MethodName cannot be empty");
-        }
-    }
-
-    /**
-     * Валидация CommandDto
-     */
-    private void validateCommandDto(CommandDto commandDto) {
-        if (commandDto == null || commandDto.getHostName() == null || commandDto.getHostName().isBlank()) {
-            throw new IllegalArgumentException("HostName cannot be empty");
-        }
-        if (commandDto.getCommand() == null || commandDto.getCommand().isBlank()) {
-            throw new IllegalArgumentException("Command cannot be empty");
-        }
-    }
 }
 
