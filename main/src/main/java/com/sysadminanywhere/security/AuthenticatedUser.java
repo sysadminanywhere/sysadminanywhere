@@ -22,7 +22,7 @@ public class AuthenticatedUser {
     }
 
     public void save(String username) {
-        Optional<User> user = get();
+        Optional<User> user = userRepository.findByUsername(username);
         if (!user.isPresent()) {
             User newUser = new User();
             newUser.setUsername(username);

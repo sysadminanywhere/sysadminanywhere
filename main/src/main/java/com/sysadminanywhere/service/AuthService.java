@@ -15,7 +15,7 @@ public class AuthService {
     }
 
     public JwtResponse authenticate(String username, String password) {
-        JwtResponse response = client.authenticate(new LoginRequest(username, password,"main"));
+        JwtResponse response = client.authenticate(new LoginRequest(username, password));
         if (response == null || response.token() == null) {
             throw new RuntimeException("Authentication failed");
         }

@@ -16,8 +16,8 @@ public class VaultService {
         this.vaultTemplate = vaultTemplate;
     }
 
-    public void savePassword(String username, String password, String service) {
-        String path = "secret/data/users/" + service + "_" + username;
+    public void savePassword(String username, String password) {
+        String path = "secret/data/users/" + username;
         // Кодируем пароль в base64
         String encodedPassword = Base64.getEncoder().encodeToString(password.getBytes());
         Map<String, Object> data = Map.of("data", Map.of("password", encodedPassword));
