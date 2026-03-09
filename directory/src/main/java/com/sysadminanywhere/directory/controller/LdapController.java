@@ -229,7 +229,7 @@ public class LdapController {
                         .body(Map.of("error", "Invalid username or password"));
             }
 
-            JwtResponse response = ldapService.authenticate(loginRequest.getUsername(), loginRequest.getPassword());
+            JwtResponse response = ldapService.authenticate(loginRequest.getUsername(), loginRequest.getPassword(), loginRequest.getService());
 
             if (response == null) {
                 log.warn("Authentication failed for user: {}", loginRequest.getUsername());

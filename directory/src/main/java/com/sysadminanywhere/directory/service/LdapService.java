@@ -547,22 +547,24 @@ public class LdapService {
     }
 
     @SneakyThrows
-    public JwtResponse authenticate(String username, String password) {
+    public JwtResponse authenticate(String username, String password, String service) {
         boolean authenticated = execute(conn -> {
             conn.bind(userConnectionManager.createBindRequest(username, password));
-            vaultService.savePassword(username, password);
+            vaultService.savePassword(username, password, service);
             return true;
         });
+
+        String user = service + "_" + username;
 
         String jwt = null;
         List<String> roles = new ArrayList<>();
 
         if (authenticated) {
             roles = List.of("ROLE_ADMIN");
-            jwt = jwtService.generateToken(username, roles);
+            jwt = jwtService.generateToken(user, roles);
         }
 
-        return new JwtResponse(jwt, username, roles);
+        return new JwtResponse(jwt, user, roles);
     }
 
     private <T> T execute(LdapConnectionOperation<T> operation) {
