@@ -37,19 +37,12 @@ public class IncidentController {
     public Page<IncidentItem> getIncidents(
             Pageable pageable,
             @RequestParam(required = false) String severity,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to
+            @RequestParam(required = false) String status
     ) {
-        LocalDateTime fromDate = Objects.requireNonNullElse(from, LocalDateTime.now().minusDays(DEFAULT_DAYS_BACK));
-        LocalDateTime toDate = Objects.requireNonNullElse(to, LocalDateTime.now());
-
         IncidentStatus statusFilter = Objects.requireNonNullElse(IncidentStatus.valueOf(status), IncidentStatus.OPEN);
         Severity severityFilter = Objects.requireNonNullElse(Severity.valueOf(severity), Severity.CRITICAL);
 
-        return incidentRepository.findWithFilters(severityFilter, statusFilter, fromDate, toDate, pageable)
+        return incidentRepository.findWithFilters(severityFilter, statusFilter, pageable)
                 .map(IncidentMapper::toItem);
     }
 

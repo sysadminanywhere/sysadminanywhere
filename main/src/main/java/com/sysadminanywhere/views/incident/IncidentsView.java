@@ -84,7 +84,6 @@ public class IncidentsView extends Div {
 
         private final ComboBox<String> severity = new ComboBox<>("Severity");
         private final ComboBox<String> status = new ComboBox<>("Status");
-        private final DatePicker datePicker = new DatePicker("Date");
 
         public Filters(Runnable onSearch) {
 
@@ -93,8 +92,6 @@ public class IncidentsView extends Div {
 
             status.setItems("Open", "In Progress", "Resolved", "False Positive", "Closed");
             status.setValue("Open");
-
-            datePicker.setValue(LocalDate.now());
 
             setWidthFull();
             addClassName("filter-layout");
@@ -111,9 +108,6 @@ public class IncidentsView extends Div {
                 status.clear();
                 status.setValue("Open");
 
-                datePicker.clear();
-                datePicker.setValue(LocalDate.now());
-
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -124,14 +118,13 @@ public class IncidentsView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(severity, status, datePicker, actions);
+            add(severity, status, actions);
         }
 
         public Map<String, Object> getFilters() {
             Map<String, Object> filters = new HashMap<>();
             filters.put("severity", severity.getValue().toUpperCase());
             filters.put("status", status.getValue().toUpperCase().replace(" ", "_"));
-            filters.put("date", datePicker.getValue());
             return filters;
         }
 

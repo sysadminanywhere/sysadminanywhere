@@ -54,14 +54,11 @@ public interface IncidentRepository extends JpaRepository<IncidentEntity, Long> 
         SELECT i FROM IncidentEntity i
         WHERE i.severity = :severity
             AND i.status = :status
-            AND i.createdAt BETWEEN :from AND :to
         ORDER BY i.createdAt DESC
         """)
     Page<IncidentEntity> findWithFilters(
             @Param("severity") Severity severity,
             @Param("status") IncidentStatus status,
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to,
             Pageable pageable
     );
 
