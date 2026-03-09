@@ -13,6 +13,8 @@ import java.util.concurrent.atomic.AtomicLong;
 @RequiredArgsConstructor
 public class MockWinRMService {
 
+    // VM options: -Dspring.profiles.active=mock
+
     private final AtomicLong recordCounter = new AtomicLong(1);
 
     private static final List<String> MACHINES = List.of(
