@@ -88,10 +88,10 @@ public class IncidentsView extends Div {
 
         public Filters(Runnable onSearch) {
 
-            severity.setItems("Low", "Medium", "High", "Critical", "All");
-            severity.setValue("All");
+            severity.setItems("Low", "Medium", "High", "Critical");
+            severity.setValue("Critical");
 
-            status.setItems("Open", "In Progress", "Resolved", "False Positive", "Closed", "All");
+            status.setItems("Open", "In Progress", "Resolved", "False Positive", "Closed");
             status.setValue("Open");
 
             datePicker.setValue(LocalDate.now());
@@ -106,7 +106,7 @@ public class IncidentsView extends Div {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 severity.clear();
-                severity.setValue("All");
+                severity.setValue("Critical");
 
                 status.clear();
                 status.setValue("Open");
@@ -129,8 +129,8 @@ public class IncidentsView extends Div {
 
         public Map<String, Object> getFilters() {
             Map<String, Object> filters = new HashMap<>();
-            filters.put("severity", severity.getValue());
-            filters.put("status", status.getValue());
+            filters.put("severity", severity.getValue().toUpperCase());
+            filters.put("status", status.getValue().toUpperCase().replace(" ", "_"));
             filters.put("date", datePicker.getValue());
             return filters;
         }
@@ -141,6 +141,7 @@ public class IncidentsView extends Div {
         grid = new Grid<>(IncidentItem.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
+        grid.addColumn("createdAt").setAutoWidth(true);
         grid.addColumn("name").setAutoWidth(true);
         grid.addColumn("machineName").setAutoWidth(true);
         grid.addColumn("severity").setAutoWidth(true);

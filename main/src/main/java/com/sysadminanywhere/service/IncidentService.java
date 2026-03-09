@@ -29,7 +29,7 @@ public class IncidentService {
     }
 
     public Page<IncidentItem> getIncidents(Pageable pageable, Map<String, Object> filters) {
-        return incidentServiceClient.getIncidents(pageable, null);
+        return incidentServiceClient.getIncidents(pageable, filters);
     }
 
 }

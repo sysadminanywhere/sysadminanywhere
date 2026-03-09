@@ -2,6 +2,7 @@ package com.sysadminanywhere.incident.controller;
 
 import com.sysadminanywhere.common.incident.model.IncidentItem;
 import com.sysadminanywhere.common.incident.model.IncidentStatus;
+import com.sysadminanywhere.common.incident.model.Severity;
 import com.sysadminanywhere.incident.entity.IncidentEntity;
 import com.sysadminanywhere.incident.mapper.IncidentMapper;
 import com.sysadminanywhere.incident.repository.IncidentRepository;
@@ -35,18 +36,20 @@ public class IncidentController {
     @PreAuthorize("hasRole('ADMIN')")
     public Page<IncidentItem> getIncidents(
             Pageable pageable,
-            @RequestParam(required = false) IncidentStatus status,
+            @RequestParam(required = false) String severity,
+            @RequestParam(required = false) String status,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to
     ) {
-        LocalDateTime fromDate = Objects.requireNonNullElse(from,
-                LocalDateTime.now().minusDays(DEFAULT_DAYS_BACK));
+        LocalDateTime fromDate = Objects.requireNonNullElse(from, LocalDateTime.now().minusDays(DEFAULT_DAYS_BACK));
         LocalDateTime toDate = Objects.requireNonNullElse(to, LocalDateTime.now());
-        IncidentStatus statusFilter = Objects.requireNonNullElse(status, IncidentStatus.OPEN);
 
-        return incidentRepository.findWithFilters(statusFilter, fromDate, toDate, pageable)
+        IncidentStatus statusFilter = Objects.requireNonNullElse(IncidentStatus.valueOf(status), IncidentStatus.OPEN);
+        Severity severityFilter = Objects.requireNonNullElse(Severity.valueOf(severity), Severity.CRITICAL);
+
+        return incidentRepository.findWithFilters(severityFilter, statusFilter, fromDate, toDate, pageable)
                 .map(IncidentMapper::toItem);
     }
 

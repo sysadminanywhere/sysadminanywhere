@@ -1,5 +1,6 @@
 package com.sysadminanywhere.incident.repository;
 
+import com.sysadminanywhere.common.incident.model.Severity;
 import com.sysadminanywhere.incident.entity.IncidentEntity;
 import com.sysadminanywhere.common.incident.model.IncidentStatus;
 import org.springframework.data.domain.Page;
@@ -51,11 +52,13 @@ public interface IncidentRepository extends JpaRepository<IncidentEntity, Long> 
 
     @Query("""
         SELECT i FROM IncidentEntity i
-        WHERE i.status = :status
+        WHERE i.severity = :severity
+            AND i.status = :status
             AND i.createdAt BETWEEN :from AND :to
         ORDER BY i.createdAt DESC
         """)
     Page<IncidentEntity> findWithFilters(
+            @Param("severity") Severity severity,
             @Param("status") IncidentStatus status,
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to,
