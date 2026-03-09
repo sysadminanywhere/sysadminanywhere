@@ -46,6 +46,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         authorities
                 );
 
+                // service-контекст понадобится для раздельных Vault/LDAP ключей
+                authentication.setDetails(principal.service());
+
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
             } catch (Exception e) {

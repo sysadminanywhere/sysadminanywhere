@@ -49,7 +49,8 @@ public class WmiService {
             List<Map<String, Object>> result;
 
             String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-            String password = vaultService.getPassword(userName);
+            String service = resolveServiceFromContext();
+            String password = getPasswordForContext(service, userName);
 
             try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, userName, password.toCharArray())) {
                 result = wbemServices.executeWql(wqlQuery, timeOut);
@@ -96,7 +97,8 @@ public class WmiService {
             Map<String, Object> result;
 
             String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-            String password = vaultService.getPassword(userName);
+            String service = resolveServiceFromContext();
+            String password = getPasswordForContext(service, userName);
 
             try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, userName, password.toCharArray())) {
                 result = wbemServices.executeMethod(path, className, methodName, inputMap);
@@ -129,7 +131,8 @@ public class WmiService {
             String networkResource = WmiHelper.createNetworkResource(hostName, namespace);
 
             String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-            String password = vaultService.getPassword(userName);
+            String service = resolveServiceFromContext();
+            String password = getPasswordForContext(service, userName);
 
             try (WmiWbemServices wbemServices = WmiWbemServices.getInstance(networkResource, userName, password.toCharArray())) {
                 wbemServices.executeCommand(command, workingDirectory, Charset.defaultCharset(), timeOut);
@@ -143,6 +146,22 @@ public class WmiService {
             log.error("Unexpected error executing command on host {}: {}", hostName, e.getMessage());
             throw new WmiComException("Failed to execute command: " + e.getMessage());
         }
+    }
+
+    private String getPasswordForContext(String service, String userName) {
+        String password = vaultService.getPassword(service, userName);
+        if (password == null && !"legacy".equals(service)) {
+            password = vaultService.getPassword(userName);
+        }
+        return password;
+    }
+
+    private String resolveServiceFromContext() {
+        Object details = SecurityContextHolder.getContext().getAuthentication().getDetails();
+        if (details instanceof String service && !service.isBlank()) {
+            return service.trim().toLowerCase();
+        }
+        return "legacy";
     }
 
     /**

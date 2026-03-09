@@ -43,29 +43,37 @@ public class UserConnectionManager {
         }
     }
 
+    public LdapConnection getConnection(String username, String password) {
+        return getConnection("legacy", username, password);
+    }
+
     /**
-     * Получить LDAP соединение для пользователя
-     * @param username имя пользователя (DN)
+     * Получить LDAP соединение для пользователя в контексте сервиса
+     * @param service имя сервиса-источника токена
+     * @param username имя пользователя (DN для bind)
      * @param password пароль пользователя
      * @return LDAP соединение
      */
-    public LdapConnection getConnection(String username, String password) {
-        UserConnectionHolder holder = connections.computeIfAbsent(username, dn -> {
+    public LdapConnection getConnection(String service, String username, String password) {
+        String safeService = normalizeService(service);
+        String connectionKey = safeService + "|" + username;
+
+        UserConnectionHolder holder = connections.computeIfAbsent(connectionKey, key -> {
             try {
                 LdapConnection ldapConnection = new LdapNetworkConnection(createSpecificConfig());
                 ldapConnection.connect();
-                ldapConnection.bind(createBindRequest(dn, password));
-                log.info("Created new LDAP connection for user: {}", dn);
+                ldapConnection.bind(createBindRequest(username, password));
+                log.info("Created new LDAP connection for service: {}, user: {}", safeService, username);
 
                 return new UserConnectionHolder(ldapConnection);
             } catch (Exception e) {
-                log.error("Failed to create LDAP connection for user {}: {}", dn, e.getMessage());
-                throw new RuntimeException("Could not create connection for user: " + dn, e);
+                log.error("Failed to create LDAP connection for service {}, user {}: {}", safeService, username, e.getMessage());
+                throw new RuntimeException("Could not create connection for service/user: " + connectionKey, e);
             }
         });
 
         holder.touch();
-        log.debug("Using existing LDAP connection for user: {}", username);
+        log.debug("Using LDAP connection for service: {}, user: {}", safeService, username);
 
         return holder.connection;
     }
@@ -112,21 +120,19 @@ public class UserConnectionManager {
         int closedConnections = 0;
 
         for (Map.Entry<String, UserConnectionHolder> entry : connections.entrySet()) {
-            String username = entry.getKey();
+            String connectionKey = entry.getKey();
             UserConnectionHolder holder = entry.getValue();
             long idleTime = now - holder.lastUsed;
 
             if (idleTime > poolTtlMs) {
-                if (connections.remove(username, holder)) {
+                if (connections.remove(connectionKey, holder)) {
                     try {
-                        log.info("Auto-closing LDAP pool for user {} (idle {} ms)",
-                                username, idleTime);
+                        log.info("Auto-closing LDAP pool for {} (idle {} ms)", connectionKey, idleTime);
                         holder.connection.close();
                         closedConnections++;
 
                     } catch (Exception e) {
-                        log.warn("Error auto-closing pool for {}: {}",
-                                username, e.getMessage());
+                        log.warn("Error auto-closing pool for {}: {}", connectionKey, e.getMessage());
                     }
                 }
             }
@@ -135,6 +141,13 @@ public class UserConnectionManager {
         if (closedConnections > 0) {
             log.debug("Cleanup completed. Closed {} idle connections", closedConnections);
         }
+    }
+
+    private String normalizeService(String service) {
+        if (service == null || service.isBlank()) {
+            return "legacy";
+        }
+        return service.trim().toLowerCase();
     }
 
 }

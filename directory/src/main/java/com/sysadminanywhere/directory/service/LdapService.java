@@ -547,10 +547,12 @@ public class LdapService {
     }
 
     @SneakyThrows
-    public JwtResponse authenticate(String username, String password) {
+    public JwtResponse authenticate(String username, String password, String service) {
+        String serviceContext = normalizeService(service);
+
         boolean authenticated = execute(conn -> {
             conn.bind(userConnectionManager.createBindRequest(username, password));
-            vaultService.savePassword(username, password);
+            vaultService.savePassword(serviceContext, username, password);
             return true;
         });
 
@@ -559,7 +561,7 @@ public class LdapService {
 
         if (authenticated) {
             roles = List.of("ROLE_ADMIN");
-            jwt = jwtService.generateToken(username, roles);
+            jwt = jwtService.generateToken(username, roles, serviceContext);
         }
 
         return new JwtResponse(jwt, username, roles);
@@ -584,22 +586,36 @@ public class LdapService {
     }
 
     private <T> T executeAsUser(LdapConnectionOperation<T> operation) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        String password = vaultService.getPassword(username);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        String service = normalizeService(authentication.getDetails() instanceof String ? (String) authentication.getDetails() : null);
+
+        String password = vaultService.getPassword(service, username);
+        if (password == null && !"legacy".equals(service)) {
+            password = vaultService.getPassword(username);
+        }
 
         LdapConnection connection = null;
         try {
-            connection = userConnectionManager.getConnection(username, password);
+            connection = userConnectionManager.getConnection(service, username, password);
             return operation.execute(connection);
         } catch (Exception e) {
-            log.error("LDAP error for user: {}", username, e);
+            log.error("LDAP error for service: {}, user: {}", service, username, e);
             throw new RuntimeException(e);
         }
     }
 
+    private String normalizeService(String service) {
+        if (service == null || service.isBlank()) {
+            return "legacy";
+        }
+        return service.trim().toLowerCase();
+    }
     @FunctionalInterface
     interface LdapConnectionOperation<T> {
         T execute(LdapConnection connection) throws Exception;
     }
 
 }
+
+

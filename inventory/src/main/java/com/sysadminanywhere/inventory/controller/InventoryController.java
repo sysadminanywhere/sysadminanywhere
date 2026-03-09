@@ -32,11 +32,6 @@ public class InventoryController {
             @PathVariable Long computerId,
             Pageable pageable) {
 
-        if (computerId == null || computerId <= 0) {
-            log.warn("Invalid computerId: {}", computerId);
-            return ResponseEntity.badRequest().build();
-        }
-
         Page<SoftwareOnComputer> result = softwareRepository.getSoftwareOnComputer(computerId, pageable);
         log.info("Retrieved software for computer: {}", computerId);
 
@@ -49,9 +44,12 @@ public class InventoryController {
     @GetMapping("/count")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<SoftwareCount>> getSoftwareCount(
-            @RequestParam @NotBlank(message = "Name cannot be empty") String name,
-            @RequestParam @NotBlank(message = "Vendor cannot be empty") String vendor,
+            @RequestParam String name,
+            @RequestParam String vendor,
             Pageable pageable) {
+
+        name = name + "%";
+        vendor = vendor + "%";
 
         Page<SoftwareCount> result = softwareRepository.getSoftwareInstallationCount(
                 name, vendor, pageable);
@@ -68,13 +66,10 @@ public class InventoryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<ComputerItem>> getComputersWithSoftware(
             @PathVariable Long softwareId,
-            @RequestParam @NotBlank(message = "Name cannot be empty") String name,
+            @RequestParam String name,
             Pageable pageable) {
 
-        if (softwareId == null || softwareId <= 0) {
-            log.warn("Invalid softwareId: {}", softwareId);
-            return ResponseEntity.badRequest().build();
-        }
+        name = name + "%";
 
         Page<ComputerItem> result = computerRepository.getComputersWithSoftware(
                 softwareId, name, pageable);

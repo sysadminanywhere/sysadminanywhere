@@ -10,6 +10,8 @@ import java.util.Map;
 @Service
 public class VaultService {
 
+    private static final String DEFAULT_SERVICE = "legacy";
+
     private final VaultTemplate vaultTemplate;
 
     public VaultService(VaultTemplate vaultTemplate) {
@@ -17,15 +19,24 @@ public class VaultService {
     }
 
     public void savePassword(String username, String password) {
-        String path = "secret/data/users/" + username;
-        // Кодируем пароль в base64
+        savePassword(DEFAULT_SERVICE, username, password);
+    }
+
+    public void savePassword(String service, String username, String password) {
+        String safeService = normalizeService(service);
+        String path = "secret/data/users/" + safeService + "/" + username;
         String encodedPassword = Base64.getEncoder().encodeToString(password.getBytes());
         Map<String, Object> data = Map.of("data", Map.of("password", encodedPassword));
         vaultTemplate.write(path, data);
     }
 
     public String getPassword(String username) {
-        String path = "secret/data/users/" + username;
+        return getPassword(DEFAULT_SERVICE, username);
+    }
+
+    public String getPassword(String service, String username) {
+        String safeService = normalizeService(service);
+        String path = "secret/data/users/" + safeService + "/" + username;
         VaultResponse response = vaultTemplate.read(path);
         if (response == null || response.getData() == null) {
             return null;
@@ -40,9 +51,15 @@ public class VaultService {
             return null;
         }
 
-        // Декодируем пароль из base64
         byte[] decodedBytes = Base64.getDecoder().decode(encodedPassword);
         return new String(decodedBytes);
+    }
+
+    private String normalizeService(String service) {
+        if (service == null || service.isBlank()) {
+            return DEFAULT_SERVICE;
+        }
+        return service.trim().toLowerCase();
     }
 
 }

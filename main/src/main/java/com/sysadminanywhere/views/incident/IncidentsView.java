@@ -5,6 +5,8 @@ import com.sysadminanywhere.service.IncidentService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -22,6 +24,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,9 +82,19 @@ public class IncidentsView extends Div {
 
     public static class Filters extends Div {
 
-        private final TextField name = new TextField("Name");
+        private final ComboBox<String> severity = new ComboBox<>("Severity");
+        private final ComboBox<String> status = new ComboBox<>("Status");
+        private final DatePicker datePicker = new DatePicker("Date");
 
         public Filters(Runnable onSearch) {
+
+            severity.setItems("Low", "Medium", "High", "Critical", "All");
+            severity.setValue("All");
+
+            status.setItems("Open", "In Progress", "Resolved", "False Positive", "Closed", "All");
+            status.setValue("Open");
+
+            datePicker.setValue(LocalDate.now());
 
             setWidthFull();
             addClassName("filter-layout");
@@ -92,7 +105,15 @@ public class IncidentsView extends Div {
             Button resetBtn = new Button("Reset");
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
-                name.clear();
+                severity.clear();
+                severity.setValue("All");
+
+                status.clear();
+                status.setValue("Open");
+
+                datePicker.clear();
+                datePicker.setValue(LocalDate.now());
+
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -103,12 +124,14 @@ public class IncidentsView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(name, actions);
+            add(severity, status, datePicker, actions);
         }
 
         public Map<String, Object> getFilters() {
             Map<String, Object> filters = new HashMap<>();
-            filters.put("name", name.getValue());
+            filters.put("severity", severity.getValue());
+            filters.put("status", status.getValue());
+            filters.put("date", datePicker.getValue());
             return filters;
         }
 
@@ -119,6 +142,10 @@ public class IncidentsView extends Div {
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn("name").setAutoWidth(true);
+        grid.addColumn("machineName").setAutoWidth(true);
+        grid.addColumn("severity").setAutoWidth(true);
+        grid.addColumn("status").setAutoWidth(true);
+        grid.addColumn("recommendation").setAutoWidth(true);
 
 //        grid.addItemClickListener(item -> {
 //            grid.getUI().ifPresent(ui ->

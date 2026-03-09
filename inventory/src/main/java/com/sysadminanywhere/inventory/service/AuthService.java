@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
 
+    private static final String CLIENT_SERVICE = "inventory";
+
     private final AuthServiceClient client;
 
     public AuthService(AuthServiceClient client) {
@@ -15,7 +17,7 @@ public class AuthService {
     }
 
     public JwtResponse authenticate(String username, String password) {
-        JwtResponse response = client.authenticate(new LoginRequest(username, password));
+        JwtResponse response = client.authenticate(new LoginRequest(username, password, CLIENT_SERVICE));
         if (response == null || response.token() == null) {
             throw new RuntimeException("Authentication failed");
         }
