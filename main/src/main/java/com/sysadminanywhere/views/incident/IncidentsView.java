@@ -2,11 +2,13 @@ package com.sysadminanywhere.views.incident;
 
 import com.sysadminanywhere.common.incident.model.IncidentItem;
 import com.sysadminanywhere.service.IncidentService;
+import com.sysadminanywhere.views.management.computers.UpdateComputerDialog;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -141,10 +143,9 @@ public class IncidentsView extends Div {
         grid.addColumn("status").setAutoWidth(true);
         grid.addColumn("recommendation").setAutoWidth(true);
 
-//        grid.addItemClickListener(item -> {
-//            grid.getUI().ifPresent(ui ->
-//                    ui.navigate("inventory/software/" + item.getItem().getId() + "/computer"));
-//        });
+        grid.addItemClickListener(item -> {
+                incidentDialog(item.getItem()).open();
+        });
 
         grid.setItems(query -> incidentService.getIncidents(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
@@ -157,6 +158,10 @@ public class IncidentsView extends Div {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    private Dialog incidentDialog(IncidentItem incidentItem) {
+        return new IncidentDialog(incidentItem);
     }
 
 }
