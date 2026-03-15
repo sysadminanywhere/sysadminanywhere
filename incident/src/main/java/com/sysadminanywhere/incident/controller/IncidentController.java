@@ -15,6 +15,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -101,10 +103,13 @@ public class IncidentController {
     @PostMapping("/{id}/close")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<IncidentItem> closeIncident(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return incidentRepository.findById(id)
                 .map(incident -> {
                     incident.setStatus(IncidentStatus.CLOSED);
                     incident.setUpdatedAt(LocalDateTime.now());
+                    incident.setClosedAt(LocalDateTime.now());
+                    incident.setClosedBy(authentication.getName());
                     incidentRepository.save(incident);
                     log.info("Incident closed: {}", id);
                     return ResponseEntity.ok(IncidentMapper.toItem(incident));

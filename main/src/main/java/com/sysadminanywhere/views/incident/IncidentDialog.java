@@ -59,14 +59,24 @@ public class IncidentDialog extends Dialog {
 
         Button saveButton = new Button("Save", e -> {
             try {
-                incidentService.updateIncident(incident.getId(),
-                        Severity.valueOf(comboSeverity.getValue().toUpperCase()),
-                        IncidentStatus.valueOf(comboStatus.getValue().toUpperCase().replace(" ", "_")));
+                Severity severity = Severity.valueOf(comboSeverity.getValue().toUpperCase());
+                IncidentStatus status = IncidentStatus.valueOf(comboStatus.getValue().toUpperCase().replace(" ", "_"));
 
-                onSearch.run();
+                if (status == IncidentStatus.CLOSED) {
+                    incidentService.closeIncident(incident.getId());
 
-                Notification notification = Notification.show("Incident updated");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    onSearch.run();
+
+                    Notification notification = Notification.show("Incident closed");
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                } else {
+                    incidentService.updateIncident(incident.getId(), severity, status);
+
+                    onSearch.run();
+
+                    Notification notification = Notification.show("Incident updated");
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                }
             } catch (Exception ex) {
                 Notification notification = Notification.show(ex.getMessage());
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -81,4 +91,5 @@ public class IncidentDialog extends Dialog {
         getFooter().add(cancelButton);
         getFooter().add(saveButton);
     }
+
 }

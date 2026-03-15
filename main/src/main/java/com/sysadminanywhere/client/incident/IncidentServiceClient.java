@@ -26,4 +26,6 @@ public interface IncidentServiceClient {
     @PutMapping("/api/incidents/{id}/update")
     IncidentItem updateIncident(@PathVariable Long id, @RequestParam("severity") String severity, @RequestParam("status") String status);
 
+    @PostMapping("/api/incidents/{id}/close")
+    IncidentItem closeIncident(@PathVariable Long id);
 }
