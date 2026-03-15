@@ -42,6 +42,16 @@ public class IncidentController {
             @RequestParam(required = false) String severity,
             @RequestParam(required = false) String status
     ) {
+        if (severity.equalsIgnoreCase("ALL") && status.equalsIgnoreCase("ALL")) {
+            return incidentRepository.findAll(pageable).map(IncidentMapper::toItem);
+        }
+
+        if (severity.equalsIgnoreCase("ALL")) {
+            IncidentStatus statusFilter = Objects.requireNonNullElse(IncidentStatus.valueOf(status), IncidentStatus.OPEN);
+            return incidentRepository.findWithStatus(statusFilter, pageable)
+                    .map(IncidentMapper::toItem);
+        }
+
         IncidentStatus statusFilter = Objects.requireNonNullElse(IncidentStatus.valueOf(status), IncidentStatus.OPEN);
         Severity severityFilter = Objects.requireNonNullElse(Severity.valueOf(severity), Severity.CRITICAL);
 
@@ -82,7 +92,7 @@ public class IncidentController {
     public ResponseEntity<IncidentItem> updateIncident(@PathVariable Long id, @RequestParam String severity, @RequestParam String status) {
         Optional<IncidentEntity> incident = incidentRepository.findById(id);
 
-        if(incident.isEmpty()) {
+        if (incident.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 

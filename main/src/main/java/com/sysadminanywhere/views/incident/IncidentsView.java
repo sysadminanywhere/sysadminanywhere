@@ -85,10 +85,10 @@ public class IncidentsView extends Div {
 
         public Filters(Runnable onSearch) {
 
-            severity.setItems("Low", "Medium", "High", "Critical");
-            severity.setValue("Critical");
+            severity.setItems("All", "Low", "Medium", "High", "Critical");
+            severity.setValue("All");
 
-            status.setItems("Open", "In Progress", "Resolved", "False Positive", "Closed");
+            status.setItems("All", "Open", "In Progress", "Resolved", "False Positive", "Closed");
             status.setValue("Open");
 
             setWidthFull();

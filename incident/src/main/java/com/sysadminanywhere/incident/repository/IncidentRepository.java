@@ -40,11 +40,6 @@ public interface IncidentRepository extends JpaRepository<IncidentEntity, Long> 
             LocalDateTime after);
 
     /**
-     * Найти все открытые инциденты
-     */
-    List<IncidentEntity> findByStatus(IncidentStatus status);
-
-    /**
      * Найти инциденты по дедупликационному ключу
      * Чтобы не создавать дубликаты
      */
@@ -58,6 +53,16 @@ public interface IncidentRepository extends JpaRepository<IncidentEntity, Long> 
         """)
     Page<IncidentEntity> findWithFilters(
             @Param("severity") Severity severity,
+            @Param("status") IncidentStatus status,
+            Pageable pageable
+    );
+
+    @Query("""
+        SELECT i FROM IncidentEntity i
+        WHERE i.status = :status
+        ORDER BY i.createdAt DESC
+        """)
+    Page<IncidentEntity> findWithStatus(
             @Param("status") IncidentStatus status,
             Pageable pageable
     );
