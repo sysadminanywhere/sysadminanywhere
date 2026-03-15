@@ -1,5 +1,6 @@
 package com.sysadminanywhere.common.incident.model;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;

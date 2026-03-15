@@ -2,12 +2,10 @@ package com.sysadminanywhere.views.incident;
 
 import com.sysadminanywhere.common.incident.model.IncidentItem;
 import com.sysadminanywhere.service.IncidentService;
-import com.sysadminanywhere.views.management.computers.UpdateComputerDialog;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -18,7 +16,6 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -26,7 +23,6 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.PageRequest;
 
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -144,7 +140,7 @@ public class IncidentsView extends Div {
         grid.addColumn("recommendation").setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
-                incidentDialog(item.getItem()).open();
+                incidentDialog(incidentService, item.getItem(), this::refreshGrid).open();
         });
 
         grid.setItems(query -> incidentService.getIncidents(
@@ -160,8 +156,8 @@ public class IncidentsView extends Div {
         grid.getDataProvider().refreshAll();
     }
 
-    private Dialog incidentDialog(IncidentItem incidentItem) {
-        return new IncidentDialog(incidentItem);
+    private Dialog incidentDialog(IncidentService incidentService, IncidentItem incidentItem, Runnable onSearch) {
+        return new IncidentDialog(incidentService, incidentItem, onSearch);
     }
 
 }

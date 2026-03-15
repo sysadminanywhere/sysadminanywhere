@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -71,6 +72,26 @@ public class IncidentController {
         log.info("Incident created: {}", saved.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED)
+                .body(IncidentMapper.toItem(saved));
+    }
+
+    @PutMapping("/{id}/update")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<IncidentItem> updateIncident(@PathVariable Long id, @RequestParam String severity, @RequestParam String status) {
+        Optional<IncidentEntity> incident = incidentRepository.findById(id);
+
+        if(incident.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        incident.get().setSeverity(Severity.valueOf(severity.toUpperCase()));
+        incident.get().setStatus(IncidentStatus.valueOf(status.toUpperCase().replace(" ", "_")));
+        incident.get().setUpdatedAt(LocalDateTime.now());
+
+        IncidentEntity saved = incidentRepository.save(incident.get());
+        log.info("Incident updated: {}", saved.getId());
+
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(IncidentMapper.toItem(saved));
     }
 
