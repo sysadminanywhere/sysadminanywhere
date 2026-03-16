@@ -35,10 +35,13 @@ public class IncidentDialog extends Dialog {
         txtName.setReadOnly(true);
         formLayout.setColspan(txtName, 2);
 
+        TextField txtCreatedAt = new TextField("Created at");
+        txtCreatedAt.setValue(incident.getCreatedAt().toString());
+        txtCreatedAt.setReadOnly(true);
+
         TextField txtMachineName = new TextField("Machine name");
         txtMachineName.setValue(incident.getMachineName());
-        txtName.setReadOnly(true);
-        formLayout.setColspan(txtMachineName, 2);
+        txtMachineName.setReadOnly(true);
 
         ComboBox<String> comboSeverity = new ComboBox<>("Severity");
         comboSeverity.setItems(List.of("Low", "Medium", "High", "Critical"));
@@ -48,12 +51,28 @@ public class IncidentDialog extends Dialog {
         comboStatus.setItems(List.of("Open", "In Progress", "Resolved", "False Positive", "Closed"));
         comboStatus.setValue(incident.getStatus().name().replace("_", " "));
 
+        TextField txtFirstEventTime = new TextField("First event time");
+        txtFirstEventTime.setValue(incident.getFirstEventTime().toString());
+        txtFirstEventTime.setReadOnly(true);
+
+        TextField txtLastEventTime = new TextField("Last event time");
+        txtLastEventTime.setValue(incident.getLastEventTime().toString());
+        txtLastEventTime.setReadOnly(true);
+
         TextField txtRecommendation = new TextField("Recommendation");
         txtRecommendation.setValue(incident.getRecommendation());
         txtRecommendation.setReadOnly(true);
         formLayout.setColspan(txtRecommendation, 2);
 
-        formLayout.add(txtName, txtMachineName, comboSeverity, comboStatus, txtRecommendation);
+        TextField txtEventCount = new TextField("Event count");
+        txtEventCount.setValue(String.valueOf(incident.getEventCount()));
+        txtEventCount.setReadOnly(true);
+
+        TextField txtUpdatedAt = new TextField("Updated at");
+        txtUpdatedAt.setValue(incident.getUpdatedAt().toString());
+        txtUpdatedAt.setReadOnly(true);
+
+        formLayout.add(txtName, txtRecommendation, txtCreatedAt, txtMachineName, txtFirstEventTime, txtLastEventTime, txtEventCount, txtUpdatedAt, comboSeverity, comboStatus);
 
         add(formLayout);
 
