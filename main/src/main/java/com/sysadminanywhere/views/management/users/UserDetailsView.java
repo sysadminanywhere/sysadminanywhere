@@ -32,7 +32,6 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
-import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.dialog.Dialog;
 import jakarta.annotation.security.RolesAllowed;
 

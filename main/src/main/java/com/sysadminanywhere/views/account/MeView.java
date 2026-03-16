@@ -7,7 +7,6 @@ import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.management.users.UpdateUserDialog;
 import com.sysadminanywhere.views.management.users.UpdateUserPhotoDialog;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -114,6 +113,8 @@ public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuC
     }
 
     private void updateView() {
+        user = usersService.getByCN(authenticatedUser.get().get().getUsername());
+
         if (user != null) {
             binder.readBean(user);
 
