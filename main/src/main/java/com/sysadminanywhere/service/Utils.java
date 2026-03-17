@@ -55,4 +55,9 @@ public class Utils {
         return localDateTime.format(DateTimeFormatter.ofPattern(pattern));
     }
 
+    public static String formatLocalDateTime(LocalDateTime localDateTime) {
+        String pattern = "dd.MM.yyyy HH:mm:ss";
+        return localDateTime.format(DateTimeFormatter.ofPattern(pattern));
+    }
+
 }

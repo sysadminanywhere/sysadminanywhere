@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.incident;
 
 import com.sysadminanywhere.common.incident.model.IncidentItem;
 import com.sysadminanywhere.service.IncidentService;
+import com.sysadminanywhere.service.Utils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -132,7 +133,10 @@ public class IncidentsView extends Div {
         grid = new Grid<>(IncidentItem.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
-        grid.addColumn("createdAt").setAutoWidth(true);
+        grid.addColumn(incidentItem ->
+                        Utils.formatLocalDateTime(incidentItem.getCreatedAt()))
+                .setHeader("Created at").setAutoWidth(true);
+
         grid.addColumn("name").setAutoWidth(true);
         grid.addColumn("machineName").setAutoWidth(true);
         grid.addColumn("severity").setAutoWidth(true);

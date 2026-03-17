@@ -5,6 +5,7 @@ import com.sysadminanywhere.common.incident.model.IncidentItem;
 import com.sysadminanywhere.common.incident.model.IncidentStatus;
 import com.sysadminanywhere.common.incident.model.Severity;
 import com.sysadminanywhere.service.IncidentService;
+import com.sysadminanywhere.service.Utils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -36,7 +37,7 @@ public class IncidentDialog extends Dialog {
         formLayout.setColspan(txtName, 2);
 
         TextField txtCreatedAt = new TextField("Created at");
-        txtCreatedAt.setValue(incident.getCreatedAt().toString());
+        txtCreatedAt.setValue(Utils.formatLocalDateTime(incident.getCreatedAt()));
         txtCreatedAt.setReadOnly(true);
 
         TextField txtMachineName = new TextField("Machine name");
@@ -52,11 +53,11 @@ public class IncidentDialog extends Dialog {
         comboStatus.setValue(incident.getStatus().name().replace("_", " "));
 
         TextField txtFirstEventTime = new TextField("First event time");
-        txtFirstEventTime.setValue(incident.getFirstEventTime().toString());
+        txtFirstEventTime.setValue(Utils.formatLocalDateTime(incident.getFirstEventTime()));
         txtFirstEventTime.setReadOnly(true);
 
         TextField txtLastEventTime = new TextField("Last event time");
-        txtLastEventTime.setValue(incident.getLastEventTime().toString());
+        txtLastEventTime.setValue(Utils.formatLocalDateTime(incident.getLastEventTime()));
         txtLastEventTime.setReadOnly(true);
 
         TextField txtRecommendation = new TextField("Recommendation");
@@ -69,7 +70,7 @@ public class IncidentDialog extends Dialog {
         txtEventCount.setReadOnly(true);
 
         TextField txtUpdatedAt = new TextField("Updated at");
-        txtUpdatedAt.setValue(incident.getUpdatedAt().toString());
+        txtUpdatedAt.setValue(Utils.formatLocalDateTime(incident.getUpdatedAt()));
         txtUpdatedAt.setReadOnly(true);
 
         formLayout.add(txtName, txtRecommendation, txtCreatedAt, txtMachineName, txtFirstEventTime, txtLastEventTime, txtEventCount, txtUpdatedAt, comboSeverity, comboStatus);
