@@ -21,3 +21,15 @@ services:
       - ./db/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
     ports:
       - "5432:5432"
+
+  n8n:
+    image: n8nio/n8n:stable
+    container_name: n8n-dev
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=password
+      - N8N_ENDPOINT_WEBHOOK=true
+      - N8N_PROTOCOL=http

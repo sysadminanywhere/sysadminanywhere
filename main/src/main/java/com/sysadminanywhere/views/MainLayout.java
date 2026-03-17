@@ -5,6 +5,7 @@ import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.account.MeView;
+import com.sysadminanywhere.views.automation.AutomationsView;
 import com.sysadminanywhere.views.domain.AuditView;
 import com.sysadminanywhere.views.domain.DashboardView;
 import com.sysadminanywhere.views.domain.DomainView;
@@ -58,6 +59,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     SideNav incidentsSubNavs = new SideNav();
     SideNav reportsSubNavs = new SideNav();
     SideNav accountSubNavs = new SideNav();
+    SideNav automationsSubNavs = new SideNav();
 
     String currentTitle = "Domain";
 
@@ -94,7 +96,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         topMenu = new VerticalLayout(createSelectedMainButtonItem(currentTitle, DashboardView.class, "icons/dashboard.svg"),
                 createMainButtonItem("Management", ContainersView.class, "icons/management.svg"),
                 createMainButtonItem("Incidents", IncidentsView.class, "icons/incident.svg"),
-                createMainButtonItem("Inventory", InventorySoftwareView.class, "icons/automation.svg"),
+                createMainButtonItem("Automation", AutomationsView.class, "icons/automation.svg"),
+                createMainButtonItem("Inventory", InventorySoftwareView.class, "icons/inventory.svg"),
                 createMainButtonItem("Reports", UserReportsView.class, "icons/reports.svg"));
         topMenu.setMargin(false);
 
@@ -128,6 +131,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         inventorySubNavs.addItem(createSideNavItem("Software inventory", InventorySoftwareView.class));
 
         incidentsSubNavs.addItem(createSideNavItem("Incidents", IncidentsView.class));
+
+        automationsSubNavs.addItem(createSideNavItem("Workflows", AutomationsView.class));
 
         reportsSubNavs.addItem(createSideNavItem("Users reports", UserReportsView.class),
                 createSideNavItem("Computer Reports", ComputerReportsView.class),
@@ -191,6 +196,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 subNav.add(managementSubNavs);
             } else if (currentRoute.startsWith("incidents")) {
                 subNav.add(incidentsSubNavs);
+            } else if (currentRoute.startsWith("automation")) {
+                subNav.add(automationsSubNavs);
             } else if (currentRoute.startsWith("inventory")) {
                 subNav.add(inventorySubNavs);
             } else if (currentRoute.startsWith("reports")) {
