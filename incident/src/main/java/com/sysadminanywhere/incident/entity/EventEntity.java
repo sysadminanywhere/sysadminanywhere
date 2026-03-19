@@ -16,8 +16,11 @@ import java.time.OffsetDateTime;
         indexes = {
                 @Index(name = "idx_events_processed", columnList = "processed"),
                 @Index(name = "idx_events_recordId", columnList = "recordId"),
-                @Index(name = "idx_events_incidentId", columnList = "incidentId")
-        })
+                @Index(name = "idx_events_incidentId", columnList = "incidentId"),
+                @Index(name = "idx_events_event_time", columnList = "eventId, timeCreated"),
+                @Index(name = "idx_events_incident_time", columnList = "incidentId, timeCreated")
+        }
+)
 public class EventEntity {
 
     @Id

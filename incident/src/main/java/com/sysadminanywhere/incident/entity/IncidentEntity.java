@@ -14,7 +14,10 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_incident_signal", columnList = "signalId"),
                 @Index(name = "idx_incident_status", columnList = "status"),
                 @Index(name = "idx_incident_created", columnList = "createdAt"),
-                @Index(name = "idx_incident_hash", columnList = "deduplicationKey")
+                @Index(name = "idx_incident_status_created", columnList = "status, createdAt"),
+                @Index(name = "idx_incident_severity_status_created", columnList = "severity, status, createdAt"),
+                @Index(name = "idx_incident_signal_user_created", columnList = "signalId, affectedUser, createdAt"),
+                @Index(name = "idx_incident_hash", columnList = "deduplicationKey", unique = true)
         }
 )
 @Getter

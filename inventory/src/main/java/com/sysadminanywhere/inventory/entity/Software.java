@@ -11,7 +11,12 @@ import java.util.Set;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "software")
+@Table(
+        name = "software",
+        indexes = {
+                @Index(name = "idx_software_name_vendor_version", columnList = "name, vendor, version", unique = true)
+        }
+)
 public class Software {
 
     @Id

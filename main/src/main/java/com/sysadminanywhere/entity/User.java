@@ -11,7 +11,10 @@ import java.util.Set;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "users")
+@Table(name = "users", indexes = {
+        @Index(name = "idx_users_username", columnList = "username", unique = true)
+    }
+)
 public class User {
 
     @Id

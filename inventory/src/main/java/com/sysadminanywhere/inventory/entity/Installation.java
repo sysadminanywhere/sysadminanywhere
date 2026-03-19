@@ -11,7 +11,14 @@ import java.time.LocalDateTime;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "installations")
+@Table(
+        name = "installations",
+        indexes = {
+                @Index(name = "idx_installations_computer", columnList = "computer_id"),
+                @Index(name = "idx_installations_software", columnList = "software_id"),
+                @Index(name = "idx_installations_computer_software", columnList = "computer_id, software_id", unique = true)
+        }
+)
 public class Installation {
 
     @Id
