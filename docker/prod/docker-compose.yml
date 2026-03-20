@@ -2,7 +2,7 @@
 services:
 
   db:
-    image: postgres:16
+    image: postgres:17
     container_name: db
     environment:
       POSTGRES_DB: ${DB_NAME}
@@ -15,32 +15,8 @@ services:
       - "5432:5432"
     restart: unless-stopped
 
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.3
-    container_name: keycloak
-    ports:
-      - "8080:8080"
-    environment:
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://db:5432/keycloak
-      KC_DB_USERNAME: ${DB_USER}
-      KC_DB_PASSWORD: ${DB_PASSWORD}
-      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
-      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_HTTP_ENABLED: true
-      KC_HOSTNAME: keycloak
-      KC_HOSTNAME_PORT: 8080
-      KC_HOSTNAME_STRICT: false
-      KC_PROXY: edge
-    command: ["start-dev"]
-    depends_on:
-      - db
-    restart: unless-stopped
-    extra_hosts:
-      - "keycloak.local:host-gateway"
-
   vault:
-    image: hashicorp/vault:1.21.1
+    image: hashicorp/vault:latest
     container_name: vault
     ports:
       - "8200:8200"
@@ -51,6 +27,18 @@ services:
       - vault_data:/vault/file
     restart: unless-stopped
 
+  n8n:
+    image: n8nio/n8n:stable
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=password
+      - N8N_ENDPOINT_WEBHOOK=true
+      - N8N_PROTOCOL=http
+
   directory:
     image: sysadminanywhere/directory:latest
     container_name: directory
@@ -58,15 +46,9 @@ services:
       LDAP_SERVER: ${LDAP_SERVER}
       LDAP_PORT: ${LDAP_PORT}
       LDAP_USE_SSL: ${LDAP_USE_SSL}
-      LDAP_USERNAME: ${LDAP_USERNAME}
-      LDAP_PASSWORD: ${LDAP_PASSWORD}
-      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
-      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-      KEYCLOAK_REDIRECT_URI: ${KEYCLOAK_REDIRECT_URI}
-      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
       VAULT_URI: http://vault:8200
       VAULT_TOKEN: ${VAULT_TOKEN}
-      KAFKA_HOST: ${KAFKA_HOST}
+      JWT_SECRET: ${JWT_SECRET}
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
       - vault
@@ -82,18 +64,41 @@ services:
       DB_BASE: inventory
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
-      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-      KEYCLOAK_REDIRECT_URI: ${KEYCLOAK_REDIRECT_URI}
-      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
-      KAFKA_HOST: ${KAFKA_HOST}
       DIRECTORY_SERVICE: http://directory:8080
+      SCAN_CRON: ${INVENTORY_SCAN_CRON}
+      LDAP_USERNAME: ${INVENTORY_USERNAME}
+      LDAP_PASSWORD: ${INVENTORY_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
       - db
       - directory
     ports:
       - "8082:8080"
+
+  incident:
+    image: sysadminanywhere/incident:latest
+    container_name: incident
+    environment:
+      DB_ADDRESS: db
+      DB_PORT: 5432
+      DB_BASE: incident
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DIRECTORY_SERVICE: http://directory:8080
+      SCAN_CRON: ${WEF_SCAN_CRON}
+      WEF_SERVER: ${WEF_SERVER}
+      WEF_PORT: ${WEF_PORT}
+      WEF_USERNAME: ${WEF_USERNAME}
+      WEF_PASSWORD: ${WEF_PASSWORD}
+      WEF_USE_SSL: ${WEF_USE_SSL}
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      - db
+      - directory
+    ports:
+      - "8083:8080"
 
   sysadminanywhere:
     image: sysadminanywhere/sysadminanywhere:latest
@@ -106,15 +111,11 @@ services:
       DB_BASE: sysadminanywhere
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      LDAP_GROUPS_ADMINS: "Domain Admins"
-      LDAP_GROUPS_USERS: "Domain Users"
-      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
-      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-      KEYCLOAK_REDIRECT_URI: ${KEYCLOAK_REDIRECT_URI}
-      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
-      KEYCLOAK_LOGOUT_URI: ${KEYCLOAK_LOGOUT_URI}
       DIRECTORY_SERVICE: http://directory:8081
       INVENTORY_SERVICE: http://inventory:8082
+      INCIDENT_SERVICE: http://incident:8083
+      JWT_SECRET: ${JWT_SECRET}
+      N8N_HOST: http://n8n:5678
       N8N_API_KEY: ${N8N_API_KEY}
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
@@ -124,7 +125,3 @@ services:
 volumes:
   postgres_data:
   vault_data:
-  zookeeper_data:
-  zookeeper_log:
-  kafka_data:
-  n8n_data:
