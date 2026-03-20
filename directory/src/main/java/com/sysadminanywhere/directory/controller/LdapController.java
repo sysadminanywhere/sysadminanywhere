@@ -251,12 +251,6 @@ public class LdapController {
      * Валидация SearchDto
      */
     private void validateSearchDto(SearchDto searchDto) {
-        if (searchDto == null || searchDto.getDistinguishedName() == null ||
-            searchDto.getDistinguishedName().isBlank()) {
-
-            throw new IllegalArgumentException("DistinguishedName cannot be empty");
-        }
-
         if (searchDto.getFilter() == null || searchDto.getFilter().isBlank()) {
             throw new IllegalArgumentException("Filter cannot be empty");
         }
