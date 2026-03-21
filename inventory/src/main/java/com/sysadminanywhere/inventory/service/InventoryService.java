@@ -9,13 +9,16 @@ import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
 import com.sysadminanywhere.inventory.client.ComputersServiceClient;
 import com.sysadminanywhere.inventory.client.WmiServiceClient;
 import com.sysadminanywhere.inventory.entity.Computer;
+import com.sysadminanywhere.inventory.entity.ComputerHardware;
+import com.sysadminanywhere.inventory.entity.Hardware;
 import com.sysadminanywhere.inventory.entity.Installation;
 import com.sysadminanywhere.inventory.entity.Software;
+import com.sysadminanywhere.inventory.repository.ComputerHardwareRepository;
 import com.sysadminanywhere.inventory.repository.ComputerRepository;
+import com.sysadminanywhere.inventory.repository.HardwareRepository;
 import com.sysadminanywhere.inventory.repository.InstallationRepository;
 import com.sysadminanywhere.inventory.repository.SoftwareRepository;
-import com.sysadminanywhere.inventory.wmi.HardwareEntity;
-import com.sysadminanywhere.inventory.wmi.SoftwareEntity;
+import com.sysadminanywhere.inventory.wmi.*;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,10 +30,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -49,13 +54,17 @@ public class InventoryService {
     private final ComputerRepository computerRepository;
     private final SoftwareRepository softwareRepository;
     private final InstallationRepository installationRepository;
+    private final ComputerHardwareRepository computerHardwareRepository;
+    private final HardwareRepository hardwareRepository;
 
     public InventoryService(AuthService authService,
                             ComputersServiceClient computersServiceClient,
                             WmiServiceClient wmiServiceClient,
                             ComputerRepository computerRepository,
                             SoftwareRepository softwareRepository,
-                            InstallationRepository installationRepository) {
+                            InstallationRepository installationRepository,
+                            ComputerHardwareRepository computerHardwareRepository,
+                            HardwareRepository hardwareRepository) {
 
         this.authService = authService;
         this.computersServiceClient = computersServiceClient;
@@ -63,18 +72,18 @@ public class InventoryService {
         this.computerRepository = computerRepository;
         this.softwareRepository = softwareRepository;
         this.installationRepository = installationRepository;
+        this.computerHardwareRepository = computerHardwareRepository;
+        this.hardwareRepository = hardwareRepository;
     }
 
     /*
-
      ┌───────────── second (0-59)
      │ ┌───────────── minute (0 - 59)
      │ │ ┌───────────── hour (0 - 23)
-     │ │ │ ┌───────────── day of the month (1 - 31)
+     │ │ │ ┌───────────── day of month (1 - 31)
      │ │ │ │ ┌───────────── month (1 - 12) (or JAN-DEC)
-     │ │ │ │ │ ┌───────────── day of the week (0 - 7)
-     │ │ │ │ │ │          (0 or 7 is Sunday, or MON-SUN)
-     │ │ │ │ │ │
+     │ │ │ │ │ ┌───────────── day of week (0 - 7)
+     │ │ │ │ │          (0 or 7 is Sunday, or MON-SUN)
      * * * * * *
 
     "0 0 12 * * *" every day at 12:00
@@ -107,8 +116,9 @@ public class InventoryService {
             if (computerEntry != null && !computerEntry.isDisabled()) {
                 try {
                     scanSoftware(computerEntry.getCn());
+                    scanHardware(computerEntry.getCn());
                 } catch (Exception ex) {
-                    log.error("Error scanning software on computer {}: {}",
+                    log.error("Error scanning on computer {}: {}",
                             computerEntry.getCn(), ex.getMessage(), ex);
                 }
             }
@@ -141,6 +151,395 @@ public class InventoryService {
         } catch (Exception ex) {
             log.error("Failed to authenticate with directory service: {}", ex.getMessage(), ex);
             return false;
+        }
+    }
+
+    @SneakyThrows
+    @SuppressWarnings("unchecked")
+    @Transactional
+    public void scanHardware(String hostName) {
+        if (hostName == null || hostName.isEmpty()) {
+            log.error("Host name is null or empty for hardware scan");
+            return;
+        }
+
+        log.info("Scanning hardware on computer {}", hostName);
+
+        List<Object> hardwareItems = new ArrayList<>();
+
+        try {
+            // Get Computer System
+            var computerSystemResponse = wmiServiceClient.execute(new ExecuteDto(hostName, "SELECT * FROM Win32_ComputerSystem"));
+            if (computerSystemResponse != null && computerSystemResponse.getStatusCode().is2xxSuccessful()) {
+                List<Map<String, Object>> computerSystemData = (List<Map<String, Object>>) computerSystemResponse.getBody();
+                if (computerSystemData != null && !computerSystemData.isEmpty()) {
+                    WmiResolveService<ComputerSystemEntity> wmiResolveService = new WmiResolveService<>(ComputerSystemEntity.class);
+                    List<ComputerSystemEntity> computerSystems = wmiResolveService.getValues(computerSystemData);
+                    hardwareItems.addAll(computerSystems);
+                }
+            }
+
+            // Get BIOS
+            var biosResponse = wmiServiceClient.execute(new ExecuteDto(hostName, "SELECT * FROM Win32_BIOS"));
+            if (biosResponse != null && biosResponse.getStatusCode().is2xxSuccessful()) {
+                List<Map<String, Object>> biosData = (List<Map<String, Object>>) biosResponse.getBody();
+                if (biosData != null && !biosData.isEmpty()) {
+                    WmiResolveService<BIOSEntity> wmiResolveService = new WmiResolveService<>(BIOSEntity.class);
+                    List<BIOSEntity> biosList = wmiResolveService.getValues(biosData);
+                    hardwareItems.addAll(biosList);
+                }
+            }
+
+            // Get BaseBoard
+            var baseboardResponse = wmiServiceClient.execute(new ExecuteDto(hostName, "SELECT * FROM Win32_BaseBoard"));
+            if (baseboardResponse != null && baseboardResponse.getStatusCode().is2xxSuccessful()) {
+                List<Map<String, Object>> baseboardData = (List<Map<String, Object>>) baseboardResponse.getBody();
+                if (baseboardData != null && !baseboardData.isEmpty()) {
+                    WmiResolveService<BaseboardEntity> wmiResolveService = new WmiResolveService<>(BaseboardEntity.class);
+                    List<BaseboardEntity> baseboards = wmiResolveService.getValues(baseboardData);
+                    hardwareItems.addAll(baseboards);
+                }
+            }
+
+            // Get Processor
+            var processorResponse = wmiServiceClient.execute(new ExecuteDto(hostName, "SELECT * FROM Win32_Processor"));
+            if (processorResponse != null && processorResponse.getStatusCode().is2xxSuccessful()) {
+                List<Map<String, Object>> processorData = (List<Map<String, Object>>) processorResponse.getBody();
+                if (processorData != null && !processorData.isEmpty()) {
+                    WmiResolveService<ProcessorEntity> wmiResolveService = new WmiResolveService<>(ProcessorEntity.class);
+                    List<ProcessorEntity> processors = wmiResolveService.getValues(processorData);
+                    hardwareItems.addAll(processors);
+                }
+            }
+
+            // Get Physical Memory
+            var memoryResponse = wmiServiceClient.execute(new ExecuteDto(hostName, "SELECT * FROM Win32_PhysicalMemory"));
+            if (memoryResponse != null && memoryResponse.getStatusCode().is2xxSuccessful()) {
+                List<Map<String, Object>> memoryData = (List<Map<String, Object>>) memoryResponse.getBody();
+                if (memoryData != null && !memoryData.isEmpty()) {
+                    WmiResolveService<PhysicalMemoryEntity> wmiResolveService = new WmiResolveService<>(PhysicalMemoryEntity.class);
+                    List<PhysicalMemoryEntity> memoryModules = wmiResolveService.getValues(memoryData);
+                    hardwareItems.addAll(memoryModules);
+                }
+            }
+
+            // Get Disk Drive
+            var diskDriveResponse = wmiServiceClient.execute(new ExecuteDto(hostName, "SELECT * FROM Win32_DiskDrive"));
+            if (diskDriveResponse != null && diskDriveResponse.getStatusCode().is2xxSuccessful()) {
+                List<Map<String, Object>> diskDriveData = (List<Map<String, Object>>) diskDriveResponse.getBody();
+                if (diskDriveData != null && !diskDriveData.isEmpty()) {
+                    WmiResolveService<DiskDriveEntity> wmiResolveService = new WmiResolveService<>(DiskDriveEntity.class);
+                    List<DiskDriveEntity> diskDrives = wmiResolveService.getValues(diskDriveData);
+                    hardwareItems.addAll(diskDrives);
+                }
+            }
+
+            // Get Video Controller
+            var videoControllerResponse = wmiServiceClient.execute(new ExecuteDto(hostName, "SELECT * FROM Win32_VideoController"));
+            if (videoControllerResponse != null && videoControllerResponse.getStatusCode().is2xxSuccessful()) {
+                List<Map<String, Object>> videoControllerData = (List<Map<String, Object>>) videoControllerResponse.getBody();
+                if (videoControllerData != null && !videoControllerData.isEmpty()) {
+                    WmiResolveService<VideoControllerEntity> wmiResolveService = new WmiResolveService<>(VideoControllerEntity.class);
+                    List<VideoControllerEntity> videoControllers = wmiResolveService.getValues(videoControllerData);
+                    hardwareItems.addAll(videoControllers);
+                }
+            }
+
+            // Get Logical Disk
+            var logicalDiskResponse = wmiServiceClient.execute(new ExecuteDto(hostName, "SELECT * FROM Win32_LogicalDisk"));
+            if (logicalDiskResponse != null && logicalDiskResponse.getStatusCode().is2xxSuccessful()) {
+                List<Map<String, Object>> logicalDiskData = (List<Map<String, Object>>) logicalDiskResponse.getBody();
+                if (logicalDiskData != null && !logicalDiskData.isEmpty()) {
+                    WmiResolveService<LogicalDiskEntity> wmiResolveService = new WmiResolveService<>(LogicalDiskEntity.class);
+                    List<LogicalDiskEntity> logicalDisks = wmiResolveService.getValues(logicalDiskData);
+                    hardwareItems.addAll(logicalDisks);
+                }
+            }
+
+        } catch (Exception ex) {
+            log.error("Failed to scan hardware on computer {}: {}", hostName, ex.getMessage(), ex);
+        }
+
+        if (!hardwareItems.isEmpty()) {
+            Computer computer = checkComputer(hostName);
+            if (computer != null) {
+                log.info("On computer {} found {} hardware items", computer.getName(), hardwareItems.size());
+
+                for (Object hardwareItem : hardwareItems) {
+                    if (hardwareItem != null) {
+                        try {
+                            processHardwareItem(computer, hardwareItem);
+                        } catch (Exception ex) {
+                            log.error("Error checking hardware {} on computer {}: {}",
+                                    getHardwareType(hardwareItem), hostName, ex.getMessage());
+                        }
+                    }
+                }
+
+                checkForDeletedHardware(computer, hardwareItems);
+            }
+        }
+    }
+
+    private String getHardwareType(Object hardwareItem) {
+        if (hardwareItem == null) return "Unknown";
+        
+        String className = hardwareItem.getClass().getSimpleName();
+        switch (className) {
+            case "ComputerSystemEntity": return "ComputerSystem";
+            case "BIOSEntity": return "BIOS";
+            case "BaseboardEntity": return "BaseBoard";
+            case "ProcessorEntity": return "Processor";
+            case "PhysicalMemoryEntity": return "PhysicalMemory";
+            case "DiskDriveEntity": return "DiskDrive";
+            case "VideoControllerEntity": return "VideoController";
+            case "LogicalDiskEntity": return "LogicalDisk";
+            default: return className;
+        }
+    }
+
+    private String getHardwareName(Object hardwareItem) {
+        if (hardwareItem == null) return "Unknown";
+        
+        try {
+            String className = hardwareItem.getClass().getSimpleName();
+            
+            // Handle specific entity types with their relevant fields
+            switch (className) {
+                case "BIOSEntity":
+                    return getBiosName((BIOSEntity) hardwareItem);
+                case "BaseboardEntity":
+                    return getBaseboardName((BaseboardEntity) hardwareItem);
+                case "ProcessorEntity":
+                    return getProcessorName((ProcessorEntity) hardwareItem);
+                case "PhysicalMemoryEntity":
+                    return getMemoryName((PhysicalMemoryEntity) hardwareItem);
+                case "DiskDriveEntity":
+                    return getDiskDriveName((DiskDriveEntity) hardwareItem);
+                case "VideoControllerEntity":
+                    return getVideoControllerName((VideoControllerEntity) hardwareItem);
+                case "LogicalDiskEntity":
+                    return getLogicalDiskName((LogicalDiskEntity) hardwareItem);
+                case "ComputerSystemEntity":
+                    return getComputerSystemName((ComputerSystemEntity) hardwareItem);
+                default:
+                    return getGenericHardwareName(hardwareItem);
+            }
+        } catch (Exception ex) {
+            log.warn("Failed to get hardware name for {}: {}", hardwareItem.getClass().getSimpleName(), ex.getMessage());
+            return hardwareItem.getClass().getSimpleName();
+        }
+    }
+    
+    private String getBiosName(BIOSEntity bios) {
+        if (bios.getManufacturer() != null && !bios.getManufacturer().isEmpty()) {
+            return bios.getManufacturer() + (bios.getVersion() != null ? " " + bios.getVersion() : "");
+        }
+        return "BIOS";
+    }
+    
+    private String getBaseboardName(BaseboardEntity baseboard) {
+        if (baseboard.getManufacturer() != null && !baseboard.getManufacturer().isEmpty()) {
+            return baseboard.getManufacturer() + (baseboard.getProduct() != null ? " " + baseboard.getProduct() : "");
+        }
+        return "BaseBoard";
+    }
+    
+    private String getProcessorName(ProcessorEntity processor) {
+        if (processor.getName() != null && !processor.getName().isEmpty()) {
+            return processor.getName();
+        }
+        if (processor.getManufacturer() != null && !processor.getManufacturer().isEmpty()) {
+            return processor.getManufacturer() + (processor.getDescription() != null ? " " + processor.getDescription() : "");
+        }
+        return "Processor";
+    }
+    
+    private String getMemoryName(PhysicalMemoryEntity memory) {
+        if (memory.getManufacturer() != null && !memory.getManufacturer().isEmpty()) {
+            return memory.getManufacturer() + " " + (memory.getCapacity() > 0 ? memory.getCapacity() : "") + "MB";
+        }
+        if (memory.getCapacity() > 0) {
+            return "Memory " + memory.getCapacity() + "MB";
+        }
+        return "Physical Memory";
+    }
+    
+    private String getDiskDriveName(DiskDriveEntity disk) {
+        if (disk.getModel() != null && !disk.getModel().isEmpty()) {
+            return disk.getModel();
+        }
+        if (disk.getManufacturer() != null && !disk.getManufacturer().isEmpty()) {
+            return disk.getManufacturer() + " Disk";
+        }
+        return "Disk Drive";
+    }
+    
+    private String getVideoControllerName(VideoControllerEntity video) {
+        if (video.getName() != null && !video.getName().isEmpty()) {
+            return video.getName();
+        }
+        if (video.getAdapterRAM() > 0) {
+            return "Video Controller " + video.getAdapterRAM();
+        }
+        return "Video Controller";
+    }
+    
+    private String getLogicalDiskName(LogicalDiskEntity disk) {
+        if (disk.getName() != null && !disk.getName().isEmpty()) {
+            return disk.getName() + (disk.getDescription() != null ? " (" + disk.getDescription() + ")" : "");
+        }
+        return "Logical Disk";
+    }
+    
+    private String getComputerSystemName(ComputerSystemEntity system) {
+        if (system.getManufacturer() != null && !system.getManufacturer().isEmpty()) {
+            return system.getManufacturer() + " " + (system.getModel() != null ? system.getModel() : "");
+        }
+        return "Computer System";
+    }
+    
+    private String getGenericHardwareName(Object hardwareItem) {
+        try {
+            // Fallback to reflection for unknown types
+            java.lang.reflect.Field[] fields = hardwareItem.getClass().getDeclaredFields();
+            for (java.lang.reflect.Field field : fields) {
+                field.setAccessible(true);
+                String fieldName = field.getName().toLowerCase();
+                
+                if (fieldName.contains("name") || fieldName.contains("caption") || fieldName.contains("description") 
+                        || fieldName.contains("manufacturer") || fieldName.contains("model") || fieldName.contains("product")) {
+                    Object value = field.get(hardwareItem);
+                    if (value != null && !value.toString().isEmpty()) {
+                        return value.toString();
+                    }
+                }
+            }
+            
+            return hardwareItem.getClass().getSimpleName();
+        } catch (Exception ex) {
+            return "Unknown Hardware";
+        }
+    }
+
+    @Transactional
+    public void processHardwareItem(Computer computer, Object hardwareItem) {
+        String hardwareType = getHardwareType(hardwareItem);
+        String hardwareName = getHardwareName(hardwareItem);
+        
+        // Create or find hardware record
+        Hardware hardware = checkHardware(hardwareType, hardwareName);
+        if (hardware == null) {
+            log.error("Failed to get or create hardware record for {} on computer {}",
+                    hardwareType, computer.getName());
+            return;
+        }
+
+        try {
+            List<ComputerHardware> existingLinks = computerHardwareRepository.findAllByComputerAndHardware(computer, hardware);
+            if (existingLinks == null || existingLinks.isEmpty()) {
+                ComputerHardware computerHardware = new ComputerHardware();
+                computerHardware.setComputer(computer);
+                computerHardware.setHardware(hardware);
+                computerHardware.setCheckingDate(LocalDateTime.now());
+                computerHardwareRepository.save(computerHardware);
+                log.debug("Created new computer hardware record for {} on {}",
+                        hardwareType, computer.getName());
+            } else {
+                ComputerHardware existingLink = existingLinks.get(0);
+                existingLink.setCheckingDate(LocalDateTime.now());
+                computerHardwareRepository.save(existingLink);
+                log.debug("Updated existing computer hardware record for {} on {}",
+                        hardwareType, computer.getName());
+            }
+        } catch (Exception ex) {
+            log.error("Error saving computer hardware for {} on computer {}: {}",
+                    hardwareType, computer.getName(), ex.getMessage(), ex);
+        }
+    }
+
+    @Transactional
+    public Hardware checkHardware(String type, String name) {
+        if (type == null || type.isEmpty()) {
+            log.error("Hardware type is null or empty in checkHardware");
+            return null;
+        }
+
+        if (name == null || name.isEmpty()) {
+            log.error("Hardware name is null or empty in checkHardware");
+            return null;
+        }
+
+        try {
+            List<Hardware> hardwareList = hardwareRepository.findByNameAndType(name, type);
+
+            if (hardwareList == null || hardwareList.isEmpty()) {
+                Hardware hw = new Hardware();
+                hw.setName(name);
+                hw.setType(type);
+                Hardware savedHardware = hardwareRepository.save(hw);
+                log.debug("Created new hardware record: {} - {}", name, type);
+                return savedHardware;
+            } else {
+                Hardware hw = hardwareList.get(0);
+                log.debug("Found existing hardware record for {} - {}", name, type);
+                return hw;
+            }
+        } catch (Exception ex) {
+            log.error("Error checking hardware {}: {}", name, ex.getMessage(), ex);
+            return null;
+        }
+    }
+
+    @Transactional
+    public void checkForDeletedHardware(Computer computer, List<Object> hardwareItems) {
+        if (computer == null) {
+            log.error("Computer is null in checkForDeletedHardware");
+            return;
+        }
+
+        if (hardwareItems == null) {
+            log.warn("Hardware list is null in checkForDeletedHardware for computer {}", computer.getName());
+            hardwareItems = Collections.emptyList();
+        }
+
+        log.debug("Checking for deleted hardware on computer {}", computer.getName());
+
+        List<ComputerHardware> existingLinks;
+        try {
+            existingLinks = computerHardwareRepository.findAllByComputerWithHardware(computer);
+        } catch (Exception ex) {
+            log.error("Error finding computer hardware for computer {}: {}",
+                    computer.getName(), ex.getMessage());
+            return;
+        }
+
+        if (existingLinks == null || existingLinks.isEmpty()) {
+            return;
+        }
+
+        // Create a set of current hardware identifiers for comparison
+        Set<String> currentHardwareIdentifiers = hardwareItems.stream()
+                .filter(h -> h != null)
+                .map(h -> getHardwareType(h) + "|" + getHardwareName(h))
+                .collect(Collectors.toSet());
+
+        for (ComputerHardware computerHardware : existingLinks) {
+            if (computerHardware == null || computerHardware.getHardware() == null) {
+                continue;
+            }
+
+            try {
+                String existingIdentifier = computerHardware.getHardware().getType() + "|" + computerHardware.getHardware().getName();
+                if (!currentHardwareIdentifiers.contains(existingIdentifier)) {
+                    log.info("Hardware {} not found on computer {}, removing record",
+                            computerHardware.getHardware().getName(), computer.getName());
+                    computerHardwareRepository.delete(computerHardware);
+                }
+            } catch (Exception ex) {
+                log.error("Error processing computer hardware for computer {}: {}",
+                        computer.getName(), ex.getMessage());
+            }
         }
     }
 
@@ -214,45 +613,6 @@ public class InventoryService {
         checkForDeletedSoftware(computer, software);
     }
 
-    private void scanHardware(Computer computer) {
-        if (computer == null || computer.getName() == null) {
-            log.error("Cannot scan hardware: computer or computer name is null");
-            return;
-        }
-
-        log.info("Scanning hardware on computer {}", computer.getName());
-
-        List<HardwareEntity> hardware = getHardware(computer.getName());
-
-        if (hardware == null) {
-            log.warn("No hardware data received for computer {}", computer.getName());
-            return;
-        }
-
-        for (HardwareEntity hardwareEntity : hardware) {
-            if (hardwareEntity != null) {
-                try {
-                    checkHardware(computer, hardwareEntity);
-                } catch (Exception ex) {
-                    log.error("Error checking hardware on computer {}: {}",
-                            computer.getName(), ex.getMessage());
-                }
-            }
-        }
-
-        checkForDeletedHardware(computer, hardware);
-    }
-
-    private void checkHardware(Computer computer, HardwareEntity hardwareEntity) {
-        // TODO: Implement hardware checking logic
-        log.debug("Checking hardware for computer {}: {}", computer.getName(), hardwareEntity);
-    }
-
-    private void checkForDeletedHardware(Computer computer, List<HardwareEntity> hardware) {
-        // TODO: Implement hardware deletion check logic
-        log.debug("Checking for deleted hardware on computer {}", computer.getName());
-    }
-
     @Transactional
     public void checkSoftware(Computer computer, SoftwareEntity softwareEntity) {
         // Validate input parameters
@@ -281,7 +641,7 @@ public class InventoryService {
             installs = installationRepository.findAllByComputerAndSoftware(computer, software);
         } catch (Exception ex) {
             log.error("Error finding installations for computer {} and software {}: {}",
-                    computer.getName(), software.getName(), ex.getMessage());
+                    computer.getName(), softwareEntity.getName(), ex.getMessage());
             return;
         }
 
@@ -297,17 +657,17 @@ public class InventoryService {
 
                 installationRepository.save(installation);
                 log.debug("Created new installation record for {} on {}",
-                        software.getName(), computer.getName());
+                        softwareEntity.getName(), computer.getName());
             } else {
                 Installation existingInstallation = installs.get(0);
                 existingInstallation.setCheckingDate(LocalDateTime.now());
                 installationRepository.save(existingInstallation);
                 log.debug("Updated existing installation record for {} on {}",
-                        software.getName(), computer.getName());
+                        softwareEntity.getName(), computer.getName());
             }
         } catch (Exception ex) {
             log.error("Error saving installation for computer {} and software {}: {}",
-                    computer.getName(), software.getName(), ex.getMessage(), ex);
+                    computer.getName(), softwareEntity.getName(), ex.getMessage(), ex);
         }
     }
 
@@ -561,10 +921,4 @@ public class InventoryService {
             return Page.empty(pageable);
         }
     }
-
-    private List<HardwareEntity> getHardware(String hostName) {
-        // TODO: Implement hardware retrieval
-        return new ArrayList<>();
-    }
-
 }

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class HardwareEntity {
 
     private String name;
+    private String type;
     private String value;
 
 }
