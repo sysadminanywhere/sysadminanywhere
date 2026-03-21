@@ -24,7 +24,7 @@ public class VaultService {
 
     public void savePassword(String service, String username, String password) {
         String safeService = normalizeService(service);
-        String path = "secret/data/users/" + safeService + "/" + username;
+        String path = "secret/data/sysadminanywhere/users/" + safeService + "/" + username;
         String encodedPassword = Base64.getEncoder().encodeToString(password.getBytes());
         Map<String, Object> data = Map.of("data", Map.of("password", encodedPassword));
         vaultTemplate.write(path, data);
@@ -36,7 +36,7 @@ public class VaultService {
 
     public String getPassword(String service, String username) {
         String safeService = normalizeService(service);
-        String path = "secret/data/users/" + safeService + "/" + username;
+        String path = "secret/data/sysadminanywhere/users/" + safeService + "/" + username;
         VaultResponse response = vaultTemplate.read(path);
         if (response == null || response.getData() == null) {
             return null;
