@@ -38,4 +38,13 @@ public class WorkflowsService {
         n8nClient.deleteWorkflow(workflowId);
     }
 
+    public boolean ping() {
+        try {
+            n8nClient.getWorkflows();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }

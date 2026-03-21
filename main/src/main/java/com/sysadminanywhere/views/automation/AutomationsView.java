@@ -13,6 +13,8 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -42,13 +44,18 @@ public class AutomationsView extends Div implements MenuControl {
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid(), workflowsService);
-        VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
-        layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
+        if (!workflowsService.ping()) {
+            Notification notification = Notification.show("N8n service is unavailable!");
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } else {
+            filters = new Filters(() -> refreshGrid(), workflowsService);
+            VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
+            layout.setSizeFull();
+            layout.setPadding(false);
+            layout.setSpacing(false);
 
-        add(layout);
+            add(layout);
+        }
     }
 
     private HorizontalLayout createMobileFilters() {
