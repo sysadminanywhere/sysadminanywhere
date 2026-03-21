@@ -1,6 +1,7 @@
 package com.sysadminanywhere.client.inventory;
 
 import com.sysadminanywhere.common.inventory.model.ComputerItem;
+import com.sysadminanywhere.common.inventory.model.HardwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareOnComputer;
 import com.sysadminanywhere.config.FeignConfiguration;
@@ -22,8 +23,17 @@ public interface InventoryServiceClient {
     @GetMapping("/api/inventory/count")
     Page<SoftwareCount> getSoftwareCount(@RequestParam("name") String name, @RequestParam("vendor") String vendor, Pageable pageable);
 
+    @GetMapping("/api/inventory/hardware/count")
+    Page<Object[]> getHardwareCount(@RequestParam("name") String name, @RequestParam("type") String type, Pageable pageable);
+
     @GetMapping("/api/inventory/{softwareId}")
     Page<ComputerItem> getComputersWithSoftware(@PathVariable Long softwareId, @RequestParam("name") String name, Pageable pageable);
+
+    @GetMapping("/api/inventory/hardware/{hardwareId}")
+    Page<ComputerItem> getComputersWithHardware(@PathVariable Long hardwareId, @RequestParam("name") String name, Pageable pageable);
+
+    @GetMapping("/api/inventory/hardware/computers")
+    Page<ComputerItem> getAllComputersWithHardware(@RequestParam("name") String name, Pageable pageable);
 
     @GetMapping("/ping")
     String ping();

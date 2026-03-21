@@ -3,6 +3,7 @@ package com.sysadminanywhere.inventory.service;
 import com.sysadminanywhere.common.directory.dto.JwtResponse;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.inventory.model.ComputerItem;
+import com.sysadminanywhere.common.inventory.model.HardwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareOnComputer;
 import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
@@ -23,6 +24,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -918,6 +920,94 @@ public class InventoryService {
             return computerRepository.getComputersWithSoftware(softwareId, name, pageable);
         } catch (Exception ex) {
             log.error("Error getting computers with software {}: {}", softwareId, ex.getMessage());
+            return Page.empty(pageable);
+        }
+    }
+
+    public Page<HardwareCount> getHardwareCount(Pageable pageable, Map<String, String> filters) {
+        if (pageable == null) {
+            pageable = Pageable.unpaged();
+        }
+
+        if (filters == null) {
+            filters = new HashMap<>();
+        }
+
+        try {
+            String name = filters.getOrDefault("name", "");
+            if (name.isEmpty()) {
+                name = "%";
+            } else {
+                name = name + "%";
+            }
+
+            String type = filters.getOrDefault("type", "");
+            if (type.isEmpty()) {
+                type = "%";
+            } else {
+                type = type + "%";
+            }
+
+            Page<Object[]> results = hardwareRepository.getHardwareInstallationCount(name, type, pageable);
+            
+            // Convert Object[] to HardwareCount
+            List<HardwareCount> hardwareCounts = results.getContent().stream()
+                .map(row -> new HardwareCount((Long) row[0], (String) row[1], (String) row[2], (Long) row[3]))
+                .collect(Collectors.toList());
+                
+            return new PageImpl<>(hardwareCounts, pageable, results.getTotalElements());
+        } catch (Exception ex) {
+            log.error("Error getting hardware count: {}", ex.getMessage());
+            return Page.empty(pageable);
+        }
+    }
+
+    public Page<ComputerItem> getComputersWithHardware(Long hardwareId, Pageable pageable, Map<String, String> filters) {
+        if (hardwareId == null) {
+            log.error("Hardware ID is null in getComputersWithHardware");
+            return Page.empty(pageable);
+        }
+
+        if (pageable == null) {
+            pageable = Pageable.unpaged();
+        }
+
+        if (filters == null) {
+            filters = new HashMap<>();
+        }
+
+        try {
+            String name = filters.get("name");
+            if (name == null || name.isEmpty()) {
+                name = "%";
+            } else {
+                name = name + "%";
+            }
+
+            return computerRepository.getComputersWithHardware(hardwareId, name, pageable);
+        } catch (Exception ex) {
+            log.error("Error getting computers with hardware {}: {}", hardwareId, ex.getMessage());
+            return Page.empty(pageable);
+        }
+    }
+
+    public Page<ComputerItem> getAllComputersWithHardware(Pageable pageable, Map<String, String> filters) {
+        try {
+            String name = "";
+            if (filters != null && filters.containsKey("name")) {
+                name = filters.get("name");
+                if (name != null) {
+                    name = name + "%";
+                }
+            }
+
+            log.info("Getting all computers with hardware. Name filter: '{}'", name);
+            Page<ComputerItem> result = computerRepository.getAllComputersWithHardware(name, pageable);
+            log.info("Found {} computers with hardware", result.getTotalElements());
+            
+            return result;
+        } catch (Exception ex) {
+            log.error("Error getting all computers with hardware: {}", ex.getMessage(), ex);
             return Page.empty(pageable);
         }
     }

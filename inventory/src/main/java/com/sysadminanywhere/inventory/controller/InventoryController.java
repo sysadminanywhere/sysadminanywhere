@@ -1,6 +1,7 @@
 package com.sysadminanywhere.inventory.controller;
 
 import com.sysadminanywhere.common.inventory.model.ComputerItem;
+import com.sysadminanywhere.common.inventory.model.HardwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.common.inventory.model.SoftwareOnComputer;
 import com.sysadminanywhere.inventory.entity.Computer;
@@ -21,6 +22,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -184,7 +186,7 @@ public class InventoryController {
     /**
      * Получение детальной информации об оборудовании
      */
-    @GetMapping("/hardware/{hardwareId}")
+    @GetMapping("/hardware/{hardwareId}/details")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Hardware> getHardwareDetails(@PathVariable Long hardwareId) {
         try {
@@ -250,6 +252,83 @@ public class InventoryController {
             log.error("Error retrieving hardware statistics: {}", ex.getMessage());
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    /**
+     * Получение количества оборудования с постраничным выводом
+     */
+    @GetMapping("/hardware/count")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<HardwareCount>> getHardwareCount(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String type,
+            Pageable pageable) {
+
+        Map<String, String> filters = Map.of();
+        if (name != null) filters = new HashMap<>(filters);
+        if (type != null) filters = new HashMap<>(filters);
+        
+        Page<HardwareCount> result = inventoryService.getHardwareCount(pageable, filters);
+        log.info("Retrieved hardware count");
+
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Получение компьютеров с определенным оборудованием
+     */
+    @GetMapping("/hardware/{hardwareId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<ComputerItem>> getComputersWithHardware(
+            @PathVariable Long hardwareId,
+            @RequestParam(required = false) String name,
+            Pageable pageable) {
+
+        Map<String, String> filters = Map.of();
+        if (name != null) filters = new HashMap<>(filters);
+        
+        Page<ComputerItem> result = inventoryService.getComputersWithHardware(hardwareId, pageable, filters);
+        log.info("Retrieved computers with hardware: {}", hardwareId);
+
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Получение всех компьютеров с проверенным оборудованием
+     */
+    @GetMapping("/hardware/computers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<ComputerItem>> getAllComputersWithHardware(
+            @RequestParam(required = false) String name,
+            Pageable pageable) {
+
+        log.info("Request received for getAllComputersWithHardware. Name filter: '{}', Pageable: {}", name, pageable);
+
+        Map<String, String> filters = Map.of();
+        if (name != null && !name.isEmpty()) {
+            filters = new HashMap<>();
+            filters.put("name", name);
+        }
+        
+        Page<ComputerItem> result = inventoryService.getAllComputersWithHardware(pageable, filters);
+        log.info("Returning {} computers with hardware inventory", result.getTotalElements());
+
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Временный endpoint для отладки - проверка количества записей в таблицах
+     */
+    @GetMapping("/debug/count")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> debugCounts() {
+        Map<String, Object> counts = new HashMap<>();
+        counts.put("computers", computerRepository.count());
+        counts.put("hardware", hardwareRepository.count());
+        counts.put("computerHardware", computerHardwareRepository.count());
+        
+        log.info("Debug counts: {}", counts);
+        return ResponseEntity.ok(counts);
     }
 
 }

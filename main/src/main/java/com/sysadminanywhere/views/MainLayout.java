@@ -10,6 +10,7 @@ import com.sysadminanywhere.views.domain.AuditView;
 import com.sysadminanywhere.views.domain.DashboardView;
 import com.sysadminanywhere.views.domain.DomainView;
 import com.sysadminanywhere.views.incident.IncidentsView;
+import com.sysadminanywhere.views.inventory.InventoryHardwareView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
@@ -128,7 +129,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         settingsSubNavs.addItem(createSideNavItem("Settings", SettingsView.class),
                 createSideNavItem("About", AboutView.class));
 
-        inventorySubNavs.addItem(createSideNavItem("Software inventory", InventorySoftwareView.class));
+        inventorySubNavs.addItem(createSideNavItem("Software inventory", InventorySoftwareView.class),
+                createSideNavItem("Hardware inventory", InventoryHardwareView.class));
 
         incidentsSubNavs.addItem(createSideNavItem("Incidents", IncidentsView.class));
 
