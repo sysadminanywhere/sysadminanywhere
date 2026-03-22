@@ -28,97 +28,17 @@ public class HardwareService {
     public void scanHardware(Computer computer) {
         String hostName = computer.getName();
         log.info("Scanning hardware on computer {}", hostName);
-    }
 
-    public List<DiskDriveEntity> getDiskDrive(String hostName) {
-        try {
-            WmiResolveService<DiskDriveEntity> wmiResolveService = new WmiResolveService<>(DiskDriveEntity.class);
-            return wmiResolveService.getValues(execute(hostName, "SELECT * FROM Win32_DiskDrive"));
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
-    public OperatingSystemEntity getOperatingSystem(String hostName) {
-        try {
-            WmiResolveService<OperatingSystemEntity> wmiResolveService = new WmiResolveService<>(OperatingSystemEntity.class);
-            return wmiResolveService.getValue(execute(hostName, "SELECT * FROM Win32_OperatingSystem").get(0));
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
-    public List<DiskPartitionEntity> getDiskPartition(String hostName) {
-        try {
-            WmiResolveService<DiskPartitionEntity> wmiResolveService = new WmiResolveService<>(DiskPartitionEntity.class);
-            return wmiResolveService.getValues(execute(hostName, "SELECT * FROM Win32_DiskPartition"));
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
-    public List<ProcessorEntity> getProcessor(String hostName) {
-        try {
-            WmiResolveService<ProcessorEntity> wmiResolveService = new WmiResolveService<>(ProcessorEntity.class);
-            return wmiResolveService.getValues(execute(hostName, "SELECT * FROM Win32_Processor"));
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
-    public List<VideoControllerEntity> getVideoController(String hostName) {
-        try {
-            WmiResolveService<VideoControllerEntity> wmiResolveService = new WmiResolveService<>(VideoControllerEntity.class);
-            return wmiResolveService.getValues(execute(hostName, "SELECT * FROM Win32_VideoController"));
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
-    public List<PhysicalMemoryEntity> getPhysicalMemory(String hostName) {
-        try {
-            WmiResolveService<PhysicalMemoryEntity> wmiResolveService = new WmiResolveService<>(PhysicalMemoryEntity.class);
-            return wmiResolveService.getValues(execute(hostName, "SELECT * FROM Win32_PhysicalMemory"));
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
-    public List<LogicalDiskEntity> getLogicalDisk(String hostName) {
-        try {
-            WmiResolveService<LogicalDiskEntity> wmiResolveService = new WmiResolveService<>(LogicalDiskEntity.class);
-            return wmiResolveService.getValues(execute(hostName, "SELECT * FROM Win32_LogicalDisk"));
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
-    public BaseboardEntity getBaseBoard(String hostName) {
-        try {
-            WmiResolveService<BaseboardEntity> wmiResolveService = new WmiResolveService<>(BaseboardEntity.class);
-            return wmiResolveService.getValue(execute(hostName, "SELECT * FROM Win32_BaseBoard").get(0));
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
-    public BIOSEntity getBIOS(String hostName) {
-        try {
-            WmiResolveService<BIOSEntity> wmiResolveService = new WmiResolveService<>(BIOSEntity.class);
-            return wmiResolveService.getValue(execute(hostName, "SELECT * FROM Win32_BIOS").get(0));
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
-    public ComputerSystemEntity getComputerSystem(String hostName) {
-        try {
-            WmiResolveService<ComputerSystemEntity> wmiResolveService = new WmiResolveService<>(ComputerSystemEntity.class);
-            ComputerSystemEntity computerSystemEntity = wmiResolveService.getValue(execute(hostName, "SELECT * FROM Win32_ComputerSystem").get(0));
-            return computerSystemEntity;
-        } catch (Exception ex) {
-            return null;
-        }
+        List<Map<String, Object>> diskDrives = execute(hostName, "SELECT * FROM Win32_DiskDrive");
+        List<Map<String, Object>> operatingSystems = execute(hostName, "SELECT * FROM Win32_OperatingSystem");
+        List<Map<String, Object>> diskPartitions = execute(hostName, "SELECT * FROM Win32_DiskPartition");
+        List<Map<String, Object>> processors = execute(hostName, "SELECT * FROM Win32_Processor");
+        List<Map<String, Object>> videoControllers = execute(hostName, "SELECT * FROM Win32_VideoController");
+        List<Map<String, Object>> physicalMemory = execute(hostName, "SELECT * FROM Win32_PhysicalMemory");
+        List<Map<String, Object>> logicalDisks = execute(hostName, "SELECT * FROM Win32_LogicalDisk");
+        List<Map<String, Object>> baseBoards = execute(hostName, "SELECT * FROM Win32_BaseBoard");
+        List<Map<String, Object>> bios = execute(hostName, "SELECT * FROM Win32_BIOS");
+        List<Map<String, Object>> computerSystems = execute(hostName, "SELECT * FROM Win32_ComputerSystem");
     }
 
     private List<Map<String, Object>> execute(String hostName, String query) {
