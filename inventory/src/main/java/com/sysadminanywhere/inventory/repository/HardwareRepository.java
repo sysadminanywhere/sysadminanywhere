@@ -14,12 +14,9 @@ import java.util.List;
 public interface HardwareRepository extends JpaRepository<Hardware, Long> {
     List<Hardware> findByNameAndType(String name, String type);
     
-    @Query("SELECT DISTINCT h.type FROM Hardware h")
-    List<String> findAllHardwareTypes();
-    
     @Query("SELECT h FROM Hardware h WHERE " +
-            "(:name IS NULL OR LOWER(h.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-            "(:type IS NULL OR LOWER(h.type) LIKE LOWER(CONCAT('%', :type, '%')))")
+            "(:name = '' OR LOWER(h.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+            "LOWER(h.type) = LOWER(:type)")
     Page<Hardware> searchHardware(String name, String type, Pageable pageable);
 
     @Query(value = "SELECT h.id, h.name, h.type, COUNT(ch.id) " +

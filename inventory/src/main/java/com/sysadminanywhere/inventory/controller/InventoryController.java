@@ -115,8 +115,8 @@ public class InventoryController {
     @GetMapping("/hardware")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<HardwareItem>> searchHardware(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String type,
+            @RequestParam(defaultValue = "") String name,
+            @RequestParam String type,
             Pageable pageable) {
 
         try {
@@ -124,7 +124,7 @@ public class InventoryController {
             Page<HardwareItem> hardwareItems = result.map(hardware -> 
                 new HardwareItem(hardware.getId(), hardware.getName(), hardware.getType()));
             
-            log.info("Retrieved {} hardware items with filters name={}, type={}",
+            log.info("Retrieved {} hardware items with filters name='{}', type='{}'",
                     hardwareItems.getTotalElements(), name, type);
             return ResponseEntity.ok(hardwareItems);
         } catch (Exception ex) {

@@ -83,7 +83,7 @@ public class InventoryService {
     public Page<HardwareItem> getHardware(Pageable pageable, Map<String, String> filters) {
         try {
             String name = filters.get("name");
-            String type = filters.get("type");
+            String type = filters.get("type").replace(" ","");
             return inventoryServiceClient.getHardware(name, type, pageable);
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
