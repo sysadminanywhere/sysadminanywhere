@@ -1,10 +1,11 @@
 package com.sysadminanywhere.views.inventory;
 
-import com.sysadminanywhere.common.inventory.model.ComputerItem;
+import com.sysadminanywhere.common.inventory.model.HardwareCount;
 import com.sysadminanywhere.service.InventoryService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -18,11 +19,10 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +33,7 @@ import java.util.Map;
 @Uses(Icon.class)
 public class InventoryHardwareView extends Div {
 
-    private Grid<ComputerItem> grid;
+    private Grid<HardwareCount> grid;
 
     private Filters filters;
     private final InventoryService inventoryService;
@@ -48,8 +48,7 @@ public class InventoryHardwareView extends Div {
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
             filters = new Filters(() -> refreshGrid());
-            grid = createGrid();
-            VerticalLayout layout = new VerticalLayout(filters, grid);
+            VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
             layout.setSizeFull();
             layout.setPadding(false);
             layout.setSpacing(false);
@@ -57,59 +56,97 @@ public class InventoryHardwareView extends Div {
         }
     }
 
-    private Grid<ComputerItem> createGrid() {
-        Grid<ComputerItem> grid = new Grid<>();
-        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
-        grid.setSizeFull();
+    private HorizontalLayout createMobileFilters() {
+        // Mobile version
+        HorizontalLayout mobileFilters = new HorizontalLayout();
+        mobileFilters.setWidthFull();
+        mobileFilters.addClassNames(LumoUtility.Padding.MEDIUM, LumoUtility.BoxSizing.BORDER,
+                LumoUtility.AlignItems.CENTER);
+        mobileFilters.addClassName("mobile-filters");
 
-        grid.addColumn(ComputerItem::getName).setHeader("Computer Name").setAutoWidth(true);
-        grid.addColumn(ComputerItem::getCheckingDate).setHeader("Last Hardware Check").setAutoWidth(true);
-
-        grid.addComponentColumn(computer -> {
-            Button button = new Button("View Hardware Details");
-            button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            button.addClickListener(e -> {
-                button.getUI().ifPresent(ui -> 
-                    ui.navigate("management/computers/" + computer.getId() + "/hardware"));
-            });
-            return button;
-        }).setHeader("Actions").setAutoWidth(true);
-
-        // Create simple data provider
-        grid.setItems(inventoryService.getAllComputersWithHardware(Pageable.unpaged(), Map.of()).getContent());
-        return grid;
+        Icon mobileIcon = new Icon("lumo", "plus");
+        Span filtersHeading = new Span("Filters");
+        mobileFilters.add(mobileIcon, filtersHeading);
+        mobileFilters.setFlexGrow(1, filtersHeading);
+        mobileFilters.addClickListener(e -> {
+            if (filters.getClassNames().contains("visible")) {
+                filters.removeClassName("visible");
+                mobileIcon.getElement().setAttribute("icon", "lumo:plus");
+            } else {
+                filters.addClassName("visible");
+                mobileIcon.getElement().setAttribute("icon", "lumo:minus");
+            }
+        });
+        return mobileFilters;
     }
 
-    private void refreshGrid() {
-        grid.setItems(inventoryService.getAllComputersWithHardware(Pageable.unpaged(), filters.getFilters()).getContent());
-    }
+    public static class Filters extends Div {
 
-    private static class Filters extends Div {
-        private final TextField name;
+        private final ComboBox<String> hardwareType = new ComboBox<>("Type");
+        private final TextField name = new TextField("Name");
 
         public Filters(Runnable onSearch) {
-            addClassNames("filter-layout");
+
+            hardwareType.setItems("Computer system", "BIOS", "Base board", "Disk drive", "Operating system", "Disk partition", "Processor", "Video controller", "Physical memory", "Logical disk");
+            hardwareType.setValue("Computer system");
+
             setWidthFull();
+            addClassName("filter-layout");
+            addClassNames(LumoUtility.Padding.Horizontal.LARGE, LumoUtility.Padding.Vertical.MEDIUM,
+                    LumoUtility.BoxSizing.BORDER);
 
-            name = new TextField("Computer Name");
-            name.setPlaceholder("Filter by computer name...");
-            name.setClearButtonVisible(true);
-            name.setWidth("200px");
-            name.addValueChangeListener(e -> onSearch.run());
+            // Action buttons
+            Button resetBtn = new Button("Reset");
+            resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            resetBtn.addClickListener(e -> {
+                name.clear();
+                hardwareType.clear();
+                onSearch.run();
+            });
+            Button searchBtn = new Button("Search");
+            searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            searchBtn.addClickListener(e -> onSearch.run());
 
-            HorizontalLayout layout = new HorizontalLayout(name);
-            layout.setPadding(true);
-            layout.setSpacing(true);
-            add(layout);
+            Div actions = new Div(resetBtn, searchBtn);
+            actions.addClassName(LumoUtility.Gap.SMALL);
+            actions.addClassName("actions");
+
+            add(name, hardwareType, actions);
         }
 
         public Map<String, String> getFilters() {
             Map<String, String> filters = new HashMap<>();
-            String nameValue = name.getValue();
-            if (nameValue != null && !nameValue.isEmpty()) {
-                filters.put("name", nameValue);
-            }
+            filters.put("name", name.getValue());
+            filters.put("type", hardwareType.getValue());
             return filters;
         }
+
     }
+
+    private Component createGrid() {
+        grid = new Grid<>(HardwareCount.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
+        grid.addColumn("name").setAutoWidth(true);
+        grid.addColumn("type").setAutoWidth(true);
+        grid.addColumn("count").setAutoWidth(true);
+
+//        grid.addItemClickListener(item -> {
+//            grid.getUI().ifPresent(ui ->
+//                    ui.navigate("inventory/software/" + item.getItem().getId() + "/computer"));
+//        });
+
+        grid.setItems(query -> inventoryService.getHardwareCount(
+                PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
+                filters.getFilters()).stream());
+        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
+        grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
+
+        return grid;
+    }
+
+    private void refreshGrid() {
+        grid.getDataProvider().refreshAll();
+    }
+
 }
