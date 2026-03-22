@@ -186,16 +186,6 @@ public class ComputersService {
         wmiService.clearExecuteCache(hostName, getEventQueryString(filters));
     }
 
-//    public Page<HardwareEntity> getHardware(Pageable pageable, String hostName) {
-//        try {
-//            return null;
-//        } catch (Exception ex) {
-//            Notification notification = Notification.show(ex.getMessage());
-//            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-//            return new PageImpl<>(new ArrayList<>(), pageable, 0);
-//        }
-//    }
-
     public List<DiskDriveEntity> getDiskDrive(String hostName) {
         try {
             WmiResolveService<DiskDriveEntity> wmiResolveService = new WmiResolveService<>(DiskDriveEntity.class);
