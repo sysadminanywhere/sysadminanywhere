@@ -3,6 +3,8 @@ package com.sysadminanywhere.inventory.service;
 import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
 import com.sysadminanywhere.inventory.client.WmiServiceClient;
 import com.sysadminanywhere.inventory.entity.Computer;
+import com.sysadminanywhere.inventory.entity.HardwareType;
+import com.sysadminanywhere.inventory.repository.HardwareTypeRepository;
 import com.sysadminanywhere.inventory.wmi.*;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +20,13 @@ public class HardwareService {
 
     private final WmiServiceClient wmiServiceClient;
 
-    public HardwareService(WmiServiceClient wmiServiceClient) {
+    private final HardwareTypeRepository hardwareTypeRepository;
+
+    public HardwareService(WmiServiceClient wmiServiceClient,
+                           HardwareTypeRepository hardwareTypeRepository) {
+
         this.wmiServiceClient = wmiServiceClient;
+        this.hardwareTypeRepository = hardwareTypeRepository;
     }
 
     @SneakyThrows
@@ -62,6 +69,17 @@ public class HardwareService {
         }
 
         return list;
+    }
+
+    private void saveHardware(Computer computer, String hardwareType, List<Map<String, Object>> list) {
+
+    }
+
+    private Long getHardwareType(String hardwareType) {
+        if (!hardwareTypeRepository.existsByName(hardwareType)) {
+        }
+
+        return 0L;
     }
 
 }
