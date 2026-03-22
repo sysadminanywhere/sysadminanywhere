@@ -40,6 +40,9 @@ public interface InventoryServiceClient {
     @GetMapping("/api/inventory/hardware")
     Page<HardwareItem> getHardware(@RequestParam("name") String name, @RequestParam("type") String type, Pageable pageable);
 
+
+    // Ping
+
     @GetMapping("/ping")
     String ping();
 

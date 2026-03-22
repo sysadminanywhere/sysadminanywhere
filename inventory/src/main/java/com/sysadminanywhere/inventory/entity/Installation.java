@@ -34,9 +34,6 @@ public class Installation {
     private Software software;
 
     @Column(nullable = false)
-    private LocalDateTime checkingDate;
-
-    @Column(nullable = false)
     private LocalDateTime installDate;
 
 }

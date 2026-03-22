@@ -6,20 +6,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(
-        name = "computer_hardware",
-        indexes = {
-                @Index(name = "idx_computer_hardware_computer", columnList = "computer_id"),
-                @Index(name = "idx_computer_hardware_hardware", columnList = "hardware_id")
-        }
-)
+@Table(name = "computer_hardwares", indexes = {
+        @Index(name = "idx_computer_hw_link", columnList = "computer_id, hardware_model_id", unique = true)
+})
 public class ComputerHardware {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,10 +25,13 @@ public class ComputerHardware {
     private Computer computer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "hardware_id", nullable = false)
-    private Hardware hardware;
+    @JoinColumn(name = "hardware_model_id", nullable = false)
+    private HardwareModel hardwareModel;
 
-    @Column(nullable = false)
+    @Column(name = "checking_date")
     private LocalDateTime checkingDate;
+
+    @OneToMany(mappedBy = "computerHardware", cascade = CascadeType.ALL)
+    private List<HardwareProperty> properties;
 
 }

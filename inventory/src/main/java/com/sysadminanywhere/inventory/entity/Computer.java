@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
@@ -20,6 +21,9 @@ public class Computer {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    @Column(nullable = false)
+    private LocalDateTime checkingDate;
 
     @OneToMany(mappedBy = "computer", fetch = FetchType.LAZY)
     private Set<Installation> installations;
