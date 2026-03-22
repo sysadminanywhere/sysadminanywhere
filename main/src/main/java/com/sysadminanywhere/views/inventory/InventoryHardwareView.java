@@ -1,6 +1,6 @@
 package com.sysadminanywhere.views.inventory;
 
-import com.sysadminanywhere.common.inventory.model.HardwareCount;
+import com.sysadminanywhere.common.inventory.model.HardwareItem;
 import com.sysadminanywhere.service.InventoryService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -33,7 +33,7 @@ import java.util.Map;
 @Uses(Icon.class)
 public class InventoryHardwareView extends Div {
 
-    private Grid<HardwareCount> grid;
+    private Grid<HardwareItem> grid;
 
     private Filters filters;
     private final InventoryService inventoryService;
@@ -100,7 +100,10 @@ public class InventoryHardwareView extends Div {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 name.clear();
+
                 hardwareType.clear();
+                hardwareType.setValue("Computer system");
+
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -111,7 +114,7 @@ public class InventoryHardwareView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(name, hardwareType, actions);
+            add(hardwareType, name, actions);
         }
 
         public Map<String, String> getFilters() {
@@ -124,19 +127,18 @@ public class InventoryHardwareView extends Div {
     }
 
     private Component createGrid() {
-        grid = new Grid<>(HardwareCount.class, false);
+        grid = new Grid<>(HardwareItem.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn("name").setAutoWidth(true);
         grid.addColumn("type").setAutoWidth(true);
-        grid.addColumn("count").setAutoWidth(true);
 
 //        grid.addItemClickListener(item -> {
 //            grid.getUI().ifPresent(ui ->
 //                    ui.navigate("inventory/software/" + item.getItem().getId() + "/computer"));
 //        });
 
-        grid.setItems(query -> inventoryService.getHardwareCount(
+        grid.setItems(query -> inventoryService.getHardware(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
                 filters.getFilters()).stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
