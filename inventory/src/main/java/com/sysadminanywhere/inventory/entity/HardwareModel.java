@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "hardware_models", indexes = {
-        @Index(name = "idx_model_name_type", columnList = "name, hardware_type_id", unique = true)
+        @Index(name = "idx_model_name_type", columnList = "name, hardware_type", unique = true)
 })
 public class HardwareModel {
     @Id
@@ -22,9 +22,8 @@ public class HardwareModel {
     @Column(nullable = false, length = 500)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "hardware_type_id", nullable = false)
-    private HardwareType hardwareType;
+    @JoinColumn(name = "hardware_type", nullable = false)
+    private String hardwareType;
 
     @OneToMany(mappedBy = "hardwareModel", cascade = CascadeType.ALL)
     private List<ComputerHardware> computerHardwares;

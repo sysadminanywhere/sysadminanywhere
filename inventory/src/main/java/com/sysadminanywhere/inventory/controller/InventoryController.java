@@ -1,15 +1,10 @@
 package com.sysadminanywhere.inventory.controller;
 
 import com.sysadminanywhere.common.inventory.model.*;
-import com.sysadminanywhere.inventory.entity.Computer;
-import com.sysadminanywhere.inventory.entity.ComputerHardware;
-import com.sysadminanywhere.inventory.entity.HardwareType;
 import com.sysadminanywhere.inventory.repository.ComputerHardwareRepository;
 import com.sysadminanywhere.inventory.repository.ComputerRepository;
-import com.sysadminanywhere.inventory.repository.HardwareTypeRepository;
 import com.sysadminanywhere.inventory.repository.SoftwareRepository;
 import com.sysadminanywhere.inventory.service.InventoryService;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -17,11 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -32,7 +22,6 @@ public class InventoryController {
     private final ComputerRepository computerRepository;
     private final SoftwareRepository softwareRepository;
     private final ComputerHardwareRepository computerHardwareRepository;
-    private final HardwareTypeRepository hardwareTypeRepository;
     private final InventoryService inventoryService;
 
     // Software

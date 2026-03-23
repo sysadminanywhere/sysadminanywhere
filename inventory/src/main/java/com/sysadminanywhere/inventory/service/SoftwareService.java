@@ -1,6 +1,5 @@
 package com.sysadminanywhere.inventory.service;
 
-import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
 import com.sysadminanywhere.inventory.client.WmiServiceClient;
 import com.sysadminanywhere.inventory.entity.Computer;
@@ -8,7 +7,7 @@ import com.sysadminanywhere.inventory.entity.Installation;
 import com.sysadminanywhere.inventory.entity.Software;
 import com.sysadminanywhere.inventory.repository.InstallationRepository;
 import com.sysadminanywhere.inventory.repository.SoftwareRepository;
-import com.sysadminanywhere.inventory.wmi.SoftwareEntity;
+import com.sysadminanywhere.inventory.model.wmi.SoftwareEntity;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

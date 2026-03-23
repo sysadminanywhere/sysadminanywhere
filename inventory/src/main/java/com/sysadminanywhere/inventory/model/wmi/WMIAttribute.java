@@ -1,4 +1,4 @@
-package com.sysadminanywhere.inventory.wmi;
+package com.sysadminanywhere.inventory.model.wmi;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

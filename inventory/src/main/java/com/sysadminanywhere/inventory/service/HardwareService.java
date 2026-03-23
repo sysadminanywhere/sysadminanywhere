@@ -2,15 +2,20 @@ package com.sysadminanywhere.inventory.service;
 
 import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
 import com.sysadminanywhere.inventory.client.WmiServiceClient;
-import com.sysadminanywhere.inventory.entity.Computer;
-import com.sysadminanywhere.inventory.entity.HardwareType;
-import com.sysadminanywhere.inventory.repository.HardwareTypeRepository;
-import com.sysadminanywhere.inventory.wmi.*;
+import com.sysadminanywhere.inventory.model.HardwareType;
+import com.sysadminanywhere.inventory.repository.ComputerHardwareRepository;
+import com.sysadminanywhere.inventory.repository.HardwareModelRepository;
+import com.sysadminanywhere.inventory.repository.HardwarePropertyRepository;
+import com.sysadminanywhere.inventory.repository.HardwareValueRepository;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.sysadminanywhere.inventory.entity.*;
+import java.time.LocalDateTime;
+import java.util.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,16 +24,25 @@ import java.util.Map;
 public class HardwareService {
 
     private final WmiServiceClient wmiServiceClient;
+    private final ComputerHardwareRepository computerHardwareRepository;
+    private final HardwareModelRepository hardwareModelRepository;
+    private final HardwarePropertyRepository hardwarePropertyRepository;
+    private final HardwareValueRepository hardwareValueRepository;
 
-    private final HardwareTypeRepository hardwareTypeRepository;
+    private final Map<String, HardwareModel> modelCache = new HashMap<>();
 
     public HardwareService(WmiServiceClient wmiServiceClient,
-                           HardwareTypeRepository hardwareTypeRepository) {
+                           ComputerHardwareRepository computerHardwareRepository,
+                           HardwareModelRepository hardwareModelRepository,
+                           HardwarePropertyRepository hardwarePropertyRepository,
+                           HardwareValueRepository hardwareValueRepository) {
 
         this.wmiServiceClient = wmiServiceClient;
-        this.hardwareTypeRepository = hardwareTypeRepository;
+        this.computerHardwareRepository = computerHardwareRepository;
+        this.hardwareModelRepository = hardwareModelRepository;
+        this.hardwarePropertyRepository = hardwarePropertyRepository;
+        this.hardwareValueRepository = hardwareValueRepository;
     }
-
     @SneakyThrows
     @SuppressWarnings("unchecked")
     @Transactional
@@ -42,10 +56,19 @@ public class HardwareService {
         List<Map<String, Object>> processors = execute(hostName, "SELECT * FROM Win32_Processor");
         List<Map<String, Object>> videoControllers = execute(hostName, "SELECT * FROM Win32_VideoController");
         List<Map<String, Object>> physicalMemory = execute(hostName, "SELECT * FROM Win32_PhysicalMemory");
-        List<Map<String, Object>> logicalDisks = execute(hostName, "SELECT * FROM Win32_LogicalDisk");
         List<Map<String, Object>> baseBoards = execute(hostName, "SELECT * FROM Win32_BaseBoard");
         List<Map<String, Object>> bios = execute(hostName, "SELECT * FROM Win32_BIOS");
         List<Map<String, Object>> computerSystems = execute(hostName, "SELECT * FROM Win32_ComputerSystem");
+
+        saveHardware(computer, HardwareType.DISK_DRIVE, diskDrives);
+        saveHardware(computer, HardwareType.OPERATING_SYSTEM, operatingSystems);
+        saveHardware(computer, HardwareType.DISK_PARTITION, diskPartitions);
+        saveHardware(computer, HardwareType.PROCESSOR, processors);
+        saveHardware(computer, HardwareType.VIDEO_CONTROLLER, videoControllers);
+        saveHardware(computer, HardwareType.PHYSICAL_MEMORY, physicalMemory);
+        saveHardware(computer, HardwareType.BASE_BOARD, baseBoards);
+        saveHardware(computer, HardwareType.BIOS, bios);
+        saveHardware(computer, HardwareType.COMPUTER_SYSTEM, computerSystems);
     }
 
     private List<Map<String, Object>> execute(String hostName, String query) {
@@ -71,15 +94,100 @@ public class HardwareService {
         return list;
     }
 
-    private void saveHardware(Computer computer, String hardwareType, List<Map<String, Object>> list) {
-
-    }
-
-    private Long getHardwareType(String hardwareType) {
-        if (!hardwareTypeRepository.existsByName(hardwareType)) {
+    private void saveHardware(Computer computer, HardwareType hardwareType, List<Map<String, Object>> list) {
+        if (list == null || list.isEmpty()) {
+            return;
         }
 
-        return 0L;
+        for (Map<String, Object> data : list) {
+            String modelName = extractModelName(data, hardwareType);
+            HardwareModel hardwareModel = findOrCreateHardwareModel(modelName, hardwareType);
+
+            ComputerHardware computerHardware = new ComputerHardware();
+            computerHardware.setComputer(computer);
+            computerHardware.setHardwareModel(hardwareModel);
+            computerHardware.setCheckingDate(LocalDateTime.now());
+
+            computerHardware = computerHardwareRepository.save(computerHardware);
+
+            saveHardwareProperties(computerHardware, data, hardwareType);
+        }
+    }
+
+    private String extractModelName(Map<String, Object> data, HardwareType hardwareType) {
+        return switch (hardwareType) {
+            case PROCESSOR -> getStringValue(data, "Name");
+            case DISK_DRIVE -> getStringValue(data, "Model");
+            case VIDEO_CONTROLLER -> getStringValue(data, "Name");
+            case BASE_BOARD -> getStringValue(data, "Product");
+            case BIOS -> getStringValue(data, "SMBIOSBIOSVersion");
+            case OPERATING_SYSTEM -> getStringValue(data, "Caption");
+            case PHYSICAL_MEMORY -> getStringValue(data, "PartNumber");
+            case DISK_PARTITION -> getStringValue(data, "Name");
+            case COMPUTER_SYSTEM -> getStringValue(data, "Model");
+        };
+    }
+
+    private HardwareModel findOrCreateHardwareModel(String modelName, HardwareType hardwareType) {
+        String cacheKey = hardwareType.name() + "_" + modelName;
+
+        return modelCache.computeIfAbsent(cacheKey, k -> {
+            List<HardwareModel> existingModels = hardwareModelRepository.findAll();
+            return existingModels.stream()
+                    .filter(model -> modelName.equals(model.getName()) &&
+                            hardwareType.toString().equals(model.getHardwareType()))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        HardwareModel newModel = new HardwareModel();
+                        newModel.setName(modelName);
+                        newModel.setHardwareType(hardwareType.toString());
+                        return hardwareModelRepository.save(newModel);
+                    });
+        });
+    }
+
+    private void saveHardwareProperties(ComputerHardware computerHardware, Map<String, Object> data, HardwareType hardwareType) {
+        Set<String> processedProperties = new HashSet<>();
+
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            String propertyName = entry.getKey();
+            Object propertyValue = entry.getValue();
+
+            if (propertyValue == null || processedProperties.contains(propertyName)) {
+                continue;
+            }
+
+            processedProperties.add(propertyName);
+
+            HardwareValue hardwareValue = findOrCreateHardwareValue(computerHardware.getComputer(), propertyValue.toString());
+
+            HardwareProperty property = new HardwareProperty();
+            property.setComputerHardware(computerHardware);
+            property.setHardwareValue(hardwareValue);
+            property.setPropertyName(propertyName);
+            property.setPropertyValue(propertyValue.toString());
+
+            hardwarePropertyRepository.save(property);
+        }
+    }
+
+    private HardwareValue findOrCreateHardwareValue(Computer computer, String propertyValue) {
+        List<HardwareValue> existingValues = hardwareValueRepository.findAll();
+        return existingValues.stream()
+                .filter(value -> computer.equals(value.getComputer()) &&
+                        propertyValue.equals(value.getPropertyValue()))
+                .findFirst()
+                .orElseGet(() -> {
+                    HardwareValue newValue = new HardwareValue();
+                    newValue.setComputer(computer);
+                    newValue.setPropertyValue(propertyValue);
+                    return hardwareValueRepository.save(newValue);
+                });
+    }
+
+    private String getStringValue(Map<String, Object> data, String key) {
+        Object value = data.get(key);
+        return value != null ? value.toString() : "Unknown";
     }
 
 }

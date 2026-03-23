@@ -1,6 +1,6 @@
 package com.sysadminanywhere.inventory.service;
 
-import com.sysadminanywhere.inventory.wmi.WMIAttribute;
+import com.sysadminanywhere.inventory.model.wmi.WMIAttribute;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
