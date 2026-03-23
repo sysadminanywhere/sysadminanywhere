@@ -52,7 +52,6 @@ public class HardwareService {
 
         List<Map<String, Object>> diskDrives = execute(hostName, "SELECT * FROM Win32_DiskDrive");
         List<Map<String, Object>> operatingSystems = execute(hostName, "SELECT * FROM Win32_OperatingSystem");
-        List<Map<String, Object>> diskPartitions = execute(hostName, "SELECT * FROM Win32_DiskPartition");
         List<Map<String, Object>> processors = execute(hostName, "SELECT * FROM Win32_Processor");
         List<Map<String, Object>> videoControllers = execute(hostName, "SELECT * FROM Win32_VideoController");
         List<Map<String, Object>> physicalMemory = execute(hostName, "SELECT * FROM Win32_PhysicalMemory");
@@ -62,7 +61,6 @@ public class HardwareService {
 
         saveHardware(computer, HardwareType.DISK_DRIVE, diskDrives);
         saveHardware(computer, HardwareType.OPERATING_SYSTEM, operatingSystems);
-        saveHardware(computer, HardwareType.DISK_PARTITION, diskPartitions);
         saveHardware(computer, HardwareType.PROCESSOR, processors);
         saveHardware(computer, HardwareType.VIDEO_CONTROLLER, videoControllers);
         saveHardware(computer, HardwareType.PHYSICAL_MEMORY, physicalMemory);
