@@ -28,9 +28,6 @@ public class ComputerHardware {
     @JoinColumn(name = "hardware_model_id", nullable = false)
     private HardwareModel hardwareModel;
 
-    @Column(name = "checking_date")
-    private LocalDateTime checkingDate;
-
     @OneToMany(mappedBy = "computerHardware", cascade = CascadeType.ALL)
     private List<HardwareProperty> properties;
 

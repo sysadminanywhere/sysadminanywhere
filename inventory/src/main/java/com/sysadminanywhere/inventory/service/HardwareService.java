@@ -111,13 +111,11 @@ public class HardwareService {
             if (existingHardware.isPresent()) {
                 // Update existing record
                 computerHardware = existingHardware.get();
-                computerHardware.setCheckingDate(LocalDateTime.now());
             } else {
                 // Create new record
                 computerHardware = new ComputerHardware();
                 computerHardware.setComputer(computer);
                 computerHardware.setHardwareModel(hardwareModel);
-                computerHardware.setCheckingDate(LocalDateTime.now());
             }
 
             computerHardware = computerHardwareRepository.save(computerHardware);
