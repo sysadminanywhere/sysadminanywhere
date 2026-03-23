@@ -25,7 +25,7 @@ public class HardwareValue {
     @OneToMany(mappedBy = "hardwareValue", fetch = FetchType.LAZY)
     private Set<HardwareProperty> hardwareProperties;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String propertyValue;
 
 }

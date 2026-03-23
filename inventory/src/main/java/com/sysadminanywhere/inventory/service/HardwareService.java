@@ -103,10 +103,22 @@ public class HardwareService {
             String modelName = extractModelName(data, hardwareType);
             HardwareModel hardwareModel = findOrCreateHardwareModel(modelName, hardwareType);
 
-            ComputerHardware computerHardware = new ComputerHardware();
-            computerHardware.setComputer(computer);
-            computerHardware.setHardwareModel(hardwareModel);
-            computerHardware.setCheckingDate(LocalDateTime.now());
+            // Check if ComputerHardware already exists
+            Optional<ComputerHardware> existingHardware = computerHardwareRepository
+                    .findByComputerIdAndHardwareModelId(computer.getId(), hardwareModel.getId());
+
+            ComputerHardware computerHardware;
+            if (existingHardware.isPresent()) {
+                // Update existing record
+                computerHardware = existingHardware.get();
+                computerHardware.setCheckingDate(LocalDateTime.now());
+            } else {
+                // Create new record
+                computerHardware = new ComputerHardware();
+                computerHardware.setComputer(computer);
+                computerHardware.setHardwareModel(hardwareModel);
+                computerHardware.setCheckingDate(LocalDateTime.now());
+            }
 
             computerHardware = computerHardwareRepository.save(computerHardware);
 
@@ -159,13 +171,14 @@ public class HardwareService {
 
             processedProperties.add(propertyName);
 
-            HardwareValue hardwareValue = findOrCreateHardwareValue(computerHardware.getComputer(), propertyValue.toString());
+            String propertyValueStr = propertyValue.toString();
+            HardwareValue hardwareValue = findOrCreateHardwareValue(computerHardware.getComputer(), propertyValueStr);
 
             HardwareProperty property = new HardwareProperty();
             property.setComputerHardware(computerHardware);
             property.setHardwareValue(hardwareValue);
             property.setPropertyName(propertyName);
-            property.setPropertyValue(propertyValue.toString());
+            property.setPropertyValue(propertyValueStr);
 
             hardwarePropertyRepository.save(property);
         }
