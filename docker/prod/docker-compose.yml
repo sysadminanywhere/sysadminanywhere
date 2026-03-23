@@ -11,15 +11,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
-    ports:
-      - "5432:5432"
     restart: unless-stopped
 
   vault:
     image: hashicorp/vault:latest
     container_name: vault
-    ports:
-      - "8200:8200"
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_TOKEN}
       VAULT_ADDR: http://0.0.0.0:8200
@@ -68,8 +64,6 @@ services:
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
       - vault
-    ports:
-      - "8081:8080"
     restart: unless-stopped
 
   inventory:
@@ -87,9 +81,6 @@ services:
       LDAP_PASSWORD: ${INVENTORY_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       SPRING_PROFILES_ACTIVE: prod
-    depends_on:
-      - db
-      - directory
     ports:
       - "8082:8080"
     restart: unless-stopped
@@ -115,24 +106,22 @@ services:
     depends_on:
       - db
       - directory
-    ports:
-      - "8083:8080"
     restart: unless-stopped
 
   sysadminanywhere:
     image: sysadminanywhere/sysadminanywhere:latest
     container_name: sysadminanywhere
     ports:
-      - "9090:8080"
+      - "8080:8080"
     environment:
       DB_ADDRESS: db
       DB_PORT: 5432
       DB_BASE: sysadminanywhere
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DIRECTORY_SERVICE: http://directory:8081
-      INVENTORY_SERVICE: http://inventory:8082
-      INCIDENT_SERVICE: http://incident:8083
+      DIRECTORY_SERVICE: http://directory:8080
+      INVENTORY_SERVICE: http://inventory:8080
+      INCIDENT_SERVICE: http://incident:8080
       JWT_SECRET: ${JWT_SECRET}
       N8N_HOST: http://n8n:5678
       N8N_API_KEY: ${N8N_API_KEY}
