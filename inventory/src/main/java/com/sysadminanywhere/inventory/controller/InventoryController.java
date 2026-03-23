@@ -1,8 +1,10 @@
 package com.sysadminanywhere.inventory.controller;
 
 import com.sysadminanywhere.common.inventory.model.*;
+import com.sysadminanywhere.inventory.entity.HardwareModel;
 import com.sysadminanywhere.inventory.repository.ComputerHardwareRepository;
 import com.sysadminanywhere.inventory.repository.ComputerRepository;
+import com.sysadminanywhere.inventory.repository.HardwareModelRepository;
 import com.sysadminanywhere.inventory.repository.SoftwareRepository;
 import com.sysadminanywhere.inventory.service.InventoryService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +24,7 @@ public class InventoryController {
     private final ComputerRepository computerRepository;
     private final SoftwareRepository softwareRepository;
     private final ComputerHardwareRepository computerHardwareRepository;
-    private final InventoryService inventoryService;
+    private final HardwareModelRepository hardwareModelRepository;
 
     // Software
 
@@ -76,6 +78,21 @@ public class InventoryController {
 
     // Hardware
 
+    @GetMapping("/hardware")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<HardwareItem>> getHardwares(
+            @RequestParam String name,
+            @RequestParam String type,
+            Pageable pageable) {
+
+        name = name + "%";
+
+        Page<HardwareItem> result = hardwareModelRepository.findByNameAndType(name, type, pageable);
+
+        log.info("Retrieved hardwares: {}", result.getTotalElements());
+
+        return ResponseEntity.ok(result);
+    }
 
 
 }

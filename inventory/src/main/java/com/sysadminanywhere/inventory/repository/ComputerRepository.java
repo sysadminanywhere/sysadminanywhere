@@ -22,11 +22,11 @@ public interface ComputerRepository extends JpaRepository<Computer, Long>, JpaSp
     Page<ComputerItem> getComputersWithSoftware(@Param("softwareId") Long softwareId, @Param("name") String name, Pageable pageable);
 
     // select c."name", ch.checking_date from computers c inner join computer_hardware ch on c.id = ch.computer_id where ch.hardware_type_id = 1
-    @Query("SELECT new com.sysadminanywhere.common.inventory.model.ComputerItem(c.id, c.name, ch.checkingDate) FROM Computer c JOIN c.computerHardwares ch WHERE ch.hardwareModel.hardwareType = :hardwareTypeId and c.name LIKE :name")
+    @Query("SELECT new com.sysadminanywhere.common.inventory.model.ComputerItem(c.id, c.name, null) FROM Computer c JOIN c.computerHardwares ch WHERE ch.hardwareModel.hardwareType = :hardwareTypeId and c.name LIKE :name")
     Page<ComputerItem> getComputersWithHardware(@Param("hardwareTypeId") String hardwareTypeId, @Param("name") String name, Pageable pageable);
 
     // select distinct c."name", max(ch.checking_date) from computers c inner join computer_hardware ch on c.id = ch.computer_id group by c.id, c."name"
-    @Query("SELECT new com.sysadminanywhere.common.inventory.model.ComputerItem(c.id, c.name, MAX(ch.checkingDate)) FROM Computer c JOIN c.computerHardwares ch WHERE c.name LIKE :name GROUP BY c.id, c.name")
+    @Query("SELECT new com.sysadminanywhere.common.inventory.model.ComputerItem(c.id, c.name, null) FROM Computer c JOIN c.computerHardwares ch WHERE c.name LIKE :name GROUP BY c.id, c.name")
     Page<ComputerItem> getAllComputersWithHardware(@Param("name") String name, Pageable pageable);
 
 }

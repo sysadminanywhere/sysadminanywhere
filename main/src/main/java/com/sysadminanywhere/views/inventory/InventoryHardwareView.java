@@ -87,8 +87,8 @@ public class InventoryHardwareView extends Div {
 
         public Filters(Runnable onSearch) {
 
-            hardwareType.setItems("Computer system", "BIOS", "Base board", "Disk drive", "Operating system", "Disk partition", "Processor", "Video controller", "Physical memory", "Logical disk");
-            hardwareType.setValue("Computer system");
+            hardwareType.setItems("Computer System", "BIOS", "Base Board", "Disk Drive", "Operating System", "Processor", "Video Controller", "Physical Memory");
+            hardwareType.setValue("Computer System");
 
             setWidthFull();
             addClassName("filter-layout");
@@ -102,7 +102,7 @@ public class InventoryHardwareView extends Div {
                 name.clear();
 
                 hardwareType.clear();
-                hardwareType.setValue("Computer system");
+                hardwareType.setValue("Computer System");
 
                 onSearch.run();
             });
@@ -120,7 +120,7 @@ public class InventoryHardwareView extends Div {
         public Map<String, String> getFilters() {
             Map<String, String> filters = new HashMap<>();
             filters.put("name", name.getValue());
-            filters.put("type", hardwareType.getValue());
+            filters.put("type", hardwareType.getValue().replace(" ", ""));
             return filters;
         }
 
