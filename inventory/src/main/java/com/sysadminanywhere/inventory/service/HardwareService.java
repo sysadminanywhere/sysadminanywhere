@@ -140,17 +140,14 @@ public class HardwareService {
         String cacheKey = hardwareType.name() + "_" + modelName;
 
         return modelCache.computeIfAbsent(cacheKey, k -> {
-            List<HardwareModel> existingModels = hardwareModelRepository.findAll();
-            return existingModels.stream()
-                    .filter(model -> modelName.equals(model.getName()) &&
-                            hardwareType.toString().equals(model.getHardwareType()))
-                    .findFirst()
-                    .orElseGet(() -> {
-                        HardwareModel newModel = new HardwareModel();
-                        newModel.setName(modelName);
-                        newModel.setHardwareType(hardwareType.toString());
-                        return hardwareModelRepository.save(newModel);
-                    });
+            Optional<HardwareModel> existingModel = hardwareModelRepository
+                    .findByNameAndHardwareType(modelName, hardwareType.toString());
+            return existingModel.orElseGet(() -> {
+                HardwareModel newModel = new HardwareModel();
+                newModel.setName(modelName);
+                newModel.setHardwareType(hardwareType.toString());
+                return hardwareModelRepository.save(newModel);
+            });
         });
     }
 
@@ -181,17 +178,14 @@ public class HardwareService {
     }
 
     private HardwareValue findOrCreateHardwareValue(Computer computer, String propertyValue) {
-        List<HardwareValue> existingValues = hardwareValueRepository.findAll();
-        return existingValues.stream()
-                .filter(value -> computer.equals(value.getComputer()) &&
-                        propertyValue.equals(value.getPropertyValue()))
-                .findFirst()
-                .orElseGet(() -> {
-                    HardwareValue newValue = new HardwareValue();
-                    newValue.setComputer(computer);
-                    newValue.setPropertyValue(propertyValue);
-                    return hardwareValueRepository.save(newValue);
-                });
+        Optional<HardwareValue> existingValue = hardwareValueRepository
+                .findByComputerAndPropertyValue(computer, propertyValue);
+        return existingValue.orElseGet(() -> {
+            HardwareValue newValue = new HardwareValue();
+            newValue.setComputer(computer);
+            newValue.setPropertyValue(propertyValue);
+            return hardwareValueRepository.save(newValue);
+        });
     }
 
     private String getStringValue(Map<String, Object> data, String key) {

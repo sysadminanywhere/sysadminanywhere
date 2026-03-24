@@ -9,10 +9,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface HardwareModelRepository extends JpaRepository<HardwareModel, Long> {
 
     @Query("SELECT new com.sysadminanywhere.common.inventory.model.HardwareItem(hm.id, hm.name, hm.hardwareType) FROM HardwareModel hm WHERE hm.hardwareType = :type AND hm.name LIKE :name")
     Page<HardwareItem> findByNameAndType(@Param("name") String name, @Param("type") String type, Pageable pageable);
+
+    Optional<HardwareModel> findByNameAndHardwareType(String name, String hardwareType);
 
 }
