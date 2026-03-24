@@ -37,6 +37,8 @@ Web-based services for administering your Active Directory network that provides
 - More than 20 report
 
 
+> **Note:** This version is not compatible with previous versions!
+
 ### Documentations
 * [Documentation](https://docs.sysadminanywhere.com)
 
