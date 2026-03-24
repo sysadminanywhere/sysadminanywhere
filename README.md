@@ -24,8 +24,11 @@ Web-based services for administering your Active Directory network that provides
 - No limits on the number of objects
 
 #### Inventory
+- Retrieving information about incidents (preview)
+
+#### Inventory
 - Retrieving information about installed software
-- Retrieving information about installed hardware (Coming soon)
+- Retrieving information about installed hardware
 
 #### Automation
 - Building workflows based on n8n for automation and monitoring

@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RolesAllowed("ADMIN")
-@PageTitle("incidents")
+@PageTitle("incidents (preview)")
 @Route("incidents")
 public class IncidentsView extends Div {
 
