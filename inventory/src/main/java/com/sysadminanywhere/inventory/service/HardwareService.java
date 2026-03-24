@@ -59,14 +59,20 @@ public class HardwareService {
         List<Map<String, Object>> bios = execute(hostName, "SELECT * FROM Win32_BIOS");
         List<Map<String, Object>> computerSystems = execute(hostName, "SELECT * FROM Win32_ComputerSystem");
 
-        saveHardware(computer, HardwareType.DISK_DRIVE, diskDrives);
-        saveHardware(computer, HardwareType.OPERATING_SYSTEM, operatingSystems);
-        saveHardware(computer, HardwareType.PROCESSOR, processors);
-        saveHardware(computer, HardwareType.VIDEO_CONTROLLER, videoControllers);
-        saveHardware(computer, HardwareType.PHYSICAL_MEMORY, physicalMemory);
-        saveHardware(computer, HardwareType.BASE_BOARD, baseBoards);
-        saveHardware(computer, HardwareType.BIOS, bios);
-        saveHardware(computer, HardwareType.COMPUTER_SYSTEM, computerSystems);
+        // Get current hardware models for this computer
+        Set<Long> currentHardwareModelIds = new HashSet<>();
+        
+        saveHardware(computer, HardwareType.DISK_DRIVE, diskDrives, currentHardwareModelIds);
+        saveHardware(computer, HardwareType.OPERATING_SYSTEM, operatingSystems, currentHardwareModelIds);
+        saveHardware(computer, HardwareType.PROCESSOR, processors, currentHardwareModelIds);
+        saveHardware(computer, HardwareType.VIDEO_CONTROLLER, videoControllers, currentHardwareModelIds);
+        saveHardware(computer, HardwareType.PHYSICAL_MEMORY, physicalMemory, currentHardwareModelIds);
+        saveHardware(computer, HardwareType.BASE_BOARD, baseBoards, currentHardwareModelIds);
+        saveHardware(computer, HardwareType.BIOS, bios, currentHardwareModelIds);
+        saveHardware(computer, HardwareType.COMPUTER_SYSTEM, computerSystems, currentHardwareModelIds);
+        
+        // Remove hardware that no longer exists
+        removeObsoleteHardware(computer, currentHardwareModelIds);
     }
 
     private List<Map<String, Object>> execute(String hostName, String query) {
@@ -92,7 +98,7 @@ public class HardwareService {
         return list;
     }
 
-    private void saveHardware(Computer computer, HardwareType hardwareType, List<Map<String, Object>> list) {
+    private void saveHardware(Computer computer, HardwareType hardwareType, List<Map<String, Object>> list, Set<Long> currentHardwareModelIds) {
         if (list == null || list.isEmpty()) {
             return;
         }
@@ -100,6 +106,9 @@ public class HardwareService {
         for (Map<String, Object> data : list) {
             String modelName = extractModelName(data, hardwareType);
             HardwareModel hardwareModel = findOrCreateHardwareModel(modelName, hardwareType);
+
+            // Add to current hardware set
+            currentHardwareModelIds.add(hardwareModel.getId());
 
             // Check if ComputerHardware already exists
             Optional<ComputerHardware> existingHardware = computerHardwareRepository
@@ -119,6 +128,18 @@ public class HardwareService {
             computerHardware = computerHardwareRepository.save(computerHardware);
 
             saveHardwareProperties(computerHardware, data, hardwareType);
+        }
+    }
+
+    private void removeObsoleteHardware(Computer computer, Set<Long> currentHardwareModelIds) {
+        List<ComputerHardware> existingHardware = computerHardwareRepository.findByComputerId(computer.getId());
+        
+        for (ComputerHardware hardware : existingHardware) {
+            if (!currentHardwareModelIds.contains(hardware.getHardwareModel().getId())) {
+                log.info("Removing obsolete hardware: {} for computer {}", 
+                        hardware.getHardwareModel().getName(), computer.getName());
+                computerHardwareRepository.delete(hardware);
+            }
         }
     }
 
