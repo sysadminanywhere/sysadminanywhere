@@ -1,8 +1,8 @@
 package com.sysadminanywhere.views.inventory;
 
-import com.sysadminanywhere.common.inventory.model.HardwareModelPropertyItem;
+import com.sysadminanywhere.common.inventory.model.HardwareModelItem;
+import com.sysadminanywhere.common.inventory.model.HardwarePropertyItem;
 import com.sysadminanywhere.control.Table;
-import com.sysadminanywhere.model.wmi.HardwareEntity;
 import com.sysadminanywhere.service.InventoryService;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
@@ -16,7 +16,7 @@ import jakarta.annotation.security.RolesAllowed;
 import java.util.List;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Hardware inventory details")
+@PageTitle("Hardware details")
 @Route(value = "inventory/hardware/:id?/details")
 @Uses(Icon.class)
 public class InventoryHardwarePropertiesView extends Div  implements BeforeEnterObserver {
@@ -46,16 +46,17 @@ public class InventoryHardwarePropertiesView extends Div  implements BeforeEnter
 
     private void updateView() {
         if (id != null) {
-            List<HardwareModelPropertyItem> list = inventoryService.getHardwareModelProperties(id);
+            HardwareModelItem hardwareModelItem = inventoryService.getHardwareModelProperties(id);
+            setTitle(hardwareModelItem.getType());
             divTable.removeAll();
-            createTable("Hardware Properties", list);
+            createTable(hardwareModelItem.getName(), hardwareModelItem.getProperties());
         }
     }
 
-    private void createTable(String name, List<HardwareModelPropertyItem> items) {
+    private void createTable(String name, List<HardwarePropertyItem> items) {
         Table table = new Table(name);
 
-        for (HardwareModelPropertyItem item : items) {
+        for (HardwarePropertyItem item : items) {
             table.add(pascalToSpaced(item.getPropertyName()), item.getPropertyValue());
         }
 

@@ -2,7 +2,6 @@ package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.client.inventory.InventoryServiceClient;
 import com.sysadminanywhere.common.inventory.model.*;
-import com.sysadminanywhere.model.wmi.HardwareEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -71,7 +70,7 @@ public class InventoryService {
         }
     }
 
-    public List<HardwareModelPropertyItem> getHardwareModelProperties(Long hardwareId) {
+    public HardwareModelItem getHardwareModelProperties(Long hardwareId) {
         try {
             return inventoryServiceClient.getHardwareModelProperties(hardwareId);
         } catch (Exception e) {

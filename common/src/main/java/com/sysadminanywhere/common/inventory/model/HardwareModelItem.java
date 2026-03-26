@@ -4,12 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class HardwareModelPropertyItem {
-    private Long propertyId;
-    private String propertyName;
-    private String propertyValue;
-    private Long computerHardwareId;
+public class HardwareModelItem {
+
+    private Long id;
+    private String name;
+    private String type;
+
+    List<HardwarePropertyItem> properties;
+
 }

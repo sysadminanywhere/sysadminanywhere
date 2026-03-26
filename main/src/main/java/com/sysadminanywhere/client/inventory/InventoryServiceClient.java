@@ -1,10 +1,6 @@
 package com.sysadminanywhere.client.inventory;
 
-import com.sysadminanywhere.common.inventory.model.ComputerItem;
-import com.sysadminanywhere.common.inventory.model.HardwareItem;
-import com.sysadminanywhere.common.inventory.model.SoftwareCount;
-import com.sysadminanywhere.common.inventory.model.SoftwareOnComputer;
-import com.sysadminanywhere.common.inventory.model.HardwareModelPropertyItem;
+import com.sysadminanywhere.common.inventory.model.*;
 import com.sysadminanywhere.config.FeignConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
@@ -38,7 +34,7 @@ public interface InventoryServiceClient {
     Page<Object[]> getHardwareCount(@RequestParam("name") String name, @RequestParam("type") String type, Pageable pageable);
 
     @GetMapping("/api/inventory/hardware/{hardwareId}")
-    List<HardwareModelPropertyItem> getHardwareModelProperties(@PathVariable Long hardwareId);
+    HardwareModelItem getHardwareModelProperties(@PathVariable Long hardwareId);
 
     @GetMapping("/api/inventory/hardware")
     Page<HardwareItem> getHardware(@RequestParam("name") String name, @RequestParam("type") String type, Pageable pageable);

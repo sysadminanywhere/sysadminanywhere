@@ -101,7 +101,7 @@ public class InventoryController {
 
     @GetMapping("/hardware/{hardwareId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<HardwareModelPropertyItem>> getHardwareModelProperties(
+    public ResponseEntity<HardwareModelItem> getHardwareProperties(
             @PathVariable Long hardwareId) {
 
         HardwareModel hardwareModel = hardwareModelRepository.findById(hardwareId)
@@ -111,20 +111,26 @@ public class InventoryController {
                 .filter(ch -> ch.getHardwareModel().getId().equals(hardwareId))
                 .toList();
         
-        List<HardwareModelPropertyItem> properties = computerHardwares.stream()
+        List<HardwarePropertyItem> properties = computerHardwares.stream()
                 .flatMap(ch -> ch.getProperties().stream())
-                .map(prop -> new HardwareModelPropertyItem(
+                .map(prop -> new HardwarePropertyItem(
                         prop.getId(),
                         prop.getPropertyName(),
                         prop.getPropertyValue(),
                         prop.getComputerHardware().getId()
                 ))
-                .sorted(Comparator.comparing(HardwareModelPropertyItem::getPropertyName))
+                .sorted(Comparator.comparing(HardwarePropertyItem::getPropertyName))
                 .toList();
 
         log.info("Retrieved {} properties for hardware model: {}", properties.size(), hardwareModel.getName());
 
-        return ResponseEntity.ok(properties);
+        HardwareModelItem modelItem = new HardwareModelItem();
+        modelItem.setProperties(properties);
+        modelItem.setId(hardwareModel.getId());
+        modelItem.setName(hardwareModel.getName());
+        modelItem.setType(hardwareModel.getHardwareType());
+
+        return ResponseEntity.ok(modelItem);
     }
 
 }
