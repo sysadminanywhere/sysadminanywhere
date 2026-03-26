@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -118,6 +119,7 @@ public class InventoryController {
                         prop.getPropertyValue(),
                         prop.getComputerHardware().getId()
                 ))
+                .sorted(Comparator.comparing(HardwareModelPropertyItem::getPropertyName))
                 .toList();
 
         log.info("Retrieved {} properties for hardware model: {}", properties.size(), hardwareModel.getName());

@@ -175,6 +175,17 @@ public class HardwareService {
     private void saveHardwareProperties(ComputerHardware computerHardware, Map<String, Object> data, HardwareType hardwareType) {
         Set<String> processedProperties = new HashSet<>();
 
+        // Get existing properties for this computer hardware
+        List<HardwareProperty> existingProperties = hardwarePropertyRepository.findAll()
+                .stream()
+                .filter(prop -> prop.getComputerHardware().getId().equals(computerHardware.getId()))
+                .toList();
+
+        Map<String, HardwareProperty> existingPropertiesMap = new HashMap<>();
+        for (HardwareProperty prop : existingProperties) {
+            existingPropertiesMap.put(prop.getPropertyName(), prop);
+        }
+
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             String propertyName = entry.getKey();
             Object propertyValue = entry.getValue();
@@ -186,15 +197,29 @@ public class HardwareService {
             processedProperties.add(propertyName);
 
             String propertyValueStr = propertyValue.toString();
-            HardwareValue hardwareValue = findOrCreateHardwareValue(computerHardware.getComputer(), propertyValueStr);
+            
+            // Check if property already exists
+            HardwareProperty existingProperty = existingPropertiesMap.get(propertyName);
+            if (existingProperty != null) {
+                // Update existing property if value changed
+                if (!existingProperty.getPropertyValue().equals(propertyValueStr)) {
+                    existingProperty.setPropertyValue(propertyValueStr);
+                    hardwarePropertyRepository.save(existingProperty);
+                    log.debug("Updated property {} for hardware {}", propertyName, computerHardware.getId());
+                }
+            } else {
+                // Create new property
+                HardwareValue hardwareValue = findOrCreateHardwareValue(computerHardware.getComputer(), propertyValueStr);
 
-            HardwareProperty property = new HardwareProperty();
-            property.setComputerHardware(computerHardware);
-            property.setHardwareValue(hardwareValue);
-            property.setPropertyName(propertyName);
-            property.setPropertyValue(propertyValueStr);
+                HardwareProperty property = new HardwareProperty();
+                property.setComputerHardware(computerHardware);
+                property.setHardwareValue(hardwareValue);
+                property.setPropertyName(propertyName);
+                property.setPropertyValue(propertyValueStr);
 
-            hardwarePropertyRepository.save(property);
+                hardwarePropertyRepository.save(property);
+                log.debug("Created new property {} for hardware {}", propertyName, computerHardware.getId());
+            }
         }
     }
 
