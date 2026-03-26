@@ -31,7 +31,7 @@ import java.util.Map;
 @PageTitle("Software inventory")
 @Route(value = "inventory/software/:id?/computer")
 @Uses(Icon.class)
-public class InventoryComputersWithSoftwareView  extends Div implements BeforeEnterObserver {
+public class InventoryComputersWithSoftwareView extends Div implements BeforeEnterObserver {
 
     private Long id = 0L;
 

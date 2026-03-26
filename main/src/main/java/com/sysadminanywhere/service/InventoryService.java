@@ -71,12 +71,11 @@ public class InventoryService {
         }
     }
 
-    public Page<ComputerItem> getComputersWithHardware(Long hardwareId, Pageable pageable, Map<String, String> filters) {
+    public List<HardwareModelPropertyItem> getHardwareModelProperties(Long hardwareId) {
         try {
-            String name = filters.get("name");
-            return inventoryServiceClient.getComputersWithHardware(hardwareId, name, pageable);
+            return inventoryServiceClient.getHardwareModelProperties(hardwareId);
         } catch (Exception e) {
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            return null;
         }
     }
 

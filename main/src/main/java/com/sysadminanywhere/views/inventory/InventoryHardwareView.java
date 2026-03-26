@@ -133,10 +133,10 @@ public class InventoryHardwareView extends Div {
         grid.addColumn("name").setAutoWidth(true);
         grid.addColumn("type").setAutoWidth(true);
 
-//        grid.addItemClickListener(item -> {
-//            grid.getUI().ifPresent(ui ->
-//                    ui.navigate("inventory/software/" + item.getItem().getId() + "/computer"));
-//        });
+        grid.addItemClickListener(item -> {
+            grid.getUI().ifPresent(ui ->
+                    ui.navigate("inventory/hardware/" + item.getItem().getId() + "/details"));
+        });
 
         grid.setItems(query -> inventoryService.getHardware(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
