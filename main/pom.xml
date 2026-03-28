@@ -6,12 +6,12 @@
     <groupId>com.sysadminanywhere</groupId>
     <artifactId>main</artifactId>
     <name>sysadminanywhere</name>
-    <version>4.0.0</version>
+    <version>4.0.2</version>
     <packaging>jar</packaging>
 
     <properties>
         <java.version>21</java.version>
-        <vaadin.version>24.9.5</vaadin.version>
+        <vaadin.version>24.9.8</vaadin.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
     </properties>
 
