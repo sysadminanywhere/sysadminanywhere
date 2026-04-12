@@ -19,16 +19,21 @@ import org.apache.commons.csv.CSVRecord;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class ImportUserDialog extends Dialog {
 
     private final UsersService usersService;
+    private final Runnable onSearch;
 
-    CSVParser csvParser = null;
+    private List<CSVRecord> csvRecords = null;
+    private Map<String, Integer> headerMap = null;
 
     public ImportUserDialog(UsersService usersService, Runnable onSearch) {
         this.usersService = usersService;
+        this.onSearch = onSearch;
 
         setHeaderTitle("Importing users");
         setMaxWidth("800px");
@@ -47,23 +52,39 @@ public class ImportUserDialog extends Dialog {
 
         upload.addSucceededListener(event -> {
             String fileName = event.getFileName();
-            InputStream inputStream = buffer.getInputStream(fileName);
+            try (InputStream inputStream = buffer.getInputStream(fileName);
+                 InputStreamReader reader = new InputStreamReader(inputStream);
+                 CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
 
-            try {
-                csvParser = new CSVParser(new InputStreamReader(inputStream), CSVFormat.DEFAULT.withFirstRecordAsHeader());
-                saveButton.setEnabled(true);
+                csvRecords = new ArrayList<>();
+                for (CSVRecord record : parser) {
+                    csvRecords.add(record);
+                }
+                headerMap = parser.getHeaderMap();
+
+                if (!csvRecords.isEmpty()) {
+                    saveButton.setEnabled(true);
+                } else {
+                    Notification notification = Notification.show("CSV file is empty");
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
             } catch (IOException ex) {
-                Notification notification = Notification.show(ex.getMessage());
+                Notification notification = Notification.show("Failed to parse CSV: " + ex.getMessage());
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
-
         });
 
         formLayout.add(containerField, upload);
         add(formLayout);
 
         saveButton.addClickListener(e -> {
-            for (CSVRecord record : csvParser) {
+            if (csvRecords == null || csvRecords.isEmpty()) {
+                Notification notification = Notification.show("No data to import");
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return;
+            }
+
+            for (CSVRecord record : csvRecords) {
                 UserEntry user = new UserEntry();
                 user.setCn(record.get("displayName"));
                 user.setDisplayName(record.get("displayName"));
@@ -79,8 +100,6 @@ public class ImportUserDialog extends Dialog {
                             false,
                             false,
                             true);
-
-                    Map<String, Integer> headerMap = csvParser.getHeaderMap();
 
                     if (headerMap.containsKey("company") && !record.get("company").isEmpty())
                         newUser.setCompany(record.get("company"));
@@ -116,7 +135,11 @@ public class ImportUserDialog extends Dialog {
         });
         templateButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        Button cancelButton = new Button("Cancel", e -> close());
+        Button cancelButton = new Button("Cancel", e -> {
+            csvRecords = null;
+            headerMap = null;
+            close();
+        });
 
         getFooter().add(templateButton);
         getFooter().add(cancelButton);

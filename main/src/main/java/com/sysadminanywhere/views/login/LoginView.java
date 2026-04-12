@@ -14,6 +14,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -31,14 +32,13 @@ import java.util.stream.Collectors;
 @Route(value = "login")
 public class LoginView extends LoginOverlay implements BeforeEnterObserver {
 
-    private static final String SECRET = "MySuperSecretKeyForJWTValidation123456";
-    private final Key key;
+    @Value("${app.jwt.secret}")
+    private String secret;
 
     private final AuthenticatedUser authenticatedUser;
 
     public LoginView(AuthenticatedUser authenticatedUser, AuthService authService) {
         this.authenticatedUser = authenticatedUser;
-        this.key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
         LoginI18n i18n = LoginI18n.createDefault();
         i18n.setHeader(new LoginI18n.Header());
@@ -91,6 +91,7 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
     }
 
     private Collection<? extends GrantedAuthority> extractAuthorities(String token) {
+        Key key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 
         Claims claims = Jwts.parser()
                 .verifyWith((SecretKey) key)
