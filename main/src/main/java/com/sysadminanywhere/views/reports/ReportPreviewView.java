@@ -23,6 +23,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -32,6 +33,8 @@ import java.util.stream.Collectors;
 @Route(value = "reports/report")
 @Uses(Icon.class)
 public class ReportPreviewView extends VerticalLayout implements BeforeEnterObserver {
+
+    private static final Logger log = Logger.getLogger(ReportPreviewView.class.getName());
 
     private String id;
     private String entry;
@@ -80,20 +83,20 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
 
         try {
             Resource resource = new ClassPathResource("reports/" + entry.toLowerCase() + ".json");
-            InputStream inputStream = resource.getInputStream();
-            String json = new BufferedReader(new InputStreamReader(inputStream))
-                    .lines()
-                    .collect(Collectors.joining("\n"));
+            try (InputStream inputStream = resource.getInputStream();
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                String json = reader.lines().collect(Collectors.joining("\n"));
+                ReportItem[] reports = new ObjectMapper().readValue(json, ReportItem[].class);
 
-            ReportItem[] reports = new ObjectMapper().readValue(json, ReportItem[].class);
-
-            Optional<ReportItem> item = Arrays.stream(reports).filter(c -> c.getId().equalsIgnoreCase(id)).findFirst();
-            if (item.isPresent())
-                reportItem = item.get();
-            else
-                return;
-
+                Optional<ReportItem> item = Arrays.stream(reports).filter(c -> c.getId().equalsIgnoreCase(id)).findFirst();
+                if (item.isPresent()) {
+                    reportItem = item.get();
+                } else {
+                    return;
+                }
+            }
         } catch (IOException e) {
+            log.warning("Failed to load report configuration: " + entry + ".json — " + e.getMessage());
             return;
         }
 

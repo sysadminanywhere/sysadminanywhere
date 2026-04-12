@@ -21,3 +21,10 @@ drivers/
 error-screenshots/
 webpack.generated.js
 
+/docker/prod/.env
+/main/target/
+/common/target/
+/directory/target/
+/inventory/target/
+/incident/target/
+/main/src/main/frontend/generated/
