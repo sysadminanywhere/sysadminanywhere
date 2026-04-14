@@ -125,7 +125,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
         FormLayout formLayout = new FormLayout();
 
         TextField txtGroupType = new TextField("Group type");
-        //binder.bind(txtGroupType, GroupEntry::getADGroupType, null);
+        binder.bind(txtGroupType, GroupEntry::getADGroupType, null);
         txtGroupType.setReadOnly(true);
 
         formLayout.add(txtGroupType);
