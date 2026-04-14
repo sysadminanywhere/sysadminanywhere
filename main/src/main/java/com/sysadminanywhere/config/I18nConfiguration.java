@@ -27,6 +27,7 @@ public class I18nConfiguration implements WebMvcConfigurer {
         messageSource.setBasename("classpath:messages");
         messageSource.setDefaultEncoding("UTF-8");
         messageSource.setCacheSeconds(10);
+        messageSource.setDefaultLocale(Locale.ENGLISH);
         return messageSource;
     }
 
