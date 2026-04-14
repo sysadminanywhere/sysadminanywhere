@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.domain;
 
 import com.sysadminanywhere.common.directory.dto.AuditDto;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
@@ -26,6 +27,7 @@ import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -34,7 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Audit")
+@PageTitle("audit_view.title")
 @Route(value = "domain/audit")
 public class AuditView extends Div {
 
@@ -44,18 +46,26 @@ public class AuditView extends Div {
 
     private AuditView.Filters filters;
     private final LdapService ldapService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
-    public AuditView(LdapService ldapService) {
+    public AuditView(LdapService ldapService, MessageSource messageSource, LocaleService localeService) {
         this.ldapService = ldapService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new AuditView.Filters(() -> refreshGrid(), ldapService);
+        filters = new AuditView.Filters(() -> refreshGrid(), ldapService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
         layout.setSpacing(false);
         add(layout);
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private HorizontalLayout createMobileFilters() {
@@ -67,7 +77,7 @@ public class AuditView extends Div {
         mobileFilters.addClassName("mobile-filters");
 
         Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span("Filters");
+        Span filtersHeading = new Span(getMessage("common.filters"));
         mobileFilters.add(mobileIcon, filtersHeading);
         mobileFilters.setFlexGrow(1, filtersHeading);
         mobileFilters.addClickListener(e -> {
@@ -85,17 +95,26 @@ public class AuditView extends Div {
     public static class Filters extends Div {
 
         private final LdapService ldapService;
+        private final MessageSource messageSource;
+        private final LocaleService localeService;
 
-        private final TextField name = new TextField("Name");
-        private final ComboBox<String> action = new ComboBox<>("Action");
-        private final DatePicker startDate = new DatePicker("Date");
-        private final DatePicker endDate = new DatePicker();
+        private final TextField name;
+        private final ComboBox<String> action;
+        private final DatePicker startDate;
+        private final DatePicker endDate;
 
-        public Filters(Runnable onSearch, LdapService ldapService) {
+        public Filters(Runnable onSearch, LdapService ldapService, MessageSource messageSource, LocaleService localeService) {
             this.ldapService = ldapService;
+            this.messageSource = messageSource;
+            this.localeService = localeService;
 
-            action.setItems("All", "Changed", "Created");
-            action.setValue("All");
+            this.name = new TextField("Name");
+            this.action = new ComboBox<>("Action");
+            this.startDate = new DatePicker("Date");
+            this.endDate = new DatePicker();
+
+            action.setItems(getMessage("common.all"), "Changed", "Created");
+            action.setValue(getMessage("common.all"));
 
             startDate.setValue(LocalDate.now());
 
@@ -105,13 +124,13 @@ public class AuditView extends Div {
                     LumoUtility.BoxSizing.BORDER);
 
             // Action buttons
-            Button resetBtn = new Button("Reset");
+            Button resetBtn = new Button(getMessage("common.reset"));
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 name.clear();
 
                 action.clear();
-                action.setValue("All");
+                action.setValue(getMessage("common.all"));
 
                 startDate.clear();
                 startDate.setValue(LocalDate.now());
@@ -120,7 +139,7 @@ public class AuditView extends Div {
 
                 onSearch.run();
             });
-            Button searchBtn = new Button("Search");
+            Button searchBtn = new Button(getMessage("common.search"));
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
@@ -129,6 +148,10 @@ public class AuditView extends Div {
             actions.addClassName("actions");
 
             add(createDateRangeFilter(), actions);
+        }
+
+        private String getMessage(String key) {
+            return messageSource.getMessage(key, null, localeService.getCurrentLocale());
         }
 
         private Component createDateRangeFilter() {

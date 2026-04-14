@@ -9,6 +9,7 @@ import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.Entry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.*;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.views.management.computers.AddComputerDialog;
 import com.sysadminanywhere.views.management.contacts.AddContactDialog;
 import com.sysadminanywhere.views.management.groups.AddGroupDialog;
@@ -38,11 +39,12 @@ import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 import org.vaadin.tatu.Tree;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Containers")
+@PageTitle("containers_view.title")
 @Route(value = "management/containers")
 @Uses(Icon.class)
 public class ContainersView extends Div implements MenuControl {
@@ -54,6 +56,8 @@ public class ContainersView extends Div implements MenuControl {
     private final ComputersService computersService;
     private final GroupsService groupsService;
     private final ContactsService contactsService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     private Grid<Entry> grid;
     private String selected;
@@ -64,7 +68,9 @@ public class ContainersView extends Div implements MenuControl {
                           UsersService usersService,
                           ComputersService computersService,
                           GroupsService groupsService,
-                          ContactsService contactsService) {
+                          ContactsService contactsService,
+                          MessageSource messageSource,
+                          LocaleService localeService) {
 
         this.ldapService = ldapService;
         this.authenticatedUser = authenticatedUser;
@@ -73,6 +79,8 @@ public class ContainersView extends Div implements MenuControl {
         this.computersService = computersService;
         this.groupsService = groupsService;
         this.contactsService = contactsService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         addClassNames("gridwith-filters-view");
         setSizeFull();
@@ -100,6 +108,10 @@ public class ContainersView extends Div implements MenuControl {
         splitLayout.setHeightFull();
 
         add(splitLayout);
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private Component createGrid() {
@@ -170,20 +182,20 @@ public class ContainersView extends Div implements MenuControl {
             refreshGrid();
         });
 
-        MenuItem menuAdd = menuBar.addItem("New");
+        MenuItem menuAdd = menuBar.addItem(getMessage("common.new"));
 
         SubMenu subMenu = menuAdd.getSubMenu();
-        subMenu.addItem("User", menuItemClickEvent -> {
+        subMenu.addItem(getMessage("main_layout.users"), menuItemClickEvent -> {
             addUserDialog(this::refreshGrid).open();
         });
-        subMenu.addItem("Computer", menuItemClickEvent -> {
+        subMenu.addItem(getMessage("main_layout.computers"), menuItemClickEvent -> {
             addComputerDialog(this::refreshGrid).open();
         });
-        subMenu.addItem("Group", menuItemClickEvent -> {
-            addComputerDialog(this::refreshGrid).open();
+        subMenu.addItem(getMessage("main_layout.groups"), menuItemClickEvent -> {
+            addGroupDialog(this::refreshGrid).open();
         });
-        subMenu.addItem("Contact", menuItemClickEvent -> {
-            addComputerDialog(this::refreshGrid).open();
+        subMenu.addItem(getMessage("main_layout.contacts"), menuItemClickEvent -> {
+            addContactDialog(this::refreshGrid).open();
         });
 
         return menuBar;

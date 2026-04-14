@@ -7,6 +7,7 @@ import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.model.ReportItem;
 import com.sysadminanywhere.service.*;
+import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.componentfactory.pdfviewer.PdfViewer;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.icon.Icon;
@@ -14,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
@@ -29,7 +31,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Report")
+@PageTitle("report_preview_view.title")
 @Route(value = "reports/report")
 @Uses(Icon.class)
 public class ReportPreviewView extends VerticalLayout implements BeforeEnterObserver {
@@ -45,6 +47,8 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
     private final PrintersService printersService;
 
     private final ReportGeneratorService reportGeneratorService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
@@ -67,14 +71,22 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
                              UsersService usersService,
                              GroupsService groupsService,
                              PrintersService printersService,
-                             ReportGeneratorService reportGeneratorService) {
+                             ReportGeneratorService reportGeneratorService,
+                             MessageSource messageSource,
+                             LocaleService localeService) {
         this.computersService = computersService;
         this.usersService = usersService;
         this.groupsService = groupsService;
         this.printersService = printersService;
         this.reportGeneratorService = reportGeneratorService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         setSizeFull();
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private void updateView() {

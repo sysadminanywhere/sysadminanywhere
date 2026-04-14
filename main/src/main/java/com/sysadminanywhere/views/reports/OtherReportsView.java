@@ -9,7 +9,7 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Other Reports")
+@PageTitle("other_reports_view.title")
 @Route(value = "reports/others")
 @Uses(Icon.class)
 public class OtherReportsView extends Div {

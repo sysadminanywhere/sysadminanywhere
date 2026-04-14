@@ -5,6 +5,7 @@ import com.sysadminanywhere.control.Table;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.FunctionalLevel;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.html.Anchor;
@@ -15,6 +16,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import lombok.SneakyThrows;
 
 import java.time.ZoneId;
@@ -23,15 +25,19 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Domain")
+@PageTitle("domain_view.title")
 @Route(value = "domain/info")
 public class DomainView extends VerticalLayout {
 
     private final LdapService ldapService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     @SneakyThrows
-    public DomainView(LdapService ldapService) {
+    public DomainView(LdapService ldapService, MessageSource messageSource, LocaleService localeService) {
         this.ldapService = ldapService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         setPadding(true);
         setMargin(true);
@@ -48,10 +54,14 @@ public class DomainView extends VerticalLayout {
         add(lblDomain, lblDistinguishedName, getControllers(), getProperties());
     }
 
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    }
+
     @SneakyThrows
     private Card getControllers(){
         Card card = new Card();
-        card.setTitle("Domain controllers");
+        card.setTitle(getMessage("dashboard_view.domain_controllers"));
 
         List<EntryDto> controllers = ldapService.search("CN=Sites,CN=Configuration," + ldapService.getDefaultNamingContext(), "(objectClass=server)", SearchScope.SUBTREE);
 
@@ -70,7 +80,7 @@ public class DomainView extends VerticalLayout {
 
     private Card getProperties(){
         Card card = new Card();
-        card.setTitle("Properties");
+        card.setTitle(getMessage("common.details"));
 
         EntryDto domainEntry = ldapService.getRootDse();
 

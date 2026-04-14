@@ -3,6 +3,7 @@ package com.sysadminanywhere.views.automation;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.workflow.Workflow;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.WorkflowsService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -26,10 +27,11 @@ import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Workflows")
+@PageTitle("automations_view.title")
 @Route(value = "automation/workflows")
 @Uses(Icon.class)
 public class AutomationsView extends Div implements MenuControl {
@@ -38,17 +40,21 @@ public class AutomationsView extends Div implements MenuControl {
 
     private Filters filters;
     private final WorkflowsService workflowsService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
-    public AutomationsView(WorkflowsService workflowsService) {
+    public AutomationsView(WorkflowsService workflowsService, MessageSource messageSource, LocaleService localeService) {
         this.workflowsService = workflowsService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
         if (!workflowsService.ping()) {
-            Notification notification = Notification.show("N8n service is unavailable!");
+            Notification notification = Notification.show(getMessage("common.error") + ": N8n service is unavailable!");
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
-            filters = new Filters(() -> refreshGrid(), workflowsService);
+            filters = new Filters(() -> refreshGrid(), workflowsService, messageSource, localeService);
             VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
             layout.setSizeFull();
             layout.setPadding(false);
@@ -56,6 +62,10 @@ public class AutomationsView extends Div implements MenuControl {
 
             add(layout);
         }
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private HorizontalLayout createMobileFilters() {
@@ -67,7 +77,7 @@ public class AutomationsView extends Div implements MenuControl {
         mobileFilters.addClassName("mobile-filters");
 
         Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span("Filters");
+        Span filtersHeading = new Span(getMessage("common.filters"));
         mobileFilters.add(mobileIcon, filtersHeading);
         mobileFilters.setFlexGrow(1, filtersHeading);
         mobileFilters.addClickListener(e -> {
@@ -90,7 +100,7 @@ public class AutomationsView extends Div implements MenuControl {
             refreshGrid();
         });
 
-        MenuHelper.createIconItem(menuBar, "/icons/plus.svg", "New", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/plus.svg", getMessage("common.new"), event -> {
             grid.getUI().ifPresent(ui ->
                     ui.getPage().open("http://localhost:5678/workflow/new", "_blank"));
         });
@@ -101,12 +111,19 @@ public class AutomationsView extends Div implements MenuControl {
     public static class Filters extends Div {
 
         private final WorkflowsService workflowsService;
+        private final MessageSource messageSource;
+        private final LocaleService localeService;
 
-        private final TextField cn = new TextField("Name");
-        private final ComboBox<String> availability = new ComboBox<>("Filters");
+        private final TextField cn;
+        private final ComboBox<String> availability;
 
-        public Filters(Runnable onSearch, WorkflowsService workflowsService) {
+        public Filters(Runnable onSearch, WorkflowsService workflowsService, MessageSource messageSource, LocaleService localeService) {
             this.workflowsService = workflowsService;
+            this.messageSource = messageSource;
+            this.localeService = localeService;
+
+            this.cn = new TextField("Name");
+            this.availability = new ComboBox<>(getMessage("common.filters"));
 
             setWidthFull();
             addClassName("filter-layout");
@@ -114,14 +131,14 @@ public class AutomationsView extends Div implements MenuControl {
                     LumoUtility.BoxSizing.BORDER);
 
             // Action buttons
-            Button resetBtn = new Button("Reset");
+            Button resetBtn = new Button(getMessage("common.reset"));
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 cn.clear();
-                availability.setValue("All");
+                availability.setValue(getMessage("common.all"));
                 onSearch.run();
             });
-            Button searchBtn = new Button("Search");
+            Button searchBtn = new Button(getMessage("common.search"));
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
@@ -133,6 +150,10 @@ public class AutomationsView extends Div implements MenuControl {
             availability.setValue("All");
 
             add(cn, availability, actions);
+        }
+
+        private String getMessage(String key) {
+            return messageSource.getMessage(key, null, localeService.getCurrentLocale());
         }
 
         public String getFilters() {

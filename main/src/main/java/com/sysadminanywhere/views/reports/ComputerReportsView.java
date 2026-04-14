@@ -25,7 +25,7 @@ import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Computer Reports")
+@PageTitle("computer_reports_view.title")
 @Route(value = "reports/computers")
 @Uses(Icon.class)
 public class ComputerReportsView extends Div {

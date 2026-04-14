@@ -5,6 +5,7 @@ import com.sysadminanywhere.model.DisplayNamePattern;
 import com.sysadminanywhere.model.LoginPattern;
 import com.sysadminanywhere.model.Settings;
 import com.sysadminanywhere.security.AuthenticatedUser;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.SettingsService;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.notification.Notification;
@@ -23,37 +24,44 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Settings")
+@PageTitle("settings_view.title")
 @Route(value = "settings/settings")
 public class SettingsView extends VerticalLayout {
 
     private final SettingsService settingsService;
     private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     private Settings settings;
 
     public SettingsView(SettingsService settingsService,
-                        MessageSource messageSource) {
+                        MessageSource messageSource,
+                        LocaleService localeService) {
 
         this.settingsService = settingsService;
         this.messageSource = messageSource;
+        this.localeService = localeService;
 
         settings = settingsService.getSettings();
         if (settings == null) settings = new Settings();
 
-        Button saveButton = new Button("Save", e -> {
+        Button saveButton = new Button(getMessage("common.save"), e -> {
             settingsService.setSettings(settings);
 
-            Notification notification = Notification.show("Settings saved");
+            Notification notification = Notification.show(getMessage("common.settings_saved"));
             notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
         add(getColorMode(), getUserPatterns(), getLanguageSelector(), saveButton);
     }
 
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    }
+
     private Card getColorMode() {
         Card card = new Card();
-        card.setTitle("Theme");
+        card.setTitle(getMessage("settings_view.theme"));
         card.setWidthFull();
 
         card.add(new ThemeSwitcher());
@@ -63,18 +71,18 @@ public class SettingsView extends VerticalLayout {
 
     private Card getUserPatterns() {
         Card card = new Card();
-        card.setTitle("User patterns");
+        card.setTitle(getMessage("settings_view.user_patterns"));
         card.setWidthFull();
 
-        ComboBox<String> cmbDisplayNamePattern = new ComboBox<>("Display name pattern");
+        ComboBox<String> cmbDisplayNamePattern = new ComboBox<>(getMessage("settings_view.display_name_pattern"));
         cmbDisplayNamePattern.setMinWidth("400px");
         cmbDisplayNamePattern.setItems(Arrays.stream(DisplayNamePattern.values()).map(DisplayNamePattern::getTitle).collect(Collectors.toList()));
 
-        ComboBox<String> cmbLoginPattern = new ComboBox<>("User account name pattern");
+        ComboBox<String> cmbLoginPattern = new ComboBox<>(getMessage("settings_view.user_account_name_pattern"));
         cmbLoginPattern.setMinWidth("400px");
         cmbLoginPattern.setItems(Arrays.stream(LoginPattern.values()).map(LoginPattern::getTitle).collect(Collectors.toList()));
 
-        TextField txtDefaultPassword = new TextField("Set default password for new users");
+        TextField txtDefaultPassword = new TextField(getMessage("settings_view.set_default_password"));
         txtDefaultPassword.setMinWidth("400px");
 
         cmbDisplayNamePattern.setValue(DisplayNamePattern.valueOf(settings.getDisplayNamePattern()).getTitle());
@@ -110,20 +118,18 @@ public class SettingsView extends VerticalLayout {
 
     private Card getLanguageSelector() {
         Card card = new Card();
-        card.setTitle("Language");
+        card.setTitle(getMessage("settings_view.language"));
         card.setWidthFull();
 
-        ComboBox<String> cmbLanguage = new ComboBox<>("Select Language");
+        ComboBox<String> cmbLanguage = new ComboBox<>(getMessage("settings_view.select_language"));
         cmbLanguage.setMinWidth("400px");
-        cmbLanguage.setItems("en", "ru", "de");
+        cmbLanguage.setItems("en", "ru");
         cmbLanguage.setItemLabelGenerator(lang -> {
             switch (lang) {
                 case "en":
-                    return "English";
+                    return getMessage("settings_view.english");
                 case "ru":
-                    return "Русский";
-                case "de":
-                    return "Deutsch";
+                    return getMessage("settings_view.russian");
                 default:
                     return lang;
             }

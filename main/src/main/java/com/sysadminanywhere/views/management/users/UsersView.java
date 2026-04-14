@@ -5,6 +5,7 @@ import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.Settings;
 import com.sysadminanywhere.security.AuthenticatedUser;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.SettingsService;
 import com.sysadminanywhere.service.UsersService;
 import com.vaadin.flow.component.Component;
@@ -32,11 +33,12 @@ import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 
 
 @RolesAllowed("ADMIN")
-@PageTitle("Users")
+@PageTitle("users_view.title")
 @Route(value = "management/users")
 @Uses(Icon.class)
 @Uses(Upload.class)
@@ -46,26 +48,34 @@ public class UsersView extends Div implements MenuControl {
 
     private Filters filters;
     private final UsersService usersService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     private AuthenticatedUser authenticatedUser;
     private final SettingsService settingsService;
 
     private Settings settings;
 
-    public UsersView(UsersService usersService, AuthenticatedUser authenticatedUser, SettingsService settingsService) {
+    public UsersView(UsersService usersService, AuthenticatedUser authenticatedUser, SettingsService settingsService, MessageSource messageSource, LocaleService localeService) {
         this.usersService = usersService;
         this.settingsService = settingsService;
         this.authenticatedUser = authenticatedUser;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid(), usersService, authenticatedUser, settingsService);
+        filters = new Filters(() -> refreshGrid(), usersService, authenticatedUser, settingsService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
         layout.setSpacing(false);
         add(layout);
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private HorizontalLayout createMobileFilters() {
@@ -77,7 +87,7 @@ public class UsersView extends Div implements MenuControl {
         mobileFilters.addClassName("mobile-filters");
 
         Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span("Filters");
+        Span filtersHeading = new Span(getMessage("common.filters"));
         mobileFilters.add(mobileIcon, filtersHeading);
         mobileFilters.setFlexGrow(1, filtersHeading);
         mobileFilters.addClickListener(e -> {
@@ -100,11 +110,11 @@ public class UsersView extends Div implements MenuControl {
             refreshGrid();
         });
 
-        MenuHelper.createIconItem(menuBar, "/icons/plus.svg", "New", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/plus.svg", getMessage("common.new"), event -> {
             addDialog(this::refreshGrid).open();
         });
 
-        MenuHelper.createIconItem(menuBar, "/icons/import.svg", "Import", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/import.svg", getMessage("common.import"), event -> {
             importDialog(this::refreshGrid).open();
         });
 
@@ -122,18 +132,26 @@ public class UsersView extends Div implements MenuControl {
     public static class Filters extends Div {
 
         private final UsersService usersService;
+        private final MessageSource messageSource;
+        private final LocaleService localeService;
+
         private AuthenticatedUser authenticatedUser;
         private final SettingsService settingsService;
 
         private Settings settings;
 
-        private final TextField cn = new TextField("CN");
-        private final ComboBox<String> availability = new ComboBox<>("Filters");
+        private final TextField cn;
+        private final ComboBox<String> availability;
 
-        public Filters(Runnable onSearch, UsersService usersService, AuthenticatedUser authenticatedUser, SettingsService settingsService) {
+        public Filters(Runnable onSearch, UsersService usersService, AuthenticatedUser authenticatedUser, SettingsService settingsService, MessageSource messageSource, LocaleService localeService) {
             this.usersService = usersService;
             this.settingsService = settingsService;
             this.authenticatedUser = authenticatedUser;
+            this.messageSource = messageSource;
+            this.localeService = localeService;
+
+            this.cn = new TextField(getMessage("common.cn"));
+            this.availability = new ComboBox<>(getMessage("common.filters"));
 
             setWidthFull();
             addClassName("filter-layout");
@@ -141,14 +159,14 @@ public class UsersView extends Div implements MenuControl {
                     LumoUtility.BoxSizing.BORDER);
 
             // Action buttons
-            Button resetBtn = new Button("Reset");
+            Button resetBtn = new Button(getMessage("common.reset"));
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 cn.clear();
-                availability.setValue("All");
+                availability.setValue(getMessage("common.all"));
                 onSearch.run();
             });
-            Button searchBtn = new Button("Search");
+            Button searchBtn = new Button(getMessage("common.search"));
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
@@ -156,10 +174,14 @@ public class UsersView extends Div implements MenuControl {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            availability.setItems("All", "Disabled", "Locked", "Expired", "Never expires");
-            availability.setValue("All");
+            availability.setItems(getMessage("common.all"), getMessage("common.disabled"), getMessage("common.locked"), getMessage("common.expired"), getMessage("common.never_expires"));
+            availability.setValue(getMessage("common.all"));
 
             add(cn, availability, actions);
+        }
+
+        private String getMessage(String key) {
+            return messageSource.getMessage(key, null, localeService.getCurrentLocale());
         }
 
         public String getFilters() {
@@ -169,13 +191,13 @@ public class UsersView extends Div implements MenuControl {
                 searchFilters += "(cn=" + cn.getValue() + "*)";
             }
             if (!availability.isEmpty()) {
-                if (availability.getValue().equalsIgnoreCase("Disabled"))
+                if (availability.getValue().equalsIgnoreCase(getMessage("common.disabled")))
                     searchFilters += "(userAccountControl:1.2.840.113556.1.4.803:=2)";
-                if (availability.getValue().equalsIgnoreCase("Locked"))
+                if (availability.getValue().equalsIgnoreCase(getMessage("common.locked")))
                     searchFilters += "(lockoutTime>=1)";
-                if (availability.getValue().equalsIgnoreCase("Expired"))
+                if (availability.getValue().equalsIgnoreCase(getMessage("common.expired")))
                     searchFilters += "(accountExpires<=127818648000000000)";
-                if (availability.getValue().equalsIgnoreCase("Never expires"))
+                if (availability.getValue().equalsIgnoreCase(getMessage("common.never_expires")))
                     searchFilters += "(userAccountControl:1.2.840.113556.1.4.803:=65536)";
             }
 

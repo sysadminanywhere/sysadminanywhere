@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.inventory;
 
 import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.service.InventoryService;
+import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -22,13 +23,14 @@ import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Software inventory")
+@PageTitle("inventory_software_view.title")
 @Route(value = "inventory/software")
 @Uses(Icon.class)
 public class InventorySoftwareView extends Div {
@@ -37,23 +39,31 @@ public class InventorySoftwareView extends Div {
 
     private Filters filters;
     private final InventoryService inventoryService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
-    public InventorySoftwareView(InventoryService inventoryService) {
+    public InventorySoftwareView(InventoryService inventoryService, MessageSource messageSource, LocaleService localeService) {
         this.inventoryService = inventoryService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
         if (!inventoryService.ping()) {
-            Notification notification = Notification.show("Inventory service is unavailable!");
+            Notification notification = Notification.show(getMessage("common.error") + ": Inventory service is unavailable!");
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
-            filters = new Filters(() -> refreshGrid());
+            filters = new Filters(() -> refreshGrid(), messageSource, localeService);
             VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
             layout.setSizeFull();
             layout.setPadding(false);
             layout.setSpacing(false);
             add(layout);
         }
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private HorizontalLayout createMobileFilters() {
@@ -65,7 +75,7 @@ public class InventorySoftwareView extends Div {
         mobileFilters.addClassName("mobile-filters");
 
         Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span("Filters");
+        Span filtersHeading = new Span(getMessage("common.filters"));
         mobileFilters.add(mobileIcon, filtersHeading);
         mobileFilters.setFlexGrow(1, filtersHeading);
         mobileFilters.addClickListener(e -> {
@@ -82,10 +92,17 @@ public class InventorySoftwareView extends Div {
 
     public static class Filters extends Div {
 
-        private final TextField name = new TextField("Name");
-        private final TextField vendor = new TextField("Vendor");
+        private final TextField name;
+        private final TextField vendor;
+        private final MessageSource messageSource;
+        private final LocaleService localeService;
 
-        public Filters(Runnable onSearch) {
+        public Filters(Runnable onSearch, MessageSource messageSource, LocaleService localeService) {
+            this.messageSource = messageSource;
+            this.localeService = localeService;
+
+            this.name = new TextField("Name");
+            this.vendor = new TextField("Vendor");
 
             setWidthFull();
             addClassName("filter-layout");
@@ -93,14 +110,14 @@ public class InventorySoftwareView extends Div {
                     LumoUtility.BoxSizing.BORDER);
 
             // Action buttons
-            Button resetBtn = new Button("Reset");
+            Button resetBtn = new Button(getMessage("common.reset"));
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 name.clear();
                 vendor.clear();
                 onSearch.run();
             });
-            Button searchBtn = new Button("Search");
+            Button searchBtn = new Button(getMessage("common.search"));
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
@@ -109,6 +126,10 @@ public class InventorySoftwareView extends Div {
             actions.addClassName("actions");
 
             add(name, vendor, actions);
+        }
+
+        private String getMessage(String key) {
+            return messageSource.getMessage(key, null, localeService.getCurrentLocale());
         }
 
         public Map<String, String> getFilters() {

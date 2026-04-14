@@ -4,6 +4,7 @@ import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.security.AuthenticatedUser;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.views.management.users.UpdateUserDialog;
 import com.sysadminanywhere.views.management.users.UpdateUserPhotoDialog;
@@ -24,15 +25,18 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.context.MessageSource;
 
 import java.util.Base64;
 
-@PageTitle("Me")
+@PageTitle("me_view.title")
 @Route(value = "account/me")
 @PermitAll
 public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuControl {
 
     private final UsersService usersService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
     UserEntry user;
 
     H3 lblName = new H3();
@@ -43,17 +47,19 @@ public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuC
 
     private AuthenticatedUser authenticatedUser;
 
-    public MeView(UsersService usersService, AuthenticatedUser authenticatedUser) {
+    public MeView(UsersService usersService, AuthenticatedUser authenticatedUser, MessageSource messageSource, LocaleService localeService) {
         this.usersService = usersService;
         this.authenticatedUser = authenticatedUser;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();
 
-        lblName.setText("Name");
+        lblName.setText(getMessage("common.description"));
         lblName.setWidth("100%");
 
-        lblDescription.setText("Description");
+        lblDescription.setText(getMessage("common.description"));
         lblDescription.setWidth("100%");
 
         avatar.setThemeName("xlarge");
@@ -107,6 +113,10 @@ public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuC
         verticalLayout.add(formLayout);
     }
 
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    }
+
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         updateView();
@@ -152,7 +162,7 @@ public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuC
     @Override
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
-        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", "Update", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", getMessage("common.edit"), event -> {
             updateDialog().open();
         });
         MenuHelper.createIconItem(menuBar, "/icons/portrait.svg", "Photo", event -> {

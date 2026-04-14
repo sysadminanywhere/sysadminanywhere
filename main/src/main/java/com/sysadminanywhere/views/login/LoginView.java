@@ -3,6 +3,7 @@ package com.sysadminanywhere.views.login;
 import com.sysadminanywhere.common.directory.dto.JwtResponse;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.AuthService;
+import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.login.LoginOverlay;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -15,6 +16,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,7 +30,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @AnonymousAllowed
-@PageTitle("Login")
+@PageTitle("login_view.title")
 @Route(value = "login")
 public class LoginView extends LoginOverlay implements BeforeEnterObserver {
 
@@ -36,14 +38,18 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
     private String secret;
 
     private final AuthenticatedUser authenticatedUser;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
-    public LoginView(AuthenticatedUser authenticatedUser, AuthService authService) {
+    public LoginView(AuthenticatedUser authenticatedUser, AuthService authService, MessageSource messageSource, LocaleService localeService) {
         this.authenticatedUser = authenticatedUser;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         LoginI18n i18n = LoginI18n.createDefault();
         i18n.setHeader(new LoginI18n.Header());
-        i18n.getHeader().setTitle("Sysadmin Anywhere");
-        i18n.getHeader().setDescription("Login using domain credentials");
+        i18n.getHeader().setTitle(getMessage("login_view.title"));
+        i18n.getHeader().setDescription(getMessage("login_view.description"));
         i18n.setAdditionalInformation(null);
         setI18n(i18n);
 
@@ -77,6 +83,10 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
                 setError(true);
             }
         });
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     @Override
