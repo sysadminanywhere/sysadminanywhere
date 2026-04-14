@@ -5,6 +5,8 @@ import com.sysadminanywhere.control.MemberOf;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.service.UsersService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -47,6 +49,8 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
 
     private String id;
     private final UsersService usersService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
     UserEntry user;
 
     H3 lblName = new H3();
@@ -73,6 +77,10 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
         };
     }
 
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    }
+
     private void updateView() {
         if (id != null) {
             user = usersService.getByCN(id);
@@ -96,18 +104,20 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
         }
     }
 
-    public UserDetailsView(UsersService usersService) {
+    public UserDetailsView(UsersService usersService, MessageSource messageSource, LocaleService localeService) {
         this.usersService = usersService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         addClassName("users-view");
 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();
 
-        lblName.setText("Name");
+        lblName.setText(getMessage("common.name"));
         lblName.setWidth("100%");
 
-        lblDescription.setText("Description");
+        lblDescription.setText(getMessage("common.description"));
         lblDescription.setWidth("100%");
 
         avatar.setThemeName("xlarge");
@@ -167,12 +177,12 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
 
     private ConfirmDialog deleteDialog() {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Delete");
-        dialog.setText("Are you sure you want to permanently delete this user?");
+        dialog.setHeader(getMessage("common.delete"));
+        dialog.setText(getMessage("common.delete_user_confirmation"));
 
         dialog.setCancelable(true);
 
-        dialog.setConfirmText("Delete");
+        dialog.setConfirmText(getMessage("common.delete"));
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {

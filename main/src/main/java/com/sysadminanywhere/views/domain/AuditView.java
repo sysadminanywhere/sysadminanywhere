@@ -155,11 +155,11 @@ public class AuditView extends Div implements HasDynamicTitle {
         }
 
         private Component createDateRangeFilter() {
-            startDate.setPlaceholder("From");
-            endDate.setPlaceholder("To");
+            startDate.setPlaceholder(getMessage("common.from"));
+            endDate.setPlaceholder(getMessage("common.to"));
 
-            startDate.setAriaLabel("From date");
-            endDate.setAriaLabel("To date");
+            startDate.setAriaLabel(getMessage("common.from_date"));
+            endDate.setAriaLabel(getMessage("common.to"));
 
             FlexLayout dateRangeComponent = new FlexLayout(startDate, new Text(" – "), endDate);
             dateRangeComponent.setAlignItems(FlexComponent.Alignment.BASELINE);

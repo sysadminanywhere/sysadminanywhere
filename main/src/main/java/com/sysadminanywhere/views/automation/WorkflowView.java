@@ -126,7 +126,7 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
     private ConfirmDialog deleteDialog() {
         ConfirmDialog dialog = new ConfirmDialog();
         dialog.setHeader(getMessage("common.delete"));
-        dialog.setText("Are you sure you want to permanently delete this workflow?");
+        dialog.setText(getMessage("common.delete_workflow_confirmation"));
 
         dialog.setCancelable(true);
 
@@ -158,20 +158,20 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         Grid<Execution> grid = new Grid<>(Execution.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
-        grid.addColumn(Execution::getId).setHeader("Id").setAutoWidth(true);
+        grid.addColumn(Execution::getId).setHeader(getMessage("common.id")).setAutoWidth(true);
 
         grid.addColumn(workflow ->
                         Utils.formatInstant(workflow.getStartedAt()))
-                .setHeader("Started").setAutoWidth(true);
+                .setHeader(getMessage("common.started")).setAutoWidth(true);
 
         grid.addColumn(workflow ->
                         Utils.formatDuration(Duration.between(
                                 workflow.getStartedAt(),
                                 workflow.getStoppedAt()), false))
-                .setHeader("Run time").setAutoWidth(true);
+                .setHeader(getMessage("common.run_time")).setAutoWidth(true);
 
-        grid.addColumn(Execution::getStatus).setHeader("Status");
-        grid.addColumn(Execution::getErrorMessage).setHeader("Error message");
+        grid.addColumn(Execution::getStatus).setHeader(getMessage("common.status"));
+        grid.addColumn(Execution::getErrorMessage).setHeader(getMessage("common.error_message"));
 
         grid.setAllRowsVisible(true);
 

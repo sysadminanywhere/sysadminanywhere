@@ -189,9 +189,9 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
             layout.add(icon, text);
             layout.setSpacing(true);
             return layout;
-        })).setHeader("cn").setAutoWidth(true);
+        })).setHeader(getMessage("common.cn")).setAutoWidth(true);
 
-        grid.addColumn("description").setAutoWidth(true);
+        grid.addColumn("description").setHeader(getMessage("common.description")).setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->

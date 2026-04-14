@@ -6,6 +6,8 @@ import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.card.Card;
@@ -46,6 +48,8 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
 
     private String id;
     private final ComputersService computersService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
     ComputerEntry computer;
 
     H3 lblName = new H3();
@@ -84,6 +88,10 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
         };
     }
 
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    }
+
     private void updateView() {
         if (id != null) {
             computer = computersService.getByCN(id);
@@ -99,18 +107,20 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
         }
     }
 
-    public ComputerDetailsView(ComputersService computersService) {
+    public ComputerDetailsView(ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
         this.computersService = computersService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         addClassName("users-view");
 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();
 
-        lblName.setText("Name");
+        lblName.setText(getMessage("common.name"));
         lblName.setWidth("100%");
 
-        lblDescription.setText("Description");
+        lblDescription.setText(getMessage("common.description"));
         lblDescription.setWidth("100%");
 
         add(verticalLayout);
@@ -173,12 +183,12 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
 
     private ConfirmDialog deleteDialog() {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Delete");
-        dialog.setText("Are you sure you want to permanently delete this computer?");
+        dialog.setHeader(getMessage("common.delete"));
+        dialog.setText(getMessage("common.delete_computer_confirmation"));
 
         dialog.setCancelable(true);
 
-        dialog.setConfirmText("Delete");
+        dialog.setConfirmText(getMessage("common.delete"));
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {
@@ -196,12 +206,12 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
 
     private ConfirmDialog rebootDialog() {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Reboot");
-        dialog.setText("Are you sure you want to reboot this computer?");
+        dialog.setHeader(getMessage("common.reboot"));
+        dialog.setText(getMessage("common.reboot_confirmation"));
 
         dialog.setCancelable(true);
 
-        dialog.setConfirmText("Reboot");
+        dialog.setConfirmText(getMessage("common.reboot"));
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {
@@ -216,12 +226,12 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
 
     private ConfirmDialog shutdownDialog() {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Shutdown");
-        dialog.setText("Are you sure you want to shutdown this computer?");
+        dialog.setHeader(getMessage("common.shutdown"));
+        dialog.setText(getMessage("common.shutdown_confirmation"));
 
         dialog.setCancelable(true);
 
-        dialog.setConfirmText("Shutdown");
+        dialog.setConfirmText(getMessage("common.shutdown"));
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {

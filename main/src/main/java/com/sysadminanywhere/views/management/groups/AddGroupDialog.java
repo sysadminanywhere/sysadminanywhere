@@ -4,6 +4,8 @@ import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.model.GroupScope;
 import com.sysadminanywhere.service.GroupsService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -17,9 +19,13 @@ import com.vaadin.flow.component.textfield.TextField;
 public class AddGroupDialog extends Dialog {
 
     private final GroupsService groupsService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
-    public AddGroupDialog(GroupsService groupsService, Runnable onSearch) {
+    public AddGroupDialog(GroupsService groupsService, MessageSource messageSource, LocaleService localeService, Runnable onSearch) {
         this.groupsService = groupsService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         setHeaderTitle("New group");
         setMaxWidth("800px");

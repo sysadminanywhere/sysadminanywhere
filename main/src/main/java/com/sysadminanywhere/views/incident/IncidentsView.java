@@ -156,7 +156,7 @@ public class IncidentsView extends Div implements HasDynamicTitle {
 
         grid.addColumn(incidentItem ->
                         Utils.formatLocalDateTime(incidentItem.getCreatedAt()))
-                .setHeader("Created at").setAutoWidth(true);
+                .setHeader(getMessage("common.created_at")).setAutoWidth(true);
 
         grid.addColumn("name").setAutoWidth(true);
         grid.addColumn("machineName").setAutoWidth(true);

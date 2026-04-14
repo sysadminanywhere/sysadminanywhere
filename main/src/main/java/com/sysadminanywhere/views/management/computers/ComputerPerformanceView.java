@@ -14,6 +14,8 @@ import com.github.appreciated.apexcharts.config.xaxis.TickPlacement;
 import com.github.appreciated.apexcharts.helper.Series;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.Uses;
@@ -44,6 +46,8 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
 
     private String id;
     private final ComputersService computersService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
     ComputerEntry computer;
 
     H3 lblName = new H3();
@@ -71,6 +75,10 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
                 orElse(null);
 
         updateView();
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private void updateView() {
@@ -104,8 +112,10 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
         }
     }
 
-    public ComputerPerformanceView(ComputersService computersService) {
+    public ComputerPerformanceView(ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
         this.computersService = computersService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         for (int i = 0; i < processorStackSize; i++) {
             processorStack.add(0);
@@ -120,10 +130,10 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();
 
-        lblName.setText("Name");
+        lblName.setText(getMessage("common.name"));
         lblName.setWidth("100%");
 
-        lblDescription.setText("Description");
+        lblDescription.setText(getMessage("common.description"));
         lblDescription.setWidth("100%");
 
         add(verticalLayout);

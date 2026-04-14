@@ -149,10 +149,10 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
             layout.add(icon, text);
             layout.setSpacing(true);
             return layout;
-        })).setHeader("cn").setAutoWidth(true);
+        })).setHeader(getMessage("common.cn")).setAutoWidth(true);
 
-        grid.addColumn("type").setAutoWidth(true);
-        grid.addColumn("description");
+        grid.addColumn("type").setHeader(getMessage("common.type")).setAutoWidth(true);
+        grid.addColumn("description").setHeader(getMessage("common.description"));
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->
@@ -210,7 +210,7 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
     }
 
     private Dialog addGroupDialog(Runnable onSearch) {
-        return new AddGroupDialog(groupsService, onSearch);
+        return new AddGroupDialog(groupsService, messageSource, localeService, onSearch);
     }
 
     private Dialog addContactDialog(Runnable onSearch) {

@@ -4,6 +4,8 @@ import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
 import com.sysadminanywhere.service.ContactsService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
@@ -36,6 +38,8 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver, Menu
 
     private String id;
     private final ContactsService contactsService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
     private ContactEntry contact;
 
     H3 lblName = new H3();
@@ -61,6 +65,10 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver, Menu
         };
     }
 
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    }
+
    private void updateView() {
         if (id != null) {
             contact = contactsService.getByCN(id);
@@ -76,18 +84,20 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver, Menu
         }
     }
 
-    public ContactDetailsView(ContactsService contactsService) {
+    public ContactDetailsView(ContactsService contactsService, MessageSource messageSource, LocaleService localeService) {
         this.contactsService = contactsService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         addClassName("users-view");
 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();
 
-        lblName.setText("Name");
+        lblName.setText(getMessage("common.name"));
         lblName.setWidth("100%");
 
-        lblDescription.setText("Description");
+        lblDescription.setText(getMessage("common.description"));
         lblDescription.setWidth("100%");
 
         avatar.setThemeName("xlarge");
@@ -142,12 +152,12 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver, Menu
 
     private ConfirmDialog deleteDialog() {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Delete");
-        dialog.setText("Are you sure you want to permanently delete this contact?");
+        dialog.setHeader(getMessage("common.delete"));
+        dialog.setText(getMessage("common.delete_contact_confirmation"));
 
         dialog.setCancelable(true);
 
-        dialog.setConfirmText("Delete");
+        dialog.setConfirmText(getMessage("common.delete"));
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {

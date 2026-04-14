@@ -105,7 +105,7 @@ public class GroupsView extends Div implements MenuControl, HasDynamicTitle {
     }
 
     private Dialog addDialog(Runnable onSearch) {
-        return new AddGroupDialog(groupsService, onSearch);
+        return new AddGroupDialog(groupsService, messageSource, localeService, onSearch);
     }
 
     public static class Filters extends Div {
@@ -203,9 +203,9 @@ public class GroupsView extends Div implements MenuControl, HasDynamicTitle {
             layout.add(icon, text);
             layout.setSpacing(true);
             return layout;
-        })).setHeader("cn").setAutoWidth(true);
+        })).setHeader(getMessage("common.cn")).setAutoWidth(true);
 
-        grid.addColumn("description").setAutoWidth(true);
+        grid.addColumn("description").setHeader(getMessage("common.description")).setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->
