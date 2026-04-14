@@ -4,6 +4,8 @@ import com.sysadminanywhere.model.wmi.ProcessEntity;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.service.ComputersService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -25,7 +27,6 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.PageRequest;
 
@@ -44,6 +45,8 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver, M
 
     private Filters filters;
     private final ComputersService computersService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
@@ -51,8 +54,10 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver, M
                 orElse(null);
     }
 
-    public ComputerProcessesView(ComputersService computersService) {
+    public ComputerProcessesView(ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
         this.computersService = computersService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
@@ -62,6 +67,10 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver, M
         layout.setPadding(false);
         layout.setSpacing(false);
         add(layout);
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private HorizontalLayout createMobileFilters() {
@@ -156,30 +165,30 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver, M
     private Dialog showDialog(ProcessEntity process) {
         Dialog dialog = new Dialog();
 
-        dialog.setHeaderTitle("Process");
+        dialog.setHeaderTitle(getMessage("computer_processes_view.title"));
         dialog.setMaxWidth("800px");
 
         FormLayout formLayout = new FormLayout();
 
-        TextField txtCaption = new TextField("Caption");
+        TextField txtCaption = new TextField(getMessage("computer_processes_view.caption"));
         txtCaption.setReadOnly(true);
         txtCaption.setValue(process.getCaption());
 
-        TextField txtDescription = new TextField("Description");
+        TextField txtDescription = new TextField(getMessage("computer_processes_view.description"));
         txtDescription.setReadOnly(true);
         txtDescription.setValue(process.getDescription());
 
-        TextField txtHandle = new TextField("Handle");
+        TextField txtHandle = new TextField(getMessage("computer_processes_view.handle"));
         txtHandle.setReadOnly(true);
         txtHandle.setValue(process.getHandle());
 
-        TextField txtExecutablePath = new TextField("Executable path");
+        TextField txtExecutablePath = new TextField(getMessage("computer_processes_view.executable_path"));
         txtExecutablePath.setReadOnly(true);
         formLayout.setColspan(txtExecutablePath, 2);
         if (process.getExecutablePath() != null)
             txtExecutablePath.setValue(process.getExecutablePath());
 
-        TextField txtWorkingSetSize = new TextField("Working set size");
+        TextField txtWorkingSetSize = new TextField(getMessage("computer_processes_view.working_set_size"));
         txtWorkingSetSize.setReadOnly(true);
         txtWorkingSetSize.setValue(process.getWorkingSetSize());
 
@@ -187,14 +196,14 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver, M
 
         dialog.add(formLayout);
 
-        Button stopButton = new Button("Stop", e -> {
+        Button stopButton = new Button(getMessage("computer_processes_view.stop"), e -> {
             computersService.stopProcess(id, process);
             dialog.close();
         });
         stopButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
         dialog.getFooter().add(stopButton);
 
-        Button cancelButton = new Button("Close", e -> dialog.close());
+        Button cancelButton = new Button(getMessage("computer_processes_view.close"), e -> dialog.close());
         dialog.getFooter().add(cancelButton);
 
         return dialog;

@@ -4,6 +4,8 @@ import com.sysadminanywhere.model.wmi.EventEntity;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.service.ComputersService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -28,7 +30,6 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.PageRequest;
 
@@ -50,6 +51,8 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
 
     private Filters filters;
     private final ComputersService computersService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
@@ -57,8 +60,10 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
                 orElse(null);
     }
 
-    public ComputerEventsView(ComputersService computersService) {
+    public ComputerEventsView(ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
         this.computersService = computersService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
@@ -68,6 +73,10 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
         layout.setPadding(false);
         layout.setSpacing(false);
         add(layout);
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private HorizontalLayout createMobileFilters() {
@@ -180,28 +189,28 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
     private Dialog showDialog(EventEntity event) {
         Dialog dialog = new Dialog();
 
-        dialog.setHeaderTitle("Event");
+        dialog.setHeaderTitle(getMessage("computer_events_view.title"));
         dialog.setMaxWidth("800px");
 
         FormLayout formLayout = new FormLayout();
 
-        TextField txtSourceName = new TextField("Source name");
+        TextField txtSourceName = new TextField(getMessage("computer_events_view.source_name"));
         txtSourceName.setReadOnly(true);
         txtSourceName.setValue(event.getSourceName());
 
-        TextField txtEventType = new TextField("Event type");
+        TextField txtEventType = new TextField(getMessage("computer_events_view.event_type"));
         txtEventType.setReadOnly(true);
         txtEventType.setValue(event.getType());
 
-        TextField txtTimeGenerated = new TextField("Time generated");
+        TextField txtTimeGenerated = new TextField(getMessage("computer_events_view.time_generated"));
         txtTimeGenerated.setReadOnly(true);
         txtTimeGenerated.setValue(event.getTimeGenerated());
 
-        TextField txtLogfile = new TextField("Log file");
+        TextField txtLogfile = new TextField(getMessage("computer_events_view.log_file"));
         txtLogfile.setReadOnly(true);
         txtLogfile.setValue(event.getLogfile());
 
-        TextArea txtMessage = new TextArea("Message");
+        TextArea txtMessage = new TextArea(getMessage("computer_events_view.message"));
         txtMessage.setReadOnly(true);
         txtMessage.setValue(event.getMessage());
         txtMessage.setMinHeight("100px");
@@ -211,7 +220,7 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
 
         dialog.add(formLayout);
 
-        Button cancelButton = new Button("Close", e -> dialog.close());
+        Button cancelButton = new Button(getMessage("computer_events_view.close"), e -> dialog.close());
         dialog.getFooter().add(cancelButton);
 
         return dialog;

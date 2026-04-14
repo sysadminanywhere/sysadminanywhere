@@ -204,25 +204,25 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
 
     private Dialog resetPasswordForm() {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Reset password");
+        dialog.setHeaderTitle(getMessage("user_details_view.reset_password"));
         dialog.setWidth("500px");
 
         FormLayout formLayout = new FormLayout();
 
-        PasswordField txtPassword = new PasswordField("New password");
+        PasswordField txtPassword = new PasswordField(getMessage("user_details_view.new_password"));
         formLayout.setColspan(txtPassword, 2);
 
         formLayout.add(txtPassword);
         dialog.add(formLayout);
 
-        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
+        Button saveButton = new com.vaadin.flow.component.button.Button(getMessage("common.save"), e -> {
             UserEntry entry = user;
 
             try {
                 usersService.resetPassword(entry, txtPassword.getValue());
                 updateView();
 
-                Notification notification = Notification.show("Password reset");
+                Notification notification = Notification.show(getMessage("user_details_view.password_reset"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
                 Notification notification = Notification.show(ex.getMessage());
@@ -234,7 +234,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
 
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
+        com.vaadin.flow.component.button.Button cancelButton = new Button(getMessage("common.cancel"), e -> dialog.close());
 
         dialog.getFooter().add(cancelButton);
         dialog.getFooter().add(saveButton);
@@ -244,23 +244,23 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
 
     private Dialog optionsForm() {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("User Options");
+        dialog.setHeaderTitle(getMessage("user_details_view.user_options"));
         dialog.setWidth("600px");
 
         FormLayout formLayout = new FormLayout();
 
         VerticalLayout checkboxGroup = new VerticalLayout();
         formLayout.setColspan(checkboxGroup, 2);
-        Checkbox chkUserMustChangePassword = new Checkbox("User must change password at next logon");
+        Checkbox chkUserMustChangePassword = new Checkbox(getMessage("user_details_view.user_must_change_password"));
         //chkUserMustChangePassword.setValue(user.isUserMustChangePassword());
 
-        Checkbox chkUserCannotChangePassword = new Checkbox("User cannot change password");
+        Checkbox chkUserCannotChangePassword = new Checkbox(getMessage("user_details_view.user_cannot_change_password"));
         //chkUserCannotChangePassword.setValue(user.isUserCannotChangePassword());
 
-        Checkbox chkPasswordNeverExpires = new Checkbox("Password never expires");
+        Checkbox chkPasswordNeverExpires = new Checkbox(getMessage("user_details_view.password_never_expires"));
         //chkPasswordNeverExpires.setValue(user.isNeverExpires());
 
-        Checkbox chkAccountDisabled = new Checkbox("Account disabled");
+        Checkbox chkAccountDisabled = new Checkbox(getMessage("user_details_view.account_disabled"));
         //chkAccountDisabled.setValue(user.isDisabled());
 
         checkboxGroup.add(chkUserMustChangePassword, chkUserCannotChangePassword, chkPasswordNeverExpires, chkAccountDisabled);
@@ -286,7 +286,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
         formLayout.add(checkboxGroup);
         dialog.add(formLayout);
 
-        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
+        Button saveButton = new com.vaadin.flow.component.button.Button(getMessage("common.save"), e -> {
             UserEntry entry = user;
 
             try {
@@ -311,7 +311,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
 
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> dialog.close());
+        com.vaadin.flow.component.button.Button cancelButton = new Button(getMessage("common.cancel"), e -> dialog.close());
 
         dialog.getFooter().add(cancelButton);
         dialog.getFooter().add(saveButton);
