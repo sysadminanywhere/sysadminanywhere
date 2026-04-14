@@ -43,7 +43,7 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver, M
 
     private Grid<ProcessEntity> grid;
 
-    private Filters filters;
+    private final Filters filters;
     private final ComputersService computersService;
     private final MessageSource messageSource;
     private final LocaleService localeService;

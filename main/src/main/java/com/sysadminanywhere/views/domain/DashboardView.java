@@ -50,7 +50,7 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
     private final MessageSource messageSource;
     private final LocaleService localeService;
 
-    private String title = "dashboard_view.title";
+    private final String title = "dashboard_view.title";
 
     public DashboardView(ComputersService computersService,
                          UsersService usersService,
@@ -78,10 +78,7 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         List<ContactEntry> contacts = contactsService.getAll();
 
         getStoredTheme().thenAccept(v -> {
-            boolean isDarkTheme = false;
-
-            if (v.contains("dark"))
-                isDarkTheme = true;
+            boolean isDarkTheme = v.contains("dark");
 
             String theme = isDarkTheme ? "dark" : "light";
             String foreColor = isDarkTheme ? "white" : "black";

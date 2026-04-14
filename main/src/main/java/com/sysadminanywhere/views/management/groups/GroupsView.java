@@ -40,7 +40,7 @@ public class GroupsView extends Div implements MenuControl, HasDynamicTitle {
 
     private Grid<GroupEntry> grid;
 
-    private Filters filters;
+    private final Filters filters;
     private final GroupsService groupsService;
     private final MessageSource messageSource;
     private final LocaleService localeService;

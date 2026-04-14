@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ResolveService<T> {
 
-    private Class<T> typeArgumentClass;
+    private final Class<T> typeArgumentClass;
 
     public ResolveService(Class<T> typeArgumentClass) {
         this.typeArgumentClass = typeArgumentClass;

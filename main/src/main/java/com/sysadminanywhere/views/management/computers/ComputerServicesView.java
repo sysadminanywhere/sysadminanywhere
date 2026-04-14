@@ -47,7 +47,7 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver, Me
 
     private Grid<ServiceEntity> grid;
 
-    private Filters filters;
+    private final Filters filters;
     private final ComputersService computersService;
     private final MessageSource messageSource;
     private final LocaleService localeService;

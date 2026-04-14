@@ -45,7 +45,7 @@ public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuC
 
     Binder<UserEntry> binder = new Binder<>(UserEntry.class);
 
-    private AuthenticatedUser authenticatedUser;
+    private final AuthenticatedUser authenticatedUser;
 
     public MeView(UsersService usersService, AuthenticatedUser authenticatedUser, MessageSource messageSource, LocaleService localeService) {
         this.usersService = usersService;

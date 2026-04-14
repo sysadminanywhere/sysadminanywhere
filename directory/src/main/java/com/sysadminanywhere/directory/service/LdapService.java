@@ -43,10 +43,10 @@ public class LdapService {
 
     private final UserConnectionManager userConnectionManager;
 
-    private String domainName;
-    private String defaultNamingContext;
-    private Dn baseDn;
-    private Entry domainEntry;
+    private final String domainName;
+    private final String defaultNamingContext;
+    private final Dn baseDn;
+    private final Entry domainEntry;
 
     private final String ContainerMicrosoft = "B:32:F4BE92A4C777485E878E9421D53087DB:";                 //NOSONAR CN=Microsoft,CN=Program Data,DC=example,DC=com
     private final String ContainerProgramData = "B:32:09460C08AE1E4A4EA0F64AEE7DAA1E5A:";               //NOSONAR CN=Program Data,DC=example,DC=com
@@ -79,7 +79,7 @@ public class LdapService {
     public Entry getRootDse() {
         return execute(conn -> {
             Entry root = conn.getRootDse();
-            return (root != null) ? (Entry) root.clone() : null;
+            return (root != null) ? root.clone() : null;
         });
     }
 
@@ -248,7 +248,7 @@ public class LdapService {
                     while (cursor.next()) {
                         Response response = cursor.get();
                         if (response instanceof SearchResultEntry) {
-                            list.add((Entry) ((SearchResultEntry) response).getEntry().clone());
+                            list.add(((SearchResultEntry) response).getEntry().clone());
                         }
                     }
 
@@ -324,7 +324,7 @@ public class LdapService {
                             Response response = cursor.get();
                             if (response instanceof SearchResultEntry) {
                                 Entry entry = ((SearchResultEntry) response).getEntry();
-                                pageList.add((Entry) entry.clone());
+                                pageList.add(entry.clone());
                             }
                         }
 

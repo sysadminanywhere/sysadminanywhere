@@ -38,7 +38,7 @@ public class InventoryComputersWithSoftwareView extends Div implements BeforeEnt
 
     private Grid<ComputerItem> grid;
 
-    private Filters filters;
+    private final Filters filters;
     private final InventoryService inventoryService;
     private final MessageSource messageSource;
     private final LocaleService localeService;

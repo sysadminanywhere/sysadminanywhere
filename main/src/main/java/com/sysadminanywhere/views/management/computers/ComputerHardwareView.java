@@ -111,8 +111,7 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver {
                 Object value = field.get(obj);
                 String valueStr = "-";
 
-                if (value instanceof String[]) {
-                    String[] array = (String[]) value;
+                if (value instanceof String[] array) {
                     valueStr = Arrays.stream(array)
                             .collect(Collectors.joining(", "));
                 } else {

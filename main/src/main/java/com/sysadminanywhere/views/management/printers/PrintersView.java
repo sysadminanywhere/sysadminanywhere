@@ -35,7 +35,7 @@ public class PrintersView extends Div implements HasDynamicTitle {
 
     private Grid<PrinterEntry> grid;
 
-    private Filters filters;
+    private final Filters filters;
     private final PrintersService printersService;
     private final MessageSource messageSource;
     private final LocaleService localeService;

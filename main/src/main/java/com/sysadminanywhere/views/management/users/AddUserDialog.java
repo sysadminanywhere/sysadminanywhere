@@ -30,7 +30,7 @@ public class AddUserDialog extends Dialog {
     private final AuthenticatedUser authenticatedUser;
     private final SettingsService settingsService;
 
-    private Settings settings;
+    private final Settings settings;
 
     public AddUserDialog(UsersService usersService, AuthenticatedUser authenticatedUser, SettingsService settingsService, Runnable onSearch) {
         this.usersService = usersService;

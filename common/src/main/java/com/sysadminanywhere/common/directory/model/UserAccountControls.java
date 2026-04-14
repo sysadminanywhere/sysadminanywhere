@@ -27,9 +27,9 @@ public enum UserAccountControls {
     PARTIAL_SECRETS_ACCOUNT(0x04000000),
     USE_AES_KEYS(0x08000000);
 
-    private int value;
+    private final int value;
 
-    private UserAccountControls(int value) {
+    UserAccountControls(int value) {
         this.value = value;
     }
 

@@ -36,7 +36,7 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
     Button minusButton = new Button(new Icon(VaadinIcon.MINUS));
 
     EntryDto entry;
-    private String selected = "";
+    private final String selected = "";
 
     public MemberOf() {
         setMinWidth("300px");
@@ -44,10 +44,7 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
         listMemberOf.setRenderer(new TextRenderer<>(GroupItem::getName));
 
         listMemberOf.addValueChangeListener(event -> {
-            if (event != null && event.getValue() != null && !event.getValue().getDistinguishedName().isEmpty())
-                minusButton.setEnabled(true);
-            else
-                minusButton.setEnabled(false);
+            minusButton.setEnabled(event != null && event.getValue() != null && !event.getValue().getDistinguishedName().isEmpty());
         });
     }
 

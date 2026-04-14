@@ -9,9 +9,9 @@ public enum LoginPattern {
     LASTF("LastF (e.g. simpsonh)","(?<FirstName>\\S)\\S+ (?<LastName>\\S+)","${LastName}${FirstName}"),
     NONE("None","","");
 
-    private String title;
-    private String pattern;
-    private String format;
+    private final String title;
+    private final String pattern;
+    private final String format;
 
     LoginPattern(String title, String pattern, String format) {
         this.title = title;

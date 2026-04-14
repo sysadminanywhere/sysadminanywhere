@@ -143,10 +143,7 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
         verticalLayout.add(verticalLayout2);
 
         getStoredTheme().thenAccept(v -> {
-            boolean isDarkTheme = false;
-
-            if (v.contains("dark"))
-                isDarkTheme = true;
+            boolean isDarkTheme = v.contains("dark");
 
             String theme = isDarkTheme ? "dark" : "light";
             String foreColor = isDarkTheme ? "white" : "black";

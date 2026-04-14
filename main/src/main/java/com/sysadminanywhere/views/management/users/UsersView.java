@@ -45,12 +45,12 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
 
     private Grid<UserEntry> grid;
 
-    private Filters filters;
+    private final Filters filters;
     private final UsersService usersService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
 
-    private AuthenticatedUser authenticatedUser;
+    private final AuthenticatedUser authenticatedUser;
     private final SettingsService settingsService;
 
     private Settings settings;
@@ -134,7 +134,7 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
         private final MessageSource messageSource;
         private final LocaleService localeService;
 
-        private AuthenticatedUser authenticatedUser;
+        private final AuthenticatedUser authenticatedUser;
         private final SettingsService settingsService;
 
         private Settings settings;

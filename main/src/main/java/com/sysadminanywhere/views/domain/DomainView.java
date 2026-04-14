@@ -95,7 +95,7 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
             domainProperties.add("Domain functionality", FunctionalLevel.fromValue(domainEntry.getAttributes().get("domainfunctionality").toString()));
             domainProperties.add("Domain controller functionality", FunctionalLevel.fromValue((domainEntry.getAttributes().get("domaincontrollerfunctionality").toString())));
             domainProperties.add("Current time", dateTime.toString());
-            domainProperties.add("Max password age", String.valueOf(ldapService.getMaxPwdAgeDays()) + " days");
+            domainProperties.add("Max password age", ldapService.getMaxPwdAgeDays() + " days");
 
             card.add(domainProperties);
         }

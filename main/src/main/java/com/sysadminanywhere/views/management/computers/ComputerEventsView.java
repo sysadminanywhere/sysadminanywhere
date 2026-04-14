@@ -49,7 +49,7 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
 
     private Grid<EventEntity> grid;
 
-    private Filters filters;
+    private final Filters filters;
     private final ComputersService computersService;
     private final MessageSource messageSource;
     private final LocaleService localeService;

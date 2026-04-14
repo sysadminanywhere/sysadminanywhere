@@ -43,7 +43,7 @@ public class AuditView extends Div implements HasDynamicTitle {
 
     private Grid<AuditDto> grid;
 
-    private AuditView.Filters filters;
+    private final AuditView.Filters filters;
     private final LdapService ldapService;
     private final MessageSource messageSource;
     private final LocaleService localeService;

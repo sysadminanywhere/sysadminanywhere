@@ -78,7 +78,7 @@ public class AddGroupDialog extends Dialog {
             }
 
             try {
-                GroupEntry newGroup = groupsService.add(containerField.getValue(), group, scope, radioGroupType.getValue().equals("Security") ? true : false);
+                GroupEntry newGroup = groupsService.add(containerField.getValue(), group, scope, radioGroupType.getValue().equals("Security"));
 
                 onSearch.run();
 

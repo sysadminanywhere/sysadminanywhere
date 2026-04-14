@@ -257,11 +257,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     private void unselectButtons() {
         for (Component component : buttons.getChildren().toList()) {
-            if (component instanceof VerticalLayout) {
-                VerticalLayout layout = (VerticalLayout) component;
+            if (component instanceof VerticalLayout layout) {
                 for (Component item : layout.getChildren().toList()) {
-                    if (item instanceof MenuButton) {
-                        MenuButton button = (MenuButton) item;
+                    if (item instanceof MenuButton button) {
                         button.selected(false);
                     }
                 }

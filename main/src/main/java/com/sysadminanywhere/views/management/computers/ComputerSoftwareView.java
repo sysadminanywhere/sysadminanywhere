@@ -38,7 +38,7 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
 
     private Grid<SoftwareEntity> grid;
 
-    private Filters filters;
+    private final Filters filters;
     private final ComputersService computersService;
 
     @Override

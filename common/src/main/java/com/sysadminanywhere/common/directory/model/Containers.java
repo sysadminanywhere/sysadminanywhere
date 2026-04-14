@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class Containers {
 
-    private List<Container> LIST;
+    private final List<Container> LIST;
 
     public Containers() {
         LIST = new ArrayList<>();

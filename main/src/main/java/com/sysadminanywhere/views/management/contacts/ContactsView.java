@@ -39,7 +39,7 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
 
     private Grid<ContactEntry> grid;
 
-    private Filters filters;
+    private final Filters filters;
     private final ContactsService contactsService;
     private final MessageSource messageSource;
     private final LocaleService localeService;

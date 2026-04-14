@@ -158,8 +158,7 @@ public class LdapService {
     }
 
     private String getType(Object object) {
-        if (object instanceof ArrayList<?>) {
-            ArrayList<?> arrayList = (ArrayList<?>) object;
+        if (object instanceof ArrayList<?> arrayList) {
             return arrayList.get(arrayList.size() - 1).toString();
         } else {
             return object.toString();
