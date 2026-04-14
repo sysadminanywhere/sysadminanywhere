@@ -52,6 +52,7 @@ public class SettingsService {
             Optional<User> user = userRepository.findByUsername(authenticatedUser.get().get().getUsername());
             if (user.isPresent()) {
                 user.get().setSettings(json);
+                userRepository.save(user.get());
             }
         }
     }

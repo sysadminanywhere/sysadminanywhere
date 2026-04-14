@@ -12,5 +12,6 @@ public class Settings {
     private String displayNamePattern = DisplayNamePattern.NONE.name();
     private String loginPattern = LoginPattern.NONE.name();
     private String defaultPassword = "";
+    private String language = "en";
 
 }

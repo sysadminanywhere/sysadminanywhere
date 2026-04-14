@@ -16,8 +16,10 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.card.Card;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @RolesAllowed("ADMIN")
@@ -25,18 +27,28 @@ import java.util.stream.Collectors;
 @Route(value = "settings/settings")
 public class SettingsView extends VerticalLayout {
 
-    private AuthenticatedUser authenticatedUser;
     private final SettingsService settingsService;
+    private final MessageSource messageSource;
 
     private Settings settings;
 
-    public SettingsView(AuthenticatedUser authenticatedUser,
-                        SettingsService settingsService) {
+    public SettingsView(SettingsService settingsService,
+                        MessageSource messageSource) {
 
-        this.authenticatedUser = authenticatedUser;
         this.settingsService = settingsService;
+        this.messageSource = messageSource;
 
-        add(getColorMode(), getUserPatterns());
+        settings = settingsService.getSettings();
+        if (settings == null) settings = new Settings();
+
+        Button saveButton = new Button("Save", e -> {
+            settingsService.setSettings(settings);
+
+            Notification notification = Notification.show("Settings saved");
+            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        });
+
+        add(getColorMode(), getUserPatterns(), getLanguageSelector(), saveButton);
     }
 
     private Card getColorMode() {
@@ -65,40 +77,65 @@ public class SettingsView extends VerticalLayout {
         TextField txtDefaultPassword = new TextField("Set default password for new users");
         txtDefaultPassword.setMinWidth("400px");
 
-        if (settings != null) {
-            cmbDisplayNamePattern.setValue(DisplayNamePattern.valueOf(settings.getDisplayNamePattern()).getTitle());
-            cmbLoginPattern.setValue(LoginPattern.valueOf(settings.getLoginPattern()).getTitle());
-            txtDefaultPassword.setValue(settings.getDefaultPassword());
-        }
+        cmbDisplayNamePattern.setValue(DisplayNamePattern.valueOf(settings.getDisplayNamePattern()).getTitle());
+        cmbLoginPattern.setValue(LoginPattern.valueOf(settings.getLoginPattern()).getTitle());
+        txtDefaultPassword.setValue(settings.getDefaultPassword());
 
-        Button saveButton = new Button("Save", e -> {
+        cmbDisplayNamePattern.addValueChangeListener(event -> {
             String displayNamePattern = DisplayNamePattern.NONE.name();
             for (DisplayNamePattern pattern : DisplayNamePattern.values()) {
                 if (pattern.getTitle().equalsIgnoreCase(cmbDisplayNamePattern.getValue()))
                     displayNamePattern = pattern.name();
             }
+            settings.setDisplayNamePattern(displayNamePattern);
+        });
 
+        cmbLoginPattern.addValueChangeListener(event -> {
             String loginPattern = LoginPattern.NONE.name();
             for (LoginPattern pattern : LoginPattern.values()) {
                 if (pattern.getTitle().equalsIgnoreCase(cmbLoginPattern.getValue()))
                     loginPattern = pattern.name();
             }
-
-            String defaultPassword = txtDefaultPassword.getValue();
-
-            if (settings == null) settings = new Settings();
-
-            settings.setDisplayNamePattern(displayNamePattern);
             settings.setLoginPattern(loginPattern);
-            settings.setDefaultPassword(defaultPassword);
-
-            settingsService.setSettings(settings);
-
-            Notification notification = Notification.show("Settings saved");
-            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
-        card.add(new VerticalLayout(cmbDisplayNamePattern, cmbLoginPattern, txtDefaultPassword, saveButton));
+        txtDefaultPassword.addValueChangeListener(event -> {
+            String defaultPassword = txtDefaultPassword.getValue();
+            settings.setDefaultPassword(defaultPassword);
+        });
+
+        card.add(new VerticalLayout(cmbDisplayNamePattern, cmbLoginPattern, txtDefaultPassword));
+        return card;
+    }
+
+    private Card getLanguageSelector() {
+        Card card = new Card();
+        card.setTitle("Language");
+        card.setWidthFull();
+
+        ComboBox<String> cmbLanguage = new ComboBox<>("Select Language");
+        cmbLanguage.setMinWidth("400px");
+        cmbLanguage.setItems("en", "ru", "de");
+        cmbLanguage.setItemLabelGenerator(lang -> {
+            switch (lang) {
+                case "en":
+                    return "English";
+                case "ru":
+                    return "Русский";
+                case "de":
+                    return "Deutsch";
+                default:
+                    return lang;
+            }
+        });
+
+        cmbLanguage.setValue(settings.getLanguage());
+
+        cmbLanguage.addValueChangeListener(event -> {
+            settings.setLanguage(cmbLanguage.getValue());
+        });
+
+        card.add(new VerticalLayout(cmbLanguage));
         return card;
     }
 
