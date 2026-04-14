@@ -21,6 +21,7 @@ import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -36,9 +37,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RolesAllowed("ADMIN")
-@PageTitle("audit_view.title")
 @Route(value = "domain/audit")
-public class AuditView extends Div {
+public class AuditView extends Div implements HasDynamicTitle {
 
     private String id;
 
@@ -203,6 +203,10 @@ public class AuditView extends Div {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    public String getPageTitle() {
+        return getMessage("audit_view.title");
     }
 
 }

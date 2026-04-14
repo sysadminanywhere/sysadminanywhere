@@ -21,6 +21,7 @@ import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
@@ -32,9 +33,8 @@ import java.time.Duration;
 import java.util.List;
 
 @RolesAllowed("ADMIN")
-@PageTitle("workflow_view.title")
 @Route(value = "automation/workflows/:id?/details")
-public class WorkflowView extends Div implements BeforeEnterObserver, MenuControl {
+public class WorkflowView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
 
     private String id;
 
@@ -179,6 +179,10 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         grid.setItems(executions);
 
         return grid;
+    }
+
+    public String getPageTitle() {
+        return getMessage("workflow_view.title");
     }
 
 }

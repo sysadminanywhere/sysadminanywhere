@@ -12,6 +12,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.component.button.Button;
@@ -24,9 +25,8 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 @RolesAllowed("ADMIN")
-@PageTitle("settings_view.title")
 @Route(value = "settings/settings")
-public class SettingsView extends VerticalLayout {
+public class SettingsView extends VerticalLayout implements HasDynamicTitle {
 
     private final SettingsService settingsService;
     private final MessageSource messageSource;
@@ -57,6 +57,10 @@ public class SettingsView extends VerticalLayout {
 
     private String getMessage(String key) {
         return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    }
+
+    public String getPageTitle() {
+        return getMessage("settings_view.title");
     }
 
     private Card getColorMode() {

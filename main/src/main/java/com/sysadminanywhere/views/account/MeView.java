@@ -22,6 +22,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
@@ -29,10 +30,9 @@ import org.springframework.context.MessageSource;
 
 import java.util.Base64;
 
-@PageTitle("me_view.title")
 @Route(value = "account/me")
 @PermitAll
-public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuControl {
+public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
 
     private final UsersService usersService;
     private final MessageSource messageSource;
@@ -175,6 +175,10 @@ public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuC
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
         return menuBar;
+    }
+
+    public String getPageTitle() {
+        return getMessage("me_view.title");
     }
 
 }

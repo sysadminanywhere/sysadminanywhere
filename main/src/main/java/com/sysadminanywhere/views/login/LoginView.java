@@ -8,6 +8,7 @@ import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.login.LoginOverlay;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
@@ -30,9 +31,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @AnonymousAllowed
-@PageTitle("login_view.title")
 @Route(value = "login")
-public class LoginView extends LoginOverlay implements BeforeEnterObserver {
+public class LoginView extends LoginOverlay implements BeforeEnterObserver, HasDynamicTitle {
 
     @Value("${app.jwt.secret}")
     private String secret;
@@ -118,6 +118,10 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
         return roles.stream()
                 .map(SimpleGrantedAuthority::new)
                 .toList();
+    }
+
+    public String getPageTitle() {
+        return getMessage("login_view.title");
     }
 
 }

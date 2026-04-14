@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.reports;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysadminanywhere.model.ReportItem;
+import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -12,9 +13,11 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
@@ -25,14 +28,18 @@ import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
 @RolesAllowed("ADMIN")
-@PageTitle("computer_reports_view.title")
 @Route(value = "reports/computers")
 @Uses(Icon.class)
-public class ComputerReportsView extends Div {
+public class ComputerReportsView extends Div implements HasDynamicTitle {
 
     ListBox<ReportItem> listBox = new ListBox<>();
 
-    public ComputerReportsView() {
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
+
+    public ComputerReportsView(MessageSource messageSource, LocaleService localeService) {
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         listBox.setRenderer(new ComponentRenderer<>(item -> {
             HorizontalLayout row = new HorizontalLayout();
@@ -78,6 +85,14 @@ public class ComputerReportsView extends Div {
         } catch (IOException e) {
             throw new RuntimeException("Failed to load reports from computers.json", e);
         }
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    }
+
+    public String getPageTitle() {
+        return getMessage("computer_reports_view.title");
     }
 
 }

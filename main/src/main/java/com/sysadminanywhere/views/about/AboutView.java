@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.AnchorTarget;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
@@ -14,10 +15,9 @@ import com.vaadin.flow.component.card.Card;
 import org.springframework.context.MessageSource;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-@PageTitle("about_view.title")
 @Route(value = "settings/about")
 @PermitAll
-public class AboutView extends VerticalLayout {
+public class AboutView extends VerticalLayout implements HasDynamicTitle {
 
     private final VersionService versionService;
     private final MessageSource messageSource;
@@ -58,6 +58,10 @@ public class AboutView extends VerticalLayout {
         card.add(new VerticalLayout(newBugReport, newFeatureRequest));
 
         return card;
+    }
+
+    public String getPageTitle() {
+        return getMessage("about_view.title");
     }
 
 }

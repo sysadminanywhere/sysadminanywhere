@@ -27,6 +27,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -38,11 +39,10 @@ import org.springframework.data.domain.PageRequest;
 
 
 @RolesAllowed("ADMIN")
-@PageTitle("users_view.title")
 @Route(value = "management/users")
 @Uses(Icon.class)
 @Uses(Upload.class)
-public class UsersView extends Div implements MenuControl {
+public class UsersView extends Div implements MenuControl, HasDynamicTitle {
 
     private Grid<UserEntry> grid;
 
@@ -242,6 +242,10 @@ public class UsersView extends Div implements MenuControl {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    public String getPageTitle() {
+        return getMessage("users_view.title");
     }
 
 }

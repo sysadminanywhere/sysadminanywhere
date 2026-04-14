@@ -12,6 +12,7 @@ import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
@@ -25,9 +26,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RolesAllowed("ADMIN")
-@PageTitle("domain_view.title")
 @Route(value = "domain/info")
-public class DomainView extends VerticalLayout {
+public class DomainView extends VerticalLayout implements HasDynamicTitle {
 
     private final LdapService ldapService;
     private final MessageSource messageSource;
@@ -102,6 +102,10 @@ public class DomainView extends VerticalLayout {
         }
 
         return card;
+    }
+
+    public String getPageTitle() {
+        return getMessage("domain_view.title");
     }
 
 }

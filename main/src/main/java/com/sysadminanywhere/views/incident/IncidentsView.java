@@ -18,6 +18,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -30,9 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RolesAllowed("ADMIN")
-@PageTitle("incidents_view.title")
 @Route("incidents")
-public class IncidentsView extends Div {
+public class IncidentsView extends Div implements HasDynamicTitle {
 
     private Grid<IncidentItem> grid;
 
@@ -183,6 +183,10 @@ public class IncidentsView extends Div {
 
     private Dialog incidentDialog(IncidentService incidentService, IncidentItem incidentItem, Runnable onSearch) {
         return new IncidentDialog(incidentService, incidentItem, onSearch);
+    }
+
+    public String getPageTitle() {
+        return getMessage("incidents_view.title");
     }
 
 }

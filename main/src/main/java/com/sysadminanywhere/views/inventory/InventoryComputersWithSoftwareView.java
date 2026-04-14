@@ -17,6 +17,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -30,10 +31,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RolesAllowed("ADMIN")
-@PageTitle("inventory_computers_with_software_view.title")
 @Route(value = "inventory/software/:id?/computer")
 @Uses(Icon.class)
-public class InventoryComputersWithSoftwareView extends Div implements BeforeEnterObserver {
+public class InventoryComputersWithSoftwareView extends Div implements BeforeEnterObserver, HasDynamicTitle {
 
     private Long id = 0L;
 
@@ -159,6 +159,10 @@ public class InventoryComputersWithSoftwareView extends Div implements BeforeEnt
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    public String getPageTitle() {
+        return getMessage("inventory_computers_with_software_view.title");
     }
 
 }

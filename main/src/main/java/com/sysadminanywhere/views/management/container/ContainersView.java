@@ -33,6 +33,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -44,10 +45,9 @@ import org.springframework.data.domain.PageRequest;
 import org.vaadin.tatu.Tree;
 
 @RolesAllowed("ADMIN")
-@PageTitle("containers_view.title")
 @Route(value = "management/containers")
 @Uses(Icon.class)
-public class ContainersView extends Div implements MenuControl {
+public class ContainersView extends Div implements MenuControl, HasDynamicTitle {
 
     private final LdapService ldapService;
     private final AuthenticatedUser authenticatedUser;
@@ -215,6 +215,10 @@ public class ContainersView extends Div implements MenuControl {
 
     private Dialog addContactDialog(Runnable onSearch) {
         return new AddContactDialog(contactsService, onSearch);
+    }
+
+    public String getPageTitle() {
+        return getMessage("containers_view.title");
     }
 
 }

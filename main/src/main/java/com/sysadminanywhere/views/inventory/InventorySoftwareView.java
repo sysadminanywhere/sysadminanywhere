@@ -17,6 +17,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -30,10 +31,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RolesAllowed("ADMIN")
-@PageTitle("inventory_software_view.title")
 @Route(value = "inventory/software")
 @Uses(Icon.class)
-public class InventorySoftwareView extends Div {
+public class InventorySoftwareView extends Div implements HasDynamicTitle {
 
     private Grid<SoftwareCount> grid;
 
@@ -166,6 +166,10 @@ public class InventorySoftwareView extends Div {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    public String getPageTitle() {
+        return getMessage("inventory_software_view.title");
     }
 
 }

@@ -21,6 +21,7 @@ import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -31,10 +32,9 @@ import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 
 @RolesAllowed("ADMIN")
-@PageTitle("automations_view.title")
 @Route(value = "automation/workflows")
 @Uses(Icon.class)
-public class AutomationsView extends Div implements MenuControl {
+public class AutomationsView extends Div implements MenuControl, HasDynamicTitle {
 
     private Grid<Workflow> grid;
 
@@ -187,6 +187,10 @@ public class AutomationsView extends Div implements MenuControl {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    public String getPageTitle() {
+        return getMessage("automations_view.title");
     }
 
 }

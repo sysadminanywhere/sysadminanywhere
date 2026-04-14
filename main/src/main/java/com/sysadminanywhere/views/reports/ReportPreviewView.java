@@ -31,10 +31,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RolesAllowed("ADMIN")
-@PageTitle("report_preview_view.title")
 @Route(value = "reports/report")
 @Uses(Icon.class)
-public class ReportPreviewView extends VerticalLayout implements BeforeEnterObserver {
+public class ReportPreviewView extends VerticalLayout implements BeforeEnterObserver, HasDynamicTitle {
 
     private static final Logger log = Logger.getLogger(ReportPreviewView.class.getName());
 
@@ -230,6 +229,10 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
         }
 
         return attributes.toArray(new String[attributes.size()]);
+    }
+
+    public String getPageTitle() {
+        return getMessage("report_preview_view.title");
     }
 
 }
