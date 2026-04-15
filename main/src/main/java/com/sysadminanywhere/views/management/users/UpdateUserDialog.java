@@ -1,7 +1,9 @@
 package com.sysadminanywhere.views.management.users;
 
 import com.sysadminanywhere.common.directory.model.UserEntry;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.UsersService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -16,20 +18,24 @@ public class UpdateUserDialog extends Dialog {
 
     private final UsersService usersService;
     private final UserEntry user;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
-    public UpdateUserDialog(UsersService usersService, UserEntry userEntry, Runnable updateView) {
+    public UpdateUserDialog(UsersService usersService, UserEntry userEntry, MessageSource messageSource, LocaleService localeService, Runnable updateView) {
         this.usersService = usersService;
         this.user = userEntry;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
-        setHeaderTitle("Updating user");
+        setHeaderTitle(getMessage("update_user_dialog.title"));
         setWidth("800px");
 
         TabSheet tabSheet = new TabSheet();
 
-        Tab tabName = new Tab("Name");
-        Tab tabMain = new Tab("Main");
-        Tab tabAddress = new Tab("Address");
-        Tab tabTelephones = new Tab("Telephones");
+        Tab tabName = new Tab(getMessage("update_user_dialog.tab_name"));
+        Tab tabMain = new Tab(getMessage("update_user_dialog.tab_main"));
+        Tab tabAddress = new Tab(getMessage("update_user_dialog.tab_address"));
+        Tab tabTelephones = new Tab(getMessage("update_user_dialog.tab_telephones"));
 
         FormLayout formName = new FormLayout();
         FormLayout formMain = new FormLayout();
@@ -38,17 +44,17 @@ public class UpdateUserDialog extends Dialog {
 
         // Name
 
-        TextField txtDisplayName = new TextField("Display name");
+        TextField txtDisplayName = new TextField(getMessage("update_user_dialog.display_name"));
         formMain.setColspan(txtDisplayName, 2);
         txtDisplayName.setValue(user.getDisplayName());
         txtDisplayName.setRequired(true);
 
-        TextField txtFirstName = new TextField("First name");
+        TextField txtFirstName = new TextField(getMessage("update_user_dialog.first_name"));
         txtFirstName.setValue(user.getFirstName());
         txtFirstName.setRequired(true);
-        TextField txtInitials = new TextField("Initials");
+        TextField txtInitials = new TextField(getMessage("update_user_dialog.initials"));
         txtInitials.setValue(user.getInitials());
-        TextField txtLastName = new TextField("Last name");
+        TextField txtLastName = new TextField(getMessage("update_user_dialog.last_name"));
         txtLastName.setValue(user.getLastName());
         txtLastName.setRequired(true);
 
@@ -56,60 +62,60 @@ public class UpdateUserDialog extends Dialog {
 
         // Main
 
-        TextField txtTitle = new TextField("Title");
+        TextField txtTitle = new TextField(getMessage("update_user_dialog.job_title"));
         txtTitle.setValue(user.getTitle());
 
-        TextField txtOffice = new TextField("Office");
+        TextField txtOffice = new TextField(getMessage("update_user_dialog.office"));
         txtOffice.setValue(user.getOffice());
 
-        TextField txtDepartment = new TextField("Department");
+        TextField txtDepartment = new TextField(getMessage("update_user_dialog.department"));
         txtDepartment.setValue(user.getDepartment());
 
-        TextField txtCompany = new TextField("Company");
+        TextField txtCompany = new TextField(getMessage("update_user_dialog.company"));
         txtCompany.setValue(user.getCompany());
 
-        TextField txtTelephone = new TextField("Telephone");
+        TextField txtTelephone = new TextField(getMessage("update_user_dialog.telephone"));
         txtTelephone.setValue(user.getOfficePhone());
 
-        TextField txtEmailAddress = new TextField("E-mail");
+        TextField txtEmailAddress = new TextField(getMessage("update_user_dialog.email"));
         txtEmailAddress.setValue(user.getEmailAddress());
 
-        TextField txtHomePage = new TextField("Home page");
+        TextField txtHomePage = new TextField(getMessage("update_user_dialog.home_page"));
         txtHomePage.setValue(user.getHomePage());
 
-        TextField txtDescription = new TextField("Description");
+        TextField txtDescription = new TextField(getMessage("update_user_dialog.description"));
         txtDescription.setValue(user.getDescription());
 
         formMain.add(txtTitle, txtOffice, txtDepartment, txtCompany, txtTelephone, txtEmailAddress, txtHomePage, txtDescription);
 
         // Address
 
-        TextField txtStreetAddress = new TextField("Street");
+        TextField txtStreetAddress = new TextField(getMessage("update_user_dialog.street"));
         txtStreetAddress.setValue(user.getStreetAddress());
 
-        TextField txtPOBox = new TextField("P.O. Box");
+        TextField txtPOBox = new TextField(getMessage("update_user_dialog.po_box"));
         txtPOBox.setValue(user.getPOBox());
 
-        TextField txtCity = new TextField("City");
+        TextField txtCity = new TextField(getMessage("update_user_dialog.city"));
         txtCity.setValue(user.getCity());
 
-        TextField txtState = new TextField("State");
+        TextField txtState = new TextField(getMessage("update_user_dialog.state"));
         txtState.setValue(user.getState());
 
-        TextField txtPostalCode = new TextField("Postal code");
+        TextField txtPostalCode = new TextField(getMessage("update_user_dialog.postal_code"));
         txtPostalCode.setValue(user.getPostalCode());
 
         formAddress.add(txtStreetAddress, txtPOBox, txtCity, txtState, txtPostalCode);
 
         // Telephones
 
-        TextField txtHomePhone = new TextField("Home phone");
+        TextField txtHomePhone = new TextField(getMessage("update_user_dialog.home_phone"));
         txtHomePhone.setValue(user.getHomePhone());
 
-        TextField txtMobilePhone = new TextField("Mobile phone");
+        TextField txtMobilePhone = new TextField(getMessage("update_user_dialog.mobile_phone"));
         txtMobilePhone.setValue(user.getMobilePhone());
 
-        TextField txtFax = new TextField("Fax");
+        TextField txtFax = new TextField(getMessage("update_user_dialog.fax"));
         txtFax.setValue(user.getFax());
 
         formTelephones.add(txtHomePhone, txtMobilePhone, txtFax);
@@ -121,7 +127,7 @@ public class UpdateUserDialog extends Dialog {
 
         add(tabSheet);
 
-        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
+        Button saveButton = new com.vaadin.flow.component.button.Button(getMessage("common.save"), e -> {
             UserEntry entry = user;
 
             entry.setDisplayName(txtDisplayName.getValue());
@@ -152,7 +158,7 @@ public class UpdateUserDialog extends Dialog {
                 usersService.update(entry);
                 updateView.run();
 
-                Notification notification = Notification.show("User updated");
+                Notification notification = Notification.show(getMessage("update_user_dialog.user_updated"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
                 Notification notification = Notification.show(ex.getMessage());
@@ -164,11 +170,15 @@ public class UpdateUserDialog extends Dialog {
 
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        com.vaadin.flow.component.button.Button cancelButton = new Button("Cancel", e -> close());
+        com.vaadin.flow.component.button.Button cancelButton = new Button(getMessage("common.cancel"), e -> close());
 
         getFooter().add(cancelButton);
         getFooter().add(saveButton);
 
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
 }

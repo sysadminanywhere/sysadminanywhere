@@ -27,7 +27,7 @@ public class AddGroupDialog extends Dialog {
         this.messageSource = messageSource;
         this.localeService = localeService;
 
-        setHeaderTitle("New group");
+        setHeaderTitle(getMessage("add_group_dialog.title"));
         setMaxWidth("800px");
 
         FormLayout formLayout = new FormLayout();
@@ -36,29 +36,29 @@ public class AddGroupDialog extends Dialog {
         containerField.setValue(groupsService.getDefaultContainer());
         formLayout.setColspan(containerField, 2);
 
-        TextField txtName = new TextField("Name");
+        TextField txtName = new TextField(getMessage("add_group_dialog.name"));
         txtName.setRequired(true);
         formLayout.setColspan(txtName, 2);
 
-        TextField txtDescription = new TextField("Description");
+        TextField txtDescription = new TextField(getMessage("add_group_dialog.description"));
         formLayout.setColspan(txtDescription, 2);
 
         RadioButtonGroup<String> radioGroupScope = new RadioButtonGroup<>();
         radioGroupScope.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
-        radioGroupScope.setLabel("Group scope");
+        radioGroupScope.setLabel(getMessage("add_group_dialog.group_scope"));
         radioGroupScope.setItems("Global", "Local", "Universal");
         radioGroupScope.setValue("Global");
 
         RadioButtonGroup<String> radioGroupType = new RadioButtonGroup<>();
         radioGroupType.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
-        radioGroupType.setLabel("Group type");
+        radioGroupType.setLabel(getMessage("add_group_dialog.group_type"));
         radioGroupType.setItems("Security", "Distribution");
         radioGroupType.setValue("Security");
 
         formLayout.add(containerField, txtName, txtDescription, radioGroupScope, radioGroupType);
         add(formLayout);
 
-        Button saveButton = new Button("Save", e -> {
+        Button saveButton = new Button(getMessage("common.save"), e -> {
             GroupEntry group = new GroupEntry();
             group.setCn(txtName.getValue());
             group.setDescription(txtDescription.getValue());
@@ -82,7 +82,7 @@ public class AddGroupDialog extends Dialog {
 
                 onSearch.run();
 
-                Notification notification = Notification.show("Computer added");
+                Notification notification = Notification.show(getMessage("add_group_dialog.group_added"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
                 Notification notification = Notification.show(ex.getMessage());
@@ -94,10 +94,14 @@ public class AddGroupDialog extends Dialog {
 
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        Button cancelButton = new Button("Cancel", e -> close());
+        Button cancelButton = new Button(getMessage("common.cancel"), e -> close());
         getFooter().add(cancelButton);
         getFooter().add(saveButton);
 
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
 }

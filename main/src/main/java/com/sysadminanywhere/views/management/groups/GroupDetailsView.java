@@ -16,9 +16,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
-import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
@@ -156,7 +154,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
     }
 
     private Dialog updateDialog() {
-        return new UpdateGroupDialog(groupsService, group, updateRunnable());
+        return new UpdateGroupDialog(groupsService, group, messageSource, localeService, updateRunnable());
     }
 
     @Override

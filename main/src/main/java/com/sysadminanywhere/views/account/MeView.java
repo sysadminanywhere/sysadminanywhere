@@ -23,7 +23,6 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.context.MessageSource;
@@ -152,11 +151,11 @@ public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuC
     }
 
     private Dialog updateDialog() {
-        return new UpdateUserDialog(usersService, user, updateRunnable());
+        return new UpdateUserDialog(usersService, user, messageSource, localeService, updateRunnable());
     }
 
     private Dialog updatePhotoDialog() {
-        return new UpdateUserPhotoDialog(usersService, user, updateRunnable());
+        return new UpdateUserPhotoDialog(usersService, user, messageSource, localeService, updateRunnable());
     }
 
     @Override

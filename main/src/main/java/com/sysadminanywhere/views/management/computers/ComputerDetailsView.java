@@ -200,7 +200,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
     }
 
     private Dialog updateDialog() {
-        return new UpdateComputerDialog(computersService, computer, updateRunnable());
+        return new UpdateComputerDialog(computersService, computer, messageSource, localeService, updateRunnable());
     }
 
     private ConfirmDialog rebootDialog() {

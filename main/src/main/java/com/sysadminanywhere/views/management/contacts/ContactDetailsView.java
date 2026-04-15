@@ -13,7 +13,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -124,7 +123,7 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver, Menu
         txtCompany.setReadOnly(true);
         binder.bind(txtCompany, ContactEntry::getCompany, null);
 
-        TextField txtTitle = new TextField("Title");
+        TextField txtTitle = new TextField(getMessage("update_contact_dialog.job_title"));
         txtTitle.setReadOnly(true);
         binder.bind(txtTitle, ContactEntry::getTitle, null);
 
@@ -169,7 +168,7 @@ public class ContactDetailsView extends Div implements BeforeEnterObserver, Menu
     }
 
     private Dialog updateDialog() {
-        return new UpdateContactDialog(contactsService, contact, updateRunnable());
+        return new UpdateContactDialog(contactsService, contact, messageSource, localeService, updateRunnable());
     }
 
     @Override

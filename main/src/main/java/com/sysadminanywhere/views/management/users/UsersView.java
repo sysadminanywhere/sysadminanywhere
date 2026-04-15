@@ -28,7 +28,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.HasDynamicTitle;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
@@ -121,11 +120,11 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
     }
 
     private Dialog addDialog(Runnable onSearch) {
-        return new AddUserDialog(usersService, authenticatedUser, settingsService, onSearch);
+        return new AddUserDialog(usersService, messageSource, localeService, authenticatedUser, settingsService, onSearch);
     }
 
     private Dialog importDialog(Runnable onSearch) {
-        return new ImportUserDialog(usersService, onSearch);
+        return new ImportUserDialog(usersService, messageSource, localeService, onSearch);
     }
 
     public static class Filters extends Div {

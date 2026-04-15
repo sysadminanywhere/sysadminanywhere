@@ -19,7 +19,6 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.HasDynamicTitle;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
@@ -182,7 +181,7 @@ public class IncidentsView extends Div implements HasDynamicTitle {
     }
 
     private Dialog incidentDialog(IncidentService incidentService, IncidentItem incidentItem, Runnable onSearch) {
-        return new IncidentDialog(incidentService, incidentItem, onSearch);
+        return new IncidentDialog(incidentService, incidentItem, messageSource, localeService, onSearch);
     }
 
     public String getPageTitle() {

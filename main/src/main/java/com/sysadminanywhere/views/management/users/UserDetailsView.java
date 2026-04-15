@@ -146,7 +146,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
         txtCompany.setReadOnly(true);
         binder.bind(txtCompany, UserEntry::getCompany, null);
 
-        TextField txtTitle = new TextField("Title");
+        TextField txtTitle = new TextField(getMessage("update_user_dialog.job_title"));
         txtTitle.setReadOnly(true);
         binder.bind(txtTitle, UserEntry::getTitle, null);
 
@@ -195,11 +195,11 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
     }
 
     private Dialog updateDialog() {
-        return new UpdateUserDialog(usersService, user, updateRunnable());
+        return new UpdateUserDialog(usersService, user, messageSource, localeService, updateRunnable());
     }
 
     private Dialog updatePhotoDialog() {
-        return new UpdateUserPhotoDialog(usersService, user, updateRunnable());
+        return new UpdateUserPhotoDialog(usersService, user, messageSource, localeService, updateRunnable());
     }
 
     private Dialog resetPasswordForm() {
