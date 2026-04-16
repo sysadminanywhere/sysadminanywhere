@@ -2,6 +2,8 @@ package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.model.wmi.SoftwareEntity;
 import com.sysadminanywhere.service.ComputersService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -18,6 +20,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -29,10 +32,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Software")
 @Route(value = "management/computers/:id?/software")
 @Uses(Icon.class)
-public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
+public class ComputerSoftwareView extends Div implements BeforeEnterObserver, HasDynamicTitle {
 
     private String id;
 
@@ -40,6 +42,8 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
 
     private final Filters filters;
     private final ComputersService computersService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
@@ -47,17 +51,23 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
                 orElse(null);
     }
 
-    public ComputerSoftwareView(ComputersService computersService) {
+    public ComputerSoftwareView(ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
         this.computersService = computersService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid(), computersService);
+        filters = new Filters(() -> refreshGrid(), computersService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
         layout.setSpacing(false);
         add(layout);
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private HorizontalLayout createMobileFilters() {
@@ -69,7 +79,7 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
         mobileFilters.addClassName("mobile-filters");
 
         Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span("Filters");
+        Span filtersHeading = new Span(getMessage("computer_software_view.filters"));
         mobileFilters.add(mobileIcon, filtersHeading);
         mobileFilters.setFlexGrow(1, filtersHeading);
         mobileFilters.addClickListener(e -> {
@@ -87,12 +97,19 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
     public static class Filters extends Div {
 
         private final ComputersService computersService;
+        private final MessageSource messageSource;
+        private final LocaleService localeService;
 
-        private final TextField name = new TextField("Name");
-        private final TextField vendor = new TextField("Vendor");
+        private final TextField name;
+        private final TextField vendor;
 
-        public Filters(Runnable onSearch, ComputersService computersService) {
+        public Filters(Runnable onSearch, ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
             this.computersService = computersService;
+            this.messageSource = messageSource;
+            this.localeService = localeService;
+
+            this.name = new TextField(getMessage("computer_software_view.name"));
+            this.vendor = new TextField(getMessage("computer_software_view.vendor"));
 
             setWidthFull();
             addClassName("filter-layout");
@@ -100,14 +117,14 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
                     LumoUtility.BoxSizing.BORDER);
 
             // Action buttons
-            Button resetBtn = new Button("Reset");
+            Button resetBtn = new Button(getMessage("computer_software_view.reset"));
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 name.clear();
                 vendor.clear();
                 onSearch.run();
             });
-            Button searchBtn = new Button("Search");
+            Button searchBtn = new Button(getMessage("computer_software_view.search"));
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
@@ -125,15 +142,19 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
             return filters;
         }
 
+        private String getMessage(String key) {
+            return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+        }
+
     }
 
     private Component createGrid() {
         grid = new Grid<>(SoftwareEntity.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
-        grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("vendor").setAutoWidth(true);
-        grid.addColumn("version").setAutoWidth(true);
+        grid.addColumn("name").setHeader(getMessage("computer_software_view.name")).setAutoWidth(true);
+        grid.addColumn("vendor").setHeader(getMessage("computer_software_view.vendor")).setAutoWidth(true);
+        grid.addColumn("version").setHeader(getMessage("computer_software_view.version")).setAutoWidth(true);
 
         try {
             grid.setItems(query -> computersService.getSoftware(
@@ -152,6 +173,10 @@ public class ComputerSoftwareView extends Div implements BeforeEnterObserver {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    public String getPageTitle() {
+        return getMessage("computer_software_view.title");
     }
 
 }
