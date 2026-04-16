@@ -40,6 +40,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.context.MessageSource;
 
+import java.util.Locale;
+
 
 @Layout
 @PermitAll
@@ -55,19 +57,21 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     VerticalLayout topMenu;
     VerticalLayout bottomMenu;
 
-    SideNav dashboardSubNavs = new SideNav();
-    SideNav managementSubNavs = new SideNav();
-    SideNav settingsSubNavs = new SideNav();
-    SideNav inventorySubNavs = new SideNav();
-    SideNav incidentsSubNavs = new SideNav();
-    SideNav reportsSubNavs = new SideNav();
-    SideNav accountSubNavs = new SideNav();
-    SideNav automationsSubNavs = new SideNav();
+    SideNav dashboardSubNavs;
+    SideNav managementSubNavs;
+    SideNav settingsSubNavs;
+    SideNav inventorySubNavs;
+    SideNav incidentsSubNavs;
+    SideNav reportsSubNavs;
+    SideNav accountSubNavs;
+    SideNav automationsSubNavs;
 
     String currentTitle = "main_layout.dashboard";
 
     private final MessageSource messageSource;
     private final LocaleService localeService;
+
+    private Locale locale;
 
     public MainLayout(MessageSource messageSource, LocaleService localeService) {
 
@@ -113,10 +117,21 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         addToDrawer(scroller);
         addHeaderContent();
 
+        locale = localeService.getCurrentLocale();
+
         addNavigation();
     }
 
     private void addNavigation() {
+        dashboardSubNavs = new SideNav();
+        managementSubNavs = new SideNav();
+        settingsSubNavs = new SideNav();
+        inventorySubNavs = new SideNav();
+        incidentsSubNavs = new SideNav();
+        reportsSubNavs = new SideNav();
+        accountSubNavs = new SideNav();
+        automationsSubNavs = new SideNav();
+
         topMenu = new VerticalLayout(createSelectedMainButtonItem("main_layout.dashboard", getMessage("main_layout.dashboard"), DashboardView.class, "icons/dashboard.svg"),
                 createMainButtonItem("main_layout.management", getMessage("main_layout.management"), ContainersView.class, "icons/management.svg"),
                 createMainButtonItem("main_layout.incidents", getMessage("main_layout.incidents"), IncidentsView.class, "icons/incident.svg"),
@@ -134,6 +149,13 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         bottomMenu.setHeightFull();
         bottomMenu.setMargin(false);
         bottomMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+
+        int count = Math.toIntExact(buttons.getChildren().count());
+
+        if (count == 3) {
+            buttons.remove(buttons.getComponentAt(count - 1));
+            buttons.remove(buttons.getComponentAt(count - 2));
+        }
 
         buttons.add(topMenu, bottomMenu);
 
@@ -172,7 +194,10 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-
+        if (!locale.equals(localeService.getCurrentLocale())) {
+            locale = localeService.getCurrentLocale();
+            addNavigation();
+        }
     }
 
     @Override
