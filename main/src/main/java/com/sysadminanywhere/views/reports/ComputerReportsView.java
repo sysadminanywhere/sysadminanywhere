@@ -25,6 +25,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 @RolesAllowed("ADMIN")
@@ -81,6 +82,18 @@ public class ComputerReportsView extends Div implements HasDynamicTitle {
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             String json = reader.lines().collect(Collectors.joining("\n"));
             ReportItem[] reports = new ObjectMapper().readValue(json, ReportItem[].class);
+            
+            // Translate report items
+            for (ReportItem report : reports) {
+                report.setName(getMessage(report.getName()));
+                report.setDescription(getMessage(report.getDescription()));
+                String[] translatedNames = new String[report.getNames().length];
+                for (int i = 0; i < report.getNames().length; i++) {
+                    translatedNames[i] = getMessage(report.getNames()[i]);
+                }
+                report.setNames(translatedNames);
+            }
+            
             listBox.setItems(reports);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load reports from computers.json", e);

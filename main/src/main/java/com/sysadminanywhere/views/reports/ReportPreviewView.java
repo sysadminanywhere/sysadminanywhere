@@ -102,6 +102,15 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
                 Optional<ReportItem> item = Arrays.stream(reports).filter(c -> c.getId().equalsIgnoreCase(id)).findFirst();
                 if (item.isPresent()) {
                     reportItem = item.get();
+                    
+                    // Translate report item
+                    reportItem.setName(getMessage(reportItem.getName()));
+                    reportItem.setDescription(getMessage(reportItem.getDescription()));
+                    String[] translatedNames = new String[reportItem.getNames().length];
+                    for (int i = 0; i < reportItem.getNames().length; i++) {
+                        translatedNames[i] = getMessage(reportItem.getNames()[i]);
+                    }
+                    reportItem.setNames(translatedNames);
                 } else {
                     return;
                 }

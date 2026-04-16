@@ -1,43 +1,43 @@
 [ {
   "id" : "groups",
-  "name" : "Groups",
-  "description" : "All groups",
+  "name" : "reports.groups.name",
+  "description" : "reports.groups.description",
   "filter" : "",
   "columns" : ["cn","description"],
-  "names" : ["CN","Description"]
+  "names" : ["reports.columns.cn","reports.columns.description"]
 }, {
   "id" : "domainsecurity",
-  "name" : "Domain security",
-  "description" : "Domain security groups",
+  "name" : "reports.domain_security.name",
+  "description" : "reports.domain_security.description",
   "filter" : "(groupType:1.2.840.113556.1.4.803:=2147483652)",
   "columns" : ["cn","description"],
-  "names" : ["CN","Description"]
+  "names" : ["reports.columns.cn","reports.columns.description"]
 }, {
   "id" : "globaldistribution",
-  "name" : "Global distribution",
-  "description" : "Global distribution groups",
+  "name" : "reports.global_distribution.name",
+  "description" : "reports.global_distribution.description",
   "filter" : "(groupType:1.2.840.113556.1.4.803:=2)(!(groupType:1.2.840.113556.1.4.803:=2147483648))",
   "columns" : ["cn","description"],
-  "names" : ["CN","Description"]
+  "names" : ["reports.columns.cn","reports.columns.description"]
 }, {
   "id" : "globalsecurity",
-  "name" : "Global security",
-  "description" : "Global security groups",
+  "name" : "reports.global_security.name",
+  "description" : "reports.global_security.description",
   "filter" : "(groupType:1.2.840.113556.1.4.803:=2147483650)",
   "columns" : ["cn","description"],
-  "names" : ["CN","Description"]
+  "names" : ["reports.columns.cn","reports.columns.description"]
 }, {
   "id" : "universalsecurity",
-  "name" : "Universal security",
-  "description" : "Universal security groups",
+  "name" : "reports.universal_security.name",
+  "description" : "reports.universal_security.description",
   "filter" : "(groupType:1.2.840.113556.1.4.803:=2147483656)",
   "columns" : ["cn","description"],
-  "names" : ["CN","Description"]
+  "names" : ["reports.columns.cn","reports.columns.description"]
 }, {
   "id" : "created",
-  "name" : "Created",
-  "description" : "Created dates",
+  "name" : "reports.groups_created.name",
+  "description" : "reports.groups_created.description",
   "filter" : "",
   "columns" : ["cn","description","created"],
-  "names" : ["CN","Description", "Created"]
+  "names" : ["reports.columns.cn","reports.columns.description", "reports.columns.created"]
 } ]

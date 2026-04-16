@@ -40,8 +40,6 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.context.MessageSource;
 
-import java.util.Locale;
-
 
 @Layout
 @PermitAll
