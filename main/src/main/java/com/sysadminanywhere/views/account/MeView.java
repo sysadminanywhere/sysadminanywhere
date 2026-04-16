@@ -79,31 +79,31 @@ public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuC
 
         FormLayout formLayout = new FormLayout();
 
-        TextField txtDisplayName = new TextField("Display name");
+        TextField txtDisplayName = new TextField(getMessage("me_view.display_name"));
         txtDisplayName.setReadOnly(true);
         binder.bind(txtDisplayName, UserEntry::getDisplayName, null);
 
-        TextField txtCompany = new TextField("Company");
+        TextField txtCompany = new TextField(getMessage("me_view.company"));
         txtCompany.setReadOnly(true);
         binder.bind(txtCompany, UserEntry::getCompany, null);
 
-        TextField txtTitle = new TextField("Title");
+        TextField txtTitle = new TextField(getMessage("me_view.title_field"));
         txtTitle.setReadOnly(true);
         binder.bind(txtTitle, UserEntry::getTitle, null);
 
-        TextField txtEmail = new TextField("Email");
+        TextField txtEmail = new TextField(getMessage("me_view.email"));
         txtEmail.setReadOnly(true);
         binder.bind(txtEmail, UserEntry::getEmailAddress, null);
 
-        TextField txtMobilePhone = new TextField("Mobile phone");
+        TextField txtMobilePhone = new TextField(getMessage("me_view.mobile_phone"));
         txtMobilePhone.setReadOnly(true);
         binder.bind(txtMobilePhone, UserEntry::getMobilePhone, null);
 
-        TextField txtOfficePhone = new TextField("Office phone");
+        TextField txtOfficePhone = new TextField(getMessage("me_view.office_phone"));
         txtOfficePhone.setReadOnly(true);
         binder.bind(txtOfficePhone, UserEntry::getOfficePhone, null);
 
-        TextField txtHomePhone = new TextField("Home phone");
+        TextField txtHomePhone = new TextField(getMessage("me_view.home_phone"));
         txtHomePhone.setReadOnly(true);
         binder.bind(txtHomePhone, UserEntry::getHomePhone, null);
 
@@ -164,10 +164,10 @@ public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuC
         MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", getMessage("common.edit"), event -> {
             updateDialog().open();
         });
-        MenuHelper.createIconItem(menuBar, "/icons/portrait.svg", "Photo", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/portrait.svg", getMessage("me_view.photo"), event -> {
             updatePhotoDialog().open();
         });
-        MenuHelper.createIconItem(menuBar, "/icons/sign-out.svg", "Sign out", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/sign-out.svg", getMessage("me_view.sign_out"), event -> {
             authenticatedUser.logout();
         });
 

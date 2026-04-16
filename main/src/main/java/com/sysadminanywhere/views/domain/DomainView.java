@@ -89,13 +89,13 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
             ZonedDateTime dateTime = ZonedDateTime.parse(ldapTime, formatter);
 
             Table domainProperties = new Table("");
-            domainProperties.add("Forest functionality", FunctionalLevel.fromValue(domainEntry.getAttributes().get("forestfunctionality").toString()));
-            domainProperties.add("Supported SASL mechanisms", ADHelper.getAttributeAsCommaSeparated(domainEntry, "supportedsaslmechanisms"));
-            domainProperties.add("Supported LDAP version", ADHelper.getAttributeAsCommaSeparated(domainEntry, "supportedldapversion"));
-            domainProperties.add("Domain functionality", FunctionalLevel.fromValue(domainEntry.getAttributes().get("domainfunctionality").toString()));
-            domainProperties.add("Domain controller functionality", FunctionalLevel.fromValue((domainEntry.getAttributes().get("domaincontrollerfunctionality").toString())));
-            domainProperties.add("Current time", dateTime.toString());
-            domainProperties.add("Max password age", ldapService.getMaxPwdAgeDays() + " days");
+            domainProperties.add(getMessage("domain_view.forest_functionality"), FunctionalLevel.fromValue(domainEntry.getAttributes().get("forestfunctionality").toString()));
+            domainProperties.add(getMessage("domain_view.supported_sasl_mechanisms"), ADHelper.getAttributeAsCommaSeparated(domainEntry, "supportedsaslmechanisms"));
+            domainProperties.add(getMessage("domain_view.supported_ldap_version"), ADHelper.getAttributeAsCommaSeparated(domainEntry, "supportedldapversion"));
+            domainProperties.add(getMessage("domain_view.domain_functionality"), FunctionalLevel.fromValue(domainEntry.getAttributes().get("domainfunctionality").toString()));
+            domainProperties.add(getMessage("domain_view.domain_controller_functionality"), FunctionalLevel.fromValue((domainEntry.getAttributes().get("domaincontrollerfunctionality").toString())));
+            domainProperties.add(getMessage("domain_view.current_time"), dateTime.toString());
+            domainProperties.add(getMessage("domain_view.max_password_age"), ldapService.getMaxPwdAgeDays() + " days");
 
             card.add(domainProperties);
         }

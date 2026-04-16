@@ -107,12 +107,12 @@ public class AuditView extends Div implements HasDynamicTitle {
             this.messageSource = messageSource;
             this.localeService = localeService;
 
-            this.name = new TextField("Name");
-            this.action = new ComboBox<>("Action");
-            this.startDate = new DatePicker("Date");
+            this.name = new TextField(getMessage("audit_view.name"));
+            this.action = new ComboBox<>(getMessage("audit_view.action"));
+            this.startDate = new DatePicker(getMessage("audit_view.date"));
             this.endDate = new DatePicker();
 
-            action.setItems(getMessage("common.all"), "Changed", "Created");
+            action.setItems(getMessage("common.all"), getMessage("audit_view.changed"), getMessage("audit_view.created"));
             action.setValue(getMessage("common.all"));
 
             startDate.setValue(LocalDate.now());

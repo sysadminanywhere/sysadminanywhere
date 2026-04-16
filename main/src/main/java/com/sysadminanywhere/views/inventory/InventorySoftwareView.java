@@ -49,7 +49,7 @@ public class InventorySoftwareView extends Div implements HasDynamicTitle {
         addClassNames("gridwith-filters-view");
 
         if (!inventoryService.ping()) {
-            Notification notification = Notification.show(getMessage("common.error") + ": Inventory service is unavailable!");
+            Notification notification = Notification.show(getMessage("common.error") + ": " + getMessage("inventory_software_view.service_unavailable"));
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
             filters = new Filters(() -> refreshGrid(), messageSource, localeService);
@@ -100,8 +100,8 @@ public class InventorySoftwareView extends Div implements HasDynamicTitle {
             this.messageSource = messageSource;
             this.localeService = localeService;
 
-            this.name = new TextField("Name");
-            this.vendor = new TextField("Vendor");
+            this.name = new TextField(getMessage("inventory_software_view.name"));
+            this.vendor = new TextField(getMessage("inventory_software_view.vendor"));
 
             setWidthFull();
             addClassName("filter-layout");
