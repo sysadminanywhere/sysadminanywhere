@@ -69,7 +69,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     private final MessageSource messageSource;
     private final LocaleService localeService;
 
-    public MainLayout(AuthenticatedUser authenticatedUser, MessageSource messageSource, LocaleService localeService) {
+    public MainLayout(MessageSource messageSource, LocaleService localeService) {
 
         this.messageSource = messageSource;
         this.localeService = localeService;
@@ -102,6 +102,21 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         Scroller scroller = new Scroller(drawerContent);
         scroller.setClassName(LumoUtility.Padding.SMALL);
 
+        drawerContent.add(buttons, subNav);
+
+        drawerContent.setHeightFull();
+        scroller.setHeightFull();
+
+        scroller.getStyle().setMargin("0px");
+        scroller.getStyle().setPadding("0px");
+
+        addToDrawer(scroller);
+        addHeaderContent();
+
+        addNavigation();
+    }
+
+    private void addNavigation() {
         topMenu = new VerticalLayout(createSelectedMainButtonItem("main_layout.dashboard", getMessage("main_layout.dashboard"), DashboardView.class, "icons/dashboard.svg"),
                 createMainButtonItem("main_layout.management", getMessage("main_layout.management"), ContainersView.class, "icons/management.svg"),
                 createMainButtonItem("main_layout.incidents", getMessage("main_layout.incidents"), IncidentsView.class, "icons/incident.svg"),
@@ -149,17 +164,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 createSideNavItem(getMessage("main_layout.group_reports"), GroupReportsView.class));
 
         accountSubNavs.addItem(createSideNavItem(getMessage("main_layout.me"), MeView.class));
-
-        drawerContent.add(buttons, subNav);
-
-        drawerContent.setHeightFull();
-        scroller.setHeightFull();
-
-        scroller.getStyle().setMargin("0px");
-        scroller.getStyle().setPadding("0px");
-
-        addToDrawer(scroller);
-        addHeaderContent();
     }
 
     private String getMessage(String key) {
