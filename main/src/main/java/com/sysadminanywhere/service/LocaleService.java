@@ -26,6 +26,8 @@ public class LocaleService {
         String language = settings.getLanguage().toLowerCase();
         return switch (language) {
             case "ru" -> new Locale("ru");
+            case "de" -> new Locale("de");
+            case "fr" -> new Locale("fr");
             default -> new Locale("en");
         };
     }
