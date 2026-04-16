@@ -48,7 +48,7 @@ public class IncidentsView extends Div implements HasDynamicTitle {
         addClassNames("gridwith-filters-view");
 
         if (!incidentService.ping()) {
-            Notification notification = Notification.show(getMessage("common.error") + ": Incidents service is unavailable!");
+            Notification notification = Notification.show(getMessage("common.error") + ": " + getMessage("incidents_view.service_unavailable"));
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
             filters = new IncidentsView.Filters(() -> refreshGrid(), messageSource, localeService);
@@ -99,14 +99,14 @@ public class IncidentsView extends Div implements HasDynamicTitle {
             this.messageSource = messageSource;
             this.localeService = localeService;
 
-            this.severity = new ComboBox<>("Severity");
-            this.status = new ComboBox<>("Status");
+            this.severity = new ComboBox<>(getMessage("incidents_view.severity"));
+            this.status = new ComboBox<>(getMessage("incidents_view.status"));
 
-            severity.setItems("All", "Low", "Medium", "High", "Critical");
-            severity.setValue("All");
+            severity.setItems(getMessage("incidents_view.all"), getMessage("incidents_view.low"), getMessage("incidents_view.medium"), getMessage("incidents_view.high"), getMessage("incidents_view.critical"));
+            severity.setValue(getMessage("incidents_view.all"));
 
-            status.setItems("All", "Open", "In Progress", "Resolved", "False Positive", "Closed");
-            status.setValue("Open");
+            status.setItems(getMessage("incidents_view.all"), getMessage("incidents_view.open"), getMessage("incidents_view.in_progress"), getMessage("incidents_view.resolved"), getMessage("incidents_view.false_positive"), getMessage("incidents_view.closed"));
+            status.setValue(getMessage("incidents_view.open"));
 
             setWidthFull();
             addClassName("filter-layout");
@@ -118,10 +118,10 @@ public class IncidentsView extends Div implements HasDynamicTitle {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 severity.clear();
-                severity.setValue("Critical");
+                severity.setValue(getMessage("incidents_view.critical"));
 
                 status.clear();
-                status.setValue("Open");
+                status.setValue(getMessage("incidents_view.open"));
 
                 onSearch.run();
             });
@@ -140,10 +140,34 @@ public class IncidentsView extends Div implements HasDynamicTitle {
             return messageSource.getMessage(key, null, localeService.getCurrentLocale());
         }
 
+        private Map<String, String> getSeverityReverseMapping() {
+            Map<String, String> mapping = new HashMap<>();
+            mapping.put(getMessage("incidents_view.all"), "ALL");
+            mapping.put(getMessage("incidents_view.low"), "LOW");
+            mapping.put(getMessage("incidents_view.medium"), "MEDIUM");
+            mapping.put(getMessage("incidents_view.high"), "HIGH");
+            mapping.put(getMessage("incidents_view.critical"), "CRITICAL");
+            return mapping;
+        }
+
+        private Map<String, String> getStatusReverseMapping() {
+            Map<String, String> mapping = new HashMap<>();
+            mapping.put(getMessage("incidents_view.all"), "ALL");
+            mapping.put(getMessage("incidents_view.open"), "OPEN");
+            mapping.put(getMessage("incidents_view.in_progress"), "IN_PROGRESS");
+            mapping.put(getMessage("incidents_view.resolved"), "RESOLVED");
+            mapping.put(getMessage("incidents_view.false_positive"), "FALSE_POSITIVE");
+            mapping.put(getMessage("incidents_view.closed"), "CLOSED");
+            return mapping;
+        }
+
         public Map<String, Object> getFilters() {
             Map<String, Object> filters = new HashMap<>();
-            filters.put("severity", severity.getValue().toUpperCase());
-            filters.put("status", status.getValue().toUpperCase().replace(" ", "_"));
+            String severityValue = severity.getValue();
+            String statusValue = status.getValue();
+
+            filters.put("severity", getSeverityReverseMapping().getOrDefault(severityValue, severityValue.toUpperCase()));
+            filters.put("status", getStatusReverseMapping().getOrDefault(statusValue, statusValue.toUpperCase().replace(" ", "_")));
             return filters;
         }
 
@@ -157,11 +181,11 @@ public class IncidentsView extends Div implements HasDynamicTitle {
                         Utils.formatLocalDateTime(incidentItem.getCreatedAt()))
                 .setHeader(getMessage("common.created_at")).setAutoWidth(true);
 
-        grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("machineName").setAutoWidth(true);
-        grid.addColumn("severity").setAutoWidth(true);
-        grid.addColumn("status").setAutoWidth(true);
-        grid.addColumn("recommendation").setAutoWidth(true);
+        grid.addColumn("name").setHeader(getMessage("incidents_view.name")).setAutoWidth(true);
+        grid.addColumn("machineName").setHeader(getMessage("incidents_view.machine_name")).setAutoWidth(true);
+        grid.addColumn("severity").setHeader(getMessage("incidents_view.severity")).setAutoWidth(true);
+        grid.addColumn("status").setHeader(getMessage("incidents_view.status")).setAutoWidth(true);
+        grid.addColumn("recommendation").setHeader(getMessage("incidents_view.recommendation")).setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
                 incidentDialog(incidentService, item.getItem(), this::refreshGrid).open();
