@@ -36,6 +36,12 @@ Web-based services for administering your Active Directory network that provides
 #### Reports
 - More than 20 report
 
+#### Languages
+- English
+- German
+- French
+- Russian
+
 
 > **Note:** This version is not compatible with previous versions!
 
