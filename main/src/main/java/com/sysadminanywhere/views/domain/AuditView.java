@@ -180,10 +180,10 @@ public class AuditView extends Div implements HasDynamicTitle {
 
     private Component createGrid() {
         grid = new Grid<>(AuditDto.class, false);
-        grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("distinguishedName").setAutoWidth(true);
-        grid.addColumn("action").setAutoWidth(true);
-        grid.addColumn("whenChanged").setAutoWidth(true);
+        grid.addColumn("name").setHeader(getMessage("audit_view.name")).setAutoWidth(true);
+        grid.addColumn("distinguishedName").setHeader(getMessage("audit_view.distinguished_name")).setAutoWidth(true);
+        grid.addColumn("action").setHeader(getMessage("audit_view.action")).setAutoWidth(true);
+        grid.addColumn("whenChanged").setHeader(getMessage("audit_view.when_changed")).setAutoWidth(true);
 
         try {
             grid.setItems(query -> ldapService.getAudit(

@@ -6,6 +6,7 @@ import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.service.UsersService;
 import com.sysadminanywhere.service.LocaleService;
+import com.vaadin.flow.router.*;
 import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
@@ -29,10 +30,6 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.binder.Binder;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.component.dialog.Dialog;
 import jakarta.annotation.security.RolesAllowed;
@@ -40,12 +37,11 @@ import jakarta.annotation.security.RolesAllowed;
 import java.io.ByteArrayInputStream;
 
 @RolesAllowed("ADMIN")
-@PageTitle("User details")
 @Route(value = "management/users/:id?/details")
 @Uses(Upload.class)
 @Uses(Icon.class)
 @Uses(ListBox.class)
-public class UserDetailsView extends Div implements BeforeEnterObserver, MenuControl {
+public class UserDetailsView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
 
     private String id;
     private final UsersService usersService;
@@ -138,11 +134,11 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
 
         FormLayout formLayout = new FormLayout();
 
-        TextField txtDisplayName = new TextField("Display name");
+        TextField txtDisplayName = new TextField(getMessage("update_user_dialog.display_name"));
         txtDisplayName.setReadOnly(true);
         binder.bind(txtDisplayName, UserEntry::getDisplayName, null);
 
-        TextField txtCompany = new TextField("Company");
+        TextField txtCompany = new TextField(getMessage("update_user_dialog.company"));
         txtCompany.setReadOnly(true);
         binder.bind(txtCompany, UserEntry::getCompany, null);
 
@@ -150,19 +146,19 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
         txtTitle.setReadOnly(true);
         binder.bind(txtTitle, UserEntry::getTitle, null);
 
-        TextField txtEmail = new TextField("Email");
+        TextField txtEmail = new TextField(getMessage("update_user_dialog.email"));
         txtEmail.setReadOnly(true);
         binder.bind(txtEmail, UserEntry::getEmailAddress, null);
 
-        TextField txtMobilePhone = new TextField("Mobile phone");
+        TextField txtMobilePhone = new TextField(getMessage("update_user_dialog.mobile_phone"));
         txtMobilePhone.setReadOnly(true);
         binder.bind(txtMobilePhone, UserEntry::getMobilePhone, null);
 
-        TextField txtOfficePhone = new TextField("Office phone");
+        TextField txtOfficePhone = new TextField(getMessage("update_user_dialog.office_phone"));
         txtOfficePhone.setReadOnly(true);
         binder.bind(txtOfficePhone, UserEntry::getOfficePhone, null);
 
-        TextField txtHomePhone = new TextField("Home phone");
+        TextField txtHomePhone = new TextField(getMessage("update_user_dialog.home_phone"));
         txtHomePhone.setReadOnly(true);
         binder.bind(txtHomePhone, UserEntry::getHomePhone, null);
 
@@ -299,7 +295,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
 
                 updateView();
 
-                Notification notification = Notification.show("Options changed");
+                Notification notification = Notification.show(getMessage("user_details_view.options_changed"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
                 Notification notification = Notification.show(ex.getMessage());
@@ -322,24 +318,28 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
     @Override
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
-        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", "Update", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", getMessage("user_details_view.update"), event -> {
             updateDialog().open();
         });
-        MenuHelper.createIconItem(menuBar, "/icons/portrait.svg", "Photo", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/portrait.svg", getMessage("user_details_view.photo"), event -> {
             updatePhotoDialog().open();
         });
-        MenuHelper.createIconItem(menuBar, "/icons/options.svg", "Options", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/options.svg", getMessage("user_details_view.options"), event -> {
             optionsForm().open();
         });
-        MenuHelper.createIconItem(menuBar, "/icons/password.svg", "Reset password", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/password.svg", getMessage("user_details_view.reset_password_menu"), event -> {
             resetPasswordForm().open();
         });
-        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("user_details_view.delete"), event -> {
             deleteDialog().open();
         });
 
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
         return menuBar;
+    }
+
+    public String getPageTitle() {
+        return getMessage("user_details_view.title");
     }
 }

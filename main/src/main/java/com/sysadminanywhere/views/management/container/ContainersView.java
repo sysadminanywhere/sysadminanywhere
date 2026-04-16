@@ -181,16 +181,16 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
         MenuItem menuAdd = menuBar.addItem(getMessage("common.new"));
 
         SubMenu subMenu = menuAdd.getSubMenu();
-        subMenu.addItem(getMessage("main_layout.users"), menuItemClickEvent -> {
+        subMenu.addItem(getMessage("containers_view.user"), menuItemClickEvent -> {
             addUserDialog(this::refreshGrid).open();
         });
-        subMenu.addItem(getMessage("main_layout.computers"), menuItemClickEvent -> {
+        subMenu.addItem(getMessage("containers_view.computer"), menuItemClickEvent -> {
             addComputerDialog(this::refreshGrid).open();
         });
-        subMenu.addItem(getMessage("main_layout.groups"), menuItemClickEvent -> {
+        subMenu.addItem(getMessage("containers_view.group"), menuItemClickEvent -> {
             addGroupDialog(this::refreshGrid).open();
         });
-        subMenu.addItem(getMessage("main_layout.contacts"), menuItemClickEvent -> {
+        subMenu.addItem(getMessage("containers_view.contact"), menuItemClickEvent -> {
             addContactDialog(this::refreshGrid).open();
         });
 

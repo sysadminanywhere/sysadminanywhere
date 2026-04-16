@@ -50,7 +50,7 @@ public class AutomationsView extends Div implements MenuControl, HasDynamicTitle
         addClassNames("gridwith-filters-view");
 
         if (!workflowsService.ping()) {
-            Notification notification = Notification.show(getMessage("common.error") + ": N8n service is unavailable!");
+            Notification notification = Notification.show(getMessage("common.error") + ": " + getMessage("automations_view.service_unavailable"));
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
             filters = new Filters(() -> refreshGrid(), workflowsService, messageSource, localeService);
@@ -121,7 +121,7 @@ public class AutomationsView extends Div implements MenuControl, HasDynamicTitle
             this.messageSource = messageSource;
             this.localeService = localeService;
 
-            this.cn = new TextField("Name");
+            this.cn = new TextField(getMessage("automations_view.name"));
             this.availability = new ComboBox<>(getMessage("common.filters"));
 
             setWidthFull();
@@ -145,10 +145,12 @@ public class AutomationsView extends Div implements MenuControl, HasDynamicTitle
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            availability.setItems("All", "Active", "Inactive");
-            availability.setValue("All");
+            availability.setItems(getMessage("automations_view.all"), getMessage("automations_view.active"), getMessage("automations_view.inactive"));
+            availability.setValue(getMessage("automations_view.all"));
 
-            add(cn, availability, actions);
+            //availability.setItems("All", "Active", "Inactive");
+
+            add(cn, /* availability, */ actions);
         }
 
         private String getMessage(String key) {
@@ -166,9 +168,9 @@ public class AutomationsView extends Div implements MenuControl, HasDynamicTitle
         grid = new Grid<>(Workflow.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
-        grid.addColumn("id").setAutoWidth(true);
-        grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("description").setAutoWidth(true);
+        grid.addColumn("id").setHeader(getMessage("automations_view.id")).setAutoWidth(true);
+        grid.addColumn("name").setHeader(getMessage("automations_view.name")).setAutoWidth(true);
+        grid.addColumn("description").setHeader(getMessage("automations_view.description")).setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->

@@ -50,7 +50,7 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
         addClassNames("gridwith-filters-view");
 
         if (!inventoryService.ping()) {
-            Notification notification = Notification.show(getMessage("common.error") + ": Inventory service is unavailable!");
+            Notification notification = Notification.show(getMessage("common.error") + ": " + getMessage("inventory_hardware_view.service_unavailable"));
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
             filters = new Filters(() -> refreshGrid(), messageSource, localeService);
@@ -96,16 +96,28 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
         private final TextField name;
         private final MessageSource messageSource;
         private final LocaleService localeService;
+        private final Map<String, String> translationToEnglishMap;
 
         public Filters(Runnable onSearch, MessageSource messageSource, LocaleService localeService) {
             this.messageSource = messageSource;
             this.localeService = localeService;
 
-            this.hardwareType = new ComboBox<>("Type");
-            this.name = new TextField("Name");
+            this.hardwareType = new ComboBox<>(getMessage("inventory_hardware_view.type"));
+            this.name = new TextField(getMessage("inventory_hardware_view.name"));
 
-            hardwareType.setItems("Computer System", "BIOS", "Base Board", "Disk Drive", "Operating System", "Processor", "Video Controller", "Physical Memory");
-            hardwareType.setValue("Computer System");
+            // Create reverse mapping from translated values to English keys
+            this.translationToEnglishMap = new java.util.HashMap<>();
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.computer_system"), "Computer System");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.bios"), "BIOS");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.base_board"), "Base Board");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.disk_drive"), "Disk Drive");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.operating_system"), "Operating System");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.processor"), "Processor");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.video_controller"), "Video Controller");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.physical_memory"), "Physical Memory");
+
+            hardwareType.setItems(getMessage("inventory_hardware_view.computer_system"), getMessage("inventory_hardware_view.bios"), getMessage("inventory_hardware_view.base_board"), getMessage("inventory_hardware_view.disk_drive"), getMessage("inventory_hardware_view.operating_system"), getMessage("inventory_hardware_view.processor"), getMessage("inventory_hardware_view.video_controller"), getMessage("inventory_hardware_view.physical_memory"));
+            hardwareType.setValue(getMessage("inventory_hardware_view.computer_system"));
 
             setWidthFull();
             addClassName("filter-layout");
@@ -119,7 +131,7 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
                 name.clear();
 
                 hardwareType.clear();
-                hardwareType.setValue("Computer System");
+                hardwareType.setValue(getMessage("inventory_hardware_view.computer_system"));
 
                 onSearch.run();
             });
@@ -141,7 +153,10 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
         public Map<String, String> getFilters() {
             Map<String, String> filters = new HashMap<>();
             filters.put("name", name.getValue());
-            filters.put("type", hardwareType.getValue().replace(" ", ""));
+
+            String selectedValue = hardwareType.getValue();
+            String englishValue = translationToEnglishMap.getOrDefault(selectedValue, selectedValue);
+            filters.put("type", englishValue.replace(" ", ""));
             return filters;
         }
 
@@ -151,8 +166,8 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
         grid = new Grid<>(HardwareItem.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
-        grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("type").setAutoWidth(true);
+        grid.addColumn("name").setHeader(getMessage("inventory_hardware_view.name")).setAutoWidth(true);
+        grid.addColumn("type").setHeader(getMessage("inventory_hardware_view.type")).setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->

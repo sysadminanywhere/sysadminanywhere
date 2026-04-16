@@ -28,17 +28,17 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Group details")
 @Route(value = "management/groups/:id?/details")
 @Uses(Icon.class)
 @Uses(ListBox.class)
 @Uses(TabSheet.class)
-public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuControl {
+public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
 
     private String id;
     private final GroupsService groupsService;
@@ -121,7 +121,7 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
 
         FormLayout formLayout = new FormLayout();
 
-        TextField txtGroupType = new TextField("Group type");
+        TextField txtGroupType = new TextField(getMessage("group_details_view.group_type"));
         binder.bind(txtGroupType, GroupEntry::getADGroupType, null);
         txtGroupType.setReadOnly(true);
 
@@ -160,16 +160,20 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
     @Override
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
-        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", "Update", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", getMessage("group_details_view.update"), event -> {
             updateDialog().open();
         });
-        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("group_details_view.delete"), event -> {
             deleteDialog().open();
         });
 
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
         return menuBar;
+    }
+
+    public String getPageTitle() {
+        return getMessage("group_details_view.title");
     }
 
 }

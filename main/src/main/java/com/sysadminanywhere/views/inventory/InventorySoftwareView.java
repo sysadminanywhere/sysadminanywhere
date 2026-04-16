@@ -144,10 +144,10 @@ public class InventorySoftwareView extends Div implements HasDynamicTitle {
         grid = new Grid<>(SoftwareCount.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
-        grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("vendor").setAutoWidth(true);
-        grid.addColumn("version").setAutoWidth(true);
-        grid.addColumn("count").setAutoWidth(true);
+        grid.addColumn("name").setHeader(getMessage("inventory_software_view.name")).setAutoWidth(true);
+        grid.addColumn("vendor").setHeader(getMessage("inventory_software_view.vendor")).setAutoWidth(true);
+        grid.addColumn("version").setHeader(getMessage("inventory_software_view.version")).setAutoWidth(true);
+        grid.addColumn("count").setHeader(getMessage("inventory_software_view.count")).setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->

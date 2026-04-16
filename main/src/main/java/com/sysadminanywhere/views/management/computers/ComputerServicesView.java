@@ -26,6 +26,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -37,11 +38,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Services")
 @Route(value = "management/computers/:id?/services")
 @Uses(Icon.class)
 @Uses(TextArea.class)
-public class ComputerServicesView extends Div implements BeforeEnterObserver, MenuControl {
+public class ComputerServicesView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
 
     private String id;
 
@@ -65,7 +65,7 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver, Me
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid(), computersService);
+        filters = new Filters(() -> refreshGrid(), computersService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
@@ -86,7 +86,7 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver, Me
         mobileFilters.addClassName("mobile-filters");
 
         Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span("Filters");
+        Span filtersHeading = new Span(getMessage("computer_services_view.filters"));
         mobileFilters.add(mobileIcon, filtersHeading);
         mobileFilters.setFlexGrow(1, filtersHeading);
         mobileFilters.addClickListener(e -> {
@@ -104,11 +104,17 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver, Me
     public static class Filters extends Div {
 
         private final ComputersService computersService;
+        private final MessageSource messageSource;
+        private final LocaleService localeService;
 
-        private final TextField caption = new TextField("Caption");
+        private final TextField caption;
 
-        public Filters(Runnable onSearch, ComputersService computersService) {
+        public Filters(Runnable onSearch, ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
             this.computersService = computersService;
+            this.messageSource = messageSource;
+            this.localeService = localeService;
+
+            this.caption = new TextField(getMessage("computer_services_view.caption"));
 
             setWidthFull();
             addClassName("filter-layout");
@@ -116,13 +122,13 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver, Me
                     LumoUtility.BoxSizing.BORDER);
 
             // Action buttons
-            Button resetBtn = new Button("Reset");
+            Button resetBtn = new Button(getMessage("computer_services_view.reset"));
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 caption.clear();
                 onSearch.run();
             });
-            Button searchBtn = new Button("Search");
+            Button searchBtn = new Button(getMessage("computer_services_view.search"));
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
@@ -139,14 +145,18 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver, Me
             return filters;
         }
 
+        private String getMessage(String key) {
+            return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+        }
+
     }
 
     private Component createGrid() {
         grid = new Grid<>(ServiceEntity.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
-        grid.addColumn("caption").setAutoWidth(true);
-        grid.addColumn("description").setAutoWidth(true);
+        grid.addColumn("caption").setHeader(getMessage("computer_services_view.name")).setAutoWidth(true);
+        grid.addColumn("description").setHeader(getMessage("computer_services_view.description")).setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
             showDialog(item.getItem()).open();
@@ -174,7 +184,7 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver, Me
     private Dialog showDialog(ServiceEntity service) {
         Dialog dialog = new Dialog();
 
-        dialog.setHeaderTitle(getMessage("computer_services_view.title"));
+        dialog.setHeaderTitle(getMessage("computer_services_view.dialog_title"));
         dialog.setMaxWidth("800px");
 
         FormLayout formLayout = new FormLayout();
@@ -236,12 +246,16 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver, Me
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
 
-        MenuHelper.createIconItem(menuBar,"/icons/refresh.svg", menuItemClickEvent -> {
+        MenuHelper.createIconItem(menuBar,"/icons/refresh.svg", getMessage("computer_services_view.refresh"), menuItemClickEvent -> {
             computersService.clearServices(filters.getFilters(), id);
             refreshGrid();
         });
 
         return menuBar;
+    }
+
+    public String getPageTitle() {
+        return getMessage("computer_services_view.title");
     }
 
 }

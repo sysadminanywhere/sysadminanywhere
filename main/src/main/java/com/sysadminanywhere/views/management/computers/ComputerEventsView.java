@@ -26,6 +26,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -38,12 +39,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Events")
 @Route(value = "management/computers/:id?/events")
 @Uses(Icon.class)
 @Uses(DatePicker.class)
 @Uses(TextArea.class)
-public class ComputerEventsView extends Div implements BeforeEnterObserver, MenuControl {
+public class ComputerEventsView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
 
     private String id;
 
@@ -67,7 +67,7 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid(), computersService);
+        filters = new Filters(() -> refreshGrid(), computersService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
@@ -88,7 +88,7 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
         mobileFilters.addClassName("mobile-filters");
 
         Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span("Filters");
+        Span filtersHeading = new Span(getMessage("computer_events_view.filters"));
         mobileFilters.add(mobileIcon, filtersHeading);
         mobileFilters.setFlexGrow(1, filtersHeading);
         mobileFilters.addClickListener(e -> {
@@ -106,16 +106,33 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
     public static class Filters extends Div {
 
         private final ComputersService computersService;
+        private final MessageSource messageSource;
+        private final LocaleService localeService;
+        private final java.util.Map<String, String> translationToEnglishMap;
 
-        private final TextField sourceName = new TextField("Source name");
-        private final ComboBox<String> eventType = new ComboBox<>("Event type");
-        private final DatePicker datePicker = new DatePicker("Date");
+        private final TextField sourceName;
+        private final ComboBox<String> eventType;
+        private final DatePicker datePicker;
 
-        public Filters(Runnable onSearch, ComputersService computersService) {
+        public Filters(Runnable onSearch, ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
             this.computersService = computersService;
+            this.messageSource = messageSource;
+            this.localeService = localeService;
 
-            eventType.setItems("Error", "Warning", "Information", "Audit Success", "Audit Failure", "All");
-            eventType.setValue("Error");
+            this.translationToEnglishMap = new java.util.HashMap<>();
+            translationToEnglishMap.put(getMessage("computer_events_view.error"), "Error");
+            translationToEnglishMap.put(getMessage("computer_events_view.warning"), "Warning");
+            translationToEnglishMap.put(getMessage("computer_events_view.information"), "Information");
+            translationToEnglishMap.put(getMessage("computer_events_view.audit_success"), "Audit Success");
+            translationToEnglishMap.put(getMessage("computer_events_view.audit_failure"), "Audit Failure");
+            translationToEnglishMap.put(getMessage("computer_events_view.all"), "All");
+
+            this.sourceName = new TextField(getMessage("computer_events_view.source_name"));
+            this.eventType = new ComboBox<>(getMessage("computer_events_view.event_type"));
+            this.datePicker = new DatePicker(getMessage("computer_events_view.date"));
+
+            eventType.setItems(getMessage("computer_events_view.error"), getMessage("computer_events_view.warning"), getMessage("computer_events_view.information"), getMessage("computer_events_view.audit_success"), getMessage("computer_events_view.audit_failure"), getMessage("computer_events_view.all"));
+            eventType.setValue(getMessage("computer_events_view.error"));
 
             datePicker.setValue(LocalDate.now());
 
@@ -125,20 +142,20 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
                     LumoUtility.BoxSizing.BORDER);
 
             // Action buttons
-            Button resetBtn = new Button("Reset");
+            Button resetBtn = new Button(getMessage("computer_events_view.reset"));
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 sourceName.clear();
 
                 eventType.clear();
-                eventType.setValue("Errors");
+                eventType.setValue(getMessage("computer_events_view.error"));
 
                 datePicker.clear();
                 datePicker.setValue(LocalDate.now());
 
                 onSearch.run();
             });
-            Button searchBtn = new Button("Search");
+            Button searchBtn = new Button(getMessage("computer_events_view.search"));
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
@@ -152,9 +169,15 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
         public Map<String, String> getFilters() {
             Map<String, String> filters = new HashMap<>();
             filters.put("sourceName", sourceName.getValue());
-            filters.put("eventType", eventType.getValue());
+            String selectedEventType = eventType.getValue();
+            String englishEventType = translationToEnglishMap.getOrDefault(selectedEventType, selectedEventType);
+            filters.put("eventType", englishEventType);
             filters.put("date", datePicker.getValue().toString());
             return filters;
+        }
+
+        private String getMessage(String key) {
+            return messageSource.getMessage(key, null, localeService.getCurrentLocale());
         }
 
     }
@@ -163,10 +186,10 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
         grid = new Grid<>(EventEntity.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
-        grid.addColumn("sourceName").setAutoWidth(true);
-        grid.addColumn("type").setAutoWidth(true);
-        grid.addColumn("timeGenerated").setAutoWidth(true);
-        grid.addColumn("logfile").setAutoWidth(true);
+        grid.addColumn("sourceName").setHeader(getMessage("computer_events_view.source_name")).setAutoWidth(true);
+        grid.addColumn("type").setHeader(getMessage("computer_events_view.event_type")).setAutoWidth(true);
+        grid.addColumn("timeGenerated").setHeader(getMessage("computer_events_view.time_generated")).setAutoWidth(true);
+        grid.addColumn("logfile").setHeader(getMessage("computer_events_view.log_file")).setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
             showDialog(item.getItem()).open();
@@ -189,7 +212,7 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
     private Dialog showDialog(EventEntity event) {
         Dialog dialog = new Dialog();
 
-        dialog.setHeaderTitle(getMessage("computer_events_view.title"));
+        dialog.setHeaderTitle(getMessage("computer_events_view.dialog_title"));
         dialog.setMaxWidth("800px");
 
         FormLayout formLayout = new FormLayout();
@@ -230,12 +253,16 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
 
-        MenuHelper.createIconItem(menuBar,"/icons/refresh.svg", menuItemClickEvent -> {
+        MenuHelper.createIconItem(menuBar,"/icons/refresh.svg", getMessage("computer_events_view.refresh"), menuItemClickEvent -> {
             computersService.clearEvents(filters.getFilters(), id);
             refreshGrid();
         });
 
         return menuBar;
+    }
+
+    public String getPageTitle() {
+        return getMessage("computer_events_view.title");
     }
 
 }
