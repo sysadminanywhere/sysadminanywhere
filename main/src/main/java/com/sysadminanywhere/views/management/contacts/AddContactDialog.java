@@ -1,7 +1,7 @@
 package com.sysadminanywhere.views.management.contacts;
 
-import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
+import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.service.ContactsService;
 import com.sysadminanywhere.service.LocaleService;
 import org.springframework.context.MessageSource;
@@ -29,7 +29,7 @@ public class AddContactDialog extends Dialog {
 
         FormLayout formLayout = new FormLayout();
 
-        ContainerField containerField = new ContainerField(contactsService.getLdapService());
+        ContainerField containerField = new ContainerField(contactsService.getLdapService(), messageSource, localeService);
         containerField.setValue(contactsService.getDefaultContainer());
         formLayout.setColspan(containerField, 2);
 

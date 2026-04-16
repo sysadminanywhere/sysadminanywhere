@@ -4,6 +4,8 @@ import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.model.GroupItem;
 import com.sysadminanywhere.service.LdapService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.HasComponents;
 import com.vaadin.flow.component.HasSize;
@@ -26,6 +28,8 @@ import java.util.List;
 public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
 
     LdapService ldapService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     ListBox<GroupItem> listMemberOf = new ListBox<>();
     List<GroupItem> items;
@@ -38,7 +42,9 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
     EntryDto entry;
     private final String selected = "";
 
-    public MemberOf() {
+    public MemberOf(MessageSource messageSource, LocaleService localeService) {
+        this.messageSource = messageSource;
+        this.localeService = localeService;
         setMinWidth("300px");
 
         listMemberOf.setRenderer(new TextRenderer<>(GroupItem::getName));
@@ -98,7 +104,7 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
             deleteDialog(listMemberOf.getValue()).open();
         });
 
-        H5 title = new H5("Member of");
+        H5 title = new H5(getMessage("member_of.title"));
         title.getStyle().setMarginTop("10px");
         title.setWidth("50%");
 
@@ -118,12 +124,12 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
 
     private ConfirmDialog deleteDialog(GroupItem group) {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Delete");
-        dialog.setText("Are you sure you want to remove from this group?");
+        dialog.setHeader(getMessage("member_of.delete"));
+        dialog.setText(getMessage("member_of.delete_confirmation"));
 
         dialog.setCancelable(true);
 
-        dialog.setConfirmText("Delete");
+        dialog.setConfirmText(getMessage("member_of.delete"));
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {
@@ -141,7 +147,7 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
     private Dialog addDialog() {
         Dialog dialog = new Dialog();
 
-        dialog.setHeaderTitle("Groups");
+        dialog.setHeaderTitle(getMessage("member_of.groups"));
         dialog.setWidth("600px");
         dialog.setHeight("500px");
 
@@ -150,7 +156,7 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
 
         groups.setRenderer(new TextRenderer<>(GroupItem::getName));
 
-        Button saveButton = new Button("Add", e -> {
+        Button saveButton = new Button(getMessage("member_of.add"), e -> {
             boolean result = ldapService.addMember(entry.getDn(), groups.getValue().getDistinguishedName());
 
             if (result) {
@@ -163,7 +169,7 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
         saveButton.setEnabled(false);
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        Button cancelButton = new Button("Cancel", e -> dialog.close());
+        Button cancelButton = new Button(getMessage("member_of.cancel"), e -> dialog.close());
 
         List<EntryDto> result = ldapService.search("(objectClass=group)");
 
@@ -183,6 +189,10 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
         dialog.getFooter().add(saveButton);
 
         return dialog;
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
 }

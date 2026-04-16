@@ -1,7 +1,7 @@
 package com.sysadminanywhere.views.management.computers;
 
-import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
+import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.service.LocaleService;
 import org.springframework.context.MessageSource;
@@ -31,7 +31,7 @@ public class AddComputerDialog extends Dialog {
 
         FormLayout formLayout = new FormLayout();
 
-        ContainerField containerField = new ContainerField(computersService.getLdapService());
+        ContainerField containerField = new ContainerField(computersService.getLdapService(), messageSource, localeService);
         containerField.setValue(computersService.getDefaultContainer());
         formLayout.setColspan(containerField, 2);
 

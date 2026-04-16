@@ -1,7 +1,7 @@
 package com.sysadminanywhere.views.management.computers;
 
-import com.sysadminanywhere.model.wmi.ComputerSystemEntity;
 import com.sysadminanywhere.control.MemberOf;
+import com.sysadminanywhere.model.wmi.ComputerSystemEntity;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
@@ -32,7 +32,6 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 
@@ -53,7 +52,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
-    MemberOf memberOf = new MemberOf();
+    MemberOf memberOf;
 
     Binder<ComputerEntry> binder = new Binder<>(ComputerEntry.class);
     Binder<String> binder2 = new Binder<>(String.class);
@@ -110,6 +109,8 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
         this.computersService = computersService;
         this.messageSource = messageSource;
         this.localeService = localeService;
+
+        memberOf = new MemberOf(messageSource, localeService);
 
         addClassName("users-view");
 

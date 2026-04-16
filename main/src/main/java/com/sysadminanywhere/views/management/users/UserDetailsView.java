@@ -52,7 +52,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
     H3 lblName = new H3();
     H5 lblDescription = new H5();
     Avatar avatar = new Avatar();
-    MemberOf memberOf = new MemberOf();
+    MemberOf memberOf;
 
     Binder<UserEntry> binder = new Binder<>(UserEntry.class);
 
@@ -104,6 +104,8 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
         this.usersService = usersService;
         this.messageSource = messageSource;
         this.localeService = localeService;
+
+        memberOf = new MemberOf(messageSource, localeService);
 
         addClassName("users-view");
 

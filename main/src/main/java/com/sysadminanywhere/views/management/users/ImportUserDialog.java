@@ -46,7 +46,7 @@ public class ImportUserDialog extends Dialog {
 
         FormLayout formLayout = new FormLayout();
 
-        ContainerField containerField = new ContainerField(usersService.getLdapService());
+        ContainerField containerField = new ContainerField(usersService.getLdapService(), messageSource, localeService);
         containerField.setValue(usersService.getDefaultContainer());
         formLayout.setColspan(containerField, 2);
 

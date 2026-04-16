@@ -29,7 +29,6 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 
@@ -48,8 +47,8 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
-    MemberOf memberOf = new MemberOf();
-    Members members = new Members();
+    MemberOf memberOf;
+    Members members;
 
     Binder<GroupEntry> binder = new Binder<>(GroupEntry.class);
 
@@ -94,6 +93,9 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
         this.groupsService = groupsService;
         this.messageSource = messageSource;
         this.localeService = localeService;
+
+        memberOf = new MemberOf(messageSource, localeService);
+        members = new Members(messageSource, localeService);
 
         addClassName("users-view");
 

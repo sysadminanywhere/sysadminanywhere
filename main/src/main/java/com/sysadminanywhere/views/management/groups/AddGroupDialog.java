@@ -1,8 +1,8 @@
 package com.sysadminanywhere.views.management.groups;
 
-import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.model.GroupScope;
+import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.service.GroupsService;
 import com.sysadminanywhere.service.LocaleService;
 import org.springframework.context.MessageSource;
@@ -32,7 +32,7 @@ public class AddGroupDialog extends Dialog {
 
         FormLayout formLayout = new FormLayout();
 
-        ContainerField containerField = new ContainerField(groupsService.getLdapService());
+        ContainerField containerField = new ContainerField(groupsService.getLdapService(), messageSource, localeService);
         containerField.setValue(groupsService.getDefaultContainer());
         formLayout.setColspan(containerField, 2);
 
