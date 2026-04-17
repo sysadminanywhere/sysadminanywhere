@@ -1,6 +1,7 @@
 package com.sysadminanywhere.e2e;
 
 import com.sysadminanywhere.e2e.steps.AuditViewStep;
+import com.sysadminanywhere.e2e.steps.ContainersViewStep;
 import com.sysadminanywhere.e2e.steps.DashboardViewStep;
 import com.sysadminanywhere.e2e.steps.DomainViewStep;
 import com.sysadminanywhere.e2e.steps.LoginStep;
@@ -29,5 +30,9 @@ public class E2ETest extends BaseTest {
         // Step 4: Navigate to AuditView
         AuditViewStep auditViewStep = new AuditViewStep(page);
         auditViewStep.execute();
+
+        // Step 5: Navigate to ContainersView
+        ContainersViewStep containersViewStep = new ContainersViewStep(page);
+        containersViewStep.execute();
     }
 }
