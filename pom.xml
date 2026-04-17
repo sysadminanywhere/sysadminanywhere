@@ -16,6 +16,7 @@
         <module>inventory</module>
         <module>incident</module>
         <module>main</module>
+        <module>e2e-tests</module>
     </modules>
 
     <parent>
