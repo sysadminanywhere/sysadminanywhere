@@ -1,12 +1,16 @@
 package com.sysadminanywhere.e2e;
 
 import com.sysadminanywhere.e2e.steps.AuditViewStep;
+import com.sysadminanywhere.e2e.steps.AutomationsViewStep;
 import com.sysadminanywhere.e2e.steps.ComputersViewStep;
 import com.sysadminanywhere.e2e.steps.ContactsViewStep;
 import com.sysadminanywhere.e2e.steps.ContainersViewStep;
 import com.sysadminanywhere.e2e.steps.DashboardViewStep;
 import com.sysadminanywhere.e2e.steps.DomainViewStep;
 import com.sysadminanywhere.e2e.steps.GroupsViewStep;
+import com.sysadminanywhere.e2e.steps.IncidentsViewStep;
+import com.sysadminanywhere.e2e.steps.InventoryHardwareViewStep;
+import com.sysadminanywhere.e2e.steps.InventoryViewStep;
 import com.sysadminanywhere.e2e.steps.LoginStep;
 import com.sysadminanywhere.e2e.steps.PrintersViewStep;
 import com.sysadminanywhere.e2e.steps.UsersViewStep;
@@ -59,5 +63,21 @@ public class E2ETest extends BaseTest {
         // Step 10: Navigate to ContactsView
         ContactsViewStep contactsViewStep = new ContactsViewStep(page);
         contactsViewStep.execute();
+
+        // Step 11: Navigate to IncidentsView
+        IncidentsViewStep incidentsViewStep = new IncidentsViewStep(page);
+        incidentsViewStep.execute();
+
+        // Step 12: Navigate to AutomationsView
+        AutomationsViewStep automationsViewStep = new AutomationsViewStep(page);
+        automationsViewStep.execute();
+
+        // Step 13: Navigate to InventoryView
+        InventoryViewStep inventoryViewStep = new InventoryViewStep(page);
+        inventoryViewStep.execute();
+
+        // Step 14: Navigate to InventoryHardwareView
+        InventoryHardwareViewStep inventoryHardwareViewStep = new InventoryHardwareViewStep(page);
+        inventoryHardwareViewStep.execute();
     }
 }
