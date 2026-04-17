@@ -1,18 +1,27 @@
 package com.sysadminanywhere.e2e;
 
+import com.sysadminanywhere.e2e.steps.AboutViewStep;
+import com.sysadminanywhere.e2e.steps.AccountViewStep;
 import com.sysadminanywhere.e2e.steps.AuditViewStep;
 import com.sysadminanywhere.e2e.steps.AutomationsViewStep;
+import com.sysadminanywhere.e2e.steps.ComputerReportsViewStep;
 import com.sysadminanywhere.e2e.steps.ComputersViewStep;
 import com.sysadminanywhere.e2e.steps.ContactsViewStep;
 import com.sysadminanywhere.e2e.steps.ContainersViewStep;
 import com.sysadminanywhere.e2e.steps.DashboardViewStep;
 import com.sysadminanywhere.e2e.steps.DomainViewStep;
+import com.sysadminanywhere.e2e.steps.GroupReportsViewStep;
 import com.sysadminanywhere.e2e.steps.GroupsViewStep;
 import com.sysadminanywhere.e2e.steps.IncidentsViewStep;
 import com.sysadminanywhere.e2e.steps.InventoryHardwareViewStep;
 import com.sysadminanywhere.e2e.steps.InventoryViewStep;
 import com.sysadminanywhere.e2e.steps.LoginStep;
+import com.sysadminanywhere.e2e.steps.MeViewStep;
 import com.sysadminanywhere.e2e.steps.PrintersViewStep;
+import com.sysadminanywhere.e2e.steps.ReportsViewStep;
+import com.sysadminanywhere.e2e.steps.SettingsSettingsViewStep;
+import com.sysadminanywhere.e2e.steps.SettingsViewStep;
+import com.sysadminanywhere.e2e.steps.UsersReportsViewStep;
 import com.sysadminanywhere.e2e.steps.UsersViewStep;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -79,5 +88,41 @@ public class E2ETest extends BaseTest {
         // Step 14: Navigate to InventoryHardwareView
         InventoryHardwareViewStep inventoryHardwareViewStep = new InventoryHardwareViewStep(page);
         inventoryHardwareViewStep.execute();
+
+        // Step 15: Navigate to ReportsView
+        ReportsViewStep reportsViewStep = new ReportsViewStep(page);
+        reportsViewStep.execute();
+
+        // Step 16: Navigate to UsersReportsView
+        UsersReportsViewStep usersReportsViewStep = new UsersReportsViewStep(page);
+        usersReportsViewStep.execute();
+
+        // Step 17: Navigate to ComputerReportsView
+        ComputerReportsViewStep computerReportsViewStep = new ComputerReportsViewStep(page);
+        computerReportsViewStep.execute();
+
+        // Step 18: Navigate to GroupReportsView
+        GroupReportsViewStep groupReportsViewStep = new GroupReportsViewStep(page);
+        groupReportsViewStep.execute();
+
+        // Step 19: Navigate to AccountView
+        AccountViewStep accountViewStep = new AccountViewStep(page);
+        accountViewStep.execute();
+
+        // Step 20: Navigate to MeView
+        MeViewStep meViewStep = new MeViewStep(page);
+        meViewStep.execute();
+
+        // Step 21: Navigate to SettingsView
+        SettingsViewStep settingsViewStep = new SettingsViewStep(page);
+        settingsViewStep.execute();
+
+        // Step 22: Navigate to SettingsSettingsView
+        SettingsSettingsViewStep settingsSettingsViewStep = new SettingsSettingsViewStep(page);
+        settingsSettingsViewStep.execute();
+
+        // Step 23: Navigate to AboutView
+        AboutViewStep aboutViewStep = new AboutViewStep(page);
+        aboutViewStep.execute();
     }
 }
