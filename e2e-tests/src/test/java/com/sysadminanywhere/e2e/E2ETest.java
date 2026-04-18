@@ -70,9 +70,27 @@ public class E2ETest extends BaseTest {
         ComputersViewStep computersViewStep = new ComputersViewStep(page);
         computersViewStep.execute();
 
+        // Step 7.1: Create new computer
+        computersViewStep.createNewComputer();
+
+        // Step 7.2: Edit the created computer
+        computersViewStep.editComputer();
+
+        // Step 7.3: Delete the computer
+        computersViewStep.deleteComputer();
+
         // Step 8: Navigate to GroupsView
         GroupsViewStep groupsViewStep = new GroupsViewStep(page);
         groupsViewStep.execute();
+
+        // Step 8.1: Create new group
+        groupsViewStep.createNewGroup();
+
+        // Step 8.2: Edit the created group
+        groupsViewStep.editGroup();
+
+        // Step 8.3: Delete the group
+        groupsViewStep.deleteGroup();
 
         // Step 9: Navigate to PrintersView
         PrintersViewStep printersViewStep = new PrintersViewStep(page);
@@ -81,6 +99,15 @@ public class E2ETest extends BaseTest {
         // Step 10: Navigate to ContactsView
         ContactsViewStep contactsViewStep = new ContactsViewStep(page);
         contactsViewStep.execute();
+
+        // Step 10.1: Create new contact
+        contactsViewStep.createNewContact();
+
+        // Step 10.2: Edit the created contact
+        contactsViewStep.editContact();
+
+        // Step 10.3: Delete the contact
+        contactsViewStep.deleteContact();
 
         // Step 11: Navigate to IncidentsView
         IncidentsViewStep incidentsViewStep = new IncidentsViewStep(page);
