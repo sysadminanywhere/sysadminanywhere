@@ -31,7 +31,7 @@ public class E2ETest extends BaseTest {
     @Test
     @EnabledIfSystemProperty(named = "e2e.tests.enabled", matches = "true")
     void testE2E() throws InterruptedException {
-        Thread.sleep(40000);
+        Thread.sleep(60000);
 
         // Step 1: Login
         LoginStep loginStep = new LoginStep(page);
@@ -56,6 +56,15 @@ public class E2ETest extends BaseTest {
         // Step 6: Navigate to UsersView
         UsersViewStep usersViewStep = new UsersViewStep(page);
         usersViewStep.execute();
+
+        // Step 6.1: Create new user
+        usersViewStep.createNewUser();
+
+        // Step 6.2: Edit the created user
+        usersViewStep.editUser();
+
+        // Step 6.3: Delete the user
+        usersViewStep.deleteUser();
 
         // Step 7: Navigate to ComputersView
         ComputersViewStep computersViewStep = new ComputersViewStep(page);

@@ -30,6 +30,8 @@ public class ContainerField extends CustomField<String> {
         this.localeService = localeService;
         setLabel(getMessage("container_field.label"));
 
+        this.container.setReadOnly(true);
+
         HorizontalLayout layout = new HorizontalLayout(container, button);
         layout.setFlexGrow(1, container);
         layout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
