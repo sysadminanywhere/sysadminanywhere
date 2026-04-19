@@ -45,11 +45,17 @@ public class GroupsViewStep {
         // Wait for dialog to close and grid to refresh
         page.waitForTimeout(5000);
 
+        // Scroll to end of list
+        scrollToEndOfList();
+
         // Verify that the created group appears in the list (grid displays cn/name)
         page.locator("vaadin-grid").getByText("Test Group").waitFor();
     }
 
     public void editGroup() {
+        // Scroll to end of list
+        scrollToEndOfList();
+
         // Click on the group in the grid
         page.locator("vaadin-grid").getByText("Test Group").click();
 
@@ -82,11 +88,17 @@ public class GroupsViewStep {
         page.waitForURL("**/management/groups");
         page.waitForTimeout(1000);
 
+        // Scroll to end of list
+        scrollToEndOfList();
+
         // Verify that the group appears in the list
         page.locator("vaadin-grid").getByText("Test Group").waitFor();
     }
 
     public void deleteGroup() {
+        // Scroll to end of list
+        scrollToEndOfList();
+
         // Click on the group in the grid
         page.locator("vaadin-grid").getByText("Test Group").click();
 
@@ -113,5 +125,14 @@ public class GroupsViewStep {
 
         // Verify that the group is no longer in the list
         assert page.locator("vaadin-grid").getByText("Test Group").count() == 0 : "Group 'Test Group' should not be in the list";
+    }
+
+    public void scrollToEndOfList() {
+        // Scroll to the end of the vaadin-grid using mouse wheel
+        page.locator("vaadin-grid").hover();
+        for (int i = 0; i < 20; i++) {
+            page.mouse().wheel(0, 500);
+            page.waitForTimeout(100);
+        }
     }
 }
