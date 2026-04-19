@@ -23,6 +23,21 @@ import com.sysadminanywhere.e2e.steps.SettingsSettingsViewStep;
 import com.sysadminanywhere.e2e.steps.SettingsViewStep;
 import com.sysadminanywhere.e2e.steps.UsersReportsViewStep;
 import com.sysadminanywhere.e2e.steps.UsersViewStep;
+import com.sysadminanywhere.e2e.steps.computers.ComputersCreateStep;
+import com.sysadminanywhere.e2e.steps.computers.ComputersDeleteStep;
+import com.sysadminanywhere.e2e.steps.computers.ComputersEditStep;
+import com.sysadminanywhere.e2e.steps.contacts.ContactsCreateStep;
+import com.sysadminanywhere.e2e.steps.contacts.ContactsDeleteStep;
+import com.sysadminanywhere.e2e.steps.contacts.ContactsEditStep;
+import com.sysadminanywhere.e2e.steps.groups.GroupsCreateStep;
+import com.sysadminanywhere.e2e.steps.groups.GroupsDeleteStep;
+import com.sysadminanywhere.e2e.steps.groups.GroupsEditStep;
+import com.sysadminanywhere.e2e.steps.reports.computers.ComputerReportsVerifyStep;
+import com.sysadminanywhere.e2e.steps.reports.groups.GroupsReportsVerifyStep;
+import com.sysadminanywhere.e2e.steps.reports.users.UsersReportsVerifyStep;
+import com.sysadminanywhere.e2e.steps.users.UsersCreateStep;
+import com.sysadminanywhere.e2e.steps.users.UsersDeleteStep;
+import com.sysadminanywhere.e2e.steps.users.UsersEditStep;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -58,39 +73,48 @@ public class E2ETest extends BaseTest {
         usersViewStep.execute();
 
         // Step 6.1: Create new user
-        usersViewStep.createNewUser();
+        UsersCreateStep usersCreateStep = new UsersCreateStep(page);
+        usersCreateStep.execute();
 
         // Step 6.2: Edit the created user
-        usersViewStep.editUser();
+        UsersEditStep usersEditStep = new UsersEditStep(page);
+        usersEditStep.execute();
 
         // Step 6.3: Delete the user
-        usersViewStep.deleteUser();
+        UsersDeleteStep usersDeleteStep = new UsersDeleteStep(page);
+        usersDeleteStep.execute();
 
         // Step 7: Navigate to ComputersView
         ComputersViewStep computersViewStep = new ComputersViewStep(page);
         computersViewStep.execute();
 
         // Step 7.1: Create new computer
-        computersViewStep.createNewComputer();
+        ComputersCreateStep computersCreateStep = new ComputersCreateStep(page);
+        computersCreateStep.execute();
 
         // Step 7.2: Edit the created computer
-        computersViewStep.editComputer();
+        ComputersEditStep computersEditStep = new ComputersEditStep(page);
+        computersEditStep.execute();
 
         // Step 7.3: Delete the computer
-        computersViewStep.deleteComputer();
+        ComputersDeleteStep computersDeleteStep = new ComputersDeleteStep(page);
+        computersDeleteStep.execute();
 
         // Step 8: Navigate to GroupsView
         GroupsViewStep groupsViewStep = new GroupsViewStep(page);
         groupsViewStep.execute();
 
         // Step 8.1: Create new group
-        groupsViewStep.createNewGroup();
+        GroupsCreateStep groupsCreateStep = new GroupsCreateStep(page);
+        groupsCreateStep.execute();
 
         // Step 8.2: Edit the created group
-        groupsViewStep.editGroup();
+        GroupsEditStep groupsEditStep = new GroupsEditStep(page);
+        groupsEditStep.execute();
 
         // Step 8.3: Delete the group
-        groupsViewStep.deleteGroup();
+        GroupsDeleteStep groupsDeleteStep = new GroupsDeleteStep(page);
+        groupsDeleteStep.execute();
 
         // Step 9: Navigate to PrintersView
         PrintersViewStep printersViewStep = new PrintersViewStep(page);
@@ -101,13 +125,16 @@ public class E2ETest extends BaseTest {
         contactsViewStep.execute();
 
         // Step 10.1: Create new contact
-        contactsViewStep.createNewContact();
+        ContactsCreateStep contactsCreateStep = new ContactsCreateStep(page);
+        contactsCreateStep.execute();
 
         // Step 10.2: Edit the created contact
-        contactsViewStep.editContact();
+        ContactsEditStep contactsEditStep = new ContactsEditStep(page);
+        contactsEditStep.execute();
 
         // Step 10.3: Delete the contact
-        contactsViewStep.deleteContact();
+        ContactsDeleteStep contactsDeleteStep = new ContactsDeleteStep(page);
+        contactsDeleteStep.execute();
 
         // Step 11: Navigate to IncidentsView
         IncidentsViewStep incidentsViewStep = new IncidentsViewStep(page);
@@ -133,13 +160,25 @@ public class E2ETest extends BaseTest {
         UsersReportsViewStep usersReportsViewStep = new UsersReportsViewStep(page);
         usersReportsViewStep.execute();
 
+        // Step 16.1: Verify all user reports
+        UsersReportsVerifyStep usersReportsVerifyStep = new UsersReportsVerifyStep(page);
+        usersReportsVerifyStep.execute();
+
         // Step 17: Navigate to ComputerReportsView
         ComputerReportsViewStep computerReportsViewStep = new ComputerReportsViewStep(page);
         computerReportsViewStep.execute();
 
+        // Step 17.1: Verify all computer reports
+        ComputerReportsVerifyStep computerReportsVerifyStep = new ComputerReportsVerifyStep(page);
+        computerReportsVerifyStep.execute();
+
         // Step 18: Navigate to GroupReportsView
         GroupReportsViewStep groupReportsViewStep = new GroupReportsViewStep(page);
         groupReportsViewStep.execute();
+
+        // Step 18.1: Verify all group reports
+        GroupsReportsVerifyStep groupsReportsVerifyStep = new GroupsReportsVerifyStep(page);
+        groupsReportsVerifyStep.execute();
 
         // Step 19: Navigate to AccountView
         AccountViewStep accountViewStep = new AccountViewStep(page);
