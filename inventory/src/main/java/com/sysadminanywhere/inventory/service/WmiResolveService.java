@@ -15,7 +15,7 @@ import java.util.Map;
 @Slf4j
 public class WmiResolveService<T> {
 
-    private Class<T> typeArgumentClass;
+    private final Class<T> typeArgumentClass;
 
     public WmiResolveService(Class<T> typeArgumentClass) {
         this.typeArgumentClass = typeArgumentClass;

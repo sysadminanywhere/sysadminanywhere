@@ -13,7 +13,10 @@ import com.github.appreciated.apexcharts.config.stroke.Curve;
 import com.github.appreciated.apexcharts.config.xaxis.TickPlacement;
 import com.github.appreciated.apexcharts.helper.Series;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
+import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.service.ComputersService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.Uses;
@@ -21,11 +24,11 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.*;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
 import java.util.*;
@@ -35,15 +38,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Performance")
 @Route(value = "management/computers/:id?/performance")
 @Uses(Icon.class)
-public class ComputerPerformanceView extends Div implements BeforeEnterObserver {
+public class ComputerPerformanceView extends Div implements BeforeEnterObserver, HasDynamicTitle {
 
     private volatile boolean pageActive = true;
 
     private String id;
     private final ComputersService computersService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
     ComputerEntry computer;
 
     H3 lblName = new H3();
@@ -71,6 +75,10 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
                 orElse(null);
 
         updateView();
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private void updateView() {
@@ -104,8 +112,10 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
         }
     }
 
-    public ComputerPerformanceView(ComputersService computersService) {
+    public ComputerPerformanceView(ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
         this.computersService = computersService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         for (int i = 0; i < processorStackSize; i++) {
             processorStack.add(0);
@@ -120,10 +130,10 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();
 
-        lblName.setText("Name");
+        lblName.setText(getMessage("common.name"));
         lblName.setWidth("100%");
 
-        lblDescription.setText("Description");
+        lblDescription.setText(getMessage("common.description"));
         lblDescription.setWidth("100%");
 
         add(verticalLayout);
@@ -134,10 +144,7 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
         verticalLayout.add(verticalLayout2);
 
         getStoredTheme().thenAccept(v -> {
-            boolean isDarkTheme = false;
-
-            if (v.contains("dark"))
-                isDarkTheme = true;
+            boolean isDarkTheme = v.contains("dark");
 
             String theme = isDarkTheme ? "dark" : "light";
             String foreColor = isDarkTheme ? "white" : "black";
@@ -162,11 +169,11 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
                         .withTickPlacement(TickPlacement.BETWEEN)
                         .build())
                 .withYaxis(YAxisBuilder.get().withMin(0.0).withMax(100.0).build())
-                .withSeries(new Series<>("Processor", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)).build();
+                .withSeries(new Series<>(getMessage("computer_performance_view.processor"), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)).build();
 
         chartProcessor.setHeight("300px");
         chartProcessor.setWidth("400px");
-        chartProcessor.setTitle(TitleSubtitleBuilder.get().withText("Processor").build());
+        chartProcessor.setTitle(TitleSubtitleBuilder.get().withText(getMessage("computer_performance_view.processor")).build());
 
         // ===============
 
@@ -188,11 +195,11 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
                         .withTickPlacement(TickPlacement.BETWEEN)
                         .build())
                 .withYaxis(YAxisBuilder.get().withMin(0.0).withMax(100.0).build())
-                .withSeries(new Series<>("Memory", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)).build();
+                .withSeries(new Series<>(getMessage("computer_performance_view.memory"), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)).build();
 
         chartMemory.setHeight("300px");
         chartMemory.setWidth("400px");
-        chartMemory.setTitle(TitleSubtitleBuilder.get().withText("Memory").build());
+        chartMemory.setTitle(TitleSubtitleBuilder.get().withText(getMessage("computer_performance_view.memory")).build());
 
         HorizontalLayout line1 = new HorizontalLayout();
         line1.add(chartProcessor, chartMemory);
@@ -215,12 +222,12 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
                                 .build())
                         .build())
                 .withSeries(0.0)
-                .withLabels("C:")
+                .withLabels(getMessage("computer_performance_view.disk_c"))
                 .build();
 
         chartDisk.setHeight("300px");
         chartDisk.setWidth("400px");
-        chartDisk.setTitle(TitleSubtitleBuilder.get().withText("Disk").build());
+        chartDisk.setTitle(TitleSubtitleBuilder.get().withText(getMessage("computer_performance_view.disk")).build());
 
         HorizontalLayout line2 = new HorizontalLayout();
         line2.add(chartDisk);
@@ -279,6 +286,10 @@ public class ComputerPerformanceView extends Div implements BeforeEnterObserver 
                 });
 
         return future;
+    }
+
+    public String getPageTitle() {
+        return getMessage("computer_performance_view.title");
     }
 
 }

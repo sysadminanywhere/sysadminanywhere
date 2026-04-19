@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.domain;
 
 import com.sysadminanywhere.common.directory.dto.AuditDto;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
@@ -20,12 +21,13 @@ import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -34,28 +36,35 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Audit")
 @Route(value = "domain/audit")
-public class AuditView extends Div {
+public class AuditView extends Div implements HasDynamicTitle {
 
     private String id;
 
     private Grid<AuditDto> grid;
 
-    private AuditView.Filters filters;
+    private final AuditView.Filters filters;
     private final LdapService ldapService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
-    public AuditView(LdapService ldapService) {
+    public AuditView(LdapService ldapService, MessageSource messageSource, LocaleService localeService) {
         this.ldapService = ldapService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new AuditView.Filters(() -> refreshGrid(), ldapService);
+        filters = new AuditView.Filters(() -> refreshGrid(), ldapService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
         layout.setSpacing(false);
         add(layout);
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private HorizontalLayout createMobileFilters() {
@@ -67,7 +76,7 @@ public class AuditView extends Div {
         mobileFilters.addClassName("mobile-filters");
 
         Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span("Filters");
+        Span filtersHeading = new Span(getMessage("common.filters"));
         mobileFilters.add(mobileIcon, filtersHeading);
         mobileFilters.setFlexGrow(1, filtersHeading);
         mobileFilters.addClickListener(e -> {
@@ -85,17 +94,26 @@ public class AuditView extends Div {
     public static class Filters extends Div {
 
         private final LdapService ldapService;
+        private final MessageSource messageSource;
+        private final LocaleService localeService;
 
-        private final TextField name = new TextField("Name");
-        private final ComboBox<String> action = new ComboBox<>("Action");
-        private final DatePicker startDate = new DatePicker("Date");
-        private final DatePicker endDate = new DatePicker();
+        private final TextField name;
+        private final ComboBox<String> action;
+        private final DatePicker startDate;
+        private final DatePicker endDate;
 
-        public Filters(Runnable onSearch, LdapService ldapService) {
+        public Filters(Runnable onSearch, LdapService ldapService, MessageSource messageSource, LocaleService localeService) {
             this.ldapService = ldapService;
+            this.messageSource = messageSource;
+            this.localeService = localeService;
 
-            action.setItems("All", "Changed", "Created");
-            action.setValue("All");
+            this.name = new TextField(getMessage("audit_view.name"));
+            this.action = new ComboBox<>(getMessage("audit_view.action"));
+            this.startDate = new DatePicker(getMessage("audit_view.date"));
+            this.endDate = new DatePicker();
+
+            action.setItems(getMessage("common.all"), getMessage("audit_view.changed"), getMessage("audit_view.created"));
+            action.setValue(getMessage("common.all"));
 
             startDate.setValue(LocalDate.now());
 
@@ -105,13 +123,13 @@ public class AuditView extends Div {
                     LumoUtility.BoxSizing.BORDER);
 
             // Action buttons
-            Button resetBtn = new Button("Reset");
+            Button resetBtn = new Button(getMessage("common.reset"));
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 name.clear();
 
                 action.clear();
-                action.setValue("All");
+                action.setValue(getMessage("common.all"));
 
                 startDate.clear();
                 startDate.setValue(LocalDate.now());
@@ -120,7 +138,7 @@ public class AuditView extends Div {
 
                 onSearch.run();
             });
-            Button searchBtn = new Button("Search");
+            Button searchBtn = new Button(getMessage("common.search"));
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
@@ -131,12 +149,16 @@ public class AuditView extends Div {
             add(createDateRangeFilter(), actions);
         }
 
-        private Component createDateRangeFilter() {
-            startDate.setPlaceholder("From");
-            endDate.setPlaceholder("To");
+        private String getMessage(String key) {
+            return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+        }
 
-            startDate.setAriaLabel("From date");
-            endDate.setAriaLabel("To date");
+        private Component createDateRangeFilter() {
+            startDate.setPlaceholder(getMessage("common.from"));
+            endDate.setPlaceholder(getMessage("common.to"));
+
+            startDate.setAriaLabel(getMessage("common.from_date"));
+            endDate.setAriaLabel(getMessage("common.to"));
 
             FlexLayout dateRangeComponent = new FlexLayout(startDate, new Text(" – "), endDate);
             dateRangeComponent.setAlignItems(FlexComponent.Alignment.BASELINE);
@@ -158,10 +180,10 @@ public class AuditView extends Div {
 
     private Component createGrid() {
         grid = new Grid<>(AuditDto.class, false);
-        grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("distinguishedName").setAutoWidth(true);
-        grid.addColumn("action").setAutoWidth(true);
-        grid.addColumn("whenChanged").setAutoWidth(true);
+        grid.addColumn("name").setHeader(getMessage("audit_view.name")).setAutoWidth(true);
+        grid.addColumn("distinguishedName").setHeader(getMessage("audit_view.distinguished_name")).setAutoWidth(true);
+        grid.addColumn("action").setHeader(getMessage("audit_view.action")).setAutoWidth(true);
+        grid.addColumn("whenChanged").setHeader(getMessage("audit_view.when_changed")).setAutoWidth(true);
 
         try {
             grid.setItems(query -> ldapService.getAudit(
@@ -180,6 +202,10 @@ public class AuditView extends Div {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    public String getPageTitle() {
+        return getMessage("audit_view.title");
     }
 
 }

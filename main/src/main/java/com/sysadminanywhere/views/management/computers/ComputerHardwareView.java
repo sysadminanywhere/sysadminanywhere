@@ -3,6 +3,8 @@ package com.sysadminanywhere.views.management.computers;
 import com.sysadminanywhere.model.wmi.HardwareEntity;
 import com.sysadminanywhere.control.Table;
 import com.sysadminanywhere.service.ComputersService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H4;
@@ -12,9 +14,9 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
 import java.lang.reflect.Field;
@@ -24,14 +26,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Hardware")
 @Route(value = "management/computers/:id?/hardware")
 @Uses(Icon.class)
-public class ComputerHardwareView extends Div implements BeforeEnterObserver {
+public class ComputerHardwareView extends Div implements BeforeEnterObserver, HasDynamicTitle {
 
     private String id;
 
     private final ComputersService computersService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
     Div divTable = new Div();
 
     @Override
@@ -40,48 +43,52 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver {
                 orElse(null);
     }
 
-    public ComputerHardwareView(ComputersService computersService) {
+    public ComputerHardwareView(ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
         this.computersService = computersService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
         ListBox<String> listBox = new ListBox<>();
-        listBox.setItems("Computer system", "BIOS", "Base board", "Disk drive", "Operating system", "Disk partition", "Processor", "Video controller", "Physical memory", "Logical disk");
+        listBox.setItems(
+            getMessage("computer_hardware_view.computer_system"),
+            getMessage("computer_hardware_view.bios"),
+            getMessage("computer_hardware_view.base_board"),
+            getMessage("computer_hardware_view.disk_drive"),
+            getMessage("computer_hardware_view.operating_system"),
+            getMessage("computer_hardware_view.disk_partition"),
+            getMessage("computer_hardware_view.processor"),
+            getMessage("computer_hardware_view.video_controller"),
+            getMessage("computer_hardware_view.physical_memory"),
+            getMessage("computer_hardware_view.logical_disk")
+        );
 
         listBox.addValueChangeListener(event -> {
             divTable.removeAll();
 
-            switch (event.getValue()) {
-                case "Computer system":
-                    createTable(event.getValue(), convert(computersService.getComputerSystem(id)));
-                    break;
-                case "BIOS":
-                    createTable(event.getValue(), convert(computersService.getBIOS(id)));
-                    break;
-                case "Base board":
-                    createTable(event.getValue(), convert(computersService.getBaseBoard(id)));
-                    break;
-                case "Disk drive":
-                    createTabs(event.getValue(), convertList(computersService.getDiskDrive(id)));
-                    break;
-                case "Operating system":
-                    createTable(event.getValue(), convert(computersService.getOperatingSystem(id)));
-                    break;
-                case "Disk partition":
-                    createTabs(event.getValue(), convertList(computersService.getDiskPartition(id)));
-                    break;
-                case "Processor":
-                    createTabs(event.getValue(), convertList(computersService.getProcessor(id)));
-                    break;
-                case "Video controller":
-                    createTabs(event.getValue(), convertList(computersService.getVideoController(id)));
-                    break;
-                case "Physical memory":
-                    createTabs(event.getValue(), convertList(computersService.getPhysicalMemory(id)));
-                    break;
-                case "Logical disk":
-                    createTabs(event.getValue(), convertList(computersService.getLogicalDisk(id)));
-                    break;
+            String value = event.getValue();
+
+            if (value.equals(getMessage("computer_hardware_view.computer_system"))) {
+                createTable(value, convert(computersService.getComputerSystem(id)));
+            } else if (value.equals(getMessage("computer_hardware_view.bios"))) {
+                createTable(value, convert(computersService.getBIOS(id)));
+            } else if (value.equals(getMessage("computer_hardware_view.base_board"))) {
+                createTable(value, convert(computersService.getBaseBoard(id)));
+            } else if (value.equals(getMessage("computer_hardware_view.disk_drive"))) {
+                createTabs(value, convertList(computersService.getDiskDrive(id)));
+            } else if (value.equals(getMessage("computer_hardware_view.operating_system"))) {
+                createTable(value, convert(computersService.getOperatingSystem(id)));
+            } else if (value.equals(getMessage("computer_hardware_view.disk_partition"))) {
+                createTabs(value, convertList(computersService.getDiskPartition(id)));
+            } else if (value.equals(getMessage("computer_hardware_view.processor"))) {
+                createTabs(value, convertList(computersService.getProcessor(id)));
+            } else if (value.equals(getMessage("computer_hardware_view.video_controller"))) {
+                createTabs(value, convertList(computersService.getVideoController(id)));
+            } else if (value.equals(getMessage("computer_hardware_view.physical_memory"))) {
+                createTabs(value, convertList(computersService.getPhysicalMemory(id)));
+            } else if (value.equals(getMessage("computer_hardware_view.logical_disk"))) {
+                createTabs(value, convertList(computersService.getLogicalDisk(id)));
             }
         });
 
@@ -95,6 +102,10 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver {
         layout.add(listBox, divTable);
 
         add(layout);
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private List<HardwareEntity> convert(Object obj) {
@@ -112,8 +123,7 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver {
                 Object value = field.get(obj);
                 String valueStr = "-";
 
-                if (value instanceof String[]) {
-                    String[] array = (String[]) value;
+                if (value instanceof String[] array) {
                     valueStr = Arrays.stream(array)
                             .collect(Collectors.joining(", "));
                 } else {
@@ -189,6 +199,10 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver {
     private String capitalizeFirstLetter(String str) {
         if (str == null || str.isEmpty()) return str;
         return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    public String getPageTitle() {
+        return getMessage("computer_hardware_view.title");
     }
 
 }

@@ -3,6 +3,8 @@ package com.sysadminanywhere.control;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.service.LdapService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.customfield.CustomField;
@@ -18,12 +20,18 @@ public class ContainerField extends CustomField<String> {
     private final Button button = new Button("...");
 
     private final LdapService ldapService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
     private String selected = "";
 
-    public ContainerField(LdapService ldapService) {
-        setLabel("Container");
-
+    public ContainerField(LdapService ldapService, MessageSource messageSource, LocaleService localeService) {
         this.ldapService = ldapService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
+        setLabel(getMessage("container_field.label"));
+
+        this.container.setReadOnly(true);
+
         HorizontalLayout layout = new HorizontalLayout(container, button);
         layout.setFlexGrow(1, container);
         layout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
@@ -52,7 +60,7 @@ public class ContainerField extends CustomField<String> {
     private Dialog showTree() {
         Dialog dialog = new Dialog();
 
-        dialog.setHeaderTitle("Containers");
+        dialog.setHeaderTitle(getMessage("container_field.dialog_title"));
         dialog.setWidth("600px");
         dialog.setHeight("500px");
 
@@ -64,7 +72,7 @@ public class ContainerField extends CustomField<String> {
 
         dialog.add(tree);
 
-        Button saveButton = new Button("Select", e -> {
+        Button saveButton = new Button(getMessage("container_field.select"), e -> {
             if(!selected.isEmpty())
                 container.setValue(selected);
 
@@ -73,7 +81,7 @@ public class ContainerField extends CustomField<String> {
         saveButton.setEnabled(false);
 
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        Button cancelButton = new Button("Cancel", e -> dialog.close());
+        Button cancelButton = new Button(getMessage("container_field.cancel"), e -> dialog.close());
 
         dialog.getFooter().add(cancelButton);
         dialog.getFooter().add(saveButton);
@@ -88,6 +96,10 @@ public class ContainerField extends CustomField<String> {
         });
 
         return dialog;
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
 }

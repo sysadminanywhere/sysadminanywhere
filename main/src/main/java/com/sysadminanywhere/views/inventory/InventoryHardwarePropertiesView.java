@@ -4,33 +4,43 @@ import com.sysadminanywhere.common.inventory.model.HardwareModelItem;
 import com.sysadminanywhere.common.inventory.model.HardwarePropertyItem;
 import com.sysadminanywhere.control.Table;
 import com.sysadminanywhere.service.InventoryService;
+import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 
 import java.util.List;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Hardware details")
 @Route(value = "inventory/hardware/:id?/details")
 @Uses(Icon.class)
-public class InventoryHardwarePropertiesView extends Div  implements BeforeEnterObserver {
+public class InventoryHardwarePropertiesView extends Div  implements BeforeEnterObserver, HasDynamicTitle {
 
     private final InventoryService inventoryService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     private Long id = 0L;
     Div divTable = new Div();
 
-    public InventoryHardwarePropertiesView(InventoryService inventoryService) {
+    public InventoryHardwarePropertiesView(InventoryService inventoryService, MessageSource messageSource, LocaleService localeService) {
         this.inventoryService = inventoryService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         divTable.getStyle().setMarginLeft("25px");
         add(divTable);
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     @Override
@@ -78,6 +88,10 @@ public class InventoryHardwarePropertiesView extends Div  implements BeforeEnter
     private String capitalizeFirstLetter(String str) {
         if (str == null || str.isEmpty()) return str;
         return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    public String getPageTitle() {
+        return getMessage("inventory_hardware_properties_view.title");
     }
 
 }

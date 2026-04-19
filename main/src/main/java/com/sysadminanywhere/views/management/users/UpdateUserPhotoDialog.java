@@ -1,7 +1,9 @@
 package com.sysadminanywhere.views.management.users;
 
 import com.sysadminanywhere.common.directory.model.UserEntry;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.UsersService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.Uses;
@@ -28,12 +30,16 @@ public class UpdateUserPhotoDialog extends Dialog {
 
     private final UsersService usersService;
     private final UserEntry user;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
-    public UpdateUserPhotoDialog(UsersService usersService, UserEntry userEntry, Runnable updateView) {
+    public UpdateUserPhotoDialog(UsersService usersService, UserEntry userEntry, MessageSource messageSource, LocaleService localeService, Runnable updateView) {
         this.usersService = usersService;
         this.user = userEntry;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
-        setHeaderTitle("Updating user photo");
+        setHeaderTitle(getMessage("update_user_photo_dialog.title"));
         setWidth("600px");
 
         AtomicReference<Image> image = new AtomicReference<>(new Image());
@@ -49,7 +55,7 @@ public class UpdateUserPhotoDialog extends Dialog {
         upload.setMaxFiles(1);
         upload.setAcceptedFileTypes("image/jpeg", ".jpg");
 
-        Button uploadButton = new Button("Upload photo...");
+        Button uploadButton = new Button(getMessage("update_user_photo_dialog.upload_photo"), e -> {});
         uploadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         upload.setUploadButton(uploadButton);
 
@@ -83,14 +89,14 @@ public class UpdateUserPhotoDialog extends Dialog {
 
         add(verticalLayout);
 
-        Button saveButton = new com.vaadin.flow.component.button.Button("Save", e -> {
+        Button saveButton = new com.vaadin.flow.component.button.Button(getMessage("common.save"), e -> {
             UserEntry entry = user;
 
             try {
                 usersService.update(entry);
                 updateView.run();
 
-                Notification notification = Notification.show("User photo updated");
+                Notification notification = Notification.show(getMessage("update_user_photo_dialog.user_photo_updated"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
                 Notification notification = Notification.show(ex.getMessage());
@@ -102,9 +108,9 @@ public class UpdateUserPhotoDialog extends Dialog {
 
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        Button cancelButton = new Button("Cancel", e -> close());
+        Button cancelButton = new Button(getMessage("common.cancel"), e -> close());
 
-        Button deleteButton = new Button("Delete", e -> {
+        Button deleteButton = new Button(getMessage("update_user_photo_dialog.delete"), e -> {
             UserEntry entry = user;
 
             try {
@@ -114,7 +120,7 @@ public class UpdateUserPhotoDialog extends Dialog {
                 usersService.update(entry);
                 updateView.run();
 
-                Notification notification = Notification.show("User photo deleted");
+                Notification notification = Notification.show(getMessage("update_user_photo_dialog.user_photo_deleted"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
                 Notification notification = Notification.show(ex.getMessage());
@@ -145,6 +151,10 @@ public class UpdateUserPhotoDialog extends Dialog {
         byte[] data = outputStream.toByteArray();
 
         return data;
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
 }

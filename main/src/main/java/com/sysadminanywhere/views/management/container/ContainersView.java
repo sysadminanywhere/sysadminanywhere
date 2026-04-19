@@ -1,6 +1,5 @@
 package com.sysadminanywhere.views.management.container;
 
-import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.control.MenuControl;
@@ -9,6 +8,7 @@ import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.Entry;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.*;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.views.management.computers.AddComputerDialog;
 import com.sysadminanywhere.views.management.contacts.AddContactDialog;
 import com.sysadminanywhere.views.management.groups.AddGroupDialog;
@@ -21,7 +21,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.SvgIcon;
@@ -32,20 +31,19 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 import org.vaadin.tatu.Tree;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Containers")
 @Route(value = "management/containers")
 @Uses(Icon.class)
-public class ContainersView extends Div implements MenuControl {
+public class ContainersView extends Div implements MenuControl, HasDynamicTitle {
 
     private final LdapService ldapService;
     private final AuthenticatedUser authenticatedUser;
@@ -54,6 +52,8 @@ public class ContainersView extends Div implements MenuControl {
     private final ComputersService computersService;
     private final GroupsService groupsService;
     private final ContactsService contactsService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     private Grid<Entry> grid;
     private String selected;
@@ -64,7 +64,9 @@ public class ContainersView extends Div implements MenuControl {
                           UsersService usersService,
                           ComputersService computersService,
                           GroupsService groupsService,
-                          ContactsService contactsService) {
+                          ContactsService contactsService,
+                          MessageSource messageSource,
+                          LocaleService localeService) {
 
         this.ldapService = ldapService;
         this.authenticatedUser = authenticatedUser;
@@ -73,6 +75,8 @@ public class ContainersView extends Div implements MenuControl {
         this.computersService = computersService;
         this.groupsService = groupsService;
         this.contactsService = contactsService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         addClassNames("gridwith-filters-view");
         setSizeFull();
@@ -100,6 +104,10 @@ public class ContainersView extends Div implements MenuControl {
         splitLayout.setHeightFull();
 
         add(splitLayout);
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private Component createGrid() {
@@ -137,10 +145,10 @@ public class ContainersView extends Div implements MenuControl {
             layout.add(icon, text);
             layout.setSpacing(true);
             return layout;
-        })).setHeader("cn").setAutoWidth(true);
+        })).setHeader(getMessage("common.cn")).setAutoWidth(true);
 
-        grid.addColumn("type").setAutoWidth(true);
-        grid.addColumn("description");
+        grid.addColumn("type").setHeader(getMessage("common.type")).setAutoWidth(true);
+        grid.addColumn("description").setHeader(getMessage("common.description"));
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->
@@ -170,39 +178,43 @@ public class ContainersView extends Div implements MenuControl {
             refreshGrid();
         });
 
-        MenuItem menuAdd = menuBar.addItem("New");
+        MenuItem menuAdd = menuBar.addItem(getMessage("common.new"));
 
         SubMenu subMenu = menuAdd.getSubMenu();
-        subMenu.addItem("User", menuItemClickEvent -> {
+        subMenu.addItem(getMessage("containers_view.user"), menuItemClickEvent -> {
             addUserDialog(this::refreshGrid).open();
         });
-        subMenu.addItem("Computer", menuItemClickEvent -> {
+        subMenu.addItem(getMessage("containers_view.computer"), menuItemClickEvent -> {
             addComputerDialog(this::refreshGrid).open();
         });
-        subMenu.addItem("Group", menuItemClickEvent -> {
-            addComputerDialog(this::refreshGrid).open();
+        subMenu.addItem(getMessage("containers_view.group"), menuItemClickEvent -> {
+            addGroupDialog(this::refreshGrid).open();
         });
-        subMenu.addItem("Contact", menuItemClickEvent -> {
-            addComputerDialog(this::refreshGrid).open();
+        subMenu.addItem(getMessage("containers_view.contact"), menuItemClickEvent -> {
+            addContactDialog(this::refreshGrid).open();
         });
 
         return menuBar;
     }
 
     private Dialog addUserDialog(Runnable onSearch) {
-        return new AddUserDialog(usersService, authenticatedUser, settingsService, onSearch);
+        return new AddUserDialog(usersService, messageSource, localeService, authenticatedUser, settingsService, onSearch);
     }
 
     private Dialog addComputerDialog(Runnable onSearch) {
-        return new AddComputerDialog(computersService, onSearch);
+        return new AddComputerDialog(computersService, messageSource, localeService, onSearch);
     }
 
     private Dialog addGroupDialog(Runnable onSearch) {
-        return new AddGroupDialog(groupsService, onSearch);
+        return new AddGroupDialog(groupsService, messageSource, localeService, onSearch);
     }
 
     private Dialog addContactDialog(Runnable onSearch) {
-        return new AddContactDialog(contactsService, onSearch);
+        return new AddContactDialog(contactsService, messageSource, localeService, onSearch);
+    }
+
+    public String getPageTitle() {
+        return getMessage("containers_view.title");
     }
 
 }

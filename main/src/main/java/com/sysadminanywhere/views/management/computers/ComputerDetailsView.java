@@ -1,11 +1,13 @@
 package com.sysadminanywhere.views.management.computers;
 
-import com.sysadminanywhere.model.wmi.ComputerSystemEntity;
 import com.sysadminanywhere.control.MemberOf;
+import com.sysadminanywhere.model.wmi.ComputerSystemEntity;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.card.Card;
@@ -29,28 +31,28 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Computer details")
 @Route(value = "management/computers/:id?/details")
 @Uses(Icon.class)
 @Uses(ListBox.class)
-public class ComputerDetailsView extends Div implements BeforeEnterObserver, MenuControl {
+public class ComputerDetailsView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
 
     private String id;
     private final ComputersService computersService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
     ComputerEntry computer;
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
-    MemberOf memberOf = new MemberOf();
+    MemberOf memberOf;
 
     Binder<ComputerEntry> binder = new Binder<>(ComputerEntry.class);
     Binder<String> binder2 = new Binder<>(String.class);
@@ -84,6 +86,10 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
         };
     }
 
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    }
+
     private void updateView() {
         if (id != null) {
             computer = computersService.getByCN(id);
@@ -99,18 +105,22 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
         }
     }
 
-    public ComputerDetailsView(ComputersService computersService) {
+    public ComputerDetailsView(ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
         this.computersService = computersService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
+
+        memberOf = new MemberOf(messageSource, localeService);
 
         addClassName("users-view");
 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();
 
-        lblName.setText("Name");
+        lblName.setText(getMessage("common.name"));
         lblName.setWidth("100%");
 
-        lblDescription.setText("Description");
+        lblDescription.setText(getMessage("common.description"));
         lblDescription.setWidth("100%");
 
         add(verticalLayout);
@@ -129,36 +139,36 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
 
         FormLayout formLayout = new FormLayout();
 
-        TextField txtLocation = new TextField("Location");
+        TextField txtLocation = new TextField(getMessage("computer_details_view.location"));
         txtLocation.setReadOnly(true);
         binder.bind(txtLocation, ComputerEntry::getLocation, null);
 
-        TextField txtHostName = new TextField("Host name");
+        TextField txtHostName = new TextField(getMessage("computer_details_view.host_name"));
         txtHostName.setReadOnly(true);
         binder.bind(txtHostName, ComputerEntry::getDnsHostName, null);
 
-        TextField txtOperatingSystem = new TextField("Operating system");
+        TextField txtOperatingSystem = new TextField(getMessage("computer_details_view.operating_system"));
         txtOperatingSystem.setReadOnly(true);
         binder.bind(txtOperatingSystem, ComputerEntry::getOperatingSystem, null);
 
-        TextField txtVersion = new TextField("Version");
+        TextField txtVersion = new TextField(getMessage("computer_details_view.version"));
         txtVersion.setReadOnly(true);
         binder.bind(txtVersion, ComputerEntry::getOperatingSystemVersion, null);
 
-        TextField txtServicePack = new TextField("Service pack");
+        TextField txtServicePack = new TextField(getMessage("computer_details_view.service_pack"));
         txtServicePack.setReadOnly(true);
         binder.bind(txtServicePack, ComputerEntry::getOperatingSystemServicePack, null);
 
-        TextField txtIPAddress = new TextField("IP address");
+        TextField txtIPAddress = new TextField(getMessage("computer_details_view.ip_address"));
         txtIPAddress.setReadOnly(true);
         binder2.bind(txtIPAddress, String::toLowerCase, null);
 
 
-        TextField txtManufacturer = new TextField("Manufacturer");
+        TextField txtManufacturer = new TextField(getMessage("computer_details_view.manufacturer"));
         txtManufacturer.setReadOnly(true);
         binder3.bind(txtManufacturer, ComputerSystemEntity::getManufacturer, null);
 
-        TextField txtModel = new TextField("Model");
+        TextField txtModel = new TextField(getMessage("computer_details_view.model"));
         txtModel.setReadOnly(true);
         binder3.bind(txtModel, ComputerSystemEntity::getModel, null);
 
@@ -173,12 +183,12 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
 
     private ConfirmDialog deleteDialog() {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Delete");
-        dialog.setText("Are you sure you want to permanently delete this computer?");
+        dialog.setHeader(getMessage("common.delete"));
+        dialog.setText(getMessage("common.delete_computer_confirmation"));
 
         dialog.setCancelable(true);
 
-        dialog.setConfirmText("Delete");
+        dialog.setConfirmText(getMessage("common.delete"));
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {
@@ -191,23 +201,23 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
     }
 
     private Dialog updateDialog() {
-        return new UpdateComputerDialog(computersService, computer, updateRunnable());
+        return new UpdateComputerDialog(computersService, computer, messageSource, localeService, updateRunnable());
     }
 
     private ConfirmDialog rebootDialog() {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Reboot");
-        dialog.setText("Are you sure you want to reboot this computer?");
+        dialog.setHeader(getMessage("common.reboot"));
+        dialog.setText(getMessage("common.reboot_confirmation"));
 
         dialog.setCancelable(true);
 
-        dialog.setConfirmText("Reboot");
+        dialog.setConfirmText(getMessage("common.reboot"));
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {
             computersService.reboot(id);
 
-            Notification notification = Notification.show("Reboot command sent");
+            Notification notification = Notification.show(getMessage("computer_details_view.reboot_command_sent"));
             notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
@@ -216,18 +226,18 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
 
     private ConfirmDialog shutdownDialog() {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Shutdown");
-        dialog.setText("Are you sure you want to shutdown this computer?");
+        dialog.setHeader(getMessage("common.shutdown"));
+        dialog.setText(getMessage("common.shutdown_confirmation"));
 
         dialog.setCancelable(true);
 
-        dialog.setConfirmText("Shutdown");
+        dialog.setConfirmText(getMessage("common.shutdown"));
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {
             computersService.shutdown(id);
 
-            Notification notification = Notification.show("Shutdown command sent");
+            Notification notification = Notification.show(getMessage("computer_details_view.shutdown_command_sent"));
             notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
@@ -239,43 +249,58 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
         MenuBar menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
 
-        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", "Update", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", getMessage("computer_details_view.update"), event -> {
             updateDialog().open();
         });
 
-        MenuItem menuManagement = menuBar.addItem("Management");
+        MenuItem menuManagement = menuBar.addItem(getMessage("computer_details_view.management"));
 
-        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("computer_details_view.delete"), event -> {
             deleteDialog().open();
         });
 
+        // Create reverse mapping from translated values to English names for URL navigation
+        java.util.Map<String, String> translationToEnglishMap = new java.util.HashMap<>();
+        translationToEnglishMap.put(getMessage("computer_details_view.processes"), "processes");
+        translationToEnglishMap.put(getMessage("computer_details_view.services"), "services");
+        translationToEnglishMap.put(getMessage("computer_details_view.events"), "events");
+        translationToEnglishMap.put(getMessage("computer_details_view.software"), "software");
+        translationToEnglishMap.put(getMessage("computer_details_view.hardware"), "hardware");
+        translationToEnglishMap.put(getMessage("computer_details_view.performance"), "performance");
+
         ComponentEventListener<ClickEvent<MenuItem>> listener = e -> {
             if (computer != null) {
+                String translatedText = e.getSource().getText();
+                String englishName = translationToEnglishMap.getOrDefault(translatedText, translatedText.toLowerCase());
                 e.getSource().getUI().ifPresent(ui ->
-                        ui.navigate("management/computers/" + computer.getCn() + "/" + e.getSource().getText().toLowerCase()));
+                        ui.navigate("management/computers/" + computer.getCn() + "/" + englishName));
             }
         };
 
         SubMenu subMenuManagement = menuManagement.getSubMenu();
-        subMenuManagement.addItem("Processes", listener);
-        subMenuManagement.addItem("Services", listener);
-        subMenuManagement.addItem("Events", listener);
+        subMenuManagement.addItem(getMessage("computer_details_view.processes"), listener);
+        subMenuManagement.addItem(getMessage("computer_details_view.services"), listener);
+        subMenuManagement.addItem(getMessage("computer_details_view.events"), listener);
         subMenuManagement.addSeparator();
-        subMenuManagement.addItem("Software", listener);
-        subMenuManagement.addItem("Hardware", listener);
+        subMenuManagement.addItem(getMessage("computer_details_view.software"), listener);
+        subMenuManagement.addItem(getMessage("computer_details_view.hardware"), listener);
         subMenuManagement.addSeparator();
-        subMenuManagement.addItem("Performance", listener);
+        subMenuManagement.addItem(getMessage("computer_details_view.performance"), listener);
         subMenuManagement.addSeparator();
-        subMenuManagement.addItem("Reboot", menuItemClickEvent -> {
+        subMenuManagement.addItem(getMessage("computer_details_view.reboot"), menuItemClickEvent -> {
             rebootDialog().open();
         });
-        subMenuManagement.addItem("Shutdown", menuItemClickEvent -> {
+        subMenuManagement.addItem(getMessage("computer_details_view.shutdown"), menuItemClickEvent -> {
             shutdownDialog().open();
         });
 
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
         return menuBar;
+    }
+
+    public String getPageTitle() {
+        return getMessage("computer_details_view.title");
     }
 
 }

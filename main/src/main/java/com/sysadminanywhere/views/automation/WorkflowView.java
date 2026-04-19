@@ -5,6 +5,7 @@ import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.workflow.WorkflowData;
 import com.sysadminanywhere.model.workflow.Execution;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.Utils;
 import com.sysadminanywhere.service.WorkflowsService;
 import com.vaadin.flow.component.Html;
@@ -20,23 +21,25 @@ import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import lombok.SneakyThrows;
 
 import java.time.Duration;
 import java.util.List;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Workflow")
 @Route(value = "automation/workflows/:id?/details")
-public class WorkflowView extends Div implements BeforeEnterObserver, MenuControl {
+public class WorkflowView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
 
     private String id;
 
     private final WorkflowsService workflowsService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
@@ -51,8 +54,10 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         loadFlow(id);
     }
 
-    public WorkflowView(WorkflowsService workflowsService) {
+    public WorkflowView(WorkflowsService workflowsService, MessageSource messageSource, LocaleService localeService) {
         this.workflowsService = workflowsService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         UI.getCurrent().getPage().addJavaScript("https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs@2.0.0/webcomponents-loader.js");
         UI.getCurrent().getPage().addJavaScript("https://www.unpkg.com/lit@2.0.0-rc.2/polyfill-support.js");
@@ -70,10 +75,10 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();
 
-        lblName.setText("Name");
+        lblName.setText(getMessage("common.description"));
         lblName.setWidth("100%");
 
-        lblDescription.setText("Description");
+        lblDescription.setText(getMessage("common.description"));
         lblDescription.setWidth("100%");
 
         add(verticalLayout);
@@ -82,6 +87,10 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         n8Container.setWidth("100%");
 
         verticalLayout.add(lblName, lblDescription, n8Container, getExecutions());
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private void loadFlow(String id) {
@@ -99,14 +108,14 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         MenuBar menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
 
-        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", "Update", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", getMessage("common.edit"), event -> {
             if (!id.isEmpty()) {
                 event.getSource().getUI().ifPresent(ui ->
                         ui.getPage().open("http://localhost:5678/workflow/" + id, "_blank"));
             }
         });
 
-        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("common.delete"), event -> {
             deleteDialog().open();
         });
 
@@ -115,12 +124,12 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
 
     private ConfirmDialog deleteDialog() {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Delete");
-        dialog.setText("Are you sure you want to permanently delete this workflow?");
+        dialog.setHeader(getMessage("common.delete"));
+        dialog.setText(getMessage("common.delete_workflow_confirmation"));
 
         dialog.setCancelable(true);
 
-        dialog.setConfirmText("Delete");
+        dialog.setConfirmText(getMessage("common.delete"));
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {
@@ -148,20 +157,20 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         Grid<Execution> grid = new Grid<>(Execution.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
-        grid.addColumn(Execution::getId).setHeader("Id").setAutoWidth(true);
+        grid.addColumn(Execution::getId).setHeader(getMessage("common.id")).setAutoWidth(true);
 
         grid.addColumn(workflow ->
                         Utils.formatInstant(workflow.getStartedAt()))
-                .setHeader("Started").setAutoWidth(true);
+                .setHeader(getMessage("common.started")).setAutoWidth(true);
 
         grid.addColumn(workflow ->
                         Utils.formatDuration(Duration.between(
                                 workflow.getStartedAt(),
                                 workflow.getStoppedAt()), false))
-                .setHeader("Run time").setAutoWidth(true);
+                .setHeader(getMessage("common.run_time")).setAutoWidth(true);
 
-        grid.addColumn(Execution::getStatus).setHeader("Status");
-        grid.addColumn(Execution::getErrorMessage).setHeader("Error message");
+        grid.addColumn(Execution::getStatus).setHeader(getMessage("common.status"));
+        grid.addColumn(Execution::getErrorMessage).setHeader(getMessage("common.error_message"));
 
         grid.setAllRowsVisible(true);
 
@@ -169,6 +178,10 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         grid.setItems(executions);
 
         return grid;
+    }
+
+    public String getPageTitle() {
+        return getMessage("workflow_view.title");
     }
 
 }

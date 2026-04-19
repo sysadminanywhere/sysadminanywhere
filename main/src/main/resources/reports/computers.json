@@ -1,43 +1,43 @@
 [ {
   "id" : "computers",
-  "name" : "Computers",
-  "description" : "All computers",
+  "name" : "reports.computers.name",
+  "description" : "reports.computers.description",
   "filter" : "",
   "columns" : ["cn","operatingSystem","operatingSystemServicePack"],
-  "names" : ["CN","Operating system","Operating system service pack"]
+  "names" : ["reports.columns.cn","reports.columns.operating_system","reports.columns.operating_system_service_pack"]
 }, {
   "id" : "controllers",
-  "name" : "Controllers",
-  "description" : "All controllers",
+  "name" : "reports.controllers.name",
+  "description" : "reports.controllers.description",
   "filter" : "(primaryGroupID=516)",
   "columns" : ["cn","operatingSystem","operatingSystemServicePack"],
-  "names" : ["CN","Operating system","Operating system service pack"]
+  "names" : ["reports.columns.cn","reports.columns.operating_system","reports.columns.operating_system_service_pack"]
 }, {
   "id" : "disabled",
-  "name" : "Disabled",
-  "description" : "Disabled computers",
+  "name" : "reports.computers_disabled.name",
+  "description" : "reports.computers_disabled.description",
   "filter" : "(userAccountControl:1.2.840.113556.1.4.803:=2)",
   "columns" : ["cn","operatingSystem","operatingSystemServicePack"],
-  "names" : ["CN","Operating system","Operating system service pack"]
+  "names" : ["reports.columns.cn","reports.columns.operating_system","reports.columns.operating_system_service_pack"]
 }, {
   "id" : "servers",
-  "name" : "Servers",
-  "description" : "All servers",
+  "name" : "reports.servers.name",
+  "description" : "reports.servers.description",
   "filter" : "(operatingSystem=Windows*Server*)",
   "columns" : ["cn","operatingSystem","operatingSystemServicePack"],
-  "names" : ["CN","Operating system","Operating system service pack"]
+  "names" : ["reports.columns.cn","reports.columns.operating_system","reports.columns.operating_system_service_pack"]
 }, {
   "id" : "created",
-  "name" : "Created",
-  "description" : "Created dates",
+  "name" : "reports.computers_created.name",
+  "description" : "reports.computers_created.description",
   "filter" : "",
   "columns" : ["cn","operatingSystem","created"],
-  "names" : ["CN","Operating system","Created"]
+  "names" : ["reports.columns.cn","reports.columns.operating_system","reports.columns.created"]
 }, {
   "id" : "lastlogon",
-  "name" : "Last logon",
-  "description" : "Computers with last logon dates",
+  "name" : "reports.computers_lastlogon.name",
+  "description" : "reports.computers_lastlogon.description",
   "filter" : "",
   "columns" : ["cn","operatingSystem","lastLogon"],
-  "names" : ["CN","Operating system","Last logon"]
+  "names" : ["reports.columns.cn","reports.columns.operating_system","reports.columns.last_logon"]
 } ]

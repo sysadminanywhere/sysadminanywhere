@@ -5,16 +5,18 @@ import com.sysadminanywhere.control.Table;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.FunctionalLevel;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.LdapService;
 import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import lombok.SneakyThrows;
 
 import java.time.ZoneId;
@@ -23,15 +25,18 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Domain")
 @Route(value = "domain/info")
-public class DomainView extends VerticalLayout {
+public class DomainView extends VerticalLayout implements HasDynamicTitle {
 
     private final LdapService ldapService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     @SneakyThrows
-    public DomainView(LdapService ldapService) {
+    public DomainView(LdapService ldapService, MessageSource messageSource, LocaleService localeService) {
         this.ldapService = ldapService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         setPadding(true);
         setMargin(true);
@@ -48,10 +53,14 @@ public class DomainView extends VerticalLayout {
         add(lblDomain, lblDistinguishedName, getControllers(), getProperties());
     }
 
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    }
+
     @SneakyThrows
     private Card getControllers(){
         Card card = new Card();
-        card.setTitle("Domain controllers");
+        card.setTitle(getMessage("dashboard_view.domain_controllers"));
 
         List<EntryDto> controllers = ldapService.search("CN=Sites,CN=Configuration," + ldapService.getDefaultNamingContext(), "(objectClass=server)", SearchScope.SUBTREE);
 
@@ -70,7 +79,7 @@ public class DomainView extends VerticalLayout {
 
     private Card getProperties(){
         Card card = new Card();
-        card.setTitle("Properties");
+        card.setTitle(getMessage("common.details"));
 
         EntryDto domainEntry = ldapService.getRootDse();
 
@@ -80,18 +89,22 @@ public class DomainView extends VerticalLayout {
             ZonedDateTime dateTime = ZonedDateTime.parse(ldapTime, formatter);
 
             Table domainProperties = new Table("");
-            domainProperties.add("Forest functionality", FunctionalLevel.fromValue(domainEntry.getAttributes().get("forestfunctionality").toString()));
-            domainProperties.add("Supported SASL mechanisms", ADHelper.getAttributeAsCommaSeparated(domainEntry, "supportedsaslmechanisms"));
-            domainProperties.add("Supported LDAP version", ADHelper.getAttributeAsCommaSeparated(domainEntry, "supportedldapversion"));
-            domainProperties.add("Domain functionality", FunctionalLevel.fromValue(domainEntry.getAttributes().get("domainfunctionality").toString()));
-            domainProperties.add("Domain controller functionality", FunctionalLevel.fromValue((domainEntry.getAttributes().get("domaincontrollerfunctionality").toString())));
-            domainProperties.add("Current time", dateTime.toString());
-            domainProperties.add("Max password age", String.valueOf(ldapService.getMaxPwdAgeDays()) + " days");
+            domainProperties.add(getMessage("domain_view.forest_functionality"), FunctionalLevel.fromValue(domainEntry.getAttributes().get("forestfunctionality").toString()));
+            domainProperties.add(getMessage("domain_view.supported_sasl_mechanisms"), ADHelper.getAttributeAsCommaSeparated(domainEntry, "supportedsaslmechanisms"));
+            domainProperties.add(getMessage("domain_view.supported_ldap_version"), ADHelper.getAttributeAsCommaSeparated(domainEntry, "supportedldapversion"));
+            domainProperties.add(getMessage("domain_view.domain_functionality"), FunctionalLevel.fromValue(domainEntry.getAttributes().get("domainfunctionality").toString()));
+            domainProperties.add(getMessage("domain_view.domain_controller_functionality"), FunctionalLevel.fromValue((domainEntry.getAttributes().get("domaincontrollerfunctionality").toString())));
+            domainProperties.add(getMessage("domain_view.current_time"), dateTime.toString());
+            domainProperties.add(getMessage("domain_view.max_password_age"), ldapService.getMaxPwdAgeDays() + " days");
 
             card.add(domainProperties);
         }
 
         return card;
+    }
+
+    public String getPageTitle() {
+        return getMessage("domain_view.title");
     }
 
 }

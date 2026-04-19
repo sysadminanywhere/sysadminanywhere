@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.inventory;
 
 import com.sysadminanywhere.common.inventory.model.HardwareItem;
 import com.sysadminanywhere.service.InventoryService;
+import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -17,43 +18,52 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Hardware inventory")
 @Route(value = "inventory/hardware")
 @Uses(Icon.class)
-public class InventoryHardwareView extends Div {
+public class InventoryHardwareView extends Div implements HasDynamicTitle {
 
     private Grid<HardwareItem> grid;
 
     private Filters filters;
     private final InventoryService inventoryService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
-    public InventoryHardwareView(InventoryService inventoryService) {
+    public InventoryHardwareView(InventoryService inventoryService, MessageSource messageSource, LocaleService localeService) {
         this.inventoryService = inventoryService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
         if (!inventoryService.ping()) {
-            Notification notification = Notification.show("Inventory service is unavailable!");
+            Notification notification = Notification.show(getMessage("common.error") + ": " + getMessage("inventory_hardware_view.service_unavailable"));
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
-            filters = new Filters(() -> refreshGrid());
+            filters = new Filters(() -> refreshGrid(), messageSource, localeService);
             VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
             layout.setSizeFull();
             layout.setPadding(false);
             layout.setSpacing(false);
             add(layout);
         }
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private HorizontalLayout createMobileFilters() {
@@ -65,7 +75,7 @@ public class InventoryHardwareView extends Div {
         mobileFilters.addClassName("mobile-filters");
 
         Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span("Filters");
+        Span filtersHeading = new Span(getMessage("common.filters"));
         mobileFilters.add(mobileIcon, filtersHeading);
         mobileFilters.setFlexGrow(1, filtersHeading);
         mobileFilters.addClickListener(e -> {
@@ -82,13 +92,32 @@ public class InventoryHardwareView extends Div {
 
     public static class Filters extends Div {
 
-        private final ComboBox<String> hardwareType = new ComboBox<>("Type");
-        private final TextField name = new TextField("Name");
+        private final ComboBox<String> hardwareType;
+        private final TextField name;
+        private final MessageSource messageSource;
+        private final LocaleService localeService;
+        private final Map<String, String> translationToEnglishMap;
 
-        public Filters(Runnable onSearch) {
+        public Filters(Runnable onSearch, MessageSource messageSource, LocaleService localeService) {
+            this.messageSource = messageSource;
+            this.localeService = localeService;
 
-            hardwareType.setItems("Computer System", "BIOS", "Base Board", "Disk Drive", "Operating System", "Processor", "Video Controller", "Physical Memory");
-            hardwareType.setValue("Computer System");
+            this.hardwareType = new ComboBox<>(getMessage("inventory_hardware_view.type"));
+            this.name = new TextField(getMessage("inventory_hardware_view.name"));
+
+            // Create reverse mapping from translated values to English keys
+            this.translationToEnglishMap = new java.util.HashMap<>();
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.computer_system"), "Computer System");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.bios"), "BIOS");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.base_board"), "Base Board");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.disk_drive"), "Disk Drive");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.operating_system"), "Operating System");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.processor"), "Processor");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.video_controller"), "Video Controller");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.physical_memory"), "Physical Memory");
+
+            hardwareType.setItems(getMessage("inventory_hardware_view.computer_system"), getMessage("inventory_hardware_view.bios"), getMessage("inventory_hardware_view.base_board"), getMessage("inventory_hardware_view.disk_drive"), getMessage("inventory_hardware_view.operating_system"), getMessage("inventory_hardware_view.processor"), getMessage("inventory_hardware_view.video_controller"), getMessage("inventory_hardware_view.physical_memory"));
+            hardwareType.setValue(getMessage("inventory_hardware_view.computer_system"));
 
             setWidthFull();
             addClassName("filter-layout");
@@ -96,17 +125,17 @@ public class InventoryHardwareView extends Div {
                     LumoUtility.BoxSizing.BORDER);
 
             // Action buttons
-            Button resetBtn = new Button("Reset");
+            Button resetBtn = new Button(getMessage("common.reset"));
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 name.clear();
 
                 hardwareType.clear();
-                hardwareType.setValue("Computer System");
+                hardwareType.setValue(getMessage("inventory_hardware_view.computer_system"));
 
                 onSearch.run();
             });
-            Button searchBtn = new Button("Search");
+            Button searchBtn = new Button(getMessage("common.search"));
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
@@ -117,10 +146,17 @@ public class InventoryHardwareView extends Div {
             add(hardwareType, name, actions);
         }
 
+        private String getMessage(String key) {
+            return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+        }
+
         public Map<String, String> getFilters() {
             Map<String, String> filters = new HashMap<>();
             filters.put("name", name.getValue());
-            filters.put("type", hardwareType.getValue().replace(" ", ""));
+
+            String selectedValue = hardwareType.getValue();
+            String englishValue = translationToEnglishMap.getOrDefault(selectedValue, selectedValue);
+            filters.put("type", englishValue.replace(" ", ""));
             return filters;
         }
 
@@ -130,8 +166,8 @@ public class InventoryHardwareView extends Div {
         grid = new Grid<>(HardwareItem.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
-        grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("type").setAutoWidth(true);
+        grid.addColumn("name").setHeader(getMessage("inventory_hardware_view.name")).setAutoWidth(true);
+        grid.addColumn("type").setHeader(getMessage("inventory_hardware_view.type")).setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->
@@ -149,6 +185,10 @@ public class InventoryHardwareView extends Div {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    public String getPageTitle() {
+        return getMessage("inventory_hardware_view.title");
     }
 
 }

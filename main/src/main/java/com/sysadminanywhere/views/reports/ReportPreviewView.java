@@ -7,6 +7,7 @@ import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.model.ReportItem;
 import com.sysadminanywhere.service.*;
+import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.componentfactory.pdfviewer.PdfViewer;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.icon.Icon;
@@ -14,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
@@ -29,10 +31,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Report")
 @Route(value = "reports/report")
 @Uses(Icon.class)
-public class ReportPreviewView extends VerticalLayout implements BeforeEnterObserver {
+public class ReportPreviewView extends VerticalLayout implements BeforeEnterObserver, HasDynamicTitle {
 
     private static final Logger log = Logger.getLogger(ReportPreviewView.class.getName());
 
@@ -45,6 +46,8 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
     private final PrintersService printersService;
 
     private final ReportGeneratorService reportGeneratorService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
@@ -67,14 +70,22 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
                              UsersService usersService,
                              GroupsService groupsService,
                              PrintersService printersService,
-                             ReportGeneratorService reportGeneratorService) {
+                             ReportGeneratorService reportGeneratorService,
+                             MessageSource messageSource,
+                             LocaleService localeService) {
         this.computersService = computersService;
         this.usersService = usersService;
         this.groupsService = groupsService;
         this.printersService = printersService;
         this.reportGeneratorService = reportGeneratorService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         setSizeFull();
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private void updateView() {
@@ -91,6 +102,15 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
                 Optional<ReportItem> item = Arrays.stream(reports).filter(c -> c.getId().equalsIgnoreCase(id)).findFirst();
                 if (item.isPresent()) {
                     reportItem = item.get();
+                    
+                    // Translate report item
+                    reportItem.setName(getMessage(reportItem.getName()));
+                    reportItem.setDescription(getMessage(reportItem.getDescription()));
+                    String[] translatedNames = new String[reportItem.getNames().length];
+                    for (int i = 0; i < reportItem.getNames().length; i++) {
+                        translatedNames[i] = getMessage(reportItem.getNames()[i]);
+                    }
+                    reportItem.setNames(translatedNames);
                 } else {
                     return;
                 }
@@ -218,6 +238,10 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
         }
 
         return attributes.toArray(new String[attributes.size()]);
+    }
+
+    public String getPageTitle() {
+        return getMessage("report_preview_view.title");
     }
 
 }

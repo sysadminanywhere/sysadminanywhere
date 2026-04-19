@@ -157,10 +157,10 @@ public class ComputersService {
 
         queryString += " Where TimeGenerated >= '" + startDate + "' AND TimeGenerated <= '" + endDate + "'";
 
-        if (!filters.get("sourceName").toString().isEmpty())
-            queryString += " AND sourceName LIKE '" + filters.get("sourceName").toString() + "%'";
+        if (!filters.get("sourceName").isEmpty())
+            queryString += " AND sourceName LIKE '" + filters.get("sourceName") + "%'";
 
-        String eventType = filters.get("eventType").toString();
+        String eventType = filters.get("eventType");
         switch (eventType) {
             case "Error":
                 queryString += " And EventType = 1";

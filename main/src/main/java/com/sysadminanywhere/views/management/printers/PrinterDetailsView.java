@@ -3,6 +3,8 @@ package com.sysadminanywhere.views.management.printers;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import com.sysadminanywhere.service.PrintersService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
@@ -18,7 +20,6 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
 @RolesAllowed("ADMIN")
@@ -29,6 +30,8 @@ public class PrinterDetailsView extends Div implements BeforeEnterObserver {
 
     private String id;
     private final PrintersService printersService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
     PrinterEntry printer;
 
     H3 lblName = new H3();
@@ -49,18 +52,20 @@ public class PrinterDetailsView extends Div implements BeforeEnterObserver {
         }
     }
 
-    public PrinterDetailsView(PrintersService printersService) {
+    public PrinterDetailsView(PrintersService printersService, MessageSource messageSource, LocaleService localeService) {
         this.printersService = printersService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         addClassName("users-view");
 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();
 
-        lblName.setText("Name");
+        lblName.setText(getMessage("common.name"));
         lblName.setWidth("100%");
 
-        lblDescription.setText("Description");
+        lblDescription.setText(getMessage("common.description"));
         lblDescription.setWidth("100%");
 
         add(verticalLayout);
@@ -92,12 +97,12 @@ public class PrinterDetailsView extends Div implements BeforeEnterObserver {
 
     private ConfirmDialog deleteDialog() {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Delete");
-        dialog.setText("Are you sure you want to permanently delete this printer?");
+        dialog.setHeader(getMessage("common.delete"));
+        dialog.setText(getMessage("common.delete_printer_confirmation"));
 
         dialog.setCancelable(true);
 
-        dialog.setConfirmText("Delete");
+        dialog.setConfirmText(getMessage("common.delete"));
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {
@@ -107,6 +112,10 @@ public class PrinterDetailsView extends Div implements BeforeEnterObserver {
         });
 
         return dialog;
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
 }

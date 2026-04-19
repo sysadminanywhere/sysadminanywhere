@@ -3,6 +3,7 @@ package com.sysadminanywhere.views;
 import com.sysadminanywhere.control.MenuButton;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.security.AuthenticatedUser;
+import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.account.MeView;
 import com.sysadminanywhere.views.automation.AutomationsView;
@@ -37,6 +38,9 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.context.MessageSource;
+
+import java.util.Locale;
 
 
 @Layout
@@ -53,18 +57,26 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     VerticalLayout topMenu;
     VerticalLayout bottomMenu;
 
-    SideNav dashboardSubNavs = new SideNav();
-    SideNav managementSubNavs = new SideNav();
-    SideNav settingsSubNavs = new SideNav();
-    SideNav inventorySubNavs = new SideNav();
-    SideNav incidentsSubNavs = new SideNav();
-    SideNav reportsSubNavs = new SideNav();
-    SideNav accountSubNavs = new SideNav();
-    SideNav automationsSubNavs = new SideNav();
+    SideNav dashboardSubNavs;
+    SideNav managementSubNavs;
+    SideNav settingsSubNavs;
+    SideNav inventorySubNavs;
+    SideNav incidentsSubNavs;
+    SideNav reportsSubNavs;
+    SideNav accountSubNavs;
+    SideNav automationsSubNavs;
 
-    String currentTitle = "Domain";
+    String currentTitle = "main_layout.dashboard";
 
-    public MainLayout(AuthenticatedUser authenticatedUser) {
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
+
+    private Locale locale;
+
+    public MainLayout(MessageSource messageSource, LocaleService localeService) {
+
+        this.messageSource = messageSource;
+        this.localeService = localeService;
 
         setPrimarySection(Section.DRAWER);
         getElement().setAttribute("theme", "teams-nav");
@@ -94,54 +106,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         Scroller scroller = new Scroller(drawerContent);
         scroller.setClassName(LumoUtility.Padding.SMALL);
 
-        topMenu = new VerticalLayout(createSelectedMainButtonItem(currentTitle, DashboardView.class, "icons/dashboard.svg"),
-                createMainButtonItem("Management", ContainersView.class, "icons/management.svg"),
-                createMainButtonItem("Incidents", IncidentsView.class, "icons/incident.svg"),
-                createMainButtonItem("Automation", AutomationsView.class, "icons/automation.svg"),
-                createMainButtonItem("Inventory", InventorySoftwareView.class, "icons/inventory.svg"),
-                createMainButtonItem("Reports", UserReportsView.class, "icons/reports.svg"));
-        topMenu.setMargin(false);
-
-        bottomMenu = new VerticalLayout();
-
-        bottomMenu.add(createMainButtonItem("Account", MeView.class, "icons/user.svg"));
-
-        bottomMenu.add(createMainButtonItem("Settings", SettingsView.class, "icons/settings.svg"));
-
-        bottomMenu.setHeightFull();
-        bottomMenu.setMargin(false);
-        bottomMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-
-        buttons.add(topMenu, bottomMenu);
-
-        dashboardSubNavs.addItem(createSideNavItem("Dashboard", DashboardView.class),
-                createSideNavItem("Domain", DomainView.class),
-                createSideNavItem("Audit", AuditView.class));
-
-        managementSubNavs.addItem(
-                createSideNavItem("Containers", ContainersView.class),
-                createSideNavItem("Users", UsersView.class),
-                createSideNavItem("Computers", ComputersView.class),
-                createSideNavItem("Groups", GroupsView.class),
-                createSideNavItem("Printers", PrintersView.class),
-                createSideNavItem("Contacts", ContactsView.class));
-
-        settingsSubNavs.addItem(createSideNavItem("Settings", SettingsView.class),
-                createSideNavItem("About", AboutView.class));
-
-        inventorySubNavs.addItem(createSideNavItem("Software inventory", InventorySoftwareView.class),
-                createSideNavItem("Hardware inventory", InventoryHardwareView.class));
-
-        incidentsSubNavs.addItem(createSideNavItem("Incidents", IncidentsView.class));
-
-        automationsSubNavs.addItem(createSideNavItem("Workflows", AutomationsView.class));
-
-        reportsSubNavs.addItem(createSideNavItem("Users reports", UserReportsView.class),
-                createSideNavItem("Computer Reports", ComputerReportsView.class),
-                createSideNavItem("Group Reports", GroupReportsView.class));
-
-        accountSubNavs.addItem(createSideNavItem("Me", MeView.class));
-
         drawerContent.add(buttons, subNav);
 
         drawerContent.setHeightFull();
@@ -152,11 +116,88 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
         addToDrawer(scroller);
         addHeaderContent();
+
+        locale = localeService.getCurrentLocale();
+
+        addNavigation();
+    }
+
+    private void addNavigation() {
+        dashboardSubNavs = new SideNav();
+        managementSubNavs = new SideNav();
+        settingsSubNavs = new SideNav();
+        inventorySubNavs = new SideNav();
+        incidentsSubNavs = new SideNav();
+        reportsSubNavs = new SideNav();
+        accountSubNavs = new SideNav();
+        automationsSubNavs = new SideNav();
+
+        topMenu = new VerticalLayout(createSelectedMainButtonItem("main_layout.dashboard", getMessage("main_layout.dashboard"), DashboardView.class, "icons/dashboard.svg"),
+                createMainButtonItem("main_layout.management", getMessage("main_layout.management"), ContainersView.class, "icons/management.svg"),
+                createMainButtonItem("main_layout.incidents", getMessage("main_layout.incidents"), IncidentsView.class, "icons/incident.svg"),
+                createMainButtonItem("main_layout.automation", getMessage("main_layout.automation"), AutomationsView.class, "icons/automation.svg"),
+                createMainButtonItem("main_layout.inventory", getMessage("main_layout.inventory"), InventorySoftwareView.class, "icons/inventory.svg"),
+                createMainButtonItem("main_layout.reports", getMessage("main_layout.reports"), UserReportsView.class, "icons/reports.svg"));
+        topMenu.setMargin(false);
+
+        bottomMenu = new VerticalLayout();
+
+        bottomMenu.add(createMainButtonItem("main_layout.account", getMessage("main_layout.account"), MeView.class, "icons/user.svg"));
+
+        bottomMenu.add(createMainButtonItem("main_layout.settings", getMessage("main_layout.settings"), SettingsView.class, "icons/settings.svg"));
+
+        bottomMenu.setHeightFull();
+        bottomMenu.setMargin(false);
+        bottomMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+
+        int count = Math.toIntExact(buttons.getChildren().count());
+
+        if (count == 3) {
+            buttons.remove(buttons.getComponentAt(count - 1));
+            buttons.remove(buttons.getComponentAt(count - 2));
+        }
+
+        buttons.add(topMenu, bottomMenu);
+
+        dashboardSubNavs.addItem(createSideNavItem(getMessage("main_layout.dashboard"), DashboardView.class),
+                createSideNavItem(getMessage("main_layout.domain"), DomainView.class),
+                createSideNavItem(getMessage("main_layout.audit"), AuditView.class));
+
+        managementSubNavs.addItem(
+                createSideNavItem(getMessage("main_layout.containers"), ContainersView.class),
+                createSideNavItem(getMessage("main_layout.users"), UsersView.class),
+                createSideNavItem(getMessage("main_layout.computers"), ComputersView.class),
+                createSideNavItem(getMessage("main_layout.groups"), GroupsView.class),
+                createSideNavItem(getMessage("main_layout.printers"), PrintersView.class),
+                createSideNavItem(getMessage("main_layout.contacts"), ContactsView.class));
+
+        settingsSubNavs.addItem(createSideNavItem(getMessage("main_layout.settings"), SettingsView.class),
+                createSideNavItem(getMessage("main_layout.about"), AboutView.class));
+
+        inventorySubNavs.addItem(createSideNavItem(getMessage("main_layout.software_inventory"), InventorySoftwareView.class),
+                createSideNavItem(getMessage("main_layout.hardware_inventory"), InventoryHardwareView.class));
+
+        incidentsSubNavs.addItem(createSideNavItem(getMessage("main_layout.incidents"), IncidentsView.class));
+
+        automationsSubNavs.addItem(createSideNavItem(getMessage("main_layout.workflows"), AutomationsView.class));
+
+        reportsSubNavs.addItem(createSideNavItem(getMessage("main_layout.users_reports"), UserReportsView.class),
+                createSideNavItem(getMessage("main_layout.computer_reports"), ComputerReportsView.class),
+                createSideNavItem(getMessage("main_layout.group_reports"), GroupReportsView.class));
+
+        accountSubNavs.addItem(createSideNavItem(getMessage("main_layout.me"), MeView.class));
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-
+        if (!locale.equals(localeService.getCurrentLocale())) {
+            locale = localeService.getCurrentLocale();
+            addNavigation();
+        }
     }
 
     @Override
@@ -181,7 +222,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
             subNav.removeAll();
             String currentRoute = getUI().get().getInternals().getActiveViewLocation().getPath();
 
-            H4 title = new H4(currentTitle);
+            H4 title = new H4(getMessage(currentTitle));
             title.getStyle().setMarginTop("10px");
             title.getStyle().setMarginBottom("10px");
 
@@ -211,22 +252,22 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     }
 
-    private MenuButton createMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath) {
-        return createMainButtonItem(label, navigationTarget, imgPath, false);
+    private MenuButton createMainButtonItem(String key, String label, Class<? extends Component> navigationTarget, String imgPath) {
+        return createMainButtonItem(key, label, navigationTarget, imgPath, false);
     }
 
-    private MenuButton createSelectedMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath) {
-        return createMainButtonItem(label, navigationTarget, imgPath, true);
+    private MenuButton createSelectedMainButtonItem(String key, String label, Class<? extends Component> navigationTarget, String imgPath) {
+        return createMainButtonItem(key, label, navigationTarget, imgPath, true);
     }
 
-    private MenuButton createMainButtonItem(String label, Class<? extends Component> navigationTarget, String imgPath, boolean isSelected) {
+    private MenuButton createMainButtonItem(String key, String label, Class<? extends Component> navigationTarget, String imgPath, boolean isSelected) {
         MenuButton button = new MenuButton(label, imgPath);
 
         if (isSelected)
             button.selected(true);
 
         button.addClickListener(e -> {
-            currentTitle = label;
+            currentTitle = key;
             unselectButtons();
             button.selected(true);
             UI.getCurrent().navigate(navigationTarget);
@@ -243,11 +284,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     private void unselectButtons() {
         for (Component component : buttons.getChildren().toList()) {
-            if (component instanceof VerticalLayout) {
-                VerticalLayout layout = (VerticalLayout) component;
+            if (component instanceof VerticalLayout layout) {
                 for (Component item : layout.getChildren().toList()) {
-                    if (item instanceof MenuButton) {
-                        MenuButton button = (MenuButton) item;
+                    if (item instanceof MenuButton button) {
                         button.selected(false);
                     }
                 }

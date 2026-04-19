@@ -3,6 +3,8 @@ package com.sysadminanywhere.control;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.service.LdapService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.HasComponents;
 import com.vaadin.flow.component.HasSize;
@@ -27,7 +29,12 @@ public class Members extends Composite<Div> implements HasComponents, HasSize {
     Button plusButton = new Button(new Icon(VaadinIcon.PLUS));
     Button minusButton = new Button(new Icon(VaadinIcon.MINUS));
 
-    public Members() {
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
+
+    public Members(MessageSource messageSource, LocaleService localeService) {
+        this.messageSource = messageSource;
+        this.localeService = localeService;
         setMinWidth("300px");
 
         listMembers.addValueChangeListener(event -> {
@@ -65,7 +72,7 @@ public class Members extends Composite<Div> implements HasComponents, HasSize {
         minusButton.addThemeVariants(ButtonVariant.LUMO_ICON);
         minusButton.setEnabled(false);
 
-        H5 title = new H5("Members");
+        H5 title = new H5(getMessage("members.title"));
         title.getStyle().setMarginTop("10px");
         title.setWidth("50%");
 
@@ -81,6 +88,10 @@ public class Members extends Composite<Div> implements HasComponents, HasSize {
         div.add(layout, listMembers);
 
         return div;
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
 }

@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.inventory;
 
 import com.sysadminanywhere.common.inventory.model.ComputerItem;
 import com.sysadminanywhere.service.InventoryService;
+import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -16,29 +17,31 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Software inventory")
 @Route(value = "inventory/software/:id?/computer")
 @Uses(Icon.class)
-public class InventoryComputersWithSoftwareView extends Div implements BeforeEnterObserver {
+public class InventoryComputersWithSoftwareView extends Div implements BeforeEnterObserver, HasDynamicTitle {
 
     private Long id = 0L;
 
     private Grid<ComputerItem> grid;
 
-    private Filters filters;
+    private final Filters filters;
     private final InventoryService inventoryService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
 
     public void beforeEnter(BeforeEnterEvent event) {
         String idParam = event.getRouteParameters().get("id").
@@ -48,17 +51,23 @@ public class InventoryComputersWithSoftwareView extends Div implements BeforeEnt
             id = Long.valueOf(idParam);
     }
 
-    public InventoryComputersWithSoftwareView(InventoryService inventoryService) {
+    public InventoryComputersWithSoftwareView(InventoryService inventoryService, MessageSource messageSource, LocaleService localeService) {
         this.inventoryService = inventoryService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid());
+        filters = new Filters(() -> refreshGrid(), messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
         layout.setSpacing(false);
         add(layout);
+    }
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
     private HorizontalLayout createMobileFilters() {
@@ -70,7 +79,7 @@ public class InventoryComputersWithSoftwareView extends Div implements BeforeEnt
         mobileFilters.addClassName("mobile-filters");
 
         Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span("Filters");
+        Span filtersHeading = new Span(getMessage("common.filters"));
         mobileFilters.add(mobileIcon, filtersHeading);
         mobileFilters.setFlexGrow(1, filtersHeading);
         mobileFilters.addClickListener(e -> {
@@ -87,9 +96,15 @@ public class InventoryComputersWithSoftwareView extends Div implements BeforeEnt
 
     public static class Filters extends Div {
 
-        private final TextField name = new TextField("Name");
+        private final TextField name;
+        private final MessageSource messageSource;
+        private final LocaleService localeService;
 
-        public Filters(Runnable onSearch) {
+        public Filters(Runnable onSearch, MessageSource messageSource, LocaleService localeService) {
+            this.messageSource = messageSource;
+            this.localeService = localeService;
+
+            this.name = new TextField("Name");
 
             setWidthFull();
             addClassName("filter-layout");
@@ -97,13 +112,13 @@ public class InventoryComputersWithSoftwareView extends Div implements BeforeEnt
                     LumoUtility.BoxSizing.BORDER);
 
             // Action buttons
-            Button resetBtn = new Button("Reset");
+            Button resetBtn = new Button(getMessage("common.reset"));
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 name.clear();
                 onSearch.run();
             });
-            Button searchBtn = new Button("Search");
+            Button searchBtn = new Button(getMessage("common.search"));
             searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             searchBtn.addClickListener(e -> onSearch.run());
 
@@ -112,6 +127,10 @@ public class InventoryComputersWithSoftwareView extends Div implements BeforeEnt
             actions.addClassName("actions");
 
             add(name, actions);
+        }
+
+        private String getMessage(String key) {
+            return messageSource.getMessage(key, null, localeService.getCurrentLocale());
         }
 
         public Map<String, String> getFilters() {
@@ -139,6 +158,10 @@ public class InventoryComputersWithSoftwareView extends Div implements BeforeEnt
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    public String getPageTitle() {
+        return getMessage("inventory_computers_with_software_view.title");
     }
 
 }

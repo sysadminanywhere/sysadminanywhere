@@ -6,6 +6,8 @@ import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.service.GroupsService;
+import com.sysadminanywhere.service.LocaleService;
+import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
@@ -14,9 +16,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
-import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
@@ -28,27 +28,27 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
 @RolesAllowed("ADMIN")
-@PageTitle("Group details")
 @Route(value = "management/groups/:id?/details")
 @Uses(Icon.class)
 @Uses(ListBox.class)
 @Uses(TabSheet.class)
-public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuControl {
+public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
 
     private String id;
     private final GroupsService groupsService;
+    private final MessageSource messageSource;
+    private final LocaleService localeService;
     private GroupEntry group;
 
     H3 lblName = new H3();
     H5 lblDescription = new H5();
-    MemberOf memberOf = new MemberOf();
-    Members members = new Members();
+    MemberOf memberOf;
+    Members members;
 
     Binder<GroupEntry> binder = new Binder<>(GroupEntry.class);
 
@@ -69,6 +69,10 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
         };
     }
 
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    }
+
     private void updateView() {
         if (id != null) {
             group = groupsService.getByCN(id);
@@ -85,18 +89,23 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
         }
     }
 
-    public GroupDetailsView(GroupsService groupsService) {
+    public GroupDetailsView(GroupsService groupsService, MessageSource messageSource, LocaleService localeService) {
         this.groupsService = groupsService;
+        this.messageSource = messageSource;
+        this.localeService = localeService;
+
+        memberOf = new MemberOf(messageSource, localeService);
+        members = new Members(messageSource, localeService);
 
         addClassName("users-view");
 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setWidthFull();
 
-        lblName.setText("Name");
+        lblName.setText(getMessage("common.name"));
         lblName.setWidth("100%");
 
-        lblDescription.setText("Description");
+        lblDescription.setText(getMessage("common.description"));
         lblDescription.setWidth("100%");
 
         add(verticalLayout);
@@ -114,8 +123,8 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
 
         FormLayout formLayout = new FormLayout();
 
-        TextField txtGroupType = new TextField("Group type");
-        //binder.bind(txtGroupType, GroupEntry::getADGroupType, null);
+        TextField txtGroupType = new TextField(getMessage("group_details_view.group_type"));
+        binder.bind(txtGroupType, GroupEntry::getADGroupType, null);
         txtGroupType.setReadOnly(true);
 
         formLayout.add(txtGroupType);
@@ -129,12 +138,12 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
 
     private ConfirmDialog deleteDialog() {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Delete");
-        dialog.setText("Are you sure you want to permanently delete this group?");
+        dialog.setHeader(getMessage("common.delete"));
+        dialog.setText(getMessage("common.delete_group_confirmation"));
 
         dialog.setCancelable(true);
 
-        dialog.setConfirmText("Delete");
+        dialog.setConfirmText(getMessage("common.delete"));
         dialog.setConfirmButtonTheme("error primary");
 
         dialog.addConfirmListener(item -> {
@@ -147,22 +156,26 @@ public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuCo
     }
 
     private Dialog updateDialog() {
-        return new UpdateGroupDialog(groupsService, group, updateRunnable());
+        return new UpdateGroupDialog(groupsService, group, messageSource, localeService, updateRunnable());
     }
 
     @Override
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
-        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", "Update", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/pencil.svg", getMessage("group_details_view.update"), event -> {
             updateDialog().open();
         });
-        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", "Delete", event -> {
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("group_details_view.delete"), event -> {
             deleteDialog().open();
         });
 
         menuBar.addThemeVariants(MenuBarVariant.LUMO_END_ALIGNED);
 
         return menuBar;
+    }
+
+    public String getPageTitle() {
+        return getMessage("group_details_view.title");
     }
 
 }

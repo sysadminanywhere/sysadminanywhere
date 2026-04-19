@@ -3,7 +3,7 @@
 Web-based services for administering your Active Directory network that provides a one interface to simplify administrative tasks.
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
-![Static Badge](https://img.shields.io/badge/version-4.0.3-blue)
+![Static Badge](https://img.shields.io/badge/version-4.1.0-blue)
 
 ![Sysadmin Screenshot](images/screen.png)
 
@@ -35,6 +35,12 @@ Web-based services for administering your Active Directory network that provides
 
 #### Reports
 - More than 20 report
+
+#### Languages
+- English
+- German
+- French
+- Russian
 
 
 > **Note:** This version is not compatible with previous versions!

@@ -7,7 +7,7 @@
 
     <groupId>com.sysadminanywhere</groupId>
     <artifactId>SysadminAnywhere</artifactId>
-    <version>4.0.3</version>
+    <version>4.1.0</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -16,6 +16,7 @@
         <module>inventory</module>
         <module>incident</module>
         <module>main</module>
+        <module>e2e-tests</module>
     </modules>
 
     <parent>

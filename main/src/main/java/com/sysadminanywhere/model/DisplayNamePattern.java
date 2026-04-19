@@ -8,8 +8,8 @@ public enum DisplayNamePattern {
     LAST_FIRST_MIDDLE("Last First Middle (e.g. Simpson Homer Jay)", "(?<LastName>\\S+) (?<FirstName>\\S+) (?<Middle>\\S+)"),
     NONE("None","");
 
-    private String title;
-    private String pattern;
+    private final String title;
+    private final String pattern;
 
     DisplayNamePattern(String title, String pattern) {
         this.title = title;
