@@ -17,7 +17,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.1</version>
+        <version>4.0.5</version>
     </parent>
 
     <repositories>
@@ -111,7 +111,7 @@
         <dependency>
             <groupId>com.github.appreciated</groupId>
             <artifactId>apexcharts</artifactId>
-            <version>24.0.2</version>
+            <version>25.0.1</version>
         </dependency>
         <dependency>
             <groupId>net.coobird</groupId>
@@ -122,16 +122,6 @@
             <groupId>org.vaadin.tatu</groupId>
             <artifactId>tree</artifactId>
             <version>4.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.18.5</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.18.5</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -171,7 +161,7 @@
         <dependency>
             <groupId>org.vaadin.addons.componentfactory</groupId>
             <artifactId>vcf-pdf-viewer</artifactId>
-            <version>5.0.0</version>
+            <version>6.0.1</version>
         </dependency>
 
         <dependency>
