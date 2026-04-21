@@ -27,10 +27,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
-import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.H4;
-import com.vaadin.flow.component.html.Hr;
-import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.*;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
@@ -47,7 +44,7 @@ import java.util.Locale;
 @PermitAll
 public class MainLayout extends AppLayout implements AfterNavigationObserver, BeforeEnterObserver {
 
-    private H1 viewTitle;
+    private H3 viewTitle;
     private HorizontalLayout menuLayout;
 
     HorizontalLayout drawerContent = new HorizontalLayout();
@@ -296,9 +293,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         DrawerToggle toggle = new DrawerToggle();
         toggle.setAriaLabel("Menu toggle");
 
-        viewTitle = new H1();
+        viewTitle = new H3();
         viewTitle.setWidthFull();
-        viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
+        //viewTitle.addClassNames(LumoUtility.FontSize.MEDIUM, LumoUtility.Margin.NONE);
 
         menuLayout = new HorizontalLayout();
         menuLayout.setWidthFull();
