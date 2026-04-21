@@ -1,31 +1,25 @@
 package com.sysadminanywhere.client.incident;
 
 import com.sysadminanywhere.common.incident.model.IncidentItem;
-import com.sysadminanywhere.common.incident.model.Severity;
-import com.sysadminanywhere.config.FeignConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.PostExchange;
+import org.springframework.web.service.annotation.PutExchange;
 
 import java.util.Map;
 
-@FeignClient(
-        name = "incident",
-        url = "${app.services.incident.uri}",
-        configuration = FeignConfiguration.class
-)
 public interface IncidentServiceClient {
 
-    @GetMapping("/ping")
+    @GetExchange("/ping")
     String ping();
 
-    @GetMapping("/api/incidents")
-    Page<IncidentItem> getIncidents(Pageable pageable, @RequestParam("filters") Map<String, Object> filters);
+    @GetExchange("/api/incidents")
+    Page<IncidentItem> getIncidents(Pageable pageable, Map<String, Object> filters);
 
-    @PutMapping("/api/incidents/{id}/update")
-    IncidentItem updateIncident(@PathVariable Long id, @RequestParam("severity") String severity, @RequestParam("status") String status);
+    @PutExchange("/api/incidents/{id}/update")
+    IncidentItem updateIncident(Long id, String severity, String status);
 
-    @PostMapping("/api/incidents/{id}/close")
-    IncidentItem closeIncident(@PathVariable Long id);
+    @PostExchange("/api/incidents/{id}/close")
+    IncidentItem closeIncident(Long id);
 }

@@ -2,37 +2,33 @@ package com.sysadminanywhere.client.directory;
 
 import com.sysadminanywhere.common.directory.dto.AddContactDto;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
-import com.sysadminanywhere.config.FeignConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.service.annotation.DeleteExchange;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.PostExchange;
+import org.springframework.web.service.annotation.PutExchange;
 
 import java.util.List;
 
-@FeignClient(
-        name = "contacts",
-        url = "${app.services.directory.uri}",
-        configuration = FeignConfiguration.class
-)
 public interface ContactsServiceClient {
 
-    @GetMapping("/api/contacts")
-    Page<ContactEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
+    @GetExchange("/api/contacts")
+    Page<ContactEntry> getAll(Pageable pageable, String filters, String[] attributes);
 
-    @GetMapping("/api/contacts/list")
-    List<ContactEntry> getList(@RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
+    @GetExchange("/api/contacts/list")
+    List<ContactEntry> getList(String filters, String[] attributes);
 
-    @GetMapping("/api/contacts/{cn}")
-    ContactEntry getByCN(@PathVariable("cn") String cn);
+    @GetExchange("/api/contacts/{cn}")
+    ContactEntry getByCN(String cn);
 
-    @PostMapping("/api/contacts")
-    ContactEntry add(@RequestBody AddContactDto addContact);
+    @PostExchange("/api/contacts")
+    ContactEntry add(AddContactDto addContact);
 
-    @PutMapping("/api/contacts")
-    ContactEntry update(@RequestBody ContactEntry contact);
+    @PutExchange("/api/contacts")
+    ContactEntry update(ContactEntry contact);
 
-    @DeleteMapping("/api/contacts")
-    void delete(@RequestParam("distinguishedName") String distinguishedName);
+    @DeleteExchange("/api/contacts")
+    void delete(String distinguishedName);
 
 }

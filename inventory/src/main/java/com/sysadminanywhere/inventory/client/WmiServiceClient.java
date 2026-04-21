@@ -3,30 +3,21 @@ package com.sysadminanywhere.inventory.client;
 import com.sysadminanywhere.common.wmi.dto.CommandDto;
 import com.sysadminanywhere.common.wmi.dto.ExecuteDto;
 import com.sysadminanywhere.common.wmi.dto.InvokeDto;
-import com.sysadminanywhere.inventory.config.FeignConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.service.annotation.PostExchange;
 
-
-@FeignClient(
-        name = "wmi",
-        url = "${app.services.directory.uri}",
-        configuration = FeignConfiguration.class
-)
 public interface WmiServiceClient {
 
-    @PostMapping(value = "/api/wmi/execute")
-    ResponseEntity<?> execute(@RequestBody ExecuteDto executeDto);
+    @PostExchange(value = "/api/wmi/execute")
+    ResponseEntity<?> execute(ExecuteDto executeDto);
 
-    @PostMapping("/api/wmi/execute/clear")
-    ResponseEntity<?> clearExecuteCache(@RequestBody ExecuteDto executeDto);
+    @PostExchange("/api/wmi/execute/clear")
+    ResponseEntity<?> clearExecuteCache(ExecuteDto executeDto);
 
-    @PostMapping("/api/wmi/invoke")
-    ResponseEntity<?> invoke(@RequestBody InvokeDto invokeDto);
+    @PostExchange("/api/wmi/invoke")
+    ResponseEntity<?> invoke(InvokeDto invokeDto);
 
-    @PostMapping("/api/wmi/command")
-    ResponseEntity<?> command(@RequestBody CommandDto commandDto);
+    @PostExchange("/api/wmi/command")
+    ResponseEntity<?> command(CommandDto commandDto);
 
 }

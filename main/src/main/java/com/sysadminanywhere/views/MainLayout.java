@@ -202,8 +202,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     @Override
     public void afterNavigation(AfterNavigationEvent event) {
-        super.afterNavigation();
-
         viewTitle.setText(getCurrentPageTitle());
 
         menuLayout.removeAll();

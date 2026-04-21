@@ -1,31 +1,25 @@
 package com.sysadminanywhere.client.directory;
 
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
-import com.sysadminanywhere.config.FeignConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.service.annotation.DeleteExchange;
+import org.springframework.web.service.annotation.GetExchange;
 
 import java.util.List;
 
-@FeignClient(
-        name = "printers",
-        url = "${app.services.directory.uri}",
-        configuration = FeignConfiguration.class
-)
 public interface PrintersServiceClient {
 
-    @GetMapping("/api/printers")
-    Page<PrinterEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
+    @GetExchange("/api/printers")
+    Page<PrinterEntry> getAll(Pageable pageable, String filters, String[] attributes);
 
-    @GetMapping("/api/printers/list")
-    List<PrinterEntry> getList(@RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
+    @GetExchange("/api/printers/list")
+    List<PrinterEntry> getList(String filters, String[] attributes);
 
-    @GetMapping("/api/printers/{cn}")
-    PrinterEntry getByCN(@PathVariable("cn") String cn);
+    @GetExchange("/api/printers/{cn}")
+    PrinterEntry getByCN(String cn);
 
-    @DeleteMapping("/api/printers")
-    void delete(@RequestParam("distinguishedName") String distinguishedName);
+    @DeleteExchange("/api/printers")
+    void delete(String distinguishedName);
 
 }
