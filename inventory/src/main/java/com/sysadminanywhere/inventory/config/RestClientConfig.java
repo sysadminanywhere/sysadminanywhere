@@ -27,6 +27,12 @@ public class RestClientConfig {
         return builder
                 .baseUrl(directoryServiceUri)
                 .defaultHeaders(headers -> headers.add("Content-Type", "application/json"))
+                .requestInitializer(request -> {
+                    var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+                    if (auth != null && auth.getDetails() instanceof String token) {
+                        request.getHeaders().add("Authorization", "Bearer " + token);
+                    }
+                })
                 .build();
     }
 

@@ -7,6 +7,9 @@ import com.sysadminanywhere.common.directory.model.UserEntry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.DeleteExchange;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.PostExchange;
@@ -17,27 +20,27 @@ import java.util.List;
 public interface UsersServiceClient {
 
     @GetExchange("/api/users")
-    Page<UserEntry> getAll(Pageable pageable, String filters, String[] attributes);
+    Page<UserEntry> getAll(Pageable pageable, @RequestParam String filters, @RequestParam String[] attributes);
 
     @GetExchange("/api/users/list")
-    List<UserEntry> getList(String filters, String[] attributes);
+    List<UserEntry> getList(@RequestParam String filters, @RequestParam String[] attributes);
 
     @GetExchange("/api/users/{cn}")
-    UserEntry getByCN(String cn);
+    UserEntry getByCN(@PathVariable String cn);
 
     @PostExchange("/api/users")
-    UserEntry add(AddUserDto addUser);
+    UserEntry add(@RequestBody AddUserDto addUser);
 
     @PutExchange("/api/users")
-    UserEntry update(UserEntry user);
+    UserEntry update(@RequestBody UserEntry user);
 
     @DeleteExchange("/api/users")
-    void delete(String distinguishedName);
+    void delete(@RequestParam String distinguishedName);
 
     @PostExchange("/api/users/resetpassword")
-    ResponseEntity<?> resetPassword(ResetPasswordDto resetPasswordDto);
+    ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto);
 
     @PostExchange("/api/users/changeuac")
-    ResponseEntity<?> changeUserAccountControl(ChangeUserAccountControlDto changeUserAccountControlDto);
+    ResponseEntity<?> changeUserAccountControl(@RequestBody ChangeUserAccountControlDto changeUserAccountControlDto);
 
 }
