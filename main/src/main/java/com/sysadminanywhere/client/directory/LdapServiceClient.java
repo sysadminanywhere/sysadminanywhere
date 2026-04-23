@@ -1,5 +1,6 @@
 package com.sysadminanywhere.client.directory;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.SearchDto;
@@ -18,7 +19,7 @@ import java.util.Map;
 public interface LdapServiceClient {
 
     @GetExchange("/api/ldap/audit")
-    ResponseEntity<Page<AuditDto>> getAudit(Pageable pageable, @RequestParam Map<String, Object> filters);
+    ResponseEntity<PageResponse<AuditDto>> getAudit(@RequestParam int page, @RequestParam int size, @RequestParam String sort, @RequestParam Map<String, Object> filters);
 
     @GetExchange("/api/ldap/audit/list")
     ResponseEntity<List<AuditDto>> getAuditList(@RequestParam Map<String, String> filters);

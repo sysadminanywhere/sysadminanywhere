@@ -1,5 +1,6 @@
 package com.sysadminanywhere.directory.controller;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddUserDto;
 import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
 import com.sysadminanywhere.common.directory.dto.ChangeUserAccountControlDto;
@@ -33,15 +34,14 @@ class UsersControllerTest {
 
     @Test
     void getAll_shouldReturnPageOfUsers() {
-        PageRequest pageable = PageRequest.of(0, 10);
         Page<UserEntry> page = new PageImpl<>(List.of(new UserEntry()));
         when(usersService.getAll(any(PageRequest.class), anyString(), any(String[].class))).thenReturn(page);
 
-        ResponseEntity<Page<UserEntry>> result = usersController.getAll(pageable, "filter", new String[]{"cn"});
+        ResponseEntity<PageResponse<UserEntry>> result = usersController.getAll(PageRequest.of(0, 10), "filter", new String[]{"cn"});
 
         assertNotNull(result);
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        verify(usersService).getAll(eq(pageable), eq("filter"), any(String[].class));
+        verify(usersService).getAll(any(PageRequest.class), eq("filter"), any(String[].class));
     }
 
     @Test

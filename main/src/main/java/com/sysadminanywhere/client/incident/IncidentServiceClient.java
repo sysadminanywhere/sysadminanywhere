@@ -1,5 +1,6 @@
 package com.sysadminanywhere.client.incident;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.incident.model.IncidentItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +18,7 @@ public interface IncidentServiceClient {
     String ping();
 
     @GetExchange("/api/incidents")
-    Page<IncidentItem> getIncidents(Pageable pageable, @RequestParam Map<String, Object> filters);
+    PageResponse<IncidentItem> getIncidents(@RequestParam int page, @RequestParam int size, @RequestParam String sort, @RequestParam Map<String, Object> filters);
 
     @PutExchange("/api/incidents/{id}/update")
     IncidentItem updateIncident(@PathVariable Long id, @RequestParam String severity, @RequestParam String status);

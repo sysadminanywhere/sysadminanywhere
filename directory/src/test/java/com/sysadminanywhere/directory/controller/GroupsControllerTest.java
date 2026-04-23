@@ -1,5 +1,6 @@
 package com.sysadminanywhere.directory.controller;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddGroupDto;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.model.GroupScope;
@@ -32,15 +33,14 @@ class GroupsControllerTest {
 
     @Test
     void getAll_shouldReturnPageOfGroups() {
-        PageRequest pageable = PageRequest.of(0, 10);
         Page<GroupEntry> page = new PageImpl<>(List.of(new GroupEntry()));
         when(groupsService.getAll(any(PageRequest.class), anyString(), any(String[].class))).thenReturn(page);
 
-        ResponseEntity<Page<GroupEntry>> result = groupsController.getAll(pageable, "filter", new String[]{"cn"});
+        ResponseEntity<PageResponse<GroupEntry>> result = groupsController.getAll(0, 10, "", "filter", new String[]{"cn"});
 
         assertNotNull(result);
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        verify(groupsService).getAll(eq(pageable), eq("filter"), any(String[].class));
+        verify(groupsService).getAll(any(PageRequest.class), eq("filter"), any(String[].class));
     }
 
     @Test

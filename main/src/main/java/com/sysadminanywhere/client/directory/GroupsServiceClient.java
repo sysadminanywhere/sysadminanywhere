@@ -1,5 +1,6 @@
 package com.sysadminanywhere.client.directory;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddGroupDto;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import org.springframework.data.domain.Page;
@@ -17,7 +18,7 @@ import java.util.List;
 public interface GroupsServiceClient {
 
     @GetExchange("/api/groups")
-    Page<GroupEntry> getAll(Pageable pageable, @RequestParam String filters, @RequestParam String[] attributes);
+    PageResponse<GroupEntry> getAll(@RequestParam int page, @RequestParam int size, @RequestParam String sort, @RequestParam String filters, @RequestParam String[] attributes);
 
     @GetExchange("/api/groups/list")
     List<GroupEntry> getList(@RequestParam String filters, @RequestParam String[] attributes);

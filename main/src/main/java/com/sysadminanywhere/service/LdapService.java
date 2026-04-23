@@ -1,5 +1,7 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.common.PageResponse;
+
 import com.sysadminanywhere.client.directory.LdapServiceClient;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
@@ -8,11 +10,8 @@ import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.Entry;
-import com.vaadin.flow.server.VaadinSession;
-import com.vaadin.flow.spring.security.AuthenticationContext;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -244,7 +243,13 @@ public class LdapService {
 
     public Page<AuditDto> getAudit(Pageable pageable, Map<String, Object> filters) {
         try {
-            return ldapServiceClient.getAudit(pageable, filters).getBody();
+            PageResponse<AuditDto> response = ldapServiceClient.getAudit(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort().toString(),
+                filters
+            ).getBody();
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }

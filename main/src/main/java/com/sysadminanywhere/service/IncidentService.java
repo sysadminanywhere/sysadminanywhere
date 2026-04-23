@@ -1,10 +1,12 @@
 package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.client.incident.IncidentServiceClient;
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.incident.model.IncidentItem;
 import com.sysadminanywhere.common.incident.model.IncidentStatus;
 import com.sysadminanywhere.common.incident.model.Severity;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,7 +33,13 @@ public class IncidentService {
     }
 
     public Page<IncidentItem> getIncidents(Pageable pageable, Map<String, Object> filters) {
-        return incidentServiceClient.getIncidents(pageable, filters);
+        PageResponse<IncidentItem> response = incidentServiceClient.getIncidents(
+            pageable.getPageNumber(),
+            pageable.getPageSize(),
+            pageable.getSort().toString(),
+            filters
+        );
+        return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
     }
 
     public IncidentItem updateIncident(Long id, Severity severity, IncidentStatus status) {

@@ -1,5 +1,6 @@
 package com.sysadminanywhere.client.directory;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddContactDto;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
 import org.springframework.data.domain.Page;
@@ -17,7 +18,7 @@ import java.util.List;
 public interface ContactsServiceClient {
 
     @GetExchange("/api/contacts")
-    Page<ContactEntry> getAll(Pageable pageable, @RequestParam String filters, @RequestParam String[] attributes);
+    PageResponse<ContactEntry> getAll(@RequestParam int page, @RequestParam int size, @RequestParam String sort, @RequestParam String filters, @RequestParam String[] attributes);
 
     @GetExchange("/api/contacts/list")
     List<ContactEntry> getList(@RequestParam String filters, @RequestParam String[] attributes);

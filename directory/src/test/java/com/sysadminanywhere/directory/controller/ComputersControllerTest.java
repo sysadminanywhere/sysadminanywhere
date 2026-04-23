@@ -1,5 +1,6 @@
 package com.sysadminanywhere.directory.controller;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddComputerDto;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.directory.service.ComputersService;
@@ -31,15 +32,14 @@ class ComputersControllerTest {
 
     @Test
     void getAll_shouldReturnPageOfComputers() {
-        PageRequest pageable = PageRequest.of(0, 10);
         Page<ComputerEntry> page = new PageImpl<>(List.of(new ComputerEntry()));
         when(computersService.getAll(any(PageRequest.class), anyString(), any(String[].class))).thenReturn(page);
 
-        ResponseEntity<Page<ComputerEntry>> result = computersController.getAll(pageable, "filter", new String[]{"cn"});
+        ResponseEntity<PageResponse<ComputerEntry>> result = computersController.getAll(0, 10, "", "filter", new String[]{"cn"});
 
         assertNotNull(result);
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        verify(computersService).getAll(eq(pageable), eq("filter"), any(String[].class));
+        verify(computersService).getAll(any(PageRequest.class), eq("filter"), any(String[].class));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.sysadminanywhere.client.directory;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddComputerDto;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import org.springframework.data.domain.Page;
@@ -17,7 +18,7 @@ import java.util.List;
 public interface ComputersServiceClient {
 
     @GetExchange("/api/computers")
-    Page<ComputerEntry> getAll(Pageable pageable, @RequestParam String filters, @RequestParam String[] attributes);
+    PageResponse<ComputerEntry> getAll(@RequestParam int page, @RequestParam int size, @RequestParam String sort, @RequestParam String filters, @RequestParam String[] attributes);
 
     @GetExchange("/api/computers/list")
     List<ComputerEntry> getList(@RequestParam String filters, @RequestParam String... attributes);

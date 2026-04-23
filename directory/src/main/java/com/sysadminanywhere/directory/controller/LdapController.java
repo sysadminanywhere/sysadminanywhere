@@ -1,5 +1,6 @@
 package com.sysadminanywhere.directory.controller;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.*;
 import com.sysadminanywhere.directory.service.LdapService;
 import jakarta.validation.Valid;
@@ -8,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.api.ldap.model.name.Dn;
-import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -32,16 +32,26 @@ public class LdapController {
      */
     @GetMapping("/audit")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<AuditDto>> getAudit(
-            @ParameterObject Pageable pageable,
+    public ResponseEntity<PageResponse<AuditDto>> getAudit(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String sort,
             @RequestParam Map<String, String> filters) {
 
         try {
             validateAuditFilters(filters);
+            Pageable pageable = Pageable.ofSize(size).withPage(page);
             Page<AuditDto> result = ldapService.getAudit(pageable, filters);
             log.info("Retrieved audit logs");
 
-            return ResponseEntity.ok(result);
+            PageResponse<AuditDto> response = new PageResponse<>(
+                    result.getContent(),
+                    result.getNumber(),
+                    result.getSize(),
+                    result.getTotalElements(),
+                    result.getTotalPages()
+            );
+            return ResponseEntity.ok(response);
 
         } catch (IllegalArgumentException e) {
             log.warn("Invalid audit filters: {}", e.getMessage());

@@ -1,5 +1,6 @@
 package com.sysadminanywhere.incident.controller;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.incident.model.IncidentItem;
 import com.sysadminanywhere.common.incident.model.IncidentStatus;
 import com.sysadminanywhere.common.incident.model.Severity;
@@ -11,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,26 +37,36 @@ public class IncidentController {
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public Page<IncidentItem> getIncidents(
-            Pageable pageable,
+    public PageResponse<IncidentItem> getIncidents(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String sort,
             @RequestParam(required = false) String severity,
             @RequestParam(required = false) String status
     ) {
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
+        Page<IncidentItem> result;
+        
         if (severity.equalsIgnoreCase("ALL") && status.equalsIgnoreCase("ALL")) {
-            return incidentRepository.findAll(pageable).map(IncidentMapper::toItem);
-        }
-
-        if (severity.equalsIgnoreCase("ALL")) {
+            result = incidentRepository.findAll(pageable).map(IncidentMapper::toItem);
+        } else if (severity.equalsIgnoreCase("ALL")) {
             IncidentStatus statusFilter = Objects.requireNonNullElse(IncidentStatus.valueOf(status), IncidentStatus.OPEN);
-            return incidentRepository.findWithStatus(statusFilter, pageable)
+            result = incidentRepository.findWithStatus(statusFilter, pageable)
+                    .map(IncidentMapper::toItem);
+        } else {
+            IncidentStatus statusFilter = Objects.requireNonNullElse(IncidentStatus.valueOf(status), IncidentStatus.OPEN);
+            Severity severityFilter = Objects.requireNonNullElse(Severity.valueOf(severity), Severity.CRITICAL);
+            result = incidentRepository.findWithFilters(severityFilter, statusFilter, pageable)
                     .map(IncidentMapper::toItem);
         }
 
-        IncidentStatus statusFilter = Objects.requireNonNullElse(IncidentStatus.valueOf(status), IncidentStatus.OPEN);
-        Severity severityFilter = Objects.requireNonNullElse(Severity.valueOf(severity), Severity.CRITICAL);
-
-        return incidentRepository.findWithFilters(severityFilter, statusFilter, pageable)
-                .map(IncidentMapper::toItem);
+        return new PageResponse<>(
+                result.getContent(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages()
+        );
     }
 
     /**

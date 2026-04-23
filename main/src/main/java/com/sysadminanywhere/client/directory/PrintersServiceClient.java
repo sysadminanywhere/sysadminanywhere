@@ -1,5 +1,6 @@
 package com.sysadminanywhere.client.directory;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,7 +14,7 @@ import java.util.List;
 public interface PrintersServiceClient {
 
     @GetExchange("/api/printers")
-    Page<PrinterEntry> getAll(Pageable pageable, @RequestParam String filters, @RequestParam String[] attributes);
+    PageResponse<PrinterEntry> getAll(@RequestParam int page, @RequestParam int size, @RequestParam String sort, @RequestParam String filters, @RequestParam String[] attributes);
 
     @GetExchange("/api/printers/list")
     List<PrinterEntry> getList(@RequestParam String filters, @RequestParam String[] attributes);

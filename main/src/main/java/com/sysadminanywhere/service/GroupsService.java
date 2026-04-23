@@ -1,5 +1,7 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.common.PageResponse;
+
 import com.sysadminanywhere.client.directory.GroupsServiceClient;
 import com.sysadminanywhere.common.directory.dto.AddGroupDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
@@ -8,6 +10,7 @@ import com.sysadminanywhere.common.directory.model.GroupScope;
 import com.sysadminanywhere.common.directory.model.GroupType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +30,14 @@ public class GroupsService {
 
     public Page<GroupEntry> getAll(Pageable pageable, String filters, String... attributes) {
         try {
-            return groupsServiceClient.getAll(pageable, filters, attributes);
+            PageResponse<GroupEntry> response = groupsServiceClient.getAll(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort().toString(),
+                filters,
+                attributes
+            );
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }

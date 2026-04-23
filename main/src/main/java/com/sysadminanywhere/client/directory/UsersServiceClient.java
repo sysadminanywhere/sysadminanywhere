@@ -1,11 +1,11 @@
 package com.sysadminanywhere.client.directory;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddUserDto;
 import com.sysadminanywhere.common.directory.dto.ChangeUserAccountControlDto;
 import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,7 +20,7 @@ import java.util.List;
 public interface UsersServiceClient {
 
     @GetExchange("/api/users")
-    Page<UserEntry> getAll(Pageable pageable, @RequestParam String filters, @RequestParam String[] attributes);
+    PageResponse<UserEntry> getAll(@RequestParam int page, @RequestParam int size, @RequestParam String sort, @RequestParam String filters, @RequestParam String[] attributes);
 
     @GetExchange("/api/users/list")
     List<UserEntry> getList(@RequestParam String filters, @RequestParam String[] attributes);

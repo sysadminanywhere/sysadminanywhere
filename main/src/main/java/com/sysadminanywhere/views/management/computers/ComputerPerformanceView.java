@@ -6,14 +6,12 @@ import com.github.appreciated.apexcharts.config.builder.*;
 import com.github.appreciated.apexcharts.config.chart.Type;
 import com.github.appreciated.apexcharts.config.chart.builder.ToolbarBuilder;
 import com.github.appreciated.apexcharts.config.chart.builder.ZoomBuilder;
-import com.github.appreciated.apexcharts.config.grid.builder.RowBuilder;
 import com.github.appreciated.apexcharts.config.plotoptions.builder.RadialBarBuilder;
 import com.github.appreciated.apexcharts.config.plotoptions.radialbar.builder.HollowBuilder;
 import com.github.appreciated.apexcharts.config.stroke.Curve;
 import com.github.appreciated.apexcharts.config.xaxis.TickPlacement;
 import com.github.appreciated.apexcharts.helper.Series;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
-import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.service.LocaleService;
 import org.springframework.context.MessageSource;
@@ -24,7 +22,6 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.binder.Binder;
@@ -35,7 +32,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @RolesAllowed("ADMIN")
 @Route(value = "management/computers/:id?/performance")

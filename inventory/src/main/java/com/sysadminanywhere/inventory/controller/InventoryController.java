@@ -1,5 +1,6 @@
 package com.sysadminanywhere.inventory.controller;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.inventory.model.*;
 import com.sysadminanywhere.inventory.entity.ComputerHardware;
 import com.sysadminanywhere.inventory.entity.HardwareModel;
@@ -35,49 +36,79 @@ public class InventoryController {
 
     @GetMapping("/software/count")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<SoftwareCount>> getSoftwareCount(
+    public ResponseEntity<PageResponse<SoftwareCount>> getSoftwareCount(
             @RequestParam String name,
             @RequestParam String vendor,
-            Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String sort) {
 
         name = name + "%";
         vendor = vendor + "%";
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
 
         Page<SoftwareCount> result = softwareRepository.getSoftwareInstallationCount(
                 name, vendor, pageable);
 
         log.info("Retrieved software count for name: {}, vendor: {}", name, vendor);
 
-        return ResponseEntity.ok(result);
+        PageResponse<SoftwareCount> response = new PageResponse<>(
+                result.getContent(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages()
+        );
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/computers/{computerId}/software")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<SoftwareOnComputer>> getSoftwareOnComputer(
+    public ResponseEntity<PageResponse<SoftwareOnComputer>> getSoftwareOnComputer(
             @PathVariable Long computerId,
-            Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String sort) {
 
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
         Page<SoftwareOnComputer> result = softwareRepository.getSoftwareOnComputer(computerId, pageable);
         log.info("Retrieved software for computer: {}", computerId);
 
-        return ResponseEntity.ok(result);
+        PageResponse<SoftwareOnComputer> response = new PageResponse<>(
+                result.getContent(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages()
+        );
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/software/{softwareId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<ComputerItem>> getComputersWithSoftware(
+    public ResponseEntity<PageResponse<ComputerItem>> getComputersWithSoftware(
             @PathVariable Long softwareId,
             @RequestParam String name,
-            Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String sort) {
 
         name = name + "%";
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
 
         Page<ComputerItem> result = computerRepository.getComputersWithSoftware(
                 softwareId, name, pageable);
 
         log.info("Retrieved computers with software: {}", softwareId);
 
-        return ResponseEntity.ok(result);
+        PageResponse<ComputerItem> response = new PageResponse<>(
+                result.getContent(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages()
+        );
+        return ResponseEntity.ok(response);
     }
 
 
@@ -85,18 +116,28 @@ public class InventoryController {
 
     @GetMapping("/hardware")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<HardwareItem>> getHardwares(
+    public ResponseEntity<PageResponse<HardwareItem>> getHardwares(
             @RequestParam String name,
             @RequestParam String type,
-            Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String sort) {
 
         name = name + "%";
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
 
         Page<HardwareItem> result = hardwareModelRepository.findByNameAndType(name, type, pageable);
 
         log.info("Retrieved hardwares: {}", result.getTotalElements());
 
-        return ResponseEntity.ok(result);
+        PageResponse<HardwareItem> response = new PageResponse<>(
+                result.getContent(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages()
+        );
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/hardware/{hardwareId}")
