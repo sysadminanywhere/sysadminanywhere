@@ -1,9 +1,9 @@
 package com.sysadminanywhere.service;
 
 import com.sysadminanywhere.client.N8nClient;
-import com.sysadminanywhere.model.workflow.Workflow;
-import com.sysadminanywhere.model.workflow.WorkflowData;
-import com.sysadminanywhere.model.workflow.Execution;
+import com.sysadminanywhere.model.workflow.*;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -21,17 +21,40 @@ public class WorkflowsService {
     }
 
     public Page<Workflow> getAll(Pageable pageable, String filters) {
-        List<Workflow> list = n8nClient.getWorkflows().getData();
+        Object result = n8nClient.getWorkflows();
 
+        if (result instanceof ErrorResponse) {
+            Notification notification = Notification.show(((ErrorResponse) result).getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return null;
+        }
+
+        List<Workflow> list = ((WorkflowListResponse) result).getData();
         return new PageImpl<>(list, pageable, list.size());
     }
 
     public WorkflowData getWorkflow(String workflowId) {
-        return n8nClient.getWorkflow(workflowId);
+        Object result = n8nClient.getWorkflow(workflowId);
+
+        if (result instanceof ErrorResponse) {
+            Notification notification = Notification.show(((ErrorResponse) result).getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return null;
+        }
+
+        return (WorkflowData) result;
     }
 
     public List<Execution> getExecutions(String workflowId, Integer limit) {
-        return n8nClient.getExecutions(workflowId, limit).getData();
+        Object result = n8nClient.getExecutions(workflowId, limit);
+
+        if (result instanceof ErrorResponse) {
+            Notification notification = Notification.show(((ErrorResponse) result).getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return null;
+        }
+
+        return ((ExecutionListResponse) result).getData();
     }
 
     public void delete(String workflowId) {
@@ -40,11 +63,26 @@ public class WorkflowsService {
 
     public boolean ping() {
         try {
-            n8nClient.getWorkflows();
+            Object result = n8nClient.getWorkflows();
+            if (result instanceof ErrorResponse) {
+                return false;
+            }
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public String executeWorkflow(String workflowId) {
+        Object result = n8nClient.executeWorkflow(workflowId);
+
+        if (result instanceof ErrorResponse) {
+            Notification notification = Notification.show(((ErrorResponse) result).getMessage());
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return null;
+        }
+
+        return result.toString();
     }
 
 }

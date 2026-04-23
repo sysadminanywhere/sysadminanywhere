@@ -18,6 +18,8 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -115,6 +117,10 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
             }
         });
 
+        MenuHelper.createIconItem(menuBar, "/icons/play.svg", getMessage("common.execute"), event -> {
+            executeWorkflow();
+        });
+
         MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("common.delete"), event -> {
             deleteDialog().open();
         });
@@ -139,6 +145,23 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         });
 
         return dialog;
+    }
+
+    private void executeWorkflow() {
+        try {
+            String response = workflowsService.executeWorkflow(id);
+            
+            if (response != null && !response.isEmpty()) {
+                Notification notification = Notification.show(response, 5000, Notification.Position.MIDDLE);
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            } else {
+                Notification notification = Notification.show(getMessage("workflow_view.execution_success"), 3000, Notification.Position.MIDDLE);
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            }
+        } catch (Exception e) {
+            Notification notification = Notification.show(getMessage("common.error") + ": " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
 
 
