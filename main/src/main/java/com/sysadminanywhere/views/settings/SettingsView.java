@@ -127,7 +127,7 @@ public class SettingsView extends VerticalLayout implements HasDynamicTitle {
 
         ComboBox<String> cmbLanguage = new ComboBox<>(getMessage("settings_view.select_language"));
         cmbLanguage.setMinWidth("400px");
-        cmbLanguage.setItems("en", "ru", "de", "fr", "es", "pt");
+        cmbLanguage.setItems("en", "ru", "de", "fr", "es", "pt", "zh", "ja");
         cmbLanguage.setItemLabelGenerator(lang -> {
             switch (lang) {
                 case "en":
@@ -142,6 +142,10 @@ public class SettingsView extends VerticalLayout implements HasDynamicTitle {
                     return getMessage("settings_view.spanish");
                 case "pt":
                     return getMessage("settings_view.portuguese");
+                case "zh":
+                    return getMessage("settings_view.chinese");
+                case "ja":
+                    return getMessage("settings_view.japanese");
                 default:
                     return lang;
             }

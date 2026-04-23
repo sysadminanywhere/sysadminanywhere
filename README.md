@@ -42,6 +42,8 @@ Web-based services for administering your Active Directory network that provides
 - French
 - Spanish
 - Portuguese
+- Chinese
+- Japanese
 - Russian
 
 
