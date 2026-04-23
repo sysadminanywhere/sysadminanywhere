@@ -7,7 +7,7 @@
 
     <groupId>com.sysadminanywhere</groupId>
     <artifactId>SysadminAnywhere</artifactId>
-    <version>4.1.0</version>
+    <version>4.2.0</version>
     <packaging>pom</packaging>
 
     <modules>
