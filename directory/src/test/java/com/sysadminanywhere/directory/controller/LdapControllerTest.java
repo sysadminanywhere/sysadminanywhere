@@ -32,8 +32,8 @@ class LdapControllerTest {
 
     @Test
     void getAudit_shouldReturnPageOfAudits() {
-        Page<AuditDto> page = new PageImpl<>(List.of(new AuditDto()));
-        when(ldapService.getAudit(any(PageRequest.class), anyMap())).thenReturn(page);
+        PageResponse<AuditDto> pageResponse = new PageResponse<>(List.of(new AuditDto()), 0, 10, 1, 1);
+        when(ldapService.getAudit(any(PageRequest.class), anyMap())).thenReturn(pageResponse);
 
         ResponseEntity<PageResponse<AuditDto>> result = ldapController.getAudit(0, 10, "", Map.of());
 

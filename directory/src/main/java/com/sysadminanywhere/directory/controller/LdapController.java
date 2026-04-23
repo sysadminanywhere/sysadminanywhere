@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,19 +40,11 @@ public class LdapController {
             @RequestParam Map<String, String> filters) {
 
         try {
-            validateAuditFilters(filters);
             Pageable pageable = Pageable.ofSize(size).withPage(page);
-            Page<AuditDto> result = ldapService.getAudit(pageable, filters);
+            PageResponse<AuditDto> result = ldapService.getAudit(pageable, filters);
             log.info("Retrieved audit logs");
 
-            PageResponse<AuditDto> response = new PageResponse<>(
-                    result.getContent(),
-                    result.getNumber(),
-                    result.getSize(),
-                    result.getTotalElements(),
-                    result.getTotalPages()
-            );
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(result);
 
         } catch (IllegalArgumentException e) {
             log.warn("Invalid audit filters: {}", e.getMessage());
@@ -70,7 +63,6 @@ public class LdapController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AuditDto>> getAuditList(@RequestParam Map<String, String> filters) {
         try {
-            validateAuditFilters(filters);
             List<AuditDto> result = ldapService.getAuditList(filters);
             log.info("Retrieved audit logs list");
 
@@ -267,19 +259,6 @@ public class LdapController {
 
         if (searchDto.getSearchScope() < 0 || searchDto.getSearchScope() > 2) {
             throw new IllegalArgumentException("Invalid search scope");
-        }
-    }
-
-    /**
-     * Валидация фильтров аудита
-     */
-    private void validateAuditFilters(Map<String, String> filters) {
-        if (filters != null) {
-            filters.forEach((key, value) -> {
-                if (key == null || key.isBlank()) {
-                    throw new IllegalArgumentException("Filter key cannot be empty");
-                }
-            });
         }
     }
 

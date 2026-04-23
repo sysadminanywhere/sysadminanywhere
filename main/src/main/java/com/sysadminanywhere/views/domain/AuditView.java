@@ -163,15 +163,19 @@ public class AuditView extends Div implements HasDynamicTitle {
             return dateRangeComponent;
         }
 
-        public Map<String, Object> getFilters() {
-            Map<String, Object> filters = new HashMap<>();
+        public Map<String, String> getFilters() {
+            Map<String, String> filters = new HashMap<>();
             filters.put("name", name.getValue());
             filters.put("action", action.getValue());
-            filters.put("startDate", startDate.getValue());
-            filters.put("endDate", endDate.getValue());
+
+            if(startDate.getValue() != null)
+                filters.put("startDate", startDate.getValue().toString());
+
+            if(endDate.getValue() != null)
+                filters.put("endDate", endDate.getValue().toString());
+
             return filters;
         }
-
     }
 
     private Component createGrid() {

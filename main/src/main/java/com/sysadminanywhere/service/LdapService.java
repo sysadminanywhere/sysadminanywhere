@@ -124,7 +124,7 @@ public class LdapService {
         }
     }
 
-    public Page<Entry> search(Pageable pageable, String dn, String filter, SearchScope searchScope) {
+    public Page<Entry> search(int page, int size, String sort, String dn, String filter, SearchScope searchScope) {
         try {
             List<EntryDto> dtos = ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal(),
                     "cn", "objectclass", "description", "showinadvancedviewonly")).getBody();
@@ -134,17 +134,17 @@ public class LdapService {
                 if(!dto.getAttributes().containsKey("showinadvancedviewonly"))
                     list.add(convertToEntity(dto));
             }
-            int start = (int) pageable.getOffset();
-            int end = Math.min((start + pageable.getPageSize()), list.size());
+            int start = page * size;
+            int end = Math.min((start + size), list.size());
 
             if (start > list.size()) {
-                return new PageImpl<>(Collections.emptyList(), pageable, list.size());
+                return new PageImpl<>(Collections.emptyList(), PageRequest.of(page, size), list.size());
             }
 
             List<Entry> pageContent = list.subList(start, end);
-            return new PageImpl<>(pageContent, pageable, list.size());
+            return new PageImpl<>(pageContent, PageRequest.of(page, size), list.size());
         } catch (Exception e) {
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            return new PageImpl<>(new ArrayList<>(), PageRequest.of(page, size), 0);
         }
     }
 
@@ -241,7 +241,7 @@ public class LdapService {
         }
     }
 
-    public Page<AuditDto> getAudit(Pageable pageable, Map<String, Object> filters) {
+    public Page<AuditDto> getAudit(Pageable pageable, Map<String, String> filters) {
         try {
             PageResponse<AuditDto> response = ldapServiceClient.getAudit(
                 pageable.getPageNumber(),

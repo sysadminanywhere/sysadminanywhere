@@ -154,7 +154,9 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
         });
 
         grid.setItems(query -> ldapService.search(
-                PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
+                query.getPage(),
+                query.getPageSize(),
+                VaadinSpringDataHelpers.toSpringDataSort(query).toString(),
                 selected, "(cn=*)", SearchScope.ONELEVEL).stream());
 
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);

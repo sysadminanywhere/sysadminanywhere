@@ -19,7 +19,7 @@ import java.util.Map;
 public interface LdapServiceClient {
 
     @GetExchange("/api/ldap/audit")
-    ResponseEntity<PageResponse<AuditDto>> getAudit(@RequestParam int page, @RequestParam int size, @RequestParam String sort, @RequestParam Map<String, Object> filters);
+    ResponseEntity<PageResponse<AuditDto>> getAudit(@RequestParam int page, @RequestParam int size, @RequestParam String sort, @RequestParam Map<String, String> filters);
 
     @GetExchange("/api/ldap/audit/list")
     ResponseEntity<List<AuditDto>> getAuditList(@RequestParam Map<String, String> filters);
