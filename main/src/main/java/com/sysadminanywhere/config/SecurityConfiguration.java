@@ -23,7 +23,7 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain vaadinSecurityFilterChain(HttpSecurity http) throws Exception {
 
-        http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/images/*.png", "/icons/*.svg", "/*.css").permitAll());
+        http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/images/*.png", "/icons/*.svg", "/icons/*.png", "/*.css").permitAll());
 
         // Icons from the line-awesome addon
         http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/line-awesome/**").permitAll());

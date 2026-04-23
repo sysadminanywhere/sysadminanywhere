@@ -46,6 +46,7 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
     H3 lblName = new H3();
     H5 lblDescription = new H5();
 
+    Grid<Execution> executionGrid = new Grid<>(Execution.class, false);
     Div n8Container;
 
     @Override
@@ -54,6 +55,7 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
                 orElse(null);
 
         loadFlow(id);
+        getExecutions(id);
     }
 
     public WorkflowView(WorkflowsService workflowsService, MessageSource messageSource, LocaleService localeService) {
@@ -88,7 +90,26 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         n8Container = new Div();
         n8Container.setWidth("100%");
 
-        verticalLayout.add(lblName, lblDescription, n8Container, getExecutions());
+        executionGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
+        executionGrid.addColumn(Execution::getId).setHeader(getMessage("common.id")).setAutoWidth(true);
+
+        executionGrid.addColumn(workflow ->
+                        Utils.formatInstant(workflow.getStartedAt()))
+                .setHeader(getMessage("common.started")).setAutoWidth(true);
+
+        executionGrid.addColumn(workflow ->
+                        Utils.formatDuration(Duration.between(
+                                workflow.getStartedAt(),
+                                workflow.getStoppedAt()), false))
+                .setHeader(getMessage("common.run_time")).setAutoWidth(true);
+
+        executionGrid.addColumn(Execution::getStatus).setHeader(getMessage("common.status"));
+        executionGrid.addColumn(Execution::getErrorMessage).setHeader(getMessage("common.error_message"));
+
+        executionGrid.setAllRowsVisible(true);
+
+        verticalLayout.add(lblName, lblDescription, n8Container, executionGrid);
     }
 
     private String getMessage(String key) {
@@ -176,31 +197,9 @@ public class WorkflowView extends Div implements BeforeEnterObserver, MenuContro
         return new Html(n8nHtml);
     }
 
-    private Grid getExecutions() {
-        Grid<Execution> grid = new Grid<>(Execution.class, false);
-        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
-
-        grid.addColumn(Execution::getId).setHeader(getMessage("common.id")).setAutoWidth(true);
-
-        grid.addColumn(workflow ->
-                        Utils.formatInstant(workflow.getStartedAt()))
-                .setHeader(getMessage("common.started")).setAutoWidth(true);
-
-        grid.addColumn(workflow ->
-                        Utils.formatDuration(Duration.between(
-                                workflow.getStartedAt(),
-                                workflow.getStoppedAt()), false))
-                .setHeader(getMessage("common.run_time")).setAutoWidth(true);
-
-        grid.addColumn(Execution::getStatus).setHeader(getMessage("common.status"));
-        grid.addColumn(Execution::getErrorMessage).setHeader(getMessage("common.error_message"));
-
-        grid.setAllRowsVisible(true);
-
+    private void getExecutions(String id) {
         List<Execution> executions = workflowsService.getExecutions(id, 10);
-        grid.setItems(executions);
-
-        return grid;
+        executionGrid.setItems(executions);
     }
 
     public String getPageTitle() {
