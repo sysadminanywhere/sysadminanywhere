@@ -40,6 +40,8 @@ Web-based services for administering your Active Directory network that provides
 - English
 - German
 - French
+- Spanish
+- Portuguese
 - Russian
 
 
