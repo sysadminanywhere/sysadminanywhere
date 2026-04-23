@@ -93,8 +93,6 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver, Ha
 
         HorizontalLayout layout = new HorizontalLayout();
         layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
 
         divTable.getStyle().setMarginLeft("25px");
 

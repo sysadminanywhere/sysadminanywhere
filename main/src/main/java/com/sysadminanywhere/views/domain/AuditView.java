@@ -56,8 +56,6 @@ public class AuditView extends Div implements HasDynamicTitle {
         filters = new AuditView.Filters(() -> refreshGrid(), ldapService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
         add(layout);
     }
 

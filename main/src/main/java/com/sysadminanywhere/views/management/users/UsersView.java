@@ -67,8 +67,6 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
         filters = new Filters(() -> refreshGrid(), usersService, authenticatedUser, settingsService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
         add(layout);
     }
 

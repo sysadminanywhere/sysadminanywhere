@@ -69,8 +69,6 @@ public class ComputerEventsView extends Div implements BeforeEnterObserver, Menu
         filters = new Filters(() -> refreshGrid(), computersService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
         add(layout);
     }
 

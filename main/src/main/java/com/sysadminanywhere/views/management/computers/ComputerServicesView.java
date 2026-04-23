@@ -67,8 +67,6 @@ public class ComputerServicesView extends Div implements BeforeEnterObserver, Me
         filters = new Filters(() -> refreshGrid(), computersService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
         add(layout);
     }
 

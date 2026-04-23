@@ -54,8 +54,6 @@ public class IncidentsView extends Div implements HasDynamicTitle {
             filters = new IncidentsView.Filters(() -> refreshGrid(), messageSource, localeService);
             VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
             layout.setSizeFull();
-            layout.setPadding(false);
-            layout.setSpacing(false);
             add(layout);
         }
     }

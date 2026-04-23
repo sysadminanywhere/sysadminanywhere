@@ -48,8 +48,6 @@ public class PrintersView extends Div implements HasDynamicTitle {
         filters = new Filters(() -> refreshGrid(), messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
         add(layout);
     }
 

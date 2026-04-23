@@ -96,8 +96,6 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
 
         VerticalLayout layout = new VerticalLayout(createGrid());
         layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
 
         SplitLayout splitLayout = new SplitLayout(tree, layout);
         tree.setMinWidth("250px");

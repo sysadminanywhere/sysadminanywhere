@@ -60,8 +60,6 @@ public class InventoryComputersWithSoftwareView extends Div implements BeforeEnt
         filters = new Filters(() -> refreshGrid(), messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
         add(layout);
     }
 

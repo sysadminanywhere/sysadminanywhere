@@ -53,8 +53,6 @@ public class GroupsView extends Div implements MenuControl, HasDynamicTitle {
         filters = new Filters(() -> refreshGrid(), groupsService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
         add(layout);
     }
 
