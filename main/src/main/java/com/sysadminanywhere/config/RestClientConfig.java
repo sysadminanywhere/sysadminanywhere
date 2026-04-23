@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
@@ -91,8 +92,13 @@ public class RestClientConfig {
 
     @Bean
     public RestClient n8nRestClient(RestClient.Builder builder) {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000);
+        factory.setReadTimeout(10000);
+
         return builder
                 .baseUrl(n8nUrl)
+                .requestFactory(factory)
                 .requestInterceptor(n8nApiInterceptor())
                 .build();
     }
