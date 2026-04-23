@@ -37,7 +37,7 @@ class UsersControllerTest {
         Page<UserEntry> page = new PageImpl<>(List.of(new UserEntry()));
         when(usersService.getAll(any(PageRequest.class), anyString(), any(String[].class))).thenReturn(page);
 
-        ResponseEntity<PageResponse<UserEntry>> result = usersController.getAll(PageRequest.of(0, 10), "filter", new String[]{"cn"});
+        ResponseEntity<PageResponse<UserEntry>> result = usersController.getAll(0, 10, "", "filter", new String[]{"cn"});
 
         assertNotNull(result);
         assertEquals(HttpStatus.OK, result.getStatusCode());
