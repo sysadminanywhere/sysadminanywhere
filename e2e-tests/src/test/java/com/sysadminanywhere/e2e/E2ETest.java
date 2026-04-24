@@ -26,6 +26,15 @@ import com.sysadminanywhere.e2e.steps.UsersViewStep;
 import com.sysadminanywhere.e2e.steps.computers.ComputersCreateStep;
 import com.sysadminanywhere.e2e.steps.computers.ComputersDeleteStep;
 import com.sysadminanywhere.e2e.steps.computers.ComputersEditStep;
+import com.sysadminanywhere.e2e.steps.computers.ComputersSelectStep;
+import com.sysadminanywhere.e2e.steps.computers.ComputersManagementProcessesStep;
+import com.sysadminanywhere.e2e.steps.computers.ComputersManagementServicesStep;
+import com.sysadminanywhere.e2e.steps.computers.ComputersManagementEventsStep;
+import com.sysadminanywhere.e2e.steps.computers.ComputersManagementSoftwareStep;
+import com.sysadminanywhere.e2e.steps.computers.ComputersManagementHardwareStep;
+import com.sysadminanywhere.e2e.steps.computers.ComputersManagementPerformanceStep;
+import com.sysadminanywhere.e2e.steps.computers.ComputersManagementRebootStep;
+import com.sysadminanywhere.e2e.steps.computers.ComputersManagementShutdownStep;
 import com.sysadminanywhere.e2e.steps.contacts.ContactsCreateStep;
 import com.sysadminanywhere.e2e.steps.contacts.ContactsDeleteStep;
 import com.sysadminanywhere.e2e.steps.contacts.ContactsEditStep;
@@ -99,6 +108,42 @@ public class E2ETest extends BaseTest {
         // Step 7.3: Delete the computer
         ComputersDeleteStep computersDeleteStep = new ComputersDeleteStep(page);
         computersDeleteStep.execute();
+
+        // Step 7.4: Select computer WIN-4VEK5HJAPSG
+        ComputersSelectStep computersSelectStep = new ComputersSelectStep(page);
+        computersSelectStep.execute();
+
+        // Step 7.5: Navigate to Processes
+        ComputersManagementProcessesStep computersManagementProcessesStep = new ComputersManagementProcessesStep(page);
+        computersManagementProcessesStep.execute();
+
+        // Step 7.6: Navigate to Services
+        ComputersManagementServicesStep computersManagementServicesStep = new ComputersManagementServicesStep(page);
+        computersManagementServicesStep.execute();
+
+        // Step 7.7: Navigate to Events
+        ComputersManagementEventsStep computersManagementEventsStep = new ComputersManagementEventsStep(page);
+        computersManagementEventsStep.execute();
+
+        // Step 7.8: Navigate to Software
+        ComputersManagementSoftwareStep computersManagementSoftwareStep = new ComputersManagementSoftwareStep(page);
+        computersManagementSoftwareStep.execute();
+
+        // Step 7.9: Navigate to Hardware
+        ComputersManagementHardwareStep computersManagementHardwareStep = new ComputersManagementHardwareStep(page);
+        computersManagementHardwareStep.execute();
+
+        // Step 7.10: Navigate to Performance
+        ComputersManagementPerformanceStep computersManagementPerformanceStep = new ComputersManagementPerformanceStep(page);
+        computersManagementPerformanceStep.execute();
+
+        // Step 7.11: Reboot the computer
+        //ComputersManagementRebootStep computersManagementRebootStep = new ComputersManagementRebootStep(page);
+        //computersManagementRebootStep.execute();
+
+        // Step 7.12: Shutdown the computer
+        //ComputersManagementShutdownStep computersManagementShutdownStep = new ComputersManagementShutdownStep(page);
+        //computersManagementShutdownStep.execute();
 
         // Step 8: Navigate to GroupsView
         GroupsViewStep groupsViewStep = new GroupsViewStep(page);
