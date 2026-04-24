@@ -1,6 +1,8 @@
 package com.sysadminanywhere.e2e.steps.contacts;
 
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
 
 public class ContactsEditStep {
     private final Page page;
@@ -23,13 +25,14 @@ public class ContactsEditStep {
         // Click on "Update" menu item
         page.locator("vaadin-menu-bar-item").getByText("Update").or(page.locator("vaadin-menu-bar-item").getByText("Обновить")).or(page.locator("vaadin-menu-bar-item").getByText("Mettre à jour")).or(page.locator("vaadin-menu-bar-item").getByText("Aktualisieren")).click();
 
-        // Wait for edit dialog to appear (target "Updating contact" dialog specifically)
-        page.waitForTimeout(500);
-        var updateDialog = page.getByLabel("Updating contact").or(page.getByLabel("Обновление контакта")).or(page.getByLabel("Mise à jour du contact")).or(page.getByLabel("Kontakt aktualisieren"));
-        updateDialog.waitFor();
+        // Wait for edit dialog to appear
+        page.waitForTimeout(3000);
+
+        // Find the "Updating contact" dialog by role and name
+        Locator dialog = page.getByRole(AriaRole.DIALOG, new Page.GetByRoleOptions().setName("Updating contact"));
 
         // Update display name (first text field in Name tab, inside the specific dialog)
-        updateDialog.locator("vaadin-text-field").nth(0).locator("input").fill("Test Updated Contact");
+        dialog.locator("input").nth(1).fill("Test Updated Contact");
 
         // Click on "Save" button
         page.locator("vaadin-button").getByText("Save").or(page.locator("vaadin-button").getByText("Сохранить")).or(page.locator("vaadin-button").getByText("Enregistrer")).or(page.locator("vaadin-button").getByText("Speichern")).click();

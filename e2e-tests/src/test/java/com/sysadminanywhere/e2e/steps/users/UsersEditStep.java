@@ -1,6 +1,8 @@
 package com.sysadminanywhere.e2e.steps.users;
 
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
 
 public class UsersEditStep {
     private final Page page;
@@ -24,11 +26,13 @@ public class UsersEditStep {
         page.locator("vaadin-menu-bar-item").getByText("Update").or(page.locator("vaadin-menu-bar-item").getByText("Изменить")).or(page.locator("vaadin-menu-bar-item").getByText("Mettre à jour")).or(page.locator("vaadin-menu-bar-item").getByText("Aktualisieren")).click();
 
         // Wait for edit dialog to appear
-        page.waitForTimeout(500);
-        page.locator("vaadin-dialog-overlay[aria-label='Updating user']").or(page.locator("vaadin-dialog-overlay[aria-label='Обновление пользователя']")).or(page.locator("vaadin-dialog-overlay[aria-label='Mise à jour de l\\'utilisateur']")).or(page.locator("vaadin-dialog-overlay[aria-label='Benutzer aktualisieren']")).waitFor();
+        page.waitForTimeout(3000);
+
+        // Find the "Updating user" dialog by role and name
+        Locator dialog = page.getByRole(AriaRole.DIALOG, new Page.GetByRoleOptions().setName("Updating user"));
 
         // Update display name (first text field in the Name tab - h3 displays cn/display name)
-        page.locator("vaadin-dialog-overlay[aria-label='Updating user']").or(page.locator("vaadin-dialog-overlay[aria-label='Обновление пользователя']")).or(page.locator("vaadin-dialog-overlay[aria-label='Mise à jour de l\\'utilisateur']")).or(page.locator("vaadin-dialog-overlay[aria-label='Benutzer aktualisieren']")).locator("vaadin-text-field").nth(0).locator("input").fill("TestUpdated UserUpdated");
+        dialog.locator("input").nth(1).fill("TestUpdated UserUpdated");
 
         // Click on "Save" button
         page.locator("vaadin-button").getByText("Save").or(page.locator("vaadin-button").getByText("Сохранить")).or(page.locator("vaadin-button").getByText("Enregistrer")).or(page.locator("vaadin-button").getByText("Speichern")).click();
