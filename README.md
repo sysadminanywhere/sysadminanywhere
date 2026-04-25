@@ -47,8 +47,6 @@ Web-based services for administering your Active Directory network that provides
 - Russian
 
 
-> **Note:** This version is not compatible with previous versions!
-
 ### Documentations
 * [Documentation](https://docs.sysadminanywhere.com)
 
