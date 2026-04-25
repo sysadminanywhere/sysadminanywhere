@@ -52,8 +52,6 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
         filters = new Filters(() -> refreshGrid(), contactsService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
         add(layout);
     }
 

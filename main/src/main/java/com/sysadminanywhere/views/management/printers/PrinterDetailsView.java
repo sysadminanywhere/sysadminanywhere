@@ -2,8 +2,8 @@ package com.sysadminanywhere.views.management.printers;
 
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
-import com.sysadminanywhere.service.PrintersService;
 import com.sysadminanywhere.service.LocaleService;
+import com.sysadminanywhere.service.PrintersService;
 import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;

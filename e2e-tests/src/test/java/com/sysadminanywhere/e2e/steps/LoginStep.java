@@ -12,10 +12,12 @@ public class LoginStep {
     public void execute() {
         page.navigate("http://localhost:8080/");
 
-        page.locator("vaadin-login-overlay-wrapper vaadin-login-form vaadin-text-field input").fill("admin");
-        page.locator("vaadin-login-overlay-wrapper vaadin-login-form vaadin-password-field input").fill("Secret2#");
-        page.locator("vaadin-login-overlay-wrapper vaadin-login-form vaadin-password-field input").press("Enter");
+        page.waitForLoadState();
 
-        page.waitForURL("http://localhost:8080/");
+        page.locator("input[name='username']").first().fill("admin");
+        page.locator("input[name='password']").first().fill("Secret2#");
+        page.locator("vaadin-login-overlay vaadin-button").first().click();
+
+        page.waitForURL("**/");
     }
 }

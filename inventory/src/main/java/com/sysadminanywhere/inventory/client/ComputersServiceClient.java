@@ -2,37 +2,36 @@ package com.sysadminanywhere.inventory.client;
 
 import com.sysadminanywhere.common.directory.dto.AddComputerDto;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
-import com.sysadminanywhere.inventory.config.FeignConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.DeleteExchange;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.PostExchange;
+import org.springframework.web.service.annotation.PutExchange;
 
 import java.util.List;
 
-@FeignClient(
-        name = "computers",
-        url = "${app.services.directory.uri}",
-        configuration = FeignConfiguration.class
-)
 public interface ComputersServiceClient {
 
-    @GetMapping("/api/computers")
-    Page<ComputerEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
+    @GetExchange("/api/computers")
+    Page<ComputerEntry> getAll(Pageable pageable, @RequestParam String filters, @RequestParam String[] attributes);
 
-    @GetMapping("/api/computers/list")
-    List<ComputerEntry> getList(@RequestParam("filters") String filters, @RequestParam("attributes") String... attributes);
+    @GetExchange("/api/computers/list")
+    List<ComputerEntry> getList(@RequestParam String filters, @RequestParam String... attributes);
 
-    @GetMapping("/api/computers/{cn}")
-    ComputerEntry getByCN(@PathVariable("cn") String cn);
+    @GetExchange("/api/computers/{cn}")
+    ComputerEntry getByCN(@PathVariable String cn);
 
-    @PostMapping("/api/computers")
+    @PostExchange("/api/computers")
     ComputerEntry add(@RequestBody AddComputerDto addComputer);
 
-    @PutMapping("/api/computers")
+    @PutExchange("/api/computers")
     ComputerEntry update(@RequestBody ComputerEntry computer);
 
-    @DeleteMapping("/api/computers")
-    void delete(@RequestParam("distinguishedName") String distinguishedName);
+    @DeleteExchange("/api/computers")
+    void delete(@RequestParam String distinguishedName);
 
 }

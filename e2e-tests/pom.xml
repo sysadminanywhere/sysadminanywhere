@@ -6,7 +6,8 @@
     <parent>
         <groupId>com.sysadminanywhere</groupId>
         <artifactId>SysadminAnywhere</artifactId>
-        <version>4.1.0</version>
+        <version>4.2.0</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>e2e-tests</artifactId>
@@ -21,7 +22,7 @@
         <dependency>
             <groupId>com.microsoft.playwright</groupId>
             <artifactId>playwright</artifactId>
-            <version>1.48.0</version>
+            <version>1.59.0</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

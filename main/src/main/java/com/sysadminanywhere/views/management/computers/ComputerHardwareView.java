@@ -15,7 +15,6 @@ import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 
@@ -94,8 +93,6 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver, Ha
 
         HorizontalLayout layout = new HorizontalLayout();
         layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
 
         divTable.getStyle().setMarginLeft("25px");
 

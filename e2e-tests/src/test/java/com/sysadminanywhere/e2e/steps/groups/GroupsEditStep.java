@@ -1,6 +1,8 @@
 package com.sysadminanywhere.e2e.steps.groups;
 
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
 
 public class GroupsEditStep {
     private final Page page;
@@ -30,13 +32,14 @@ public class GroupsEditStep {
         // Click on "Update" menu item
         page.locator("vaadin-menu-bar-item").getByText("Update").or(page.locator("vaadin-menu-bar-item").getByText("Обновить")).or(page.locator("vaadin-menu-bar-item").getByText("Mettre à jour")).or(page.locator("vaadin-menu-bar-item").getByText("Aktualisieren")).click();
 
-        // Wait for edit dialog to appear (target "Updating group" dialog specifically)
-        page.waitForTimeout(500);
-        var updateDialog = page.getByLabel("Updating group").or(page.getByLabel("Обновление группы")).or(page.getByLabel("Mise à jour du groupe")).or(page.getByLabel("Gruppe aktualisieren"));
-        updateDialog.waitFor();
+        // Wait for edit dialog to appear
+        page.waitForTimeout(3000);
 
-        // Update description (first text field, inside the specific dialog)
-        updateDialog.locator("vaadin-text-field").nth(0).locator("input").fill("Updated Description");
+        // Find the "Updating group" dialog by role and name
+        Locator dialog = page.getByRole(AriaRole.DIALOG, new Page.GetByRoleOptions().setName("Updating group"));
+
+        // Update description using text-field locator
+        dialog.locator("vaadin-text-field").filter(new Locator.FilterOptions().setHasText("Description")).locator("input").fill("Updated Description");
 
         // Click on "Save" button
         page.locator("vaadin-button").getByText("Save").or(page.locator("vaadin-button").getByText("Сохранить")).or(page.locator("vaadin-button").getByText("Enregistrer")).or(page.locator("vaadin-button").getByText("Speichern")).click();

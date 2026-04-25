@@ -1,6 +1,8 @@
 package com.sysadminanywhere.e2e.steps.computers;
 
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
 
 public class ComputersCreateStep {
     private final Page page;
@@ -16,17 +18,17 @@ public class ComputersCreateStep {
         // Wait for dialog to appear
         page.waitForTimeout(3000);
 
-        // Wait for any dialog overlay to be visible
-        page.locator("vaadin-dialog-overlay").first().waitFor();
+        // Find the "New computer" dialog by role and name
+        Locator dialog = page.getByRole(AriaRole.DIALOG, new Page.GetByRoleOptions().setName("New computer"));
 
         // Fill in name (target the input inside the first text field after container)
-        page.locator("vaadin-dialog-overlay").locator("vaadin-text-field").nth(1).locator("input").fill("Test Computer");
+        dialog.locator("input").nth(1).fill("Test Computer");
 
         // Fill in description (input inside second text field)
-        page.locator("vaadin-dialog-overlay").locator("vaadin-text-field").nth(2).locator("input").fill("Test Description");
+        dialog.locator("input").nth(2).fill("Test Description");
 
         // Fill in location (input inside third text field)
-        page.locator("vaadin-dialog-overlay").locator("vaadin-text-field").nth(3).locator("input").fill("Test Location");
+        dialog.locator("input").nth(3).fill("Test Location");
 
         // Click on "Save" button
         page.locator("vaadin-button").getByText("Save").or(page.locator("vaadin-button").getByText("Сохранить")).or(page.locator("vaadin-button").getByText("Enregistrer")).or(page.locator("vaadin-button").getByText("Speichern")).click();

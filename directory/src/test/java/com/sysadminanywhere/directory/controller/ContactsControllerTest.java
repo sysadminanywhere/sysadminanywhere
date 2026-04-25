@@ -1,5 +1,6 @@
 package com.sysadminanywhere.directory.controller;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddContactDto;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
 import com.sysadminanywhere.directory.service.ContactsService;
@@ -31,15 +32,14 @@ class ContactsControllerTest {
 
     @Test
     void getAll_shouldReturnPageOfContacts() {
-        PageRequest pageable = PageRequest.of(0, 10);
         Page<ContactEntry> page = new PageImpl<>(List.of(new ContactEntry()));
         when(contactsService.getAll(any(PageRequest.class), anyString(), any(String[].class))).thenReturn(page);
 
-        ResponseEntity<Page<ContactEntry>> result = contactsController.getAll(pageable, "filter", new String[]{"cn"});
+        ResponseEntity<PageResponse<ContactEntry>> result = contactsController.getAll(0, 10, "", "filter", new String[]{"cn"});
 
         assertNotNull(result);
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        verify(contactsService).getAll(eq(pageable), eq("filter"), any(String[].class));
+        verify(contactsService).getAll(any(PageRequest.class), eq("filter"), any(String[].class));
     }
 
     @Test

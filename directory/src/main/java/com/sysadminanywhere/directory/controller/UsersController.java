@@ -1,5 +1,6 @@
 package com.sysadminanywhere.directory.controller;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddUserDto;
 import com.sysadminanywhere.common.directory.dto.ChangeUserAccountControlDto;
 import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
@@ -9,7 +10,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -33,16 +33,26 @@ public class UsersController {
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<UserEntry>> getAll(
-            @ParameterObject Pageable pageable,
+    public ResponseEntity<PageResponse<UserEntry>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String sort,
             @RequestParam String filters,
             @RequestParam String[] attributes) {
 
         try {
+            Pageable pageable = Pageable.ofSize(size).withPage(page);
             Page<UserEntry> result = usersService.getAll(pageable, filters, attributes);
             log.info("Retrieved users with filters");
 
-            return ResponseEntity.ok(result);
+            PageResponse<UserEntry> response = new PageResponse<>(
+                    result.getContent(),
+                    result.getNumber(),
+                    result.getSize(),
+                    result.getTotalElements(),
+                    result.getTotalPages()
+            );
+            return ResponseEntity.ok(response);
 
         } catch (IllegalArgumentException e) {
             log.warn("Invalid LDAP filter: {}", e.getMessage());

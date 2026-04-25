@@ -1,5 +1,7 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.common.PageResponse;
+
 import com.sysadminanywhere.client.directory.LdapServiceClient;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
@@ -8,11 +10,8 @@ import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.Entry;
-import com.vaadin.flow.server.VaadinSession;
-import com.vaadin.flow.spring.security.AuthenticationContext;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -125,7 +124,7 @@ public class LdapService {
         }
     }
 
-    public Page<Entry> search(Pageable pageable, String dn, String filter, SearchScope searchScope) {
+    public Page<Entry> search(int page, int size, String sort, String dn, String filter, SearchScope searchScope) {
         try {
             List<EntryDto> dtos = ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal(),
                     "cn", "objectclass", "description", "showinadvancedviewonly")).getBody();
@@ -135,17 +134,17 @@ public class LdapService {
                 if(!dto.getAttributes().containsKey("showinadvancedviewonly"))
                     list.add(convertToEntity(dto));
             }
-            int start = (int) pageable.getOffset();
-            int end = Math.min((start + pageable.getPageSize()), list.size());
+            int start = page * size;
+            int end = Math.min((start + size), list.size());
 
             if (start > list.size()) {
-                return new PageImpl<>(Collections.emptyList(), pageable, list.size());
+                return new PageImpl<>(Collections.emptyList(), PageRequest.of(page, size), list.size());
             }
 
             List<Entry> pageContent = list.subList(start, end);
-            return new PageImpl<>(pageContent, pageable, list.size());
+            return new PageImpl<>(pageContent, PageRequest.of(page, size), list.size());
         } catch (Exception e) {
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+            return new PageImpl<>(new ArrayList<>(), PageRequest.of(page, size), 0);
         }
     }
 
@@ -242,9 +241,15 @@ public class LdapService {
         }
     }
 
-    public Page<AuditDto> getAudit(Pageable pageable, Map<String, Object> filters) {
+    public Page<AuditDto> getAudit(Pageable pageable, Map<String, String> filters) {
         try {
-            return ldapServiceClient.getAudit(pageable, filters).getBody();
+            PageResponse<AuditDto> response = ldapServiceClient.getAudit(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort().toString(),
+                filters
+            ).getBody();
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }

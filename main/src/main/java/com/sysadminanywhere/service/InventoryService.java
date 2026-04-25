@@ -1,10 +1,13 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.common.PageResponse;
+
 import com.sysadminanywhere.client.inventory.InventoryServiceClient;
 import com.sysadminanywhere.common.inventory.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +28,8 @@ public class InventoryService {
 
     public Page<SoftwareOnComputer> getSoftwareOnComputer(Long computerId, Pageable pageable) {
         try {
-            return inventoryServiceClient.getSoftwareOnComputer(computerId, pageable);
+            PageResponse<SoftwareOnComputer> response = inventoryServiceClient.getSoftwareOnComputer(computerId, pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString());
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
@@ -35,7 +39,8 @@ public class InventoryService {
         try {
             String name = filters.get("name");
             String vendor = filters.get("vendor");
-            return inventoryServiceClient.getSoftwareCount(name, vendor, pageable);
+            PageResponse<SoftwareCount> response = inventoryServiceClient.getSoftwareCount(name, vendor, pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString());
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
@@ -44,7 +49,8 @@ public class InventoryService {
     public Page<ComputerItem> getComputersWithSoftware(Long softwareId, Pageable pageable, Map<String, String> filters) {
         try {
             String name = filters.get("name");
-            return inventoryServiceClient.getComputersWithSoftware(softwareId, name, pageable);
+            PageResponse<ComputerItem> response = inventoryServiceClient.getComputersWithSoftware(softwareId, name, pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString());
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
@@ -57,7 +63,7 @@ public class InventoryService {
         try {
             String name = filters.get("name");
             String type = filters.get("type");
-            Page<Object[]> results = inventoryServiceClient.getHardwareCount(name, type, pageable);
+            Page<Object[]> results = inventoryServiceClient.getHardwareCount(name, type, pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString());
 
             // Convert Object[] to HardwareCount
             List<HardwareCount> hardwareCounts = results.getContent().stream()
@@ -82,7 +88,8 @@ public class InventoryService {
         try {
             String name = filters.get("name");
             String type = filters.get("type").replace(" ","");
-            return inventoryServiceClient.getHardware(name, type, pageable);
+            PageResponse<HardwareItem> response = inventoryServiceClient.getHardware(name, type, pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString());
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }

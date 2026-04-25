@@ -1,6 +1,8 @@
 package com.sysadminanywhere.e2e.steps.computers;
 
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
 
 public class ComputersEditStep {
     private final Page page;
@@ -23,13 +25,14 @@ public class ComputersEditStep {
         // Click on "Update" menu item
         page.locator("vaadin-menu-bar-item").getByText("Update").or(page.locator("vaadin-menu-bar-item").getByText("Обновить")).or(page.locator("vaadin-menu-bar-item").getByText("Mettre à jour")).or(page.locator("vaadin-menu-bar-item").getByText("Aktualisieren")).click();
 
-        // Wait for edit dialog to appear (target "Updating computer" dialog specifically)
-        page.waitForTimeout(500);
-        var updateDialog = page.getByLabel("Updating computer").or(page.getByLabel("Обновление компьютера")).or(page.getByLabel("Mise à jour de l'ordinateur")).or(page.getByLabel("Computer aktualisieren"));
-        updateDialog.waitFor();
+        // Wait for edit dialog to appear
+        page.waitForTimeout(3000);
+
+        // Find the "Updating computer" dialog by role and name
+        Locator dialog = page.getByRole(AriaRole.DIALOG, new Page.GetByRoleOptions().setName("Updating computer"));
 
         // Update description (first text field, inside the specific dialog)
-        updateDialog.locator("vaadin-text-field").nth(0).locator("input").fill("Updated Description");
+        dialog.locator("input").nth(1).fill("Updated Description");
 
         // Click on "Save" button
         page.locator("vaadin-button").getByText("Save").or(page.locator("vaadin-button").getByText("Сохранить")).or(page.locator("vaadin-button").getByText("Enregistrer")).or(page.locator("vaadin-button").getByText("Speichern")).click();

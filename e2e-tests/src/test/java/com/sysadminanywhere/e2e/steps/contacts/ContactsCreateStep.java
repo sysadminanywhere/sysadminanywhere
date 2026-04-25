@@ -1,6 +1,8 @@
 package com.sysadminanywhere.e2e.steps.contacts;
 
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
 
 public class ContactsCreateStep {
     private final Page page;
@@ -16,20 +18,20 @@ public class ContactsCreateStep {
         // Wait for dialog to appear
         page.waitForTimeout(3000);
 
-        // Wait for any dialog overlay to be visible
-        page.locator("vaadin-dialog-overlay").first().waitFor();
+        // Find the "New contact" dialog by role and name
+        Locator dialog = page.getByRole(AriaRole.DIALOG, new Page.GetByRoleOptions().setName("New contact"));
 
         // Fill in display name (target the input inside the first text field after container)
-        page.locator("vaadin-dialog-overlay").locator("vaadin-text-field").nth(1).locator("input").fill("Test Contact");
+        dialog.locator("input").nth(1).fill("Test Contact");
 
         // Fill in first name (input inside second text field)
-        page.locator("vaadin-dialog-overlay").locator("vaadin-text-field").nth(2).locator("input").fill("Test");
+        dialog.locator("input").nth(2).fill("Test");
 
         // Fill in initials (input inside third text field)
-        page.locator("vaadin-dialog-overlay").locator("vaadin-text-field").nth(3).locator("input").fill("TC");
+        dialog.locator("input").nth(3).fill("TC");
 
         // Fill in last name (input inside fourth text field)
-        page.locator("vaadin-dialog-overlay").locator("vaadin-text-field").nth(4).locator("input").fill("Contact");
+        dialog.locator("input").nth(4).fill("Contact");
 
         // Click on "Save" button
         page.locator("vaadin-button").getByText("Save").or(page.locator("vaadin-button").getByText("Сохранить")).or(page.locator("vaadin-button").getByText("Enregistrer")).or(page.locator("vaadin-button").getByText("Speichern")).click();

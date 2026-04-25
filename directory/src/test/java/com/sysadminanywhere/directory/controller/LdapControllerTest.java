@@ -1,5 +1,6 @@
 package com.sysadminanywhere.directory.controller;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.*;
 import com.sysadminanywhere.directory.service.LdapService;
 import org.junit.jupiter.api.Test;
@@ -31,15 +32,14 @@ class LdapControllerTest {
 
     @Test
     void getAudit_shouldReturnPageOfAudits() {
-        PageRequest pageable = PageRequest.of(0, 10);
-        Page<AuditDto> page = new PageImpl<>(List.of(new AuditDto()));
-        when(ldapService.getAudit(any(PageRequest.class), anyMap())).thenReturn(page);
+        PageResponse<AuditDto> pageResponse = new PageResponse<>(List.of(new AuditDto()), 0, 10, 1, 1);
+        when(ldapService.getAudit(any(PageRequest.class), anyMap())).thenReturn(pageResponse);
 
-        ResponseEntity<Page<AuditDto>> result = ldapController.getAudit(pageable, Map.of());
+        ResponseEntity<PageResponse<AuditDto>> result = ldapController.getAudit(0, 10, "", Map.of());
 
         assertNotNull(result);
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        verify(ldapService).getAudit(eq(pageable), anyMap());
+        verify(ldapService).getAudit(any(PageRequest.class), anyMap());
     }
 
     @Test

@@ -1,48 +1,44 @@
 package com.sysadminanywhere.client.inventory;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.inventory.model.*;
-import com.sysadminanywhere.config.FeignConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.GetExchange;
 
 import java.util.List;
 
-@FeignClient(
-        name = "inventory",
-        url = "${app.services.inventory.uri}",
-        configuration = FeignConfiguration.class
-)
 public interface InventoryServiceClient {
 
     // Software
 
-    @GetMapping("/api/inventory/software/count")
-    Page<SoftwareCount> getSoftwareCount(@RequestParam("name") String name, @RequestParam("vendor") String vendor, Pageable pageable);
+    @GetExchange("/api/inventory/software/count")
+    PageResponse<SoftwareCount> getSoftwareCount(@RequestParam String name, @RequestParam String vendor, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
 
-    @GetMapping("/api/inventory/computers/{computerId}/software")
-    Page<SoftwareOnComputer> getSoftwareOnComputer(@PathVariable Long computerId, Pageable pageable);
+    @GetExchange("/api/inventory/computers/{computerId}/software")
+    PageResponse<SoftwareOnComputer> getSoftwareOnComputer(@PathVariable Long computerId, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
 
-    @GetMapping("/api/inventory/software/{softwareId}")
-    Page<ComputerItem> getComputersWithSoftware(@PathVariable Long softwareId, @RequestParam("name") String name, Pageable pageable);
+    @GetExchange("/api/inventory/software/{softwareId}")
+    PageResponse<ComputerItem> getComputersWithSoftware(@PathVariable Long softwareId, @RequestParam String name, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
 
 
     // Hardware
 
-    @GetMapping("/api/inventory/hardware/count")
-    Page<Object[]> getHardwareCount(@RequestParam("name") String name, @RequestParam("type") String type, Pageable pageable);
+    @GetExchange("/api/inventory/hardware/count")
+    Page<Object[]> getHardwareCount(@RequestParam String name, @RequestParam String type, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
 
-    @GetMapping("/api/inventory/hardware/{hardwareId}")
+    @GetExchange("/api/inventory/hardware/{hardwareId}")
     HardwareModelItem getHardwareModelProperties(@PathVariable Long hardwareId);
 
-    @GetMapping("/api/inventory/hardware")
-    Page<HardwareItem> getHardware(@RequestParam("name") String name, @RequestParam("type") String type, Pageable pageable);
+    @GetExchange("/api/inventory/hardware")
+    PageResponse<HardwareItem> getHardware(@RequestParam String name, @RequestParam String type, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
 
 
     // Ping
 
-    @GetMapping("/ping")
+    @GetExchange("/ping")
     String ping();
 
 }

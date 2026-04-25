@@ -1,6 +1,8 @@
 package com.sysadminanywhere.e2e.steps.groups;
 
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
 
 public class GroupsCreateStep {
     private final Page page;
@@ -16,11 +18,11 @@ public class GroupsCreateStep {
         // Wait for dialog to appear
         page.waitForTimeout(3000);
 
-        // Wait for any dialog overlay to be visible
-        page.locator("vaadin-dialog-overlay").first().waitFor();
+        // Find the "New group" dialog by role and name
+        Locator dialog = page.getByRole(AriaRole.DIALOG, new Page.GetByRoleOptions().setName("New group"));
 
         // Fill in name (target the input inside the first text field after container)
-        page.locator("vaadin-dialog-overlay").locator("vaadin-text-field").nth(1).locator("input").fill("Test Group");
+        dialog.locator("input").nth(1).fill("Test Group");
 
         // Radio buttons have default values (Global and Security) set in the dialog
 

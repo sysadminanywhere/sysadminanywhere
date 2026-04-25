@@ -1,5 +1,6 @@
 package com.sysadminanywhere.directory.controller;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddComputerDto;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.directory.service.ComputersService;
@@ -7,7 +8,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -31,16 +31,26 @@ public class ComputersController {
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<ComputerEntry>> getAll(
-            @ParameterObject Pageable pageable,
+    public ResponseEntity<PageResponse<ComputerEntry>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String sort,
             @RequestParam String filters,
             @RequestParam String[] attributes) {
 
         try {
+            Pageable pageable = Pageable.ofSize(size).withPage(page);
             Page<ComputerEntry> result = computersService.getAll(pageable, filters, attributes);
             log.info("Retrieved computers with filters");
 
-            return ResponseEntity.ok(result);
+            PageResponse<ComputerEntry> response = new PageResponse<>(
+                    result.getContent(),
+                    result.getNumber(),
+                    result.getSize(),
+                    result.getTotalElements(),
+                    result.getTotalPages()
+            );
+            return ResponseEntity.ok(response);
 
         } catch (IllegalArgumentException e) {
             log.warn("Invalid LDAP filter: {}", e.getMessage());

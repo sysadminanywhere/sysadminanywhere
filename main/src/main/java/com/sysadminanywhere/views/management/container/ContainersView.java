@@ -96,8 +96,6 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
 
         VerticalLayout layout = new VerticalLayout(createGrid());
         layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
 
         SplitLayout splitLayout = new SplitLayout(tree, layout);
         tree.setMinWidth("250px");
@@ -156,7 +154,9 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
         });
 
         grid.setItems(query -> ldapService.search(
-                PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
+                query.getPage(),
+                query.getPageSize(),
+                VaadinSpringDataHelpers.toSpringDataSort(query).toString(),
                 selected, "(cn=*)", SearchScope.ONELEVEL).stream());
 
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);

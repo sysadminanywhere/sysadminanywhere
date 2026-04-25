@@ -1,5 +1,6 @@
 package com.sysadminanywhere.incident.controller;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.incident.model.IncidentItem;
 import com.sysadminanywhere.common.incident.model.IncidentStatus;
 import com.sysadminanywhere.common.incident.model.Severity;
@@ -35,7 +36,6 @@ class IncidentControllerTest {
 
     @Test
     void getIncidents_shouldReturnPageOfIncidents() {
-        PageRequest pageable = PageRequest.of(0, 10);
         IncidentEntity entity = IncidentEntity.builder()
                 .signalId("SIG-001")
                 .name("Test")
@@ -48,7 +48,7 @@ class IncidentControllerTest {
         Page<IncidentEntity> page = new PageImpl<>(List.of(entity));
         when(incidentRepository.findAll(any(PageRequest.class))).thenReturn(page);
 
-        Page<IncidentItem> result = incidentController.getIncidents(pageable, "ALL", "ALL");
+        PageResponse<IncidentItem> result = incidentController.getIncidents(0, 10, "", "ALL", "ALL");
 
         assertNotNull(result);
         verify(incidentRepository).findAll(any(PageRequest.class));

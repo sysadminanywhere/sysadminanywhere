@@ -1,5 +1,6 @@
 package com.sysadminanywhere.directory.service;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.JwtResponse;
@@ -451,21 +452,23 @@ public class LdapService {
     }
 
     @SneakyThrows
-    public Page<AuditDto> getAudit(Pageable pageable, Map<String, String> filters) {
+    public PageResponse<AuditDto> getAudit(Pageable pageable, Map<String, String> filters) {
         List<AuditDto> list = getAuditList(filters);
 
         if (list.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+            return new PageResponse<>(Collections.emptyList(), pageable.getPageNumber(), pageable.getPageSize(), 0, 0);
         }
 
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), list.size());
 
         if (start >= list.size()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, list.size());
+            return new PageResponse<>(Collections.emptyList(), pageable.getPageNumber(), pageable.getPageSize(), list.size(), 0);
         }
 
-        return new PageImpl<>(list.subList(start, end), pageable, list.size());
+        List<AuditDto> pageContent = list.subList(start, end);
+        int totalPages = (int) Math.ceil((double) list.size() / pageable.getPageSize());
+        return new PageResponse<>(pageContent, pageable.getPageNumber(), pageable.getPageSize(), list.size(), totalPages);
     }
 
     @SneakyThrows

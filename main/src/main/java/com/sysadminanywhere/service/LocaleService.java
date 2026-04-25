@@ -28,6 +28,10 @@ public class LocaleService {
             case "ru" -> new Locale("ru");
             case "de" -> new Locale("de");
             case "fr" -> new Locale("fr");
+            case "es" -> new Locale("es");
+            case "pt" -> new Locale("pt");
+            case "zh" -> new Locale("zh");
+            case "ja" -> new Locale("ja");
             default -> new Locale("en");
         };
     }

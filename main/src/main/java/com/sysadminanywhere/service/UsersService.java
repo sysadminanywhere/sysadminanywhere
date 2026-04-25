@@ -1,5 +1,7 @@
 package com.sysadminanywhere.service;
 
+import com.sysadminanywhere.common.PageResponse;
+
 import com.sysadminanywhere.client.directory.UsersServiceClient;
 import com.sysadminanywhere.common.directory.dto.AddUserDto;
 import com.sysadminanywhere.common.directory.dto.ChangeUserAccountControlDto;
@@ -8,6 +10,7 @@ import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +30,14 @@ public class UsersService {
 
     public Page<UserEntry> getAll(Pageable pageable, String filters, String... attributes) {
         try {
-            return usersServiceClient.getAll(pageable, filters, attributes);
+            PageResponse<UserEntry> response = usersServiceClient.getAll(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort().toString(),
+                filters,
+                attributes
+            );
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }

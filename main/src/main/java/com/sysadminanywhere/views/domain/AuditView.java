@@ -1,8 +1,8 @@
 package com.sysadminanywhere.views.domain;
 
 import com.sysadminanywhere.common.directory.dto.AuditDto;
-import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.LdapService;
+import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
@@ -22,14 +22,12 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.HasDynamicTitle;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -58,8 +56,6 @@ public class AuditView extends Div implements HasDynamicTitle {
         filters = new AuditView.Filters(() -> refreshGrid(), ldapService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
         add(layout);
     }
 
@@ -167,15 +163,19 @@ public class AuditView extends Div implements HasDynamicTitle {
             return dateRangeComponent;
         }
 
-        public Map<String, Object> getFilters() {
-            Map<String, Object> filters = new HashMap<>();
+        public Map<String, String> getFilters() {
+            Map<String, String> filters = new HashMap<>();
             filters.put("name", name.getValue());
             filters.put("action", action.getValue());
-            filters.put("startDate", startDate.getValue());
-            filters.put("endDate", endDate.getValue());
+
+            if(startDate.getValue() != null)
+                filters.put("startDate", startDate.getValue().toString());
+
+            if(endDate.getValue() != null)
+                filters.put("endDate", endDate.getValue().toString());
+
             return filters;
         }
-
     }
 
     private Component createGrid() {

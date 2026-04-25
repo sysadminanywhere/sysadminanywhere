@@ -1,38 +1,38 @@
 package com.sysadminanywhere.client.directory;
 
+import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddGroupDto;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
-import com.sysadminanywhere.config.FeignConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.DeleteExchange;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.PostExchange;
+import org.springframework.web.service.annotation.PutExchange;
 
 import java.util.List;
 
-@FeignClient(
-        name = "groups",
-        url = "${app.services.directory.uri}",
-        configuration = FeignConfiguration.class
-)
 public interface GroupsServiceClient {
 
-    @GetMapping("/api/groups")
-    Page<GroupEntry> getAll(Pageable pageable, @RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
+    @GetExchange("/api/groups")
+    PageResponse<GroupEntry> getAll(@RequestParam int page, @RequestParam int size, @RequestParam String sort, @RequestParam String filters, @RequestParam String[] attributes);
 
-    @GetMapping("/api/groups/list")
-    List<GroupEntry> getList(@RequestParam("filters") String filters, @RequestParam("attributes") String[] attributes);
+    @GetExchange("/api/groups/list")
+    List<GroupEntry> getList(@RequestParam String filters, @RequestParam String[] attributes);
 
-    @GetMapping("/api/groups/{cn}")
-    GroupEntry getByCN(@PathVariable("cn") String cn);
+    @GetExchange("/api/groups/{cn}")
+    GroupEntry getByCN(@PathVariable String cn);
 
-    @PostMapping("/api/groups")
+    @PostExchange("/api/groups")
     GroupEntry add(@RequestBody AddGroupDto addGroup);
 
-    @PutMapping("/api/groups")
+    @PutExchange("/api/groups")
     GroupEntry update(@RequestBody GroupEntry group);
 
-    @DeleteMapping("/api/groups")
-    void delete(@RequestParam("distinguishedName") String distinguishedName);
+    @DeleteExchange("/api/groups")
+    void delete(@RequestParam String distinguishedName);
 
 }
