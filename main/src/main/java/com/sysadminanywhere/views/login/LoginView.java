@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.login;
 
 import com.sysadminanywhere.common.directory.dto.JwtResponse;
+import com.sysadminanywhere.config.LoginRestrictionConfiguration;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.AuthService;
 import com.sysadminanywhere.service.LocaleService;
@@ -9,7 +10,6 @@ import com.vaadin.flow.component.login.LoginOverlay;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
@@ -40,11 +40,13 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver, HasD
     private final AuthenticatedUser authenticatedUser;
     private final MessageSource messageSource;
     private final LocaleService localeService;
+    private final LoginRestrictionConfiguration loginRestrictionConfig;
 
-    public LoginView(AuthenticatedUser authenticatedUser, AuthService authService, MessageSource messageSource, LocaleService localeService) {
+    public LoginView(AuthenticatedUser authenticatedUser, AuthService authService, MessageSource messageSource, LocaleService localeService, LoginRestrictionConfiguration loginRestrictionConfig) {
         this.authenticatedUser = authenticatedUser;
         this.messageSource = messageSource;
         this.localeService = localeService;
+        this.loginRestrictionConfig = loginRestrictionConfig;
 
         LoginI18n i18n = LoginI18n.createDefault();
         i18n.setHeader(new LoginI18n.Header());
@@ -61,6 +63,13 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver, HasD
                 JwtResponse response = authService.authenticate(event.getUsername(), event.getPassword());
 
                 if (response.token() != null) {
+                    List<String> userGroups = extractGroups(response.token());
+                    
+                    if (!loginRestrictionConfig.isUserAllowed(event.getUsername(), userGroups)) {
+                        setError(true);
+                        return;
+                    }
+
                     UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                             event.getUsername(), null, extractAuthorities(response.token())
                     );
@@ -118,6 +127,26 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver, HasD
         return roles.stream()
                 .map(SimpleGrantedAuthority::new)
                 .toList();
+    }
+
+    private List<String> extractGroups(String token) {
+        Key key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+
+        Claims claims = Jwts.parser()
+                .verifyWith((SecretKey) key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        List<String> groups = claims.get("groups", List.class);
+
+        if (groups == null) {
+            // If groups not in token, try to use roles as groups
+            List<String> roles = claims.get("roles", List.class);
+            return roles != null ? roles : List.of();
+        }
+
+        return groups;
     }
 
     public String getPageTitle() {
