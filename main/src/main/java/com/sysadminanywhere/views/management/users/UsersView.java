@@ -1,12 +1,10 @@
 package com.sysadminanywhere.views.management.users;
 
 import com.sysadminanywhere.common.directory.model.UserEntry;
-import com.sysadminanywhere.control.AiSearchField;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.Settings;
 import com.sysadminanywhere.security.AuthenticatedUser;
-import com.sysadminanywhere.service.AiAssistantService;
 import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.SettingsService;
 import com.sysadminanywhere.service.UsersService;
@@ -53,22 +51,20 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
 
     private final AuthenticatedUser authenticatedUser;
     private final SettingsService settingsService;
-    private final AiAssistantService aiAssistantService;
 
     private Settings settings;
 
-    public UsersView(UsersService usersService, AuthenticatedUser authenticatedUser, SettingsService settingsService, MessageSource messageSource, LocaleService localeService, AiAssistantService aiAssistantService) {
+    public UsersView(UsersService usersService, AuthenticatedUser authenticatedUser, SettingsService settingsService, MessageSource messageSource, LocaleService localeService) {
         this.usersService = usersService;
         this.settingsService = settingsService;
         this.authenticatedUser = authenticatedUser;
         this.messageSource = messageSource;
         this.localeService = localeService;
-        this.aiAssistantService = aiAssistantService;
 
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid(), usersService, authenticatedUser, settingsService, messageSource, localeService, aiAssistantService);
+        filters = new Filters(() -> refreshGrid(), usersService, authenticatedUser, settingsService, messageSource, localeService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         add(layout);
@@ -137,34 +133,21 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
 
         private final AuthenticatedUser authenticatedUser;
         private final SettingsService settingsService;
-        private final AiAssistantService aiAssistantService;
 
         private Settings settings;
 
         private final TextField cn;
         private final ComboBox<String> availability;
-        private final AiSearchField aiSearchField;
 
-        public Filters(Runnable onSearch, UsersService usersService, AuthenticatedUser authenticatedUser, SettingsService settingsService, MessageSource messageSource, LocaleService localeService, AiAssistantService aiAssistantService) {
+        public Filters(Runnable onSearch, UsersService usersService, AuthenticatedUser authenticatedUser, SettingsService settingsService, MessageSource messageSource, LocaleService localeService) {
             this.usersService = usersService;
             this.settingsService = settingsService;
             this.authenticatedUser = authenticatedUser;
             this.messageSource = messageSource;
             this.localeService = localeService;
-            this.aiAssistantService = aiAssistantService;
 
             this.cn = new TextField(getMessage("common.cn"));
             this.availability = new ComboBox<>(getMessage("common.filters"));
-            this.aiSearchField = new AiSearchField(aiAssistantService, translation -> {
-                // Apply AI translation to filters
-                if (translation.getLdapFilter() != null) {
-                    cn.clear();
-                    availability.setValue(getMessage("common.all"));
-                    // Store the AI filter for use in getFilters()
-                    setAiFilter(translation.getLdapFilter());
-                    onSearch.run();
-                }
-            }, "user");
 
             setWidthFull();
             addClassName("filter-layout");
@@ -177,7 +160,6 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
             resetBtn.addClickListener(e -> {
                 cn.clear();
                 availability.setValue(getMessage("common.all"));
-                aiSearchField.clear();
                 setAiFilter(null);
                 onSearch.run();
             });
@@ -192,7 +174,7 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
             availability.setItems(getMessage("common.all"), getMessage("common.disabled"), getMessage("common.locked"), getMessage("common.expired"), getMessage("common.never_expires"));
             availability.setValue(getMessage("common.all"));
 
-            add(cn, availability, aiSearchField, actions);
+            add(cn, availability, actions);
         }
 
         private String aiFilter;
