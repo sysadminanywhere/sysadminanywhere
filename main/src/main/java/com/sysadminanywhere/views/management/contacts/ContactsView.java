@@ -46,6 +46,7 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
         this.contactsService = contactsService;
         this.messageSource = messageSource;
         this.localeService = localeService;
+
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
@@ -127,6 +128,7 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 cn.clear();
+                setAiFilter(null);
                 onSearch.run();
             });
             Button searchBtn = new Button(getMessage("common.search"));
@@ -140,12 +142,22 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
             add(cn, actions);
         }
 
+        private String aiFilter;
+
+        private void setAiFilter(String filter) {
+            this.aiFilter = filter;
+        }
+
         private String getMessage(String key) {
             return messageSource.getMessage(key, null, localeService.getCurrentLocale());
         }
 
         public String getFilters() {
             String searchFilters = "";
+
+            if (aiFilter != null && !aiFilter.isBlank()) {
+                return aiFilter;
+            }
 
             if (!cn.isEmpty()) {
                 searchFilters += "(cn=" + cn.getValue() + "*)";
