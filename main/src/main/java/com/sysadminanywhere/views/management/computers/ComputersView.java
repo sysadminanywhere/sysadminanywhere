@@ -1,8 +1,10 @@
 package com.sysadminanywhere.views.management.computers;
 
+import com.sysadminanywhere.control.AiSearchField;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
+import com.sysadminanywhere.service.AiAssistantService;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.Component;
@@ -42,15 +44,17 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
     private final ComputersService computersService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
+    private final AiAssistantService aiAssistantService;
 
-    public ComputersView(ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
+    public ComputersView(ComputersService computersService, MessageSource messageSource, LocaleService localeService, AiAssistantService aiAssistantService) {
         this.computersService = computersService;
         this.messageSource = messageSource;
         this.localeService = localeService;
+        this.aiAssistantService = aiAssistantService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid(), computersService, messageSource, localeService);
+        filters = new Filters(() -> refreshGrid(), computersService, messageSource, localeService, aiAssistantService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
 
@@ -109,17 +113,30 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
         private final ComputersService computersService;
         private final MessageSource messageSource;
         private final LocaleService localeService;
+        private final AiAssistantService aiAssistantService;
 
         private final TextField cn;
         private final ComboBox<String> availability;
+        private final AiSearchField aiSearchField;
 
-        public Filters(Runnable onSearch, ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
+        public Filters(Runnable onSearch, ComputersService computersService, MessageSource messageSource, LocaleService localeService, AiAssistantService aiAssistantService) {
             this.computersService = computersService;
             this.messageSource = messageSource;
             this.localeService = localeService;
+            this.aiAssistantService = aiAssistantService;
 
             this.cn = new TextField(getMessage("common.cn"));
             this.availability = new ComboBox<>(getMessage("common.filters"));
+            this.aiSearchField = new AiSearchField(aiAssistantService, translation -> {
+                // Apply AI translation to filters
+                if (translation.getLdapFilter() != null) {
+                    cn.clear();
+                    availability.setValue(getMessage("common.all"));
+                    // Store the AI filter for use in getFilters()
+                    setAiFilter(translation.getLdapFilter());
+                    onSearch.run();
+                }
+            }, "computer");
 
             setWidthFull();
             addClassName("filter-layout");
@@ -132,6 +149,8 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
             resetBtn.addClickListener(e -> {
                 cn.clear();
                 availability.setValue(getMessage("common.all"));
+                aiSearchField.clear();
+                setAiFilter(null);
                 onSearch.run();
             });
             Button searchBtn = new Button(getMessage("common.search"));
@@ -145,7 +164,13 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
             availability.setItems(getMessage("common.all"), getMessage("common.disabled"));
             availability.setValue(getMessage("common.all"));
 
-            add(cn, availability, actions);
+            add(cn, availability, aiSearchField, actions);
+        }
+
+        private String aiFilter;
+
+        private void setAiFilter(String filter) {
+            this.aiFilter = filter;
         }
 
         private String getMessage(String key) {
@@ -154,6 +179,11 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
 
         public String getFilters() {
             String searchFilters = "";
+
+            // Use AI filter if available
+            if (aiFilter != null && !aiFilter.isBlank()) {
+                return aiFilter;
+            }
 
             if (!cn.isEmpty()) {
                 searchFilters += "(cn=" + cn.getValue() + "*)";

@@ -1,8 +1,10 @@
 package com.sysadminanywhere.views.management.groups;
 
+import com.sysadminanywhere.control.AiSearchField;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
+import com.sysadminanywhere.service.AiAssistantService;
 import com.sysadminanywhere.service.GroupsService;
 import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.Component;
@@ -42,15 +44,17 @@ public class GroupsView extends Div implements MenuControl, HasDynamicTitle {
     private final GroupsService groupsService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
+    private final AiAssistantService aiAssistantService;
 
-    public GroupsView(GroupsService groupsService, MessageSource messageSource, LocaleService localeService) {
+    public GroupsView(GroupsService groupsService, MessageSource messageSource, LocaleService localeService, AiAssistantService aiAssistantService) {
         this.groupsService = groupsService;
         this.messageSource = messageSource;
         this.localeService = localeService;
+        this.aiAssistantService = aiAssistantService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid(), groupsService, messageSource, localeService);
+        filters = new Filters(() -> refreshGrid(), groupsService, messageSource, localeService, aiAssistantService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         add(layout);
@@ -108,17 +112,28 @@ public class GroupsView extends Div implements MenuControl, HasDynamicTitle {
         private final GroupsService groupsService;
         private final MessageSource messageSource;
         private final LocaleService localeService;
+        private final AiAssistantService aiAssistantService;
 
         private final TextField cn;
         private final ComboBox<String> availability;
+        private final AiSearchField aiSearchField;
 
-        public Filters(Runnable onSearch, GroupsService groupsService, MessageSource messageSource, LocaleService localeService) {
+        public Filters(Runnable onSearch, GroupsService groupsService, MessageSource messageSource, LocaleService localeService, AiAssistantService aiAssistantService) {
             this.groupsService = groupsService;
             this.messageSource = messageSource;
             this.localeService = localeService;
+            this.aiAssistantService = aiAssistantService;
 
             this.cn = new TextField(getMessage("common.cn"));
             this.availability = new ComboBox<>(getMessage("common.filters"));
+            this.aiSearchField = new AiSearchField(aiAssistantService, translation -> {
+                if (translation.getLdapFilter() != null) {
+                    cn.clear();
+                    availability.setValue(getMessage("common.all"));
+                    setAiFilter(translation.getLdapFilter());
+                    onSearch.run();
+                }
+            }, "group");
 
             setWidthFull();
             addClassName("filter-layout");
@@ -132,6 +147,8 @@ public class GroupsView extends Div implements MenuControl, HasDynamicTitle {
             resetBtn.addClickListener(e -> {
                 cn.clear();
                 availability.setValue(getMessage("common.all"));
+                aiSearchField.clear();
+                setAiFilter(null);
                 onSearch.run();
             });
             Button searchBtn = new Button(getMessage("common.search"));
@@ -145,7 +162,13 @@ public class GroupsView extends Div implements MenuControl, HasDynamicTitle {
             availability.setItems(getMessage("common.all"), getMessage("groups_view.global_security"), getMessage("groups_view.global_distribution"), getMessage("groups_view.domain_security"), getMessage("groups_view.domain_distribution"), getMessage("groups_view.universal_security"), getMessage("groups_view.universal_distribution"), getMessage("groups_view.built_in"));
             availability.setValue(getMessage("common.all"));
 
-            add(cn, availability, actions);
+            add(cn, availability, aiSearchField, actions);
+        }
+
+        private String aiFilter;
+
+        private void setAiFilter(String filter) {
+            this.aiFilter = filter;
         }
 
         private String getMessage(String key) {
@@ -154,6 +177,10 @@ public class GroupsView extends Div implements MenuControl, HasDynamicTitle {
 
         public String getFilters() {
             String searchFilters = "";
+
+            if (aiFilter != null && !aiFilter.isBlank()) {
+                return aiFilter;
+            }
 
             if (!cn.isEmpty()) {
                 searchFilters += "(cn=" + cn.getValue() + "*)";

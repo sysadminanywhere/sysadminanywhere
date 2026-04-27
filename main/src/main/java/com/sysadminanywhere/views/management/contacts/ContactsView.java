@@ -1,8 +1,10 @@
 package com.sysadminanywhere.views.management.contacts;
 
 import com.sysadminanywhere.common.directory.model.ContactEntry;
+import com.sysadminanywhere.control.AiSearchField;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
+import com.sysadminanywhere.service.AiAssistantService;
 import com.sysadminanywhere.service.ContactsService;
 import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.Component;
@@ -41,15 +43,17 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
     private final ContactsService contactsService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
+    private final AiAssistantService aiAssistantService;
 
-    public ContactsView(ContactsService contactsService, MessageSource messageSource, LocaleService localeService) {
+    public ContactsView(ContactsService contactsService, MessageSource messageSource, LocaleService localeService, AiAssistantService aiAssistantService) {
         this.contactsService = contactsService;
         this.messageSource = messageSource;
         this.localeService = localeService;
+        this.aiAssistantService = aiAssistantService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid(), contactsService, messageSource, localeService);
+        filters = new Filters(() -> refreshGrid(), contactsService, messageSource, localeService, aiAssistantService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         add(layout);
@@ -107,15 +111,25 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
         private final ContactsService contactsService;
         private final MessageSource messageSource;
         private final LocaleService localeService;
+        private final AiAssistantService aiAssistantService;
 
         private final TextField cn;
+        private final AiSearchField aiSearchField;
 
-        public Filters(Runnable onSearch, ContactsService contactsService, MessageSource messageSource, LocaleService localeService) {
+        public Filters(Runnable onSearch, ContactsService contactsService, MessageSource messageSource, LocaleService localeService, AiAssistantService aiAssistantService) {
             this.contactsService = contactsService;
             this.messageSource = messageSource;
             this.localeService = localeService;
+            this.aiAssistantService = aiAssistantService;
 
             this.cn = new TextField(getMessage("common.cn"));
+            this.aiSearchField = new AiSearchField(aiAssistantService, translation -> {
+                if (translation.getLdapFilter() != null) {
+                    cn.clear();
+                    setAiFilter(translation.getLdapFilter());
+                    onSearch.run();
+                }
+            }, "contact");
 
             setWidthFull();
             addClassName("filter-layout");
@@ -127,6 +141,8 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 cn.clear();
+                aiSearchField.clear();
+                setAiFilter(null);
                 onSearch.run();
             });
             Button searchBtn = new Button(getMessage("common.search"));
@@ -137,7 +153,13 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(cn, actions);
+            add(cn, aiSearchField, actions);
+        }
+
+        private String aiFilter;
+
+        private void setAiFilter(String filter) {
+            this.aiFilter = filter;
         }
 
         private String getMessage(String key) {
@@ -146,6 +168,10 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
 
         public String getFilters() {
             String searchFilters = "";
+
+            if (aiFilter != null && !aiFilter.isBlank()) {
+                return aiFilter;
+            }
 
             if (!cn.isEmpty()) {
                 searchFilters += "(cn=" + cn.getValue() + "*)";

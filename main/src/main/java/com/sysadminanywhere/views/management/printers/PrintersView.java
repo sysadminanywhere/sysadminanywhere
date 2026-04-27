@@ -1,6 +1,8 @@
 package com.sysadminanywhere.views.management.printers;
 
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
+import com.sysadminanywhere.control.AiSearchField;
+import com.sysadminanywhere.service.AiAssistantService;
 import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.PrintersService;
 import com.vaadin.flow.component.Component;
@@ -37,15 +39,17 @@ public class PrintersView extends Div implements HasDynamicTitle {
     private final PrintersService printersService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
+    private final AiAssistantService aiAssistantService;
 
-    public PrintersView(PrintersService printersService, MessageSource messageSource, LocaleService localeService) {
+    public PrintersView(PrintersService printersService, MessageSource messageSource, LocaleService localeService, AiAssistantService aiAssistantService) {
         this.printersService = printersService;
         this.messageSource = messageSource;
         this.localeService = localeService;
+        this.aiAssistantService = aiAssistantService;
         setSizeFull();
         addClassNames("gridwith-filters-view");
 
-        filters = new Filters(() -> refreshGrid(), messageSource, localeService);
+        filters = new Filters(() -> refreshGrid(), messageSource, localeService, aiAssistantService);
         VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
         layout.setSizeFull();
         add(layout);
@@ -84,11 +88,21 @@ public class PrintersView extends Div implements HasDynamicTitle {
         private final TextField cn;
         private final MessageSource messageSource;
         private final LocaleService localeService;
+        private final AiAssistantService aiAssistantService;
+        private final AiSearchField aiSearchField;
 
-        public Filters(Runnable onSearch, MessageSource messageSource, LocaleService localeService) {
+        public Filters(Runnable onSearch, MessageSource messageSource, LocaleService localeService, AiAssistantService aiAssistantService) {
             this.messageSource = messageSource;
             this.localeService = localeService;
+            this.aiAssistantService = aiAssistantService;
             this.cn = new TextField(getMessage("common.cn"));
+            this.aiSearchField = new AiSearchField(aiAssistantService, translation -> {
+                if (translation.getLdapFilter() != null) {
+                    cn.clear();
+                    setAiFilter(translation.getLdapFilter());
+                    onSearch.run();
+                }
+            }, "printer");
 
             setWidthFull();
             addClassName("filter-layout");
@@ -101,6 +115,8 @@ public class PrintersView extends Div implements HasDynamicTitle {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 cn.clear();
+                aiSearchField.clear();
+                setAiFilter(null);
                 onSearch.run();
             });
             Button searchBtn = new Button(getMessage("common.search"));
@@ -111,7 +127,13 @@ public class PrintersView extends Div implements HasDynamicTitle {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(cn, actions);
+            add(cn, aiSearchField, actions);
+        }
+
+        private String aiFilter;
+
+        private void setAiFilter(String filter) {
+            this.aiFilter = filter;
         }
 
         private String getMessage(String key) {
@@ -120,6 +142,10 @@ public class PrintersView extends Div implements HasDynamicTitle {
 
         public String getFilters() {
             String searchFilters = "";
+
+            if (aiFilter != null && !aiFilter.isBlank()) {
+                return aiFilter;
+            }
 
             if (!cn.isEmpty()) {
                 searchFilters += "(cn=" + cn.getValue() + "*)";
