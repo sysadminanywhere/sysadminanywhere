@@ -130,12 +130,10 @@ public class TicketDialog extends Dialog {
         TextField txtTicketNumber = new TextField(getMessage("ticket_dialog.ticket_number"));
         txtTicketNumber.setValue(ticket.getTicketNumber() != null ? ticket.getTicketNumber() : "");
         txtTicketNumber.setReadOnly(true);
-        formLayout.setColspan(txtTicketNumber, 2);
 
         txtTitle = new TextField(getMessage("ticket_dialog.title"));
         txtTitle.setValue(ticket.getTitle() != null ? ticket.getTitle() : "");
         txtTitle.setReadOnly(ticket.getId() != null);
-        formLayout.setColspan(txtTitle, 2);
 
         txtDescription = new TextArea(getMessage("ticket_dialog.description"));
         txtDescription.setValue(ticket.getDescription() != null ? ticket.getDescription() : "");
@@ -247,6 +245,7 @@ public class TicketDialog extends Dialog {
                 TextField commentAuthor = new TextField();
                 commentAuthor.setValue(comment.getAuthor());
                 commentAuthor.setReadOnly(true);
+                commentAuthor.setWidthFull();
                 commentAuthor.addClassName("comment-author");
 
                 TextField commentDate = new TextField();
@@ -262,6 +261,7 @@ public class TicketDialog extends Dialog {
                 commentContent.setValue(comment.getContent());
                 commentContent.setReadOnly(true);
                 commentContent.setMinHeight("40px");
+                commentContent.setWidthFull();
                 commentContent.addClassName("comment-content");
 
                 commentLayout.add(header, commentContent);
