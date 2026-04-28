@@ -2,12 +2,17 @@ package com.sysadminanywhere.incident.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sysadminanywhere.common.incident.model.Category;
 import com.sysadminanywhere.common.incident.model.IncidentStatus;
+import com.sysadminanywhere.common.incident.model.Priority;
+import com.sysadminanywhere.common.incident.model.TicketStatus;
 import com.sysadminanywhere.incident.entity.EventEntity;
 import com.sysadminanywhere.incident.entity.IncidentEntity;
+import com.sysadminanywhere.incident.entity.TicketEntity;
 import com.sysadminanywhere.incident.model.*;
 import com.sysadminanywhere.incident.repository.EventRepository;
 import com.sysadminanywhere.incident.repository.IncidentRepository;
+import com.sysadminanywhere.incident.repository.TicketRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +29,7 @@ public class IncidentService {
 
     private final EventRepository eventRepository;
     private final IncidentRepository incidentRepository;
+    private final TicketRepository ticketRepository;
     private final SignalLoader signalLoader;
     private final ObjectMapper mapper;
 
@@ -65,7 +71,7 @@ public class IncidentService {
                     if (!thresholdOk(signal, windowEvents)) continue;
                     if (!correlationOk(signal, windowEvents)) continue;
 
-                    createIncident(signal, windowEvents, entry.getKey());
+                    createTicket(signal, windowEvents, entry.getKey());
                 }
             }
         }
@@ -163,34 +169,33 @@ public class IncidentService {
         }));
     }
 
-    private void createIncident(
+    private void createTicket(
             Signal signal,
             List<EventEntity> events,
             String groupKey) {
 
         events.sort(Comparator.comparing(EventEntity::getTimeCreated));
 
-        IncidentEntity incident = IncidentEntity.builder()
-                .signalId(signal.getId())
-                .name(signal.getName())
-                .severity(signal.getSeverity().getDefaultSeverity())
+        TicketEntity ticket = TicketEntity.builder()
+                .title(signal.getName())
+                .description(renderRecommendation(signal, events))
+                .status(TicketStatus.OPEN)
+                .priority(mapSeverityToPriority(signal.getSeverity().getDefaultSeverity()))
+                .category(Category.OTHER)
+                .requester(events.get(0).getMachineName())
                 .createdAt(LocalDateTime.now())
-                .firstEventTime(events.get(0).getTimeCreated())
-                .lastEventTime(events.get(events.size() - 1).getTimeCreated())
-                .eventCount(events.size())
-                .deduplicationKey(signal.getId() + "|" + groupKey + "|" +
-                        events.get(0).getTimeCreated())
-                .status(IncidentStatus.OPEN)
-                .machineName(events.get(0).getMachineName())
-                .recommendation(renderRecommendation(signal, events))
                 .build();
 
-        incidentRepository.save(incident);
+        ticketRepository.save(ticket);
 
-        long incidentId = incident.getId();
+        long ticketId = ticket.getId();
 
-        events.forEach(e -> e.setIncidentId(incidentId));
+        events.forEach(e -> e.setIncidentId(ticketId));
         eventRepository.saveAll(events);
+    }
+
+    private Priority mapSeverityToPriority(com.sysadminanywhere.common.incident.model.Severity severity) {
+        return Priority.valueOf(severity.name());
     }
 
     private Map<String, Object> parseExtra(EventEntity e) {

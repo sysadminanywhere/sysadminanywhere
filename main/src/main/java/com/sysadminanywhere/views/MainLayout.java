@@ -11,6 +11,7 @@ import com.sysadminanywhere.views.domain.AuditView;
 import com.sysadminanywhere.views.domain.DashboardView;
 import com.sysadminanywhere.views.domain.DomainView;
 import com.sysadminanywhere.views.incident.IncidentsView;
+import com.sysadminanywhere.views.servicedesk.TicketsView;
 import com.sysadminanywhere.views.inventory.InventoryHardwareView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
@@ -58,7 +59,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     SideNav managementSubNavs;
     SideNav settingsSubNavs;
     SideNav inventorySubNavs;
-    SideNav incidentsSubNavs;
+    SideNav ticketsSubNavs;
     SideNav reportsSubNavs;
     SideNav accountSubNavs;
     SideNav automationsSubNavs;
@@ -124,14 +125,14 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         managementSubNavs = new SideNav();
         settingsSubNavs = new SideNav();
         inventorySubNavs = new SideNav();
-        incidentsSubNavs = new SideNav();
+        ticketsSubNavs = new SideNav();
         reportsSubNavs = new SideNav();
         accountSubNavs = new SideNav();
         automationsSubNavs = new SideNav();
 
         topMenu = new VerticalLayout(createSelectedMainButtonItem("main_layout.dashboard", getMessage("main_layout.dashboard"), DashboardView.class, "icons/dashboard.svg"),
                 createMainButtonItem("main_layout.management", getMessage("main_layout.management"), ContainersView.class, "icons/management.svg"),
-                createMainButtonItem("main_layout.incidents", getMessage("main_layout.incidents"), IncidentsView.class, "icons/incident.svg"),
+                createMainButtonItem("main_layout.tickets", getMessage("main_layout.tickets"), TicketsView.class, "icons/incident.svg"),
                 createMainButtonItem("main_layout.automation", getMessage("main_layout.automation"), AutomationsView.class, "icons/automation.svg"),
                 createMainButtonItem("main_layout.inventory", getMessage("main_layout.inventory"), InventorySoftwareView.class, "icons/inventory.svg"),
                 createMainButtonItem("main_layout.reports", getMessage("main_layout.reports"), UserReportsView.class, "icons/reports.svg"));
@@ -174,7 +175,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         inventorySubNavs.addItem(createSideNavItem(getMessage("main_layout.software_inventory"), InventorySoftwareView.class),
                 createSideNavItem(getMessage("main_layout.hardware_inventory"), InventoryHardwareView.class));
 
-        incidentsSubNavs.addItem(createSideNavItem(getMessage("main_layout.incidents"), IncidentsView.class));
+        ticketsSubNavs.addItem(createSideNavItem(getMessage("main_layout.tickets"), TicketsView.class));
 
         automationsSubNavs.addItem(createSideNavItem(getMessage("main_layout.workflows"), AutomationsView.class));
 
@@ -232,8 +233,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 subNav.add(accountSubNavs);
             } else if (currentRoute.startsWith("management")) {
                 subNav.add(managementSubNavs);
-            } else if (currentRoute.startsWith("incidents")) {
-                subNav.add(incidentsSubNavs);
+            } else if (currentRoute.startsWith("tickets")) {
+                subNav.add(ticketsSubNavs);
             } else if (currentRoute.startsWith("automation")) {
                 subNav.add(automationsSubNavs);
             } else if (currentRoute.startsWith("inventory")) {

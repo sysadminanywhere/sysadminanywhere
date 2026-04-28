@@ -3,6 +3,7 @@ package com.sysadminanywhere.views.incident;
 import com.sysadminanywhere.common.incident.model.IncidentItem;
 import com.sysadminanywhere.service.IncidentService;
 import com.sysadminanywhere.service.LocaleService;
+import com.sysadminanywhere.service.TicketService;
 import com.sysadminanywhere.service.Utils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -37,11 +38,13 @@ public class IncidentsView extends Div implements HasDynamicTitle {
 
     private IncidentsView.Filters filters;
     private final IncidentService incidentService;
+    private final TicketService ticketService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
 
-    public IncidentsView(IncidentService incidentService, MessageSource messageSource, LocaleService localeService) {
+    public IncidentsView(IncidentService incidentService, TicketService ticketService, MessageSource messageSource, LocaleService localeService) {
         this.incidentService = incidentService;
+        this.ticketService = ticketService;
         this.messageSource = messageSource;
         this.localeService = localeService;
         setSizeFull();
@@ -186,7 +189,7 @@ public class IncidentsView extends Div implements HasDynamicTitle {
         grid.addColumn("recommendation").setHeader(getMessage("incidents_view.recommendation")).setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
-                incidentDialog(incidentService, item.getItem(), this::refreshGrid).open();
+                incidentDialog(incidentService, ticketService, item.getItem(), this::refreshGrid).open();
         });
 
         grid.setItems(query -> incidentService.getIncidents(
@@ -202,8 +205,8 @@ public class IncidentsView extends Div implements HasDynamicTitle {
         grid.getDataProvider().refreshAll();
     }
 
-    private Dialog incidentDialog(IncidentService incidentService, IncidentItem incidentItem, Runnable onSearch) {
-        return new IncidentDialog(incidentService, incidentItem, messageSource, localeService, onSearch);
+    private Dialog incidentDialog(IncidentService incidentService, TicketService ticketService, IncidentItem incidentItem, Runnable onSearch) {
+        return new IncidentDialog(incidentService, ticketService, incidentItem, messageSource, localeService, onSearch);
     }
 
     public String getPageTitle() {

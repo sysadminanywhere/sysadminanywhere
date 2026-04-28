@@ -5,6 +5,7 @@ import com.sysadminanywhere.common.incident.model.IncidentStatus;
 import com.sysadminanywhere.common.incident.model.Severity;
 import com.sysadminanywhere.service.IncidentService;
 import com.sysadminanywhere.service.LocaleService;
+import com.sysadminanywhere.service.TicketService;
 import com.sysadminanywhere.service.Utils;
 import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.button.Button;
@@ -21,12 +22,14 @@ import java.util.List;
 public class IncidentDialog extends Dialog {
 
     private final IncidentService incidentService;
+    private final TicketService ticketService;
     private final IncidentItem incident;
     private final MessageSource messageSource;
     private final LocaleService localeService;
 
-    public IncidentDialog(IncidentService incidentService, IncidentItem incident, MessageSource messageSource, LocaleService localeService, Runnable onSearch) {
+    public IncidentDialog(IncidentService incidentService, TicketService ticketService, IncidentItem incident, MessageSource messageSource, LocaleService localeService, Runnable onSearch) {
         this.incidentService = incidentService;
+        this.ticketService = ticketService;
         this.incident = incident;
         this.messageSource = messageSource;
         this.localeService = localeService;
@@ -112,8 +115,26 @@ public class IncidentDialog extends Dialog {
 
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
+        Button createTicketButton = new Button(getMessage("incident_dialog.create_ticket"), e -> {
+            try {
+                String title = incident.getName();
+                String description = incident.getRecommendation() != null ? incident.getRecommendation() : "";
+                String requester = "System";
+                
+                ticketService.createTicketFromIncident(incident.getId(), title, description, requester);
+                
+                Notification notification = Notification.show(getMessage("incident_dialog.ticket_created"));
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception ex) {
+                Notification notification = Notification.show(getMessage("common.error") + ": " + ex.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+        });
+        createTicketButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
         Button cancelButton = new Button(getMessage("common.cancel"), e -> close());
         getFooter().add(cancelButton);
+        getFooter().add(createTicketButton);
         getFooter().add(saveButton);
     }
 

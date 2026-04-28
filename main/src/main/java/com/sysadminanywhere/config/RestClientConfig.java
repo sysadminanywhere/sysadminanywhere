@@ -4,6 +4,7 @@ import com.sysadminanywhere.client.N8nClient;
 import com.sysadminanywhere.client.directory.*;
 import com.sysadminanywhere.client.incident.IncidentServiceClient;
 import com.sysadminanywhere.client.inventory.InventoryServiceClient;
+import com.sysadminanywhere.client.servicedesk.TicketServiceClient;
 import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -184,6 +185,15 @@ public class RestClientConfig {
                 .exchangeAdapter(RestClientAdapter.create(incidentServiceRestClient))
                 .build();
         return factory.createClient(IncidentServiceClient.class);
+    }
+
+    // Ticket service client (uses incident service)
+    @Bean
+    public TicketServiceClient ticketServiceClient(RestClient incidentServiceRestClient) {
+        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builder()
+                .exchangeAdapter(RestClientAdapter.create(incidentServiceRestClient))
+                .build();
+        return factory.createClient(TicketServiceClient.class);
     }
 
     // N8n client
