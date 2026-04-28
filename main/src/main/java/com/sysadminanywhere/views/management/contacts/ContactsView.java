@@ -1,7 +1,7 @@
 package com.sysadminanywhere.views.management.contacts;
 
 import com.sysadminanywhere.common.directory.model.ContactEntry;
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.service.ContactsService;
 import com.sysadminanywhere.service.LocaleService;
@@ -33,7 +33,7 @@ import org.springframework.data.domain.PageRequest;
 @RolesAllowed("ADMIN")
 @Route(value = "management/contacts")
 @Uses(Icon.class)
-public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
+public class ContactsView extends Div implements HasMenu, HasDynamicTitle {
 
     private Grid<ContactEntry> grid;
 

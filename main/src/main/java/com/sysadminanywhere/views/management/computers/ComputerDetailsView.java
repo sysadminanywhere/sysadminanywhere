@@ -2,7 +2,7 @@ package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.control.MemberOf;
 import com.sysadminanywhere.model.wmi.ComputerSystemEntity;
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
@@ -42,7 +42,7 @@ import java.net.UnknownHostException;
 @Route(value = "management/computers/:id?/details")
 @Uses(Icon.class)
 @Uses(ListBox.class)
-public class ComputerDetailsView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
+public class ComputerDetailsView extends Div implements BeforeEnterObserver, HasMenu, HasDynamicTitle {
 
     private String id;
     private final ComputersService computersService;

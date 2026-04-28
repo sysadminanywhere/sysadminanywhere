@@ -1,7 +1,7 @@
 package com.sysadminanywhere.views.management.users;
 
 import com.sysadminanywhere.common.directory.model.UserEntry;
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.Settings;
 import com.sysadminanywhere.security.AuthenticatedUser;
@@ -40,7 +40,7 @@ import org.springframework.data.domain.PageRequest;
 @Route(value = "management/users")
 @Uses(Icon.class)
 @Uses(Upload.class)
-public class UsersView extends Div implements MenuControl, HasDynamicTitle {
+public class UsersView extends Div implements HasMenu, HasDynamicTitle {
 
     private Grid<UserEntry> grid;
 

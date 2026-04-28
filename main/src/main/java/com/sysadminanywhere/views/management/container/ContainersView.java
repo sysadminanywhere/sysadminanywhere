@@ -2,7 +2,7 @@ package com.sysadminanywhere.views.management.container;
 
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.Entry;
@@ -37,13 +37,12 @@ import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
-import org.springframework.data.domain.PageRequest;
 import org.vaadin.tatu.Tree;
 
 @RolesAllowed("ADMIN")
 @Route(value = "management/containers")
 @Uses(Icon.class)
-public class ContainersView extends Div implements MenuControl, HasDynamicTitle {
+public class ContainersView extends Div implements HasMenu, HasDynamicTitle {
 
     private final LdapService ldapService;
     private final AuthenticatedUser authenticatedUser;

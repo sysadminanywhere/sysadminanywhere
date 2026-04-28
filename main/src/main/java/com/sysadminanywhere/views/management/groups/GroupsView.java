@@ -1,6 +1,6 @@
 package com.sysadminanywhere.views.management.groups;
 
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.service.GroupsService;
@@ -34,7 +34,7 @@ import org.springframework.data.domain.PageRequest;
 @RolesAllowed("ADMIN")
 @Route(value = "management/groups")
 @Uses(Icon.class)
-public class GroupsView extends Div implements MenuControl, HasDynamicTitle {
+public class GroupsView extends Div implements HasMenu, HasDynamicTitle {
 
     private Grid<GroupEntry> grid;
 

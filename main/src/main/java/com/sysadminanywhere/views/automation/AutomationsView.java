@@ -1,6 +1,6 @@
 package com.sysadminanywhere.views.automation;
 
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.workflow.Workflow;
 import com.sysadminanywhere.service.LocaleService;
@@ -22,7 +22,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.HasDynamicTitle;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
@@ -33,7 +32,7 @@ import org.springframework.data.domain.PageRequest;
 @RolesAllowed("ADMIN")
 @Route(value = "automation/workflows")
 @Uses(Icon.class)
-public class AutomationsView extends Div implements MenuControl, HasDynamicTitle {
+public class AutomationsView extends Div implements HasMenu, HasDynamicTitle {
 
     private Grid<Workflow> grid;
 

@@ -2,7 +2,7 @@ package com.sysadminanywhere.views.management.users;
 
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.control.MemberOf;
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.UsersService;
@@ -41,7 +41,7 @@ import java.io.ByteArrayInputStream;
 @Uses(Upload.class)
 @Uses(Icon.class)
 @Uses(ListBox.class)
-public class UserDetailsView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
+public class UserDetailsView extends Div implements BeforeEnterObserver, HasMenu, HasDynamicTitle {
 
     private String id;
     private final UsersService usersService;

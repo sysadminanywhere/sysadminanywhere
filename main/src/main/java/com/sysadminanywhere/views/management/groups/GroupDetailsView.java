@@ -2,7 +2,7 @@ package com.sysadminanywhere.views.management.groups;
 
 import com.sysadminanywhere.control.MemberOf;
 import com.sysadminanywhere.control.Members;
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.service.GroupsService;
@@ -37,7 +37,7 @@ import jakarta.annotation.security.RolesAllowed;
 @Uses(Icon.class)
 @Uses(ListBox.class)
 @Uses(TabSheet.class)
-public class GroupDetailsView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
+public class GroupDetailsView extends Div implements BeforeEnterObserver, HasMenu, HasDynamicTitle {
 
     private String id;
     private final GroupsService groupsService;

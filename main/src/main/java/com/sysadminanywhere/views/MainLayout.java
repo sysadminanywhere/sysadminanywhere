@@ -1,7 +1,7 @@
 package com.sysadminanywhere.views;
 
 import com.sysadminanywhere.control.MenuButton;
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.account.MeView;
@@ -203,8 +203,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         menuLayout.removeAll();
 
         Component view = getContent();
-        if (view instanceof MenuControl) {
-            menuLayout.add(((MenuControl) view).getMenu());
+        if (view instanceof HasMenu) {
+            menuLayout.add(((HasMenu) view).getMenu());
         }
 
         updateSubNavBasedOnRoute();

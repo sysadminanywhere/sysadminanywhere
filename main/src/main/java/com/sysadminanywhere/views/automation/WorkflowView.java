@@ -1,7 +1,7 @@
 package com.sysadminanywhere.views.automation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.workflow.WorkflowData;
 import com.sysadminanywhere.model.workflow.Execution;
@@ -24,7 +24,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
@@ -35,7 +34,7 @@ import java.util.List;
 
 @RolesAllowed("ADMIN")
 @Route(value = "automation/workflows/:id?/details")
-public class WorkflowView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
+public class WorkflowView extends Div implements BeforeEnterObserver, HasMenu, HasDynamicTitle {
 
     private String id;
 

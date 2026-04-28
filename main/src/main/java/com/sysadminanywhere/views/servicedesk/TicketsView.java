@@ -4,6 +4,8 @@ import com.sysadminanywhere.common.incident.model.Category;
 import com.sysadminanywhere.common.incident.model.Priority;
 import com.sysadminanywhere.common.incident.model.TicketItem;
 import com.sysadminanywhere.common.incident.model.TicketStatus;
+import com.sysadminanywhere.control.HasMenu;
+import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.TicketService;
 import com.sysadminanywhere.service.Utils;
@@ -17,7 +19,7 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -35,7 +37,7 @@ import java.util.Map;
 
 @RolesAllowed("ADMIN")
 @Route("tickets")
-public class TicketsView extends Div implements HasDynamicTitle {
+public class TicketsView extends Div implements HasMenu, HasDynamicTitle {
 
     private Grid<TicketItem> grid;
 
@@ -56,6 +58,8 @@ public class TicketsView extends Div implements HasDynamicTitle {
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
             filters = new TicketsView.Filters(() -> refreshGrid(), messageSource, localeService);
+            
+
             VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
             layout.setSizeFull();
             add(layout);
@@ -87,6 +91,22 @@ public class TicketsView extends Div implements HasDynamicTitle {
             }
         });
         return mobileFilters;
+    }
+
+    @Override
+    public MenuBar getMenu() {
+        MenuBar menuBar = new MenuBar();
+
+        MenuHelper.createIconItem(menuBar, "/icons/plus.svg", getMessage("common.new"), event -> {
+            TicketItem newTicket = TicketItem.builder()
+                    .status(TicketStatus.OPEN)
+                    .priority(Priority.MEDIUM)
+                    .category(Category.OTHER)
+                    .build();
+            ticketDialog(ticketService, newTicket, this::refreshGrid).open();
+        });
+
+        return menuBar;
     }
 
     public static class Filters extends Div {

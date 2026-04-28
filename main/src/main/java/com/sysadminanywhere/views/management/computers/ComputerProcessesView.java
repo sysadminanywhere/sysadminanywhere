@@ -1,7 +1,7 @@
 package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.model.wmi.ProcessEntity;
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.service.LocaleService;
@@ -36,7 +36,7 @@ import java.util.Map;
 @RolesAllowed("ADMIN")
 @Route(value = "management/computers/:id?/processes")
 @Uses(Icon.class)
-public class ComputerProcessesView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
+public class ComputerProcessesView extends Div implements BeforeEnterObserver, HasMenu, HasDynamicTitle {
 
     private String id;
 

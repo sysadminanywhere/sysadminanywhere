@@ -1,6 +1,6 @@
 package com.sysadminanywhere.views.management.contacts;
 
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
 import com.sysadminanywhere.service.ContactsService;
@@ -32,7 +32,7 @@ import jakarta.annotation.security.RolesAllowed;
 @Route(value = "management/contacts/:id?/details")
 @Uses(Upload.class)
 @Uses(Icon.class)
-public class ContactDetailsView extends Div implements BeforeEnterObserver, MenuControl {
+public class ContactDetailsView extends Div implements BeforeEnterObserver, HasMenu {
 
     private String id;
     private final ContactsService contactsService;

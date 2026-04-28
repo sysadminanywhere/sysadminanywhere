@@ -1,7 +1,7 @@
 package com.sysadminanywhere.views.account;
 
 import com.sysadminanywhere.common.directory.model.UserEntry;
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LocaleService;
@@ -31,7 +31,7 @@ import java.util.Base64;
 
 @Route(value = "account/me")
 @PermitAll
-public class MeView extends VerticalLayout implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
+public class MeView extends VerticalLayout implements BeforeEnterObserver, HasMenu, HasDynamicTitle {
 
     private final UsersService usersService;
     private final MessageSource messageSource;

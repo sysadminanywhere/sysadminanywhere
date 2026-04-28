@@ -1,7 +1,7 @@
 package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.model.wmi.EventEntity;
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.service.LocaleService;
@@ -42,7 +42,7 @@ import java.util.Map;
 @Uses(Icon.class)
 @Uses(DatePicker.class)
 @Uses(TextArea.class)
-public class ComputerEventsView extends Div implements BeforeEnterObserver, MenuControl, HasDynamicTitle {
+public class ComputerEventsView extends Div implements BeforeEnterObserver, HasMenu, HasDynamicTitle {
 
     private String id;
 

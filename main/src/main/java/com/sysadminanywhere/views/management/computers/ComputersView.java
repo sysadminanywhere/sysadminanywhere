@@ -1,6 +1,6 @@
 package com.sysadminanywhere.views.management.computers;
 
-import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.HasMenu;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
@@ -34,7 +34,7 @@ import org.springframework.data.domain.PageRequest;
 @RolesAllowed("ADMIN")
 @Route(value = "management/computers")
 @Uses(Icon.class)
-public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
+public class ComputersView extends Div implements HasMenu, HasDynamicTitle {
 
     private Grid<ComputerEntry> grid;
 
