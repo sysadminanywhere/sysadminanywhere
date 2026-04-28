@@ -13,7 +13,6 @@ import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
-import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.ClassPathResource;
@@ -137,8 +136,8 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
         if (result != null) {
             byte[] finalResult = result;
             PdfViewer pdfViewer = new PdfViewer();
-            StreamResource resource = new StreamResource(reportItem.getId() + ".pdf", () -> new ByteArrayInputStream(finalResult));
-            pdfViewer.setSrc(resource);
+            String dataUrl = "data:application/pdf;base64," + java.util.Base64.getEncoder().encodeToString(finalResult);
+            pdfViewer.setSrc(dataUrl);
             pdfViewer.setSizeFull();
 
             add(pdfViewer);

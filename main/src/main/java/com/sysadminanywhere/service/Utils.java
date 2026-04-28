@@ -2,6 +2,7 @@ package com.sysadminanywhere.service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -58,6 +59,11 @@ public class Utils {
     public static String formatLocalDateTime(LocalDateTime localDateTime) {
         String pattern = "dd.MM.yyyy HH:mm:ss";
         return localDateTime.format(DateTimeFormatter.ofPattern(pattern));
+    }
+
+    public static String formatLocalDate(LocalDate localDate) {
+        String pattern = "dd.MM.yyyy";
+        return localDate.format(DateTimeFormatter.ofPattern(pattern));
     }
 
 }

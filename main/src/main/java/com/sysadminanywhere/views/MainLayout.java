@@ -22,6 +22,7 @@ import com.sysadminanywhere.views.reports.ComputerReportsView;
 import com.sysadminanywhere.views.reports.GroupReportsView;
 import com.sysadminanywhere.views.reports.UserReportsView;
 import com.sysadminanywhere.views.settings.SettingsView;
+import com.sysadminanywhere.views.vendor.VendorContractorsView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -61,6 +62,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     SideNav reportsSubNavs;
     SideNav accountSubNavs;
     SideNav automationsSubNavs;
+    SideNav vendorSubNavs;
 
     String currentTitle = "main_layout.dashboard";
 
@@ -127,10 +129,12 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         reportsSubNavs = new SideNav();
         accountSubNavs = new SideNav();
         automationsSubNavs = new SideNav();
+        vendorSubNavs = new SideNav();
 
         topMenu = new VerticalLayout(createSelectedMainButtonItem("main_layout.dashboard", getMessage("main_layout.dashboard"), DashboardView.class, "icons/dashboard.svg"),
                 createMainButtonItem("main_layout.management", getMessage("main_layout.management"), ContainersView.class, "icons/management.svg"),
                 createMainButtonItem("main_layout.tickets", getMessage("main_layout.tickets"), TicketsView.class, "icons/incident.svg"),
+                createMainButtonItem("main_layout.vendor", getMessage("main_layout.vendor"), VendorContractorsView.class, "icons/vendor.svg"),
                 createMainButtonItem("main_layout.automation", getMessage("main_layout.automation"), AutomationsView.class, "icons/automation.svg"),
                 createMainButtonItem("main_layout.inventory", getMessage("main_layout.inventory"), InventorySoftwareView.class, "icons/inventory.svg"),
                 createMainButtonItem("main_layout.reports", getMessage("main_layout.reports"), UserReportsView.class, "icons/reports.svg"));
@@ -174,6 +178,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 createSideNavItem(getMessage("main_layout.hardware_inventory"), InventoryHardwareView.class));
 
         ticketsSubNavs.addItem(createSideNavItem(getMessage("tickets_view.title"), TicketsView.class));
+
+        vendorSubNavs.addItem(createSideNavItem(getMessage("vendor_contractors_view.title"), VendorContractorsView.class));
 
         automationsSubNavs.addItem(createSideNavItem(getMessage("main_layout.workflows"), AutomationsView.class));
 
@@ -233,6 +239,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 subNav.add(managementSubNavs);
             } else if (currentRoute.startsWith("tickets")) {
                 subNav.add(ticketsSubNavs);
+            } else if (currentRoute.startsWith("vendor")) {
+                subNav.add(vendorSubNavs);
             } else if (currentRoute.startsWith("automation")) {
                 subNav.add(automationsSubNavs);
             } else if (currentRoute.startsWith("inventory")) {

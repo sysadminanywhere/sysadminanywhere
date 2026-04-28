@@ -30,7 +30,6 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.binder.Binder;
-import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.component.dialog.Dialog;
 import jakarta.annotation.security.RolesAllowed;
 
@@ -90,9 +89,8 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, HasMenu
                 avatar.setName(user.getName());
                 avatar.setImageResource(null);
                 if (user.getJpegPhoto() != null) {
-                    StreamResource resource = new StreamResource("profile-pic",
-                            () -> new ByteArrayInputStream(user.getJpegPhoto()));
-                    avatar.setImageResource(resource);
+                    String dataUrl = "data:image/jpeg;base64," + java.util.Base64.getEncoder().encodeToString(user.getJpegPhoto());
+                    avatar.setImage(dataUrl);
                 }
 
                 memberOf.update(usersService.getLdapService(), id);

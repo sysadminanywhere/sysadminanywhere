@@ -13,8 +13,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
-import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import lombok.SneakyThrows;
 import net.coobird.thumbnailator.Thumbnails;
 
@@ -44,14 +43,15 @@ public class UpdateUserPhotoDialog extends Dialog {
 
         AtomicReference<Image> image = new AtomicReference<>(new Image());
         if (user.getJpegPhoto() != null) {
-            StreamResource resource = new StreamResource("", () -> new ByteArrayInputStream(user.getJpegPhoto()));
-            image = new AtomicReference<>(new Image(resource, ""));
+            String dataUrl = "data:image/jpeg;base64," + java.util.Base64.getEncoder().encodeToString(user.getJpegPhoto());
+            image = new AtomicReference<>(new Image(dataUrl, ""));
         }
         image.get().setHeight("400px");
 
-        MemoryBuffer buffer = new MemoryBuffer();
+        MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
 
-        Upload upload = new Upload(buffer);
+        Upload upload = new Upload();
+        upload.setReceiver(buffer);
         upload.setMaxFiles(1);
         upload.setAcceptedFileTypes("image/jpeg", ".jpg");
 
@@ -71,17 +71,16 @@ public class UpdateUserPhotoDialog extends Dialog {
 
         AtomicReference<Image> finalImage = image;
         upload.addSucceededListener(event -> {
-            fileData.set(buffer.getInputStream());
+            String fileName = event.getFileName();
+            fileData.set(buffer.getInputStream(fileName));
 
-            byte[] thumbnailPhoto = resizeImage(buffer.getInputStream(), 96, 96);
-            byte[] jpegPhoto = resizeImage(buffer.getInputStream(), 648, 648);
+            byte[] thumbnailPhoto = resizeImage(buffer.getInputStream(fileName), 96, 96);
+            byte[] jpegPhoto = resizeImage(buffer.getInputStream(fileName), 648, 648);
 
-            StreamResource resource2 = new StreamResource("", () -> {
-                user.setJpegPhoto(jpegPhoto);
-                user.setThumbnailPhoto(thumbnailPhoto);
-                return new ByteArrayInputStream(jpegPhoto);
-            });
-            finalImage.get().setSrc(resource2);
+            String dataUrl = "data:image/jpeg;base64," + java.util.Base64.getEncoder().encodeToString(jpegPhoto);
+            user.setJpegPhoto(jpegPhoto);
+            user.setThumbnailPhoto(thumbnailPhoto);
+            finalImage.get().setSrc(dataUrl);
         });
 
         VerticalLayout verticalLayout = new VerticalLayout();
