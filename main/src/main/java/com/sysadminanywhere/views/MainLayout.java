@@ -2,7 +2,6 @@ package com.sysadminanywhere.views;
 
 import com.sysadminanywhere.control.MenuButton;
 import com.sysadminanywhere.control.MenuControl;
-import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.account.MeView;
@@ -10,7 +9,6 @@ import com.sysadminanywhere.views.automation.AutomationsView;
 import com.sysadminanywhere.views.domain.AuditView;
 import com.sysadminanywhere.views.domain.DashboardView;
 import com.sysadminanywhere.views.domain.DomainView;
-import com.sysadminanywhere.views.incident.IncidentsView;
 import com.sysadminanywhere.views.servicedesk.TicketsView;
 import com.sysadminanywhere.views.inventory.InventoryHardwareView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
@@ -175,7 +173,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         inventorySubNavs.addItem(createSideNavItem(getMessage("main_layout.software_inventory"), InventorySoftwareView.class),
                 createSideNavItem(getMessage("main_layout.hardware_inventory"), InventoryHardwareView.class));
 
-        ticketsSubNavs.addItem(createSideNavItem(getMessage("main_layout.tickets"), TicketsView.class));
+        ticketsSubNavs.addItem(createSideNavItem(getMessage("tickets_view.title"), TicketsView.class));
 
         automationsSubNavs.addItem(createSideNavItem(getMessage("main_layout.workflows"), AutomationsView.class));
 
