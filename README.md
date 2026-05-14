@@ -1,10 +1,10 @@
 # Sysadmin Anywhere
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
-![Static Badge](https://img.shields.io/badge/version-4.2.0-blue)
+![Static Badge](https://img.shields.io/badge/version-4.2.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Java](https://img.shields.io/badge/java-21-orange)
-![Spring Boot](https://img.shields.io/badge/spring%20boot-4.0.6-brightgreen)
+![Spring Boot](https://img.shields.io/badge/spring%20boot-4-brightgreen)
 
 A comprehensive web-based Active Directory management platform that provides a unified interface for simplifying administrative tasks across your network infrastructure.
 
