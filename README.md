@@ -1,7 +1,7 @@
 # Sysadmin Anywhere
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
-![Static Badge](https://img.shields.io/badge/version-4.2.1-blue)
+![Static Badge](https://img.shields.io/badge/version-4.2.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Java](https://img.shields.io/badge/java-21-orange)
 ![Spring Boot](https://img.shields.io/badge/spring%20boot-4-brightgreen)
