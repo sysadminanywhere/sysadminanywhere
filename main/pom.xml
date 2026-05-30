@@ -82,6 +82,16 @@
                 <artifactId>commons-lang3</artifactId>
                 <version>3.18.0</version>
             </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>1.84</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>1.84</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
