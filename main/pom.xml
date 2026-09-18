@@ -6,7 +6,7 @@
     <groupId>com.sysadminanywhere</groupId>
     <artifactId>main</artifactId>
     <name>sysadminanywhere</name>
-    <version>4.2.4</version>
+    <version>4.2.5</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.6</version>
+        <version>4.0.7</version>
     </parent>
 
     <repositories>
