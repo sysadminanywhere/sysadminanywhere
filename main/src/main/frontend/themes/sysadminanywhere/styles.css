@@ -1,6 +1,14 @@
 @import url('./main-layout.css');
 @import url('./views/gridwith-filters-view.css');
 html {
+      --lumo-primary-color: #2563d8;
+      --lumo-primary-text-color: #1557c0;
+      --lumo-body-text-color: #1d2939;
+      --lumo-secondary-text-color: #667085;
+      --lumo-border-radius-s: 6px;
+      --lumo-border-radius-m: 8px;
+      --lumo-border-radius-l: 12px;
+      background: #eef3fa;
       --lumo-size-xl: 3rem;
       --lumo-size-l: 2.5rem;
       --lumo-size-m: 2rem;
@@ -25,3 +33,8 @@ html {
       --lumo-space-xs: 0.1875rem;
 
     }
+
+body {
+      background: #eef3fa;
+      overflow: hidden;
+}

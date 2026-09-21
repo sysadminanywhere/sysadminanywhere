@@ -2,7 +2,6 @@ package com.sysadminanywhere.views;
 
 import com.sysadminanywhere.control.MenuButton;
 import com.sysadminanywhere.control.MenuControl;
-import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.account.MeView;
@@ -33,19 +32,21 @@ import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.menu.MenuConfiguration;
-import com.vaadin.flow.theme.lumo.LumoUtility;
-import jakarta.annotation.security.PermitAll;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.springframework.context.MessageSource;
 
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 
 
 @Layout
-@PermitAll
+@AnonymousAllowed
 public class MainLayout extends AppLayout implements AfterNavigationObserver, BeforeEnterObserver {
 
     private H3 viewTitle;
     private HorizontalLayout menuLayout;
+    private final Map<String, MenuButton> mainButtons = new LinkedHashMap<>();
 
     HorizontalLayout drawerContent = new HorizontalLayout();
     FlexLayout buttons = new FlexLayout();
@@ -77,39 +78,33 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
         setPrimarySection(Section.DRAWER);
         getElement().setAttribute("theme", "teams-nav");
+        getElement().setAttribute("no-scroll", true);
 
         buttons.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
         subNav.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
 
-        buttons.getStyle().setBackground("#D6DBE0");
-        buttons.setWidth("90px");
+        buttons.addClassName("primary-navigation");
+        buttons.setWidth("78px");
         buttons.setHeightFull();
         buttons.setAlignContent(FlexLayout.ContentAlignment.CENTER);
 
-        subNav.setWidthFull();
-        subNav.getStyle().setMargin("5px");
-        subNav.getStyle().setMarginRight("10px");
+        subNav.addClassName("secondary-navigation");
+        subNav.setWidth("224px");
 
         Image logo = new Image("images/sa-logo.png", "Sysadmin Anywhere");
-        logo.setWidth("48px");
-        logo.setHeight("48px");
-        logo.getStyle().setBorderRadius("10px");
-        logo.getStyle().setMargin("10px");
+        logo.addClassName("navigation-logo");
         buttons.add(logo);
 
-        drawerContent.getStyle().setMargin("0px");
-        drawerContent.getStyle().setPadding("0px");
+        drawerContent.addClassName("navigation-shell");
 
         Scroller scroller = new Scroller(drawerContent);
-        scroller.setClassName(LumoUtility.Padding.SMALL);
+        scroller.setClassName("navigation-scroller");
+        scroller.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
 
         drawerContent.add(buttons, subNav);
 
         drawerContent.setHeightFull();
         scroller.setHeightFull();
-
-        scroller.getStyle().setMargin("0px");
-        scroller.getStyle().setPadding("0px");
 
         addToDrawer(scroller);
         addHeaderContent();
@@ -120,6 +115,14 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     }
 
     private void addNavigation() {
+        if (topMenu != null) {
+            buttons.remove(topMenu);
+        }
+        if (bottomMenu != null) {
+            buttons.remove(bottomMenu);
+        }
+        mainButtons.clear();
+
         dashboardSubNavs = new SideNav();
         managementSubNavs = new SideNav();
         settingsSubNavs = new SideNav();
@@ -129,13 +132,16 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         accountSubNavs = new SideNav();
         automationsSubNavs = new SideNav();
 
-        topMenu = new VerticalLayout(createSelectedMainButtonItem("main_layout.dashboard", getMessage("main_layout.dashboard"), DashboardView.class, "icons/dashboard.svg"),
+        topMenu = new VerticalLayout(createMainButtonItem("main_layout.dashboard", getMessage("main_layout.dashboard"), DashboardView.class, "icons/dashboard.svg"),
                 createMainButtonItem("main_layout.management", getMessage("main_layout.management"), ContainersView.class, "icons/management.svg"),
                 createMainButtonItem("main_layout.incidents", getMessage("main_layout.incidents"), IncidentsView.class, "icons/incident.svg"),
                 createMainButtonItem("main_layout.automation", getMessage("main_layout.automation"), AutomationsView.class, "icons/automation.svg"),
                 createMainButtonItem("main_layout.inventory", getMessage("main_layout.inventory"), InventorySoftwareView.class, "icons/inventory.svg"),
                 createMainButtonItem("main_layout.reports", getMessage("main_layout.reports"), UserReportsView.class, "icons/reports.svg"));
         topMenu.setMargin(false);
+        topMenu.setPadding(false);
+        topMenu.setSpacing(false);
+        topMenu.addClassName("primary-navigation-group");
 
         bottomMenu = new VerticalLayout();
 
@@ -145,14 +151,10 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
         bottomMenu.setHeightFull();
         bottomMenu.setMargin(false);
+        bottomMenu.setPadding(false);
+        bottomMenu.setSpacing(false);
         bottomMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-
-        int count = Math.toIntExact(buttons.getChildren().count());
-
-        if (count == 3) {
-            buttons.remove(buttons.getComponentAt(count - 1));
-            buttons.remove(buttons.getComponentAt(count - 2));
-        }
+        bottomMenu.addClassName("primary-navigation-group");
 
         buttons.add(topMenu, bottomMenu);
 
@@ -216,15 +218,13 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
             subNav.removeAll();
             String currentRoute = getUI().get().getInternals().getActiveViewLocation().getPath();
+            String sectionKey = getSectionKey(currentRoute);
+            currentTitle = sectionKey;
+            mainButtons.forEach((key, button) -> button.selected(key.equals(sectionKey)));
 
-            H4 title = new H4(getMessage(currentTitle));
-            title.getStyle().setMarginTop("10px");
-            title.getStyle().setMarginBottom("10px");
-
-            Hr hr = new Hr();
-            hr.getStyle().setMarginBottom("10px");
-
-            subNav.add(title, hr);
+            H4 title = new H4(getMessage(sectionKey));
+            title.addClassName("secondary-navigation-title");
+            subNav.add(title);
 
             if (currentRoute.startsWith("settings")) {
                 subNav.add(settingsSubNavs);
@@ -247,19 +247,28 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     }
 
+    private String getSectionKey(String currentRoute) {
+        if (currentRoute.startsWith("settings")) {
+            return "main_layout.settings";
+        } else if (currentRoute.startsWith("account")) {
+            return "main_layout.account";
+        } else if (currentRoute.startsWith("management")) {
+            return "main_layout.management";
+        } else if (currentRoute.startsWith("incidents")) {
+            return "main_layout.incidents";
+        } else if (currentRoute.startsWith("automation")) {
+            return "main_layout.automation";
+        } else if (currentRoute.startsWith("inventory")) {
+            return "main_layout.inventory";
+        } else if (currentRoute.startsWith("reports")) {
+            return "main_layout.reports";
+        }
+        return "main_layout.dashboard";
+    }
+
     private MenuButton createMainButtonItem(String key, String label, Class<? extends Component> navigationTarget, String imgPath) {
-        return createMainButtonItem(key, label, navigationTarget, imgPath, false);
-    }
-
-    private MenuButton createSelectedMainButtonItem(String key, String label, Class<? extends Component> navigationTarget, String imgPath) {
-        return createMainButtonItem(key, label, navigationTarget, imgPath, true);
-    }
-
-    private MenuButton createMainButtonItem(String key, String label, Class<? extends Component> navigationTarget, String imgPath, boolean isSelected) {
         MenuButton button = new MenuButton(label, imgPath);
-
-        if (isSelected)
-            button.selected(true);
+        mainButtons.put(key, button);
 
         button.addClickListener(e -> {
             currentTitle = key;
@@ -292,16 +301,17 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     private void addHeaderContent() {
         DrawerToggle toggle = new DrawerToggle();
         toggle.setAriaLabel("Menu toggle");
+        toggle.addClassName("navigation-toggle");
 
         viewTitle = new H3();
         viewTitle.setWidthFull();
-        //viewTitle.addClassNames(LumoUtility.FontSize.MEDIUM, LumoUtility.Margin.NONE);
+        viewTitle.addClassName("view-title");
 
         menuLayout = new HorizontalLayout();
         menuLayout.setWidthFull();
         menuLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-        menuLayout.getStyle().setMarginRight("20px");
-        menuLayout.getStyle().setMarginLeft("20px");
+        menuLayout.addClassName("view-actions");
+        menuLayout.getStyle().setMarginRight("10px");
 
         addToNavbar(true, toggle, viewTitle, menuLayout);
     }

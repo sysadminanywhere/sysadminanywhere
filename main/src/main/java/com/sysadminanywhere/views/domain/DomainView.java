@@ -37,8 +37,8 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
         this.messageSource = messageSource;
         this.localeService = localeService;
 
-        setPadding(true);
-        setMargin(true);
+        addClassNames("gridwith-filters-view");
+        setSizeFull();
 
         H3 lblDomain = new H3();
         lblDomain.setText(ldapService.getDomainName().toUpperCase());

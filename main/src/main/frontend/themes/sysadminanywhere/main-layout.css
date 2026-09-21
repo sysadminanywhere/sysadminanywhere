@@ -1,24 +1,291 @@
-vaadin-scroller[slot="drawer"] {
-  padding: var(--lumo-space-s);
+vaadin-app-layout {
+  --vaadin-app-layout-drawer-width: 302px;
+  --vaadin-app-layout-drawer-background: transparent;
+  --vaadin-app-layout-navbar-background: rgba(255, 255, 255, 0.96);
+  --vaadin-app-layout-navbar-padding-inline-start: 18px;
+  --vaadin-app-layout-navbar-padding-inline-end: 18px;
+  --vaadin-app-layout-navbar-padding-top: 0;
+  --vaadin-app-layout-navbar-padding-bottom: 0;
+  padding-top: 64px;
+  padding-bottom: 14px;
+  background: #eef3fa;
 }
 
-vaadin-side-nav-item vaadin-icon {
-  padding: 0;
-}
-
-[slot="drawer"]:is(header, footer) {
-  display: flex;
-  align-items: center;
-  gap: var(--lumo-space-s);
-  padding: var(--lumo-space-s) var(--lumo-space-m);
-  min-height: var(--lumo-size-xl);
+vaadin-app-layout::after {
+  content: "";
+  position: fixed;
+  z-index: 10;
+  top: 14px;
+  right: 14px;
+  bottom: 14px;
+  left: 78px;
   box-sizing: border-box;
-}
-
-[slot="drawer"]:is(header, footer):is(:empty) {
-  display: none;
+  pointer-events: none;
+  border: 1px solid #d9e1ec;
+  border-radius: 14px;
 }
 
 vaadin-app-layout::part(drawer) {
-  width: 320px;
+  width: 302px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: transparent;
+}
+
+vaadin-app-layout::part(navbar) {
+  top: 14px;
+  right: 14px;
+  min-height: 50px;
+  border: 0;
+  border-bottom: 1px solid #d9e1ec;
+  border-radius: 0 14px 0 0;
+  box-shadow: none;
+}
+
+vaadin-scroller.navigation-scroller {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.navigation-shell {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.primary-navigation {
+  flex: 0 0 78px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 0;
+  padding: 14px 7px 12px;
+  background: #eef3fa;
+}
+
+.navigation-logo {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  margin: 0 0 14px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(20, 91, 197, 0.22);
+}
+
+.primary-navigation-group {
+  width: 100%;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.teams-nav-button {
+  --vaadin-button-background: transparent;
+  --vaadin-button-text-color: #667085;
+  width: 64px;
+  min-width: 64px;
+  height: 58px;
+  min-height: 58px;
+  margin: 0;
+  padding: 5px 2px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  box-shadow: none;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.15;
+  gap: 0;
+  cursor: pointer;
+  transition: color 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.teams-nav-button-content {
+  display: flex;
+  width: 58px;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: inherit;
+}
+
+.teams-nav-button-label {
+  display: block;
+  width: 58px;
+  overflow: hidden;
+  color: inherit;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 12px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teams-nav-button-icon {
+  width: 21px;
+  height: 21px;
+  margin: 0;
+  color: #667085;
+}
+
+.teams-nav-button:hover {
+  --vaadin-button-background: rgba(255, 255, 255, 0.72);
+  --vaadin-button-text-color: #344054;
+}
+
+.teams-nav-button[active] {
+  --vaadin-button-background: #ffffff;
+  --vaadin-button-text-color: #235fc7;
+  border-color: #e2e8f0;
+  box-shadow: 0 2px 8px rgba(32, 51, 84, 0.08);
+}
+
+.teams-nav-button[active] .teams-nav-button-icon {
+  color: #2563d8;
+}
+
+.secondary-navigation {
+  width: auto !important;
+  min-width: 0;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  gap: 0;
+  margin: 14px 0;
+  padding: 22px 10px 16px;
+  border: 0;
+  border-radius: 14px 0 0 14px;
+  background: #f8fafc;
+}
+
+.secondary-navigation-title {
+  margin: 0 8px 17px;
+  color: #1d2939;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.secondary-navigation vaadin-side-nav {
+  width: 100%;
+  gap: 3px;
+  border: 0;
+}
+
+.secondary-navigation vaadin-side-nav-item {
+  --vaadin-side-nav-item-padding: 8px 10px;
+  --vaadin-side-nav-item-border-radius: 8px;
+  --vaadin-side-nav-item-font-size: 14px;
+  --vaadin-side-nav-item-font-weight: 500;
+  --vaadin-side-nav-item-text-color: #344054;
+  --vaadin-side-nav-item-background: transparent;
+  margin: 1px 0;
+}
+
+.secondary-navigation vaadin-side-nav-item:hover {
+  --vaadin-side-nav-item-background: #eef2f7;
+  --vaadin-side-nav-item-text-color: #101828;
+}
+
+.secondary-navigation vaadin-side-nav-item[current] {
+  --vaadin-side-nav-item-background: #ffffff;
+  --vaadin-side-nav-item-text-color: #1d2939;
+  filter: drop-shadow(0 1px 2px rgba(16, 24, 40, 0.05));
+}
+
+.secondary-navigation vaadin-side-nav-item[current]::part(content) {
+  color: #1d2939;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px #e5eaf1;
+}
+
+vaadin-app-layout > :not([slot]) {
+  width: calc(100% - 14px) !important;
+  max-width: calc(100% - 14px);
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: auto;
+  border: 0;
+  border-radius: 0 0 14px 0;
+  background: #ffffff;
+}
+
+.view-title {
+  margin: 0 0 0 24px;
+  color: #1d2939;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.view-actions {
+  min-width: 0;
+  margin: 0 2px 0 16px;
+}
+
+.navigation-toggle {
+  display: none;
+  color: #667085;
+}
+
+@media (max-width: 800px), (max-height: 600px) {
+  vaadin-app-layout {
+    --vaadin-app-layout-drawer-width: min(302px, 88vw);
+    padding-top: 64px;
+    padding-bottom: 0;
+  }
+
+  vaadin-app-layout::part(drawer) {
+    width: min(302px, 88vw);
+    border-radius: 0 14px 14px 0;
+    box-shadow: 8px 0 32px rgba(16, 24, 40, 0.18);
+  }
+
+  vaadin-app-layout::after {
+    content: none;
+  }
+
+  vaadin-app-layout::part(navbar) {
+    top: 0;
+    right: 0;
+    min-height: 64px;
+    border-top: 0;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  .secondary-navigation {
+    margin: 0;
+    border-top: 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-radius: 0;
+  }
+
+  .primary-navigation {
+    border-right: 1px solid #d9e1ec;
+  }
+
+  vaadin-app-layout > :not([slot]) {
+    width: 100% !important;
+    max-width: 100%;
+    border-right: 0;
+    border-bottom: 0;
+    border-radius: 0;
+  }
+
+  .navigation-toggle {
+    display: inline-flex;
+  }
+
+  .view-title {
+    margin-left: 0;
+  }
 }
