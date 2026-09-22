@@ -46,6 +46,10 @@ public class IncidentService {
         return incidentServiceClient.updateIncident(id, severity.name(), status.name());
     }
 
+    public IncidentItem createIncident(IncidentItem incident) {
+        return incidentServiceClient.createIncident(incident);
+    }
+
     public IncidentItem closeIncident(Long id) {
         return incidentServiceClient.closeIncident(id);
     }
