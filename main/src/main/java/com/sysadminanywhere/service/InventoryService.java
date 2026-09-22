@@ -107,4 +107,13 @@ public class InventoryService {
         }
     }
 
+    public InventoryHealthDto getInventoryHealth(int staleDays) {
+        try {
+            return inventoryServiceClient.getInventoryHealth(staleDays);
+        } catch (Exception e) {
+            log.warn("Unable to load inventory health: {}", e.getMessage());
+            return null;
+        }
+    }
+
 }

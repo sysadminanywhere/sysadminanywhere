@@ -12,6 +12,9 @@ import java.util.List;
 
 public interface InventoryServiceClient {
 
+    @GetExchange("/api/inventory/health")
+    InventoryHealthDto getInventoryHealth(@RequestParam int staleDays);
+
     // Software
 
     @GetExchange("/api/inventory/software/count")

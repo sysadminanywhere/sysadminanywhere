@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
 import java.util.List;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 @Slf4j
 @RestController
@@ -33,6 +35,30 @@ public class InventoryController {
     private final HardwarePropertyRepository hardwarePropertyRepository;
 
     // Software
+
+    @GetMapping("/health")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<InventoryHealthDto> getInventoryHealth(
+            @RequestParam(defaultValue = "30") int staleDays) {
+        if (staleDays < 1 || staleDays > 3650) {
+            return ResponseEntity.badRequest().build();
+        }
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime threshold = now.minusDays(staleDays);
+        List<com.sysadminanywhere.inventory.entity.Computer> tracked = computerRepository.findAll();
+        List<InventoryHealthComputer> stale = tracked.stream()
+                .filter(computer -> computer.getCheckingDate() == null || computer.getCheckingDate().isBefore(threshold))
+                .map(computer -> new InventoryHealthComputer(
+                        computer.getId(), computer.getName(), computer.getCheckingDate(),
+                        computer.getCheckingDate() == null ? -1 : Duration.between(computer.getCheckingDate(), now).toDays()))
+                .sorted(Comparator.comparing(InventoryHealthComputer::checkingDate,
+                        Comparator.nullsFirst(Comparator.naturalOrder())))
+                .toList();
+        int neverScanned = (int) tracked.stream().filter(computer -> computer.getCheckingDate() == null).count();
+        InventoryHealthDto response = new InventoryHealthDto(now, staleDays, tracked.size(),
+                stale.size(), neverScanned, stale);
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/software/count")
     @PreAuthorize("hasRole('ADMIN')")

@@ -16,6 +16,7 @@ import com.sysadminanywhere.views.domain.DashboardView;
 import com.sysadminanywhere.views.domain.DomainView;
 import com.sysadminanywhere.views.incident.IncidentsView;
 import com.sysadminanywhere.views.inventory.InventoryHardwareView;
+import com.sysadminanywhere.views.inventory.InventoryHealthView;
 import com.sysadminanywhere.views.inventory.InventorySoftwareView;
 import com.sysadminanywhere.views.management.computers.ComputersView;
 import com.sysadminanywhere.views.management.contacts.ContactsView;
@@ -191,7 +192,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 createSideNavItem(getMessage("main_layout.about"), AboutView.class));
 
         inventorySubNavs.addItem(createSideNavItem(getMessage("main_layout.software_inventory"), InventorySoftwareView.class),
-                createSideNavItem(getMessage("main_layout.hardware_inventory"), InventoryHardwareView.class));
+                createSideNavItem(getMessage("main_layout.hardware_inventory"), InventoryHardwareView.class),
+                createSideNavItem(getMessage("main_layout.inventory_health"), InventoryHealthView.class));
 
         incidentsSubNavs.addItem(createSideNavItem(getMessage("main_layout.incidents"), IncidentsView.class));
 
