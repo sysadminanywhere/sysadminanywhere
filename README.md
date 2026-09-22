@@ -44,6 +44,7 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 ### 🧭 Onboarding & User Experience
 - **Guided Tour**: An onboarding tour introduces the primary navigation, section menu and page content
 - **Help Center**: Built-in help page with common tasks, documentation and support links
+- **Global Search**: Search users, computers, groups, contacts and printers from one screen; click a result to open its details
 - **Themes**: Light and dark themes with persisted user preference
 - **Localization**: The interface, help content and reports are translated consistently across all supported languages
 
@@ -177,6 +178,8 @@ DB_PASSWORD=your_secure_password
 LDAP_SERVER=dc.example.local
 LDAP_PORT=389
 LDAP_USE_SSL=false
+# Leave false for legacy behavior; set true to validate the LDAP certificate.
+LDAP_VERIFY_CERTIFICATE=false
 
 # Security
 VAULT_TOKEN=your_vault_token
@@ -188,7 +191,24 @@ N8N_PASSWORD=your_n8n_password
 N8N_API_KEY=your_n8n_api_key
 ```
 
-When `LDAP_USE_SSL=true`, the directory service keeps the legacy behavior and accepts the controller certificate without requiring it in the JVM truststore. This disables certificate validation and should only be used on a trusted network.
+When `LDAP_USE_SSL=true`, certificate validation is disabled by default for compatibility with existing installations. To enable validation, set `LDAP_VERIFY_CERTIFICATE=true` and ensure the issuing CA or controller certificate is available in the JVM truststore. If validation is enabled without a trusted certificate, startup can fail with `PKIX path building failed`.
+
+To enable certificate validation in a container, import the CA certificate into the truststore used by the directory service and then restart it:
+
+```bash
+# Replace /path/to/ad-ca.crt with the CA that issued the domain controller certificate.
+keytool -importcert -noprompt -trustcacerts \
+  -alias sysadmin-ad-ca -file /path/to/ad-ca.crt \
+  -keystore /path/to/truststore.p12 -storetype PKCS12 \
+  -storepass "changeit"
+
+LDAP_USE_SSL=true
+LDAP_VERIFY_CERTIFICATE=true
+```
+
+For Docker, mount the truststore into the `directory` container and set
+`JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/path/to/truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit`.
+Keep `LDAP_VERIFY_CERTIFICATE=false` only for isolated legacy environments: trust-any mode is vulnerable to man-in-the-middle attacks.
 
 ## 📚 Documentation
 

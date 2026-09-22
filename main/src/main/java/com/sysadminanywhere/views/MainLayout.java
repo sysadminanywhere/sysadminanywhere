@@ -26,6 +26,7 @@ import com.sysadminanywhere.views.reports.GroupReportsView;
 import com.sysadminanywhere.views.reports.PrinterReportsView;
 import com.sysadminanywhere.views.reports.UserReportsView;
 import com.sysadminanywhere.views.settings.SettingsView;
+import com.sysadminanywhere.views.search.SearchView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -166,6 +167,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         buttons.add(topMenu, bottomMenu);
 
         dashboardSubNavs.addItem(createSideNavItem(getMessage("main_layout.dashboard"), DashboardView.class),
+                createSideNavItem(getMessage("main_layout.search"), SearchView.class),
                 createSideNavItem(getMessage("main_layout.domain"), DomainView.class),
                 createSideNavItem(getMessage("main_layout.audit"), AuditView.class));
 
@@ -254,7 +256,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 subNav.add(inventorySubNavs);
             } else if (currentRoute.startsWith("reports")) {
                 subNav.add(reportsSubNavs);
-            } else if (currentRoute.startsWith("dashboard") || currentRoute.startsWith("domain") || currentRoute.isEmpty()) {
+            } else if (currentRoute.startsWith("dashboard") || currentRoute.startsWith("domain")
+                    || currentRoute.startsWith("search") || currentRoute.isEmpty()) {
                 subNav.add(dashboardSubNavs);
             }
         }

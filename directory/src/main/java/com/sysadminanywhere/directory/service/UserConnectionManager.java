@@ -29,6 +29,9 @@ public class UserConnectionManager {
     @Value("${ldap.host.use.ssl:false}")
     private boolean useSsl;
 
+    @Value("${ldap.host.verify-certificate:false}")
+    private boolean verifyCertificate;
+
     @Value("${ldap.pool.ttl-ms:600000}")
     private long poolTtlMs;
 
@@ -92,10 +95,14 @@ public class UserConnectionManager {
         config.setLdapHost(server);
         config.setLdapPort(port);
         config.setUseSsl(useSsl);
-        if (useSsl) {
+        if (useSsl && !verifyCertificate) {
             // Preserve the existing application behavior: AD certificates are trusted
             // without requiring them to be installed in the JVM trust store.
             config.setTrustManagers(new NoVerificationTrustManager());
+        } else if (useSsl) {
+            // Leave the default JVM trust managers in place when certificate
+            // verification is explicitly enabled.
+            log.info("LDAP certificate verification is enabled");
         }
 
         config.setCloseTimeout(500L);
