@@ -311,12 +311,22 @@ public class LdapService {
     }
 
     public BulkOperationResult bulkChangeMembers(List<String> memberDistinguishedNames, String groupDistinguishedName, boolean remove) {
-        return ldapServiceClient.bulkChangeMembers(new BulkGroupMembershipDto(
-                memberDistinguishedNames, groupDistinguishedName, remove));
+        try {
+            return ldapServiceClient.bulkChangeMembers(new BulkGroupMembershipDto(
+                    memberDistinguishedNames, groupDistinguishedName, remove));
+        } catch (Exception exception) {
+            return new BulkOperationResult(0, memberDistinguishedNames == null
+                    ? new ArrayList<>() : new ArrayList<>(memberDistinguishedNames));
+        }
     }
 
     public BulkOperationResult bulkMove(List<String> distinguishedNames, String targetContainerDistinguishedName) {
-        return ldapServiceClient.bulkMove(new BulkMoveDto(distinguishedNames, targetContainerDistinguishedName));
+        try {
+            return ldapServiceClient.bulkMove(new BulkMoveDto(distinguishedNames, targetContainerDistinguishedName));
+        } catch (Exception exception) {
+            return new BulkOperationResult(0, distinguishedNames == null
+                    ? new ArrayList<>() : new ArrayList<>(distinguishedNames));
+        }
     }
 
 }

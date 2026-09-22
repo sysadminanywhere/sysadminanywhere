@@ -189,7 +189,8 @@ LDAP_USE_SSL=false
 # Leave false for legacy behavior; set true to validate the LDAP certificate.
 LDAP_VERIFY_CERTIFICATE=false
 # Application-level change journal (JSON)
-DIRECTORY_AUDIT_JOURNAL_PATH=./data/change-journal.json
+DIRECTORY_AUDIT_JOURNAL_PATH=/data/change-journal.json
+DIRECTORY_AUDIT_JOURNAL_MAX_ENTRIES=10000
 
 # Security
 VAULT_TOKEN=your_vault_token

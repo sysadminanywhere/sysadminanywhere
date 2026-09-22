@@ -228,31 +228,41 @@ public class LdapController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BulkOperationResult> bulkChangeMembers(
             @Valid @RequestBody BulkGroupMembershipDto request) {
-        if (request == null || request.getMemberDistinguishedNames() == null
-                || request.getMemberDistinguishedNames().isEmpty()
-                || request.getGroupDistinguishedName() == null
-                || request.getGroupDistinguishedName().isBlank()) {
+        try {
+            if (request == null || request.getMemberDistinguishedNames() == null
+                    || request.getMemberDistinguishedNames().isEmpty()
+                    || request.getGroupDistinguishedName() == null
+                    || request.getGroupDistinguishedName().isBlank()) {
+                return ResponseEntity.badRequest().build();
+            }
+            validateDn(request.getGroupDistinguishedName());
+            request.getMemberDistinguishedNames().forEach(this::validateDn);
+            return ResponseEntity.ok(ldapService.bulkChangeMembers(
+                    request.getMemberDistinguishedNames(), request.getGroupDistinguishedName(), request.isRemove()));
+        } catch (IllegalArgumentException exception) {
+            log.warn("Invalid bulk membership request: {}", exception.getMessage());
             return ResponseEntity.badRequest().build();
         }
-        validateDn(request.getGroupDistinguishedName());
-        request.getMemberDistinguishedNames().forEach(this::validateDn);
-        return ResponseEntity.ok(ldapService.bulkChangeMembers(
-                request.getMemberDistinguishedNames(), request.getGroupDistinguishedName(), request.isRemove()));
     }
 
     @PostMapping("/move/bulk")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BulkOperationResult> bulkMove(@Valid @RequestBody BulkMoveDto request) {
-        if (request == null || request.getDistinguishedNames() == null
-                || request.getDistinguishedNames().isEmpty()
-                || request.getTargetContainerDistinguishedName() == null
-                || request.getTargetContainerDistinguishedName().isBlank()) {
+        try {
+            if (request == null || request.getDistinguishedNames() == null
+                    || request.getDistinguishedNames().isEmpty()
+                    || request.getTargetContainerDistinguishedName() == null
+                    || request.getTargetContainerDistinguishedName().isBlank()) {
+                return ResponseEntity.badRequest().build();
+            }
+            validateDn(request.getTargetContainerDistinguishedName());
+            request.getDistinguishedNames().forEach(this::validateDn);
+            return ResponseEntity.ok(ldapService.bulkMove(
+                    request.getDistinguishedNames(), request.getTargetContainerDistinguishedName()));
+        } catch (IllegalArgumentException exception) {
+            log.warn("Invalid bulk move request: {}", exception.getMessage());
             return ResponseEntity.badRequest().build();
         }
-        validateDn(request.getTargetContainerDistinguishedName());
-        request.getDistinguishedNames().forEach(this::validateDn);
-        return ResponseEntity.ok(ldapService.bulkMove(
-                request.getDistinguishedNames(), request.getTargetContainerDistinguishedName()));
     }
 
     /**

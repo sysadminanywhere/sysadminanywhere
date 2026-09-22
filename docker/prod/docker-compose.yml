@@ -59,6 +59,8 @@ services:
       LDAP_PORT: ${LDAP_PORT}
       LDAP_USE_SSL: ${LDAP_USE_SSL}
       LDAP_VERIFY_CERTIFICATE: ${LDAP_VERIFY_CERTIFICATE:-false}
+      DIRECTORY_AUDIT_JOURNAL_PATH: ${DIRECTORY_AUDIT_JOURNAL_PATH:-/data/change-journal.json}
+      DIRECTORY_AUDIT_JOURNAL_MAX_ENTRIES: ${DIRECTORY_AUDIT_JOURNAL_MAX_ENTRIES:-10000}
       VAULT_URI: http://vault:8200
       VAULT_TOKEN: ${VAULT_TOKEN}
       JWT_SECRET: ${JWT_SECRET}
@@ -66,6 +68,8 @@ services:
     depends_on:
       - vault
     restart: unless-stopped
+    volumes:
+      - directory_change_journal:/data
 
   inventory:
     image: sysadminanywhere/inventory:latest
@@ -140,3 +144,4 @@ volumes:
   postgres_data:
   vault_data:
   n8n_data:
+  directory_change_journal:

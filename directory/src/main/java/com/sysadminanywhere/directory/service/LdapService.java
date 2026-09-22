@@ -511,16 +511,16 @@ public class LdapService {
             for (Entry entry : list) {
                 AuditDto item = new AuditDto();
 
-                item.setName(entry.get("name").getString());
+                item.setName(entry.get("name") != null ? entry.get("name").get().getString() : entry.getDn().getRdn().getName());
                 item.setDistinguishedName(entry.getDn().getName());
                 if (entry.get("objectclass") != null) {
-                    item.setObjectClass(entry.get("objectclass").getString());
+                    item.setObjectClass(entry.get("objectclass").get().getString());
                 }
 
                 Value whenCreatedValue = entry.get("whencreated") != null ? entry.get("whencreated").get() : null;
                 Value whenChangedValue = entry.get("whenchanged") != null ? entry.get("whenchanged").get() : null;
 
-                if (whenChangedValue != null && whenChangedValue != null) {
+                if (whenCreatedValue != null && whenChangedValue != null) {
 
                     String whenCreated = whenCreatedValue.getString();
                     String whenChanged = whenChangedValue.getString();
@@ -565,6 +565,9 @@ public class LdapService {
             modifyRequest.addModification(removeMember);
 
             ModifyResponse response = conn.modify(modifyRequest);
+            if (!isSuccessful(response)) {
+                return false;
+            }
 
             Entry after = readEntry(group);
             changeJournalService.record("Changed", before, after, group);
@@ -584,6 +587,9 @@ public class LdapService {
 
             modifyRequest.addModification(removeMember);
             ModifyResponse response = conn.modify(modifyRequest);
+            if (!isSuccessful(response)) {
+                return false;
+            }
 
             Entry after = readEntry(group);
             changeJournalService.record("Changed", before, after, group);
@@ -616,9 +622,17 @@ public class LdapService {
     public BulkOperationResult bulkMove(List<String> distinguishedNames, String targetContainerDistinguishedName) {
         int updated = 0;
         List<String> failures = new ArrayList<>();
+        Entry targetContainer = readEntry(targetContainerDistinguishedName);
+        if (!isMovableContainer(targetContainer)) {
+            return new BulkOperationResult(0, new ArrayList<>(distinguishedNames));
+        }
         for (String distinguishedName : distinguishedNames) {
             try {
                 Entry before = readEntry(distinguishedName);
+                if (!isMovableObject(before)) {
+                    failures.add(distinguishedName);
+                    continue;
+                }
                 Dn sourceDn = new Dn(distinguishedName);
                 String movedDistinguishedName = sourceDn.getRdn().getName() + "," + targetContainerDistinguishedName;
                 boolean success = executeAsUser(conn -> {
@@ -637,6 +651,36 @@ public class LdapService {
             }
         }
         return new BulkOperationResult(updated, failures);
+    }
+
+    private boolean isSuccessful(ModifyResponse response) {
+        return response != null && response.getLdapResult() != null
+                && ResultCodeEnum.SUCCESS.equals(response.getLdapResult().getResultCode());
+    }
+
+    private boolean isMovableObject(Entry entry) {
+        return hasObjectClass(entry, "user", "computer", "group", "contact", "printqueue");
+    }
+
+    private boolean isMovableContainer(Entry entry) {
+        return hasObjectClass(entry, "organizationalunit", "container", "domaindns");
+    }
+
+    private boolean hasObjectClass(Entry entry, String... allowedClasses) {
+        if (entry == null || entry.get("objectClass") == null) {
+            return false;
+        }
+        Set<String> allowed = new HashSet<>(Arrays.asList(allowedClasses));
+        for (Value value : entry.get("objectClass")) {
+            try {
+                if (allowed.contains(value.getString().toLowerCase(Locale.ROOT))) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+                // Binary objectClass values are not valid AD class names.
+            }
+        }
+        return false;
     }
 
     @SneakyThrows
