@@ -19,16 +19,19 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UsersService {
 
     private final LdapService ldapService;
     private final UsersServiceClient usersServiceClient;
+    private final WebhookService webhookService;
 
-    public UsersService(LdapService ldapService, UsersServiceClient usersServiceClient) {
+    public UsersService(LdapService ldapService, UsersServiceClient usersServiceClient, WebhookService webhookService) {
         this.ldapService = ldapService;
         this.usersServiceClient = usersServiceClient;
+        this.webhookService = webhookService;
     }
 
     public Page<UserEntry> getAll(Pageable pageable, String filters, String... attributes) {
@@ -84,7 +87,7 @@ public class UsersService {
                          boolean isAccountDisabled,
                          boolean isMustChangePassword) {
 
-        return usersServiceClient.add(new AddUserDto(distinguishedName,
+        UserEntry created = usersServiceClient.add(new AddUserDto(distinguishedName,
                 user.getCn(),
                 user.getDisplayName(),
                 user.getFirstName(),
@@ -95,14 +98,19 @@ public class UsersService {
                 isPasswordNeverExpires,
                 isAccountDisabled,
                 isMustChangePassword));
+        if (webhookService != null && created != null) webhookService.publish("user.created", created);
+        return created;
     }
 
     public UserEntry update(UserEntry user) {
-        return usersServiceClient.update(user);
+        UserEntry updated = usersServiceClient.update(user);
+        if (webhookService != null && updated != null) webhookService.publish("user.updated", updated);
+        return updated;
     }
 
     public void delete(String distinguishedName) {
         usersServiceClient.delete(distinguishedName);
+        if (webhookService != null) webhookService.publish("user.deleted", Map.of("distinguishedName", String.valueOf(distinguishedName)));
     }
 
     public void changeUserAccountControl(UserEntry user, boolean isCannotChangePassword, boolean isPasswordNeverExpires, boolean isAccountDisabled, boolean isMustChangePassword) {

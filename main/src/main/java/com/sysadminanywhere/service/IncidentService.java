@@ -18,9 +18,11 @@ import java.util.Map;
 public class IncidentService {
 
     private final IncidentServiceClient incidentServiceClient;
+    private final WebhookService webhookService;
 
-    public IncidentService(IncidentServiceClient incidentServiceClient) {
+    public IncidentService(IncidentServiceClient incidentServiceClient, WebhookService webhookService) {
         this.incidentServiceClient = incidentServiceClient;
+        this.webhookService = webhookService;
     }
 
     public Boolean ping() {
@@ -43,15 +45,21 @@ public class IncidentService {
     }
 
     public IncidentItem updateIncident(Long id, Severity severity, IncidentStatus status) {
-        return incidentServiceClient.updateIncident(id, severity.name(), status.name());
+        IncidentItem updated = incidentServiceClient.updateIncident(id, severity.name(), status.name());
+        if (updated != null) webhookService.publish("incident.updated", updated);
+        return updated;
     }
 
     public IncidentItem createIncident(IncidentItem incident) {
-        return incidentServiceClient.createIncident(incident);
+        IncidentItem created = incidentServiceClient.createIncident(incident);
+        if (created != null) webhookService.publish("incident.created", created);
+        return created;
     }
 
     public IncidentItem closeIncident(Long id) {
-        return incidentServiceClient.closeIncident(id);
+        IncidentItem closed = incidentServiceClient.closeIncident(id);
+        if (closed != null) webhookService.publish("incident.closed", closed);
+        return closed;
     }
 
 }

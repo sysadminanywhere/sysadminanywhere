@@ -18,16 +18,19 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class GroupsService {
 
     private final LdapService ldapService;
     private final GroupsServiceClient groupsServiceClient;
+    private final WebhookService webhookService;
 
-    public GroupsService(LdapService ldapService, GroupsServiceClient groupsServiceClient) {
+    public GroupsService(LdapService ldapService, GroupsServiceClient groupsServiceClient, WebhookService webhookService) {
         this.ldapService = ldapService;
         this.groupsServiceClient = groupsServiceClient;
+        this.webhookService = webhookService;
     }
 
     public Page<GroupEntry> getAll(Pageable pageable, String filters, String... attributes) {
@@ -76,15 +79,20 @@ public class GroupsService {
     }
 
     public GroupEntry add(String distinguishedName, GroupEntry group, GroupScope groupScope, boolean isSecurity) {
-        return groupsServiceClient.add(new AddGroupDto(distinguishedName, group.getCn(), group.getDescription(), groupScope, isSecurity));
+        GroupEntry created = groupsServiceClient.add(new AddGroupDto(distinguishedName, group.getCn(), group.getDescription(), groupScope, isSecurity));
+        if (webhookService != null && created != null) webhookService.publish("group.created", created);
+        return created;
     }
 
     public GroupEntry update(GroupEntry group) {
-        return groupsServiceClient.update(group);
+        GroupEntry updated = groupsServiceClient.update(group);
+        if (webhookService != null && updated != null) webhookService.publish("group.updated", updated);
+        return updated;
     }
 
     public void delete(String distinguishedName) {
         groupsServiceClient.delete(distinguishedName);
+        if (webhookService != null) webhookService.publish("group.deleted", Map.of("distinguishedName", String.valueOf(distinguishedName)));
     }
 
     public BulkOperationResult bulkDelete(List<GroupEntry> groups) {

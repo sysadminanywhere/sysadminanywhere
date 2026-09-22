@@ -52,6 +52,7 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 - **Inventory Health**: Detect computers that have not been scanned within a configurable threshold and open their details directly
 - **Finding-to-Incident Workflow**: Create a confirmed incident from a security or inventory finding with the affected object attached
 - **Safe CSV Import**: Preview user and group rows, validate required fields, import valid rows only, and keep per-row errors visible
+- **Webhooks**: Configure signed incident and directory-change notifications with retry delivery
 - **Validated LDAP Filters**: Report filters are validated with Apache Directory API 2.1.8
 - **Scheduled Reports**: Daily or weekly PDF/CSV generation with optional SMTP email attachments; schedules and run history are persisted
 
@@ -211,6 +212,7 @@ N8N_API_KEY=your_n8n_api_key
 REPORTS_SCHEDULER_CONFIG_PATH=/data/scheduled-reports.json
 REPORTS_SCHEDULER_RUNS_PATH=/data/scheduled-report-runs.json
 REPORTS_SCHEDULER_OUTPUT_DIR=/data/scheduled-reports
+WEBHOOKS_CONFIG_PATH=/data/webhooks.json
 MAIL_HOST=
 MAIL_PORT=587
 MAIL_USERNAME=

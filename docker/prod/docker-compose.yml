@@ -133,6 +133,7 @@ services:
       REPORTS_SCHEDULER_CONFIG_PATH: ${REPORTS_SCHEDULER_CONFIG_PATH:-/data/scheduled-reports.json}
       REPORTS_SCHEDULER_RUNS_PATH: ${REPORTS_SCHEDULER_RUNS_PATH:-/data/scheduled-report-runs.json}
       REPORTS_SCHEDULER_OUTPUT_DIR: ${REPORTS_SCHEDULER_OUTPUT_DIR:-/data/scheduled-reports}
+      WEBHOOKS_CONFIG_PATH: ${WEBHOOKS_CONFIG_PATH:-/data/webhooks.json}
       MAIL_HOST: ${MAIL_HOST:-}
       MAIL_PORT: ${MAIL_PORT:-587}
       MAIL_USERNAME: ${MAIL_USERNAME:-}
