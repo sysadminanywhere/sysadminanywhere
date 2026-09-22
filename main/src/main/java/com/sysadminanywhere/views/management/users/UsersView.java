@@ -17,10 +17,14 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -74,6 +78,10 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
         return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
+    private String getMessage(String key, Object... arguments) {
+        return messageSource.getMessage(key, arguments, localeService.getCurrentLocale());
+    }
+
     private HorizontalLayout createMobileFilters() {
         // Mobile version
         HorizontalLayout mobileFilters = new HorizontalLayout();
@@ -112,6 +120,14 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
 
         MenuHelper.createIconItem(menuBar, "/icons/import.svg", getMessage("common.import"), event -> {
             importDialog(this::refreshGrid).open();
+        });
+
+        MenuHelper.createIconItem(menuBar, "/icons/options.svg", getMessage("users_view.bulk_enable"), event -> {
+            confirmBulkAccountState(false);
+        });
+
+        MenuHelper.createIconItem(menuBar, "/icons/options.svg", getMessage("users_view.bulk_disable"), event -> {
+            confirmBulkAccountState(true);
         });
 
         return menuBar;
@@ -216,6 +232,7 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
 
     private Component createGrid() {
         grid = new Grid<>(UserEntry.class, false);
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn(new ComponentRenderer<>(user -> {
@@ -223,7 +240,7 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
             layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
             SvgIcon icon = new SvgIcon("icons/user.svg");
-            icon.setColor("grey");
+            icon.addClassName(user.isDisabled() ? "disabled-object-icon" : "enabled-object-icon");
 
             Span text = new Span(user.getCn());
 
@@ -241,7 +258,7 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
 
         grid.setItems(query -> usersService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                filters.getFilters(), "cn", "description").stream());
+                filters.getFilters(), "cn", "description", "distinguishedName", "userAccountControl", "pwdLastSet").stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 
@@ -250,6 +267,45 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    private void confirmBulkAccountState(boolean disabled) {
+        if (grid == null || grid.getSelectedItems().isEmpty()) {
+            Notification.show(getMessage("users_view.bulk_no_selection"));
+            return;
+        }
+
+        int selectedCount = grid.getSelectedItems().size();
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(getMessage(disabled ? "users_view.bulk_disable" : "users_view.bulk_enable"));
+        dialog.add(new H3(getMessage("users_view.bulk_confirm_title")));
+        dialog.add(new Paragraph(getMessage("users_view.bulk_confirm_text", new Object[]{selectedCount})));
+
+        Button cancel = new Button(getMessage("common.cancel"), event -> dialog.close());
+        Button confirm = new Button(getMessage("common.execute"), event -> {
+            int updated = 0;
+            try {
+                for (UserEntry user : new java.util.ArrayList<>(grid.getSelectedItems())) {
+                    usersService.changeUserAccountControl(user, user.isUserCannotChangePassword(),
+                            user.isNeverExpires(), disabled,
+                            user.getPwdLastSet() != null && user.isUserMustChangePassword());
+                    updated++;
+                }
+                grid.deselectAll();
+                refreshGrid();
+                Notification notification = Notification.show(
+                        getMessage("users_view.bulk_success", new Object[]{updated}));
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception exception) {
+                Notification notification = Notification.show(
+                        getMessage("users_view.bulk_error", new Object[]{updated}));
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+            dialog.close();
+        });
+        confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        dialog.getFooter().add(cancel, confirm);
+        dialog.open();
     }
 
     public String getPageTitle() {

@@ -136,7 +136,7 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
                     break;
             }
 
-            icon.setColor("grey");
+            icon.addClassName(item.isDisabled() ? "disabled-object-icon" : "enabled-object-icon");
 
             Span text = new Span(item.getCn());
 

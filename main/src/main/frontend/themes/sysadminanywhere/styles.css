@@ -111,6 +111,19 @@ html[theme~="dark"] body {
       font-size: var(--lumo-font-size-l);
 }
 
+.enabled-object-icon,
+.disabled-object-icon {
+      transition: filter 140ms ease, opacity 140ms ease;
+}
+
+.enabled-object-icon {
+      filter: invert(35%) sepia(95%) saturate(1400%) hue-rotate(198deg) brightness(90%) contrast(90%);
+}
+
+.disabled-object-icon {
+      filter: grayscale(1) opacity(0.48);
+}
+
 @media (max-width: 640px) {
       .global-search-toolbar {
             flex-direction: column;

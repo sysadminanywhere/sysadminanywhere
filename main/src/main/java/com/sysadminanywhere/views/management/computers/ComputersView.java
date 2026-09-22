@@ -190,7 +190,7 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
             layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
             SvgIcon icon = new SvgIcon("icons/computer.svg");
-            icon.setColor("grey");
+            icon.addClassName(computer.isDisabled() ? "disabled-object-icon" : "enabled-object-icon");
 
             Span text = new Span(computer.getCn());
 
@@ -208,7 +208,7 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
 
         grid.setItems(query -> computersService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                filters.getFilters(), "cn", "description").stream());
+                filters.getFilters(), "cn", "description", "userAccountControl").stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 

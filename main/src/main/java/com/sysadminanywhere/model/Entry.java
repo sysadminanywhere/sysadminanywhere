@@ -14,5 +14,6 @@ public class Entry {
     private String cn;
     private String type;
     private String description;
+    private boolean disabled;
 
 }

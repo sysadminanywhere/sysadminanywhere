@@ -1,7 +1,7 @@
 # Sysadmin Anywhere
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
-![Static Badge](https://img.shields.io/badge/version-4.3.0-blue)
+![Static Badge](https://img.shields.io/badge/version-5.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Java](https://img.shields.io/badge/java-21-orange)
 ![Spring Boot](https://img.shields.io/badge/spring%20boot-4-brightgreen)
@@ -18,6 +18,8 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 
 ### 📋 Active Directory Management
 - **User Management**: Add, edit, delete users with comprehensive attribute support
+- **Bulk User Operations**: Select multiple users and enable or disable their accounts with confirmation
+- **Status Indicators**: Disabled user and computer accounts are shown with gray icons in directory tables
 - **Group Operations**: Add/remove objects from groups with bulk operations
 - **Password Management**: Secure password reset functionality
 - **User Photos**: Add and manage user profile pictures
