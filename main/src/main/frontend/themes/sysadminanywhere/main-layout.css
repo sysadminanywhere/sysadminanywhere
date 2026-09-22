@@ -309,3 +309,78 @@ vaadin-app-layout > :not([slot]) {
     margin-left: 0;
   }
 }
+
+html[theme~="dark"] vaadin-app-layout {
+  --vaadin-app-layout-navbar-background: rgba(15, 23, 42, 0.96);
+  background: #0f172a;
+}
+
+html[theme~="dark"] vaadin-app-layout::after {
+  border-color: #334155;
+}
+
+html[theme~="dark"] vaadin-app-layout::before {
+  background: #334155;
+}
+
+html[theme~="dark"] vaadin-app-layout::part(navbar) {
+  border-bottom-color: #334155;
+}
+
+html[theme~="dark"] .primary-navigation {
+  background: #111827;
+}
+
+html[theme~="dark"] .secondary-navigation {
+  background: #1e293b;
+}
+
+html[theme~="dark"] .secondary-navigation-title,
+html[theme~="dark"] .view-title {
+  color: #f8fafc;
+}
+
+html[theme~="dark"] .secondary-navigation vaadin-side-nav-item {
+  --vaadin-side-nav-item-text-color: #cbd5e1;
+  --vaadin-side-nav-item-background: transparent;
+}
+
+html[theme~="dark"] .secondary-navigation vaadin-side-nav-item:hover {
+  --vaadin-side-nav-item-background: #334155;
+  --vaadin-side-nav-item-text-color: #f8fafc;
+}
+
+html[theme~="dark"] .secondary-navigation vaadin-side-nav-item[current] {
+  --vaadin-side-nav-item-background: #334155;
+  --vaadin-side-nav-item-text-color: #f8fafc;
+}
+
+html[theme~="dark"] .secondary-navigation vaadin-side-nav-item[current]::part(content) {
+  color: #f8fafc;
+  background: #334155;
+  box-shadow: inset 0 0 0 1px #475569;
+}
+
+html[theme~="dark"] vaadin-app-layout > :not([slot]) {
+  background: #0f172a;
+}
+
+html[theme~="dark"] .teams-nav-button {
+  --vaadin-button-text-color: #cbd5e1;
+}
+
+html[theme~="dark"] .teams-nav-button:hover {
+  --vaadin-button-background: #334155;
+  --vaadin-button-text-color: #f8fafc;
+}
+
+html[theme~="dark"] .teams-nav-button[active] {
+  --vaadin-button-background: #1e3a8a;
+  --vaadin-button-text-color: #bfdbfe;
+  border-color: #3b82f6;
+}
+
+html[theme~="dark"] .teams-nav-button-icon,
+html[theme~="dark"] .navigation-toggle {
+  color: #cbd5e1;
+}

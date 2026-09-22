@@ -38,3 +38,16 @@ body {
       background: #eef3fa;
       overflow: hidden;
 }
+
+html[theme~="dark"] {
+      --lumo-primary-color: #6ea8fe;
+      --lumo-primary-text-color: #9cc2ff;
+      --lumo-body-text-color: #f8fafc;
+      --lumo-secondary-text-color: #a9b4c2;
+      background: #0f172a;
+}
+
+html[theme~="dark"] body {
+      background: #0f172a;
+      color: #f8fafc;
+}
