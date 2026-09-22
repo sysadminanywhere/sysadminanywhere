@@ -25,11 +25,27 @@ vaadin-app-layout::after {
   border-radius: 14px;
 }
 
+vaadin-app-layout::before {
+  content: "";
+  position: fixed;
+  z-index: 10;
+  top: 14px;
+  bottom: 14px;
+  left: 301px;
+  width: 1px;
+  pointer-events: none;
+  background: #d9e1ec;
+}
+
 vaadin-app-layout::part(drawer) {
   width: 302px;
   box-sizing: border-box;
   overflow: hidden;
+  border: 0;
+  border-inline-end: 0 !important;
+  outline: 0;
   background: transparent;
+  box-shadow: none;
 }
 
 vaadin-app-layout::part(navbar) {
@@ -248,6 +264,10 @@ vaadin-app-layout > :not([slot]) {
   }
 
   vaadin-app-layout::after {
+    content: none;
+  }
+
+  vaadin-app-layout::before {
     content: none;
   }
 
