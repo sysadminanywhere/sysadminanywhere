@@ -4,6 +4,7 @@ import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.Entry;
@@ -196,6 +197,7 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
             refreshGrid();
         });
         MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("common.delete"), event -> confirmBulkDelete());
+        MenuHelper.createIconItem(menuBar, "/icons/options.svg", getMessage("bulk.move_selected"), event -> confirmBulkMove());
 
         MenuItem menuAdd = menuBar.addItem(getMessage("common.new"));
 
@@ -265,6 +267,41 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
         });
         confirm.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_PRIMARY,
                 com.vaadin.flow.component.button.ButtonVariant.LUMO_ERROR);
+        dialog.getFooter().add(cancel, confirm);
+        dialog.open();
+    }
+
+    private void confirmBulkMove() {
+        if (grid == null || grid.getSelectedItems().isEmpty()) {
+            Notification.show(getMessage("bulk.no_selection"));
+            return;
+        }
+        ContainerField target = new ContainerField(ldapService, messageSource, localeService);
+        target.setWidthFull();
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(getMessage("bulk.move_selected"));
+        dialog.add(new Paragraph(getMessage("bulk.move_confirm_text", grid.getSelectedItems().size())));
+        dialog.add(new Paragraph(getMessage("bulk.preview", grid.getSelectedItems().stream()
+                .map(Entry::getCn).limit(20).collect(java.util.stream.Collectors.joining(", ")))));
+        dialog.add(target);
+        Button cancel = new Button(getMessage("common.cancel"), event -> dialog.close());
+        Button confirm = new Button(getMessage("common.execute"), event -> {
+            if (target.getValue() == null || target.getValue().isBlank()) {
+                Notification.show(getMessage("bulk.move_required"));
+                return;
+            }
+            List<String> dns = grid.getSelectedItems().stream().map(Entry::getDistinguishedName)
+                    .filter(name -> name != null && !name.isBlank()).toList();
+            BulkOperationResult result = ldapService.bulkMove(dns, target.getValue());
+            int updated = result == null ? 0 : result.getUpdated();
+            int failed = result == null || result.getFailures() == null ? dns.size() : result.getFailures().size();
+            Notification notification = Notification.show(getMessage(failed == 0 ? "bulk.success" : "bulk.error", updated));
+            notification.addThemeVariants(failed == 0 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+            grid.deselectAll();
+            refreshGrid();
+            dialog.close();
+        });
+        confirm.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_PRIMARY);
         dialog.getFooter().add(cancel, confirm);
         dialog.open();
     }

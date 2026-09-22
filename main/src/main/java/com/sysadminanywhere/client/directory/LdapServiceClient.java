@@ -4,6 +4,9 @@ import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.SearchDto;
+import com.sysadminanywhere.common.directory.dto.BulkGroupMembershipDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
+import com.sysadminanywhere.common.directory.dto.BulkMoveDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -38,5 +41,11 @@ public interface LdapServiceClient {
 
     @DeleteExchange("/api/ldap/members")
     ResponseEntity<?> deleteMember(@RequestParam String dn, @RequestParam String group);
+
+    @PostExchange("/api/ldap/members/bulk")
+    BulkOperationResult bulkChangeMembers(@RequestBody BulkGroupMembershipDto request);
+
+    @PostExchange("/api/ldap/move/bulk")
+    BulkOperationResult bulkMove(@RequestBody BulkMoveDto request);
 
 }

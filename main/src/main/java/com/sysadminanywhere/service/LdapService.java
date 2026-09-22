@@ -6,6 +6,9 @@ import com.sysadminanywhere.client.directory.LdapServiceClient;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.SearchDto;
+import com.sysadminanywhere.common.directory.dto.BulkGroupMembershipDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
+import com.sysadminanywhere.common.directory.dto.BulkMoveDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.common.directory.model.UserAccountControls;
@@ -295,6 +298,15 @@ public class LdapService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public BulkOperationResult bulkChangeMembers(List<String> memberDistinguishedNames, String groupDistinguishedName, boolean remove) {
+        return ldapServiceClient.bulkChangeMembers(new BulkGroupMembershipDto(
+                memberDistinguishedNames, groupDistinguishedName, remove));
+    }
+
+    public BulkOperationResult bulkMove(List<String> distinguishedNames, String targetContainerDistinguishedName) {
+        return ldapServiceClient.bulkMove(new BulkMoveDto(distinguishedNames, targetContainerDistinguishedName));
     }
 
 }

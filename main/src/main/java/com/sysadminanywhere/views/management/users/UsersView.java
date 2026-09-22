@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.management.users;
 
 import com.sysadminanywhere.common.directory.model.UserEntry;
+import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
@@ -9,6 +10,7 @@ import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.SettingsService;
 import com.sysadminanywhere.service.UsersService;
+import com.sysadminanywhere.service.GroupsService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -40,6 +42,8 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 
+import java.util.List;
+
 
 @RolesAllowed("ADMIN")
 @Route(value = "management/users")
@@ -51,6 +55,7 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
 
     private final Filters filters;
     private final UsersService usersService;
+    private final GroupsService groupsService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
 
@@ -59,8 +64,9 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
 
     private Settings settings;
 
-    public UsersView(UsersService usersService, AuthenticatedUser authenticatedUser, SettingsService settingsService, MessageSource messageSource, LocaleService localeService) {
+    public UsersView(UsersService usersService, GroupsService groupsService, AuthenticatedUser authenticatedUser, SettingsService settingsService, MessageSource messageSource, LocaleService localeService) {
         this.usersService = usersService;
+        this.groupsService = groupsService;
         this.settingsService = settingsService;
         this.authenticatedUser = authenticatedUser;
         this.messageSource = messageSource;
@@ -132,6 +138,8 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
         });
 
         MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("common.delete"), event -> confirmBulkDelete());
+        MenuHelper.createIconItem(menuBar, "/icons/group.svg", getMessage("bulk.add_to_group"), event -> confirmBulkGroupMembership(false));
+        MenuHelper.createIconItem(menuBar, "/icons/group.svg", getMessage("bulk.remove_from_group"), event -> confirmBulkGroupMembership(true));
 
         return menuBar;
     }
@@ -341,6 +349,44 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
             dialog.close();
         });
         confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+        dialog.getFooter().add(cancel, confirm);
+        dialog.open();
+    }
+
+    private void confirmBulkGroupMembership(boolean remove) {
+        if (grid == null || grid.getSelectedItems().isEmpty()) {
+            Notification.show(getMessage("bulk.no_selection"));
+            return;
+        }
+        ComboBox<GroupEntry> groups = new ComboBox<>(getMessage("bulk.group_label"));
+        groups.setWidthFull();
+        List<GroupEntry> availableGroups = groupsService.getAll("", "cn", "distinguishedName");
+        groups.setItems(availableGroups == null ? java.util.List.of() : availableGroups);
+        groups.setItemLabelGenerator(group -> group.getCn() + " (" + group.getDistinguishedName() + ")");
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(getMessage(remove ? "bulk.remove_from_group" : "bulk.add_to_group"));
+        dialog.add(new Paragraph(getMessage("bulk.group_confirm_text", grid.getSelectedItems().size())));
+        dialog.add(new Paragraph(getMessage("bulk.preview", grid.getSelectedItems().stream()
+                .map(UserEntry::getCn).limit(20).collect(java.util.stream.Collectors.joining(", ")))));
+        dialog.add(groups);
+        Button cancel = new Button(getMessage("common.cancel"), event -> dialog.close());
+        Button confirm = new Button(getMessage("common.execute"), event -> {
+            if (groups.getValue() == null) {
+                Notification.show(getMessage("bulk.group_required"));
+                return;
+            }
+            List<String> dns = grid.getSelectedItems().stream().map(UserEntry::getDistinguishedName)
+                    .filter(name -> name != null && !name.isBlank()).toList();
+            BulkOperationResult result = usersService.getLdapService().bulkChangeMembers(
+                    dns, groups.getValue().getDistinguishedName(), remove);
+            int updated = result == null ? 0 : result.getUpdated();
+            int failed = result == null || result.getFailures() == null ? dns.size() : result.getFailures().size();
+            Notification notification = Notification.show(getMessage(failed == 0 ? "bulk.success" : "bulk.error", updated));
+            notification.addThemeVariants(failed == 0 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+            grid.deselectAll();
+            dialog.close();
+        });
+        confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         dialog.getFooter().add(cancel, confirm);
         dialog.open();
     }

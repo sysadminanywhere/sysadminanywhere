@@ -4,6 +4,7 @@ import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.JwtResponse;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import io.jsonwebtoken.security.Keys;
@@ -547,6 +548,49 @@ public class LdapService {
 
             return true;
         });
+    }
+
+    public BulkOperationResult bulkChangeMembers(List<String> memberDistinguishedNames,
+                                                 String groupDistinguishedName,
+                                                 boolean remove) {
+        int updated = 0;
+        List<String> failures = new ArrayList<>();
+        for (String memberDn : memberDistinguishedNames) {
+            try {
+                boolean success = remove
+                        ? deleteMember(memberDn, groupDistinguishedName)
+                        : addMember(memberDn, groupDistinguishedName);
+                if (success) {
+                    updated++;
+                } else {
+                    failures.add(memberDn);
+                }
+            } catch (Exception exception) {
+                failures.add(memberDn);
+            }
+        }
+        return new BulkOperationResult(updated, failures);
+    }
+
+    public BulkOperationResult bulkMove(List<String> distinguishedNames, String targetContainerDistinguishedName) {
+        int updated = 0;
+        List<String> failures = new ArrayList<>();
+        for (String distinguishedName : distinguishedNames) {
+            try {
+                boolean success = executeAsUser(conn -> {
+                    conn.move(new Dn(distinguishedName), new Dn(targetContainerDistinguishedName));
+                    return true;
+                });
+                if (success) {
+                    updated++;
+                } else {
+                    failures.add(distinguishedName);
+                }
+            } catch (Exception exception) {
+                failures.add(distinguishedName);
+            }
+        }
+        return new BulkOperationResult(updated, failures);
     }
 
     @SneakyThrows
