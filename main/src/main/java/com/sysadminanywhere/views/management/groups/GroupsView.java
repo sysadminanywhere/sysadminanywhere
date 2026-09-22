@@ -26,6 +26,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
@@ -38,6 +39,7 @@ import org.springframework.data.domain.PageRequest;
 @RolesAllowed("ADMIN")
 @Route(value = "management/groups")
 @Uses(Icon.class)
+@Uses(Upload.class)
 public class GroupsView extends Div implements MenuControl, HasDynamicTitle {
 
     private Grid<GroupEntry> grid;
@@ -103,6 +105,9 @@ public class GroupsView extends Div implements MenuControl, HasDynamicTitle {
 
         MenuHelper.createIconItem(menuBar, "/icons/plus.svg", getMessage("common.new"), event -> {
             addDialog(this::refreshGrid).open();
+        });
+        MenuHelper.createIconItem(menuBar, "/icons/import.svg", getMessage("common.import"), event -> {
+            new ImportGroupDialog(groupsService, messageSource, localeService, this::refreshGrid).open();
         });
         MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("common.delete"), event -> confirmBulkDelete());
 
