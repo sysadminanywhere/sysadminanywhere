@@ -5,6 +5,8 @@ import com.sysadminanywhere.common.directory.model.AD;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
+import com.sysadminanywhere.common.directory.model.PrinterEntry;
+import com.sysadminanywhere.common.directory.model.ContactEntry;
 import com.sysadminanywhere.model.ReportItem;
 import com.sysadminanywhere.service.*;
 import com.sysadminanywhere.service.LocaleService;
@@ -44,6 +46,7 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
     private final UsersService usersService;
     private final GroupsService groupsService;
     private final PrintersService printersService;
+    private final ContactsService contactsService;
 
     private final ReportGeneratorService reportGeneratorService;
     private final MessageSource messageSource;
@@ -70,6 +73,7 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
                              UsersService usersService,
                              GroupsService groupsService,
                              PrintersService printersService,
+                             ContactsService contactsService,
                              ReportGeneratorService reportGeneratorService,
                              MessageSource messageSource,
                              LocaleService localeService) {
@@ -77,6 +81,7 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
         this.usersService = usersService;
         this.groupsService = groupsService;
         this.printersService = printersService;
+        this.contactsService = contactsService;
         this.reportGeneratorService = reportGeneratorService;
         this.messageSource = messageSource;
         this.localeService = localeService;
@@ -131,6 +136,12 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
                 break;
             case "groups":
                 result = groupReports(reportItem);
+                break;
+            case "printers":
+                result = printerReports(reportItem);
+                break;
+            case "contacts":
+                result = contactReports(reportItem);
                 break;
         }
 
@@ -203,6 +214,22 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
         String[] attributes = getAttributes(reportItem.getColumns(), GroupEntry.class);
 
         return reportGeneratorService.generateReport(groupsService.getAll(reportItem.getFilter(), attributes),
+                reportItem.getName(), reportItem.getDescription(),
+                attributes, reportItem.getNames());
+    }
+
+    private byte[] printerReports(ReportItem reportItem) {
+        String[] attributes = getAttributes(reportItem.getColumns(), PrinterEntry.class);
+
+        return reportGeneratorService.generateReport(printersService.getAll(reportItem.getFilter(), attributes),
+                reportItem.getName(), reportItem.getDescription(),
+                attributes, reportItem.getNames());
+    }
+
+    private byte[] contactReports(ReportItem reportItem) {
+        String[] attributes = getAttributes(reportItem.getColumns(), ContactEntry.class);
+
+        return reportGeneratorService.generateReport(contactsService.getAll(reportItem.getFilter(), attributes),
                 reportItem.getName(), reportItem.getDescription(),
                 attributes, reportItem.getNames());
     }
