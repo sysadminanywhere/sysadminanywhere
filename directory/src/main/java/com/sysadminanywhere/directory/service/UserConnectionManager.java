@@ -8,6 +8,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.X509ExtendedTrustManager;
+import java.net.Socket;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -87,7 +92,11 @@ public class UserConnectionManager {
         config.setLdapHost(server);
         config.setLdapPort(port);
         config.setUseSsl(useSsl);
-        config.setTrustManagers(new NoVerificationTrustManager());
+        if (useSsl) {
+            // Preserve the existing application behavior: AD certificates are trusted
+            // without requiring them to be installed in the JVM trust store.
+            config.setTrustManagers(new NoVerificationTrustManager());
+        }
 
         config.setCloseTimeout(500L);
         config.setTimeout(30000L);
@@ -148,6 +157,39 @@ public class UserConnectionManager {
             return "legacy";
         }
         return service.trim().toLowerCase();
+    }
+
+    /** Trust manager used for the legacy LDAPS mode. */
+    private static final class NoVerificationTrustManager extends X509ExtendedTrustManager {
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        }
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
+        }
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) throws CertificateException {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) throws CertificateException {
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+        }
     }
 
 }

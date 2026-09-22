@@ -37,7 +37,15 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 - **Hardware Inventory**: Detailed hardware information collection
 - **Software Inventory**: Comprehensive software asset management
 - **Incident Management**: Incident tracking and resolution (preview)
-- **20+ Reports**: Extensive reporting capabilities with customizable outputs
+- **44 PDF Reports**: Reports for users, computers, groups, printers and contacts
+- **Directory Health Reports**: Disabled accounts, password policies, stale objects, missing ownership data and critical objects
+- **Validated LDAP Filters**: Report filters are validated with Apache Directory API 2.1.8
+
+### 🧭 Onboarding & User Experience
+- **Guided Tour**: An onboarding tour introduces the primary navigation, section menu and page content
+- **Help Center**: Built-in help page with common tasks, documentation and support links
+- **Themes**: Light and dark themes with persisted user preference
+- **Localization**: The interface, help content and reports are translated consistently across all supported languages
 
 ### 🤖 Automation & Integration
 - **n8n Workflows**: Build automation workflows using n8n integration
@@ -59,12 +67,23 @@ Full multi-language support with professional translations:
 
 ## 🛠️ Technology Stack
 
-- **Backend**: Spring Boot 4.0.6, Java 21
-- **Frontend**: Vaadin Flow framework
+- **Backend**: Spring Boot 4.1.1, Java 21
+- **Frontend**: Vaadin Flow 25.2.8
+- **Directory Integration**: Apache Directory API 2.1.8
 - **Build Tool**: Maven
 - **Architecture**: Modular multi-module Maven project
 - **Security**: Spring Security with AD integration
 - **Caching**: Spring Cache for performance optimization
+
+### Report Catalog
+
+Reports are grouped by directory object type and rendered as PDF documents:
+
+- **Users**: administrators, service accounts, users without a manager or email, disabled and locked accounts, password expiration and logon information
+- **Computers**: servers, workstations, domain controllers, critical computers, missing DNS or location data and operating system details
+- **Groups**: security scopes, empty groups, privileged groups, groups without an owner and critical groups
+- **Printers**: all printers, printers without drivers or servers, and color-capable printers
+- **Contacts**: all contacts, contacts without email or phone, and contacts with company information
 
 ## 📁 Project Structure
 
@@ -169,10 +188,13 @@ N8N_PASSWORD=your_n8n_password
 N8N_API_KEY=your_n8n_api_key
 ```
 
+When `LDAP_USE_SSL=true`, the directory service keeps the legacy behavior and accepts the controller certificate without requiring it in the JVM truststore. This disables certificate validation and should only be used on a trusted network.
+
 ## 📚 Documentation
 
 - **[Official Documentation](https://docs.sysadminanywhere.com)** - Comprehensive user guides and API documentation
-- **[User Guide](docs/user-guide-en.md)** - Detailed usage instructions
+- **[User Guide (English)](docs/user-guide-en.md)** - Detailed usage instructions
+- **[Руководство пользователя (русский)](docs/user-guide-ru.md)** - Подробная инструкция по работе с приложением
 - **[n8n Integration Guide](docs/n8n-integration-guide-en.md)** - Automation workflow setup
 - **[API Documentation](docs/ai-openapi.yaml)** - REST API reference
 
