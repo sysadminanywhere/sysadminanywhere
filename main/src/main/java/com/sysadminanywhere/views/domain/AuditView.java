@@ -9,9 +9,12 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
@@ -94,6 +97,7 @@ public class AuditView extends Div implements HasDynamicTitle {
         private final LocaleService localeService;
 
         private final TextField name;
+        private final TextField distinguishedName;
         private final ComboBox<String> action;
         private final DatePicker startDate;
         private final DatePicker endDate;
@@ -104,6 +108,7 @@ public class AuditView extends Div implements HasDynamicTitle {
             this.localeService = localeService;
 
             this.name = new TextField(getMessage("audit_view.name"));
+            this.distinguishedName = new TextField(getMessage("audit_view.distinguished_name"));
             this.action = new ComboBox<>(getMessage("audit_view.action"));
             this.startDate = new DatePicker(getMessage("audit_view.date"));
             this.endDate = new DatePicker();
@@ -123,6 +128,7 @@ public class AuditView extends Div implements HasDynamicTitle {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 name.clear();
+                distinguishedName.clear();
 
                 action.clear();
                 action.setValue(getMessage("common.all"));
@@ -142,7 +148,7 @@ public class AuditView extends Div implements HasDynamicTitle {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(createDateRangeFilter(), actions);
+            add(name, distinguishedName, createDateRangeFilter(), actions);
         }
 
         private String getMessage(String key) {
@@ -166,7 +172,14 @@ public class AuditView extends Div implements HasDynamicTitle {
         public Map<String, String> getFilters() {
             Map<String, String> filters = new HashMap<>();
             filters.put("name", name.getValue());
-            filters.put("action", action.getValue());
+            filters.put("distinguishedName", distinguishedName.getValue());
+            String selectedAction = action.getValue();
+            if (selectedAction != null && selectedAction.equals(getMessage("audit_view.changed"))) {
+                selectedAction = "Changed";
+            } else if (selectedAction != null && selectedAction.equals(getMessage("audit_view.created"))) {
+                selectedAction = "Created";
+            }
+            filters.put("action", selectedAction);
 
             if(startDate.getValue() != null)
                 filters.put("startDate", startDate.getValue().toString());
@@ -183,7 +196,10 @@ public class AuditView extends Div implements HasDynamicTitle {
         grid.addColumn("name").setHeader(getMessage("audit_view.name")).setAutoWidth(true);
         grid.addColumn("distinguishedName").setHeader(getMessage("audit_view.distinguished_name")).setAutoWidth(true);
         grid.addColumn("action").setHeader(getMessage("audit_view.action")).setAutoWidth(true);
+        grid.addColumn("objectClass").setHeader(getMessage("audit_view.object_class")).setAutoWidth(true);
         grid.addColumn("whenChanged").setHeader(getMessage("audit_view.when_changed")).setAutoWidth(true);
+
+        grid.addItemClickListener(event -> showAuditDetails(event.getItem()));
 
         try {
             grid.setItems(query -> ldapService.getAudit(
@@ -202,6 +218,26 @@ public class AuditView extends Div implements HasDynamicTitle {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    private void showAuditDetails(AuditDto audit) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(getMessage("audit_view.details"));
+        VerticalLayout content = new VerticalLayout(
+                new H3(value(audit.getName())),
+                new Paragraph(getMessage("audit_view.distinguished_name") + ": " + value(audit.getDistinguishedName())),
+                new Paragraph(getMessage("audit_view.object_class") + ": " + value(audit.getObjectClass())),
+                new Paragraph(getMessage("audit_view.action") + ": " + value(audit.getAction())),
+                new Paragraph(getMessage("audit_view.when_created") + ": " + value(audit.getWhenCreated())),
+                new Paragraph(getMessage("audit_view.when_changed") + ": " + value(audit.getWhenChanged())));
+        content.setPadding(false);
+        dialog.add(content);
+        dialog.getFooter().add(new Button(getMessage("common.close"), event -> dialog.close()));
+        dialog.open();
+    }
+
+    private String value(Object value) {
+        return value == null ? "—" : value.toString();
     }
 
     public String getPageTitle() {

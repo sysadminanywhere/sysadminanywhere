@@ -16,5 +16,6 @@ public class AuditDto {
     private LocalDateTime whenCreated;
     private LocalDateTime whenChanged;
     private String distinguishedName;
+    private String objectClass;
 
 }

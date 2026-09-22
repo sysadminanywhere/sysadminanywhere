@@ -7,6 +7,7 @@ import com.sysadminanywhere.common.directory.dto.SearchDto;
 import com.sysadminanywhere.common.directory.dto.BulkGroupMembershipDto;
 import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.dto.BulkMoveDto;
+import com.sysadminanywhere.common.directory.dto.ChangeJournalDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,9 @@ public interface LdapServiceClient {
 
     @GetExchange("/api/ldap/audit/list")
     ResponseEntity<List<AuditDto>> getAuditList(@RequestParam Map<String, String> filters);
+
+    @GetExchange("/api/ldap/change-history")
+    ResponseEntity<List<ChangeJournalDto>> getChangeHistory(@RequestParam Map<String, String> filters);
 
     @PostExchange("/api/ldap/search")
     ResponseEntity<List<EntryDto>> getSearch(@RequestBody SearchDto searchDto);

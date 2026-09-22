@@ -44,6 +44,7 @@ public class LdapService {
     private final VaultService vaultService;
 
     private final UserConnectionManager userConnectionManager;
+    private final ChangeJournalService changeJournalService;
 
     private final String domainName;
     private final String defaultNamingContext;
@@ -66,11 +67,13 @@ public class LdapService {
     @SneakyThrows
     public LdapService(JwtService jwtService,
                        VaultService vaultService,
-                       UserConnectionManager userConnectionManager) {
+                       UserConnectionManager userConnectionManager,
+                       ChangeJournalService changeJournalService) {
 
         this.jwtService = jwtService;
         this.vaultService = vaultService;
         this.userConnectionManager = userConnectionManager;
+        this.changeJournalService = changeJournalService;
 
         domainEntry = getRootDse();
         baseDn = new Dn(domainEntry.get("rootdomainnamingcontext").get().getString());
@@ -352,6 +355,7 @@ public class LdapService {
 
     @SneakyThrows
     public void add(Entry entry) {
+        Entry after = entry.clone();
         executeAsUser(conn -> {
             AddRequest addRequest = new AddRequestImpl();
             addRequest.setEntry(entry);
@@ -359,22 +363,28 @@ public class LdapService {
             conn.add(addRequest);
             return null;
         });
+        changeJournalService.record("Created", null, after, entry.getDn().getName());
     }
 
     @SneakyThrows
     public void update(ModifyRequest modifyRequest) {
+        Entry before = readEntry(modifyRequest.getName().getName());
         executeAsUser(conn -> {
             conn.modify(modifyRequest);
             return null;
         });
+        Entry after = readEntry(modifyRequest.getName().getName());
+        changeJournalService.record("Changed", before, after, modifyRequest.getName().getName());
     }
 
     @SneakyThrows
     public void delete(Entry entry) {
+        Entry before = readEntry(entry.getDn().getName());
         executeAsUser(conn -> {
             conn.delete(entry.getDn());
             return null;
         });
+        changeJournalService.record("Deleted", before, null, entry.getDn().getName());
     }
 
     public String getComputersContainer() {
@@ -404,12 +414,24 @@ public class LdapService {
 
     @SneakyThrows
     public void updateProperty(String dn, String name, String value) {
+        Entry before = readEntry(dn);
         executeAsUser(conn -> {
             Attribute attribute = new DefaultAttribute(name, value);
             Modification modification = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, attribute);
             conn.modify(dn, modification);
             return null;
         });
+        Entry after = readEntry(dn);
+        changeJournalService.record("Changed", before, after, dn);
+    }
+
+    private Entry readEntry(String dn) {
+        try {
+            List<Entry> entries = search(new Dn(dn), "(objectClass=*)", SearchScope.OBJECT);
+            return entries == null || entries.isEmpty() ? null : entries.get(0).clone();
+        } catch (Exception exception) {
+            return null;
+        }
     }
 
     @Cacheable(value = "containers")
@@ -491,6 +513,9 @@ public class LdapService {
 
                 item.setName(entry.get("name").getString());
                 item.setDistinguishedName(entry.getDn().getName());
+                if (entry.get("objectclass") != null) {
+                    item.setObjectClass(entry.get("objectclass").getString());
+                }
 
                 Value whenCreatedValue = entry.get("whencreated") != null ? entry.get("whencreated").get() : null;
                 Value whenChangedValue = entry.get("whenchanged") != null ? entry.get("whenchanged").get() : null;
@@ -513,11 +538,22 @@ public class LdapService {
 
             }
         }
+        String nameFilter = filters.getOrDefault("name", "");
+        String distinguishedNameFilter = filters.getOrDefault("distinguishedName", "");
+        String actionFilter = filters.getOrDefault("action", "");
+        content.removeIf(item -> (!nameFilter.isBlank()
+                        && (item.getName() == null || !item.getName().toLowerCase().contains(nameFilter.toLowerCase())))
+                || (!distinguishedNameFilter.isBlank()
+                        && (item.getDistinguishedName() == null
+                        || !item.getDistinguishedName().toLowerCase().contains(distinguishedNameFilter.toLowerCase())))
+                || (!actionFilter.isBlank() && !actionFilter.equalsIgnoreCase("All")
+                        && (item.getAction() == null || !item.getAction().equalsIgnoreCase(actionFilter))));
         content.sort(Comparator.comparing(AuditDto::getWhenChanged).reversed());
         return content;
     }
 
     public boolean deleteMember(String dn, String group) {
+        Entry before = readEntry(group);
         return executeAsUser(conn -> {
             Modification removeMember = new DefaultModification(
                     ModificationOperation.REMOVE_ATTRIBUTE, "member", dn
@@ -530,11 +566,14 @@ public class LdapService {
 
             ModifyResponse response = conn.modify(modifyRequest);
 
+            Entry after = readEntry(group);
+            changeJournalService.record("Changed", before, after, group);
             return true;
         });
     }
 
     public boolean addMember(String dn, String group) {
+        Entry before = readEntry(group);
         return executeAsUser(conn -> {
             Modification removeMember = new DefaultModification(
                     ModificationOperation.ADD_ATTRIBUTE, "member", dn
@@ -546,6 +585,8 @@ public class LdapService {
             modifyRequest.addModification(removeMember);
             ModifyResponse response = conn.modify(modifyRequest);
 
+            Entry after = readEntry(group);
+            changeJournalService.record("Changed", before, after, group);
             return true;
         });
     }
@@ -577,8 +618,13 @@ public class LdapService {
         List<String> failures = new ArrayList<>();
         for (String distinguishedName : distinguishedNames) {
             try {
+                Entry before = readEntry(distinguishedName);
+                Dn sourceDn = new Dn(distinguishedName);
+                String movedDistinguishedName = sourceDn.getRdn().getName() + "," + targetContainerDistinguishedName;
                 boolean success = executeAsUser(conn -> {
-                    conn.move(new Dn(distinguishedName), new Dn(targetContainerDistinguishedName));
+                    conn.move(sourceDn, new Dn(targetContainerDistinguishedName));
+                    Entry after = readEntry(movedDistinguishedName);
+                    changeJournalService.record("Changed", before, after, movedDistinguishedName);
                     return true;
                 });
                 if (success) {

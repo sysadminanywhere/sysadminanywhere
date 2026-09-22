@@ -23,6 +23,8 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 - **Container Bulk Delete**: Delete supported mixed object selections from a container view with protection for system/unknown types
 - **Bulk Group Membership**: Add or remove selected users and computers from a target group with confirmation and per-object results
 - **Bulk Container Move**: Move selected supported objects to another container with a destination picker, confirmation and per-object results
+- **Audit History**: Filter directory changes by object name, DN, action and period, then inspect the available LDAP metadata
+- **Application Change Journal**: Review changes made through the application with operator, timestamp and before/after snapshots; entries are stored in a configurable JSON file (credential attributes are redacted)
 - **Status Indicators**: Disabled user and computer accounts are shown with gray icons in directory tables
 - **Group Operations**: Add/remove objects from groups with bulk operations
 - **Password Management**: Secure password reset functionality
@@ -186,6 +188,8 @@ LDAP_PORT=389
 LDAP_USE_SSL=false
 # Leave false for legacy behavior; set true to validate the LDAP certificate.
 LDAP_VERIFY_CERTIFICATE=false
+# Application-level change journal (JSON)
+DIRECTORY_AUDIT_JOURNAL_PATH=./data/change-journal.json
 
 # Security
 VAULT_TOKEN=your_vault_token

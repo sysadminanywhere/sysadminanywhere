@@ -27,6 +27,7 @@ import java.util.Map;
 public class LdapController {
 
     private final LdapService ldapService;
+    private final com.sysadminanywhere.directory.service.ChangeJournalService changeJournalService;
 
     /**
      * Получение логов аудита с постраничным выводом
@@ -215,6 +216,12 @@ public class LdapController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to remove member"));
         }
+    }
+
+    @GetMapping("/change-history")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ChangeJournalDto>> getChangeHistory(@RequestParam Map<String, String> filters) {
+        return ResponseEntity.ok(changeJournalService.find(filters));
     }
 
     @PostMapping("/members/bulk")

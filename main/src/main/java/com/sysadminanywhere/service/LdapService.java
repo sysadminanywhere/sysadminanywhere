@@ -9,6 +9,7 @@ import com.sysadminanywhere.common.directory.dto.SearchDto;
 import com.sysadminanywhere.common.directory.dto.BulkGroupMembershipDto;
 import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.dto.BulkMoveDto;
+import com.sysadminanywhere.common.directory.dto.ChangeJournalDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.common.directory.model.UserAccountControls;
@@ -297,6 +298,15 @@ public class LdapService {
             return Boolean.valueOf(ldapServiceClient.addMember(dn, group).getBody().toString());
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    public List<ChangeJournalDto> getChangeHistory(Map<String, String> filters) {
+        try {
+            List<ChangeJournalDto> result = ldapServiceClient.getChangeHistory(filters).getBody();
+            return result == null ? new ArrayList<>() : result;
+        } catch (Exception exception) {
+            return new ArrayList<>();
         }
     }
 
