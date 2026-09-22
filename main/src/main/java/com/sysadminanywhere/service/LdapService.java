@@ -128,7 +128,7 @@ public class LdapService {
     public Page<Entry> search(int page, int size, String sort, String dn, String filter, SearchScope searchScope) {
         try {
             List<EntryDto> dtos = ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal(),
-                    "cn", "objectclass", "description", "showinadvancedviewonly", "useraccountcontrol")).getBody();
+                    "cn", "distinguishedname", "objectclass", "description", "showinadvancedviewonly", "useraccountcontrol")).getBody();
 
             List<Entry> list = new ArrayList<>();
             for (EntryDto dto : dtos) {
@@ -152,6 +152,8 @@ public class LdapService {
     private Entry convertToEntity(EntryDto dto) {
         return Entry.builder()
                 .cn(dto.getAttributes().get("cn").toString())
+                .distinguishedName(dto.getAttributes().get("distinguishedname") != null
+                        ? dto.getAttributes().get("distinguishedname").toString() : null)
                 .type(getType(dto.getAttributes().get("objectclass")))
                 .description(dto.getAttributes().get("description") != null ? dto.getAttributes().get("description").toString() : "")
                 .disabled(isDisabled(dto))

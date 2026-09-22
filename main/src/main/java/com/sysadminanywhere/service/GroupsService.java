@@ -4,6 +4,8 @@ import com.sysadminanywhere.common.PageResponse;
 
 import com.sysadminanywhere.client.directory.GroupsServiceClient;
 import com.sysadminanywhere.common.directory.dto.AddGroupDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.model.GroupScope;
@@ -83,6 +85,18 @@ public class GroupsService {
 
     public void delete(String distinguishedName) {
         groupsServiceClient.delete(distinguishedName);
+    }
+
+    public BulkOperationResult bulkDelete(List<GroupEntry> groups) {
+        List<String> distinguishedNames = groups.stream()
+                .map(GroupEntry::getDistinguishedName)
+                .filter(name -> name != null && !name.isBlank())
+                .toList();
+        return groupsServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
+    }
+
+    public BulkOperationResult bulkDeleteDistinguishedNames(List<String> distinguishedNames) {
+        return groupsServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
     }
 
     public String getGroupTypeName(long groupType)

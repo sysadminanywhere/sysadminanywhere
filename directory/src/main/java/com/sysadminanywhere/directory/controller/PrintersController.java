@@ -2,6 +2,8 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.directory.service.PrintersService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -127,6 +129,15 @@ public class PrintersController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to delete printer"));
         }
+    }
+
+    @PostMapping("/bulk/delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BulkOperationResult> bulkDelete(@RequestBody BulkDeleteDto request) {
+        if (request == null || request.getDistinguishedNames() == null || request.getDistinguishedNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(printersService.bulkDelete(request.getDistinguishedNames()));
     }
 
 }

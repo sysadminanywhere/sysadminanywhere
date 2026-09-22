@@ -2,6 +2,8 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddGroupDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.directory.service.GroupsService;
 import jakarta.validation.Valid;
@@ -186,6 +188,15 @@ public class GroupsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to delete group"));
         }
+    }
+
+    @PostMapping("/bulk/delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BulkOperationResult> bulkDelete(@Valid @RequestBody BulkDeleteDto request) {
+        if (request == null || request.getDistinguishedNames() == null || request.getDistinguishedNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(groupsService.bulkDelete(request.getDistinguishedNames()));
     }
 
 }

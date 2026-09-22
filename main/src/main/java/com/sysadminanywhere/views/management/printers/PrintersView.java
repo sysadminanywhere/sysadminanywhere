@@ -1,18 +1,26 @@
 package com.sysadminanywhere.views.management.printers;
 
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
+import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.PrintersService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.SvgIcon;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -29,7 +37,7 @@ import org.springframework.data.domain.PageRequest;
 @RolesAllowed("ADMIN")
 @Route(value = "management/printers")
 @Uses(Icon.class)
-public class PrintersView extends Div implements HasDynamicTitle {
+public class PrintersView extends Div implements MenuControl, HasDynamicTitle {
 
     private Grid<PrinterEntry> grid;
 
@@ -56,6 +64,10 @@ public class PrintersView extends Div implements HasDynamicTitle {
         return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
+    private String getMessage(String key, Object... arguments) {
+        return messageSource.getMessage(key, arguments, localeService.getCurrentLocale());
+    }
+
     private HorizontalLayout createMobileFilters() {
         // Mobile version
         HorizontalLayout mobileFilters = new HorizontalLayout();
@@ -78,6 +90,14 @@ public class PrintersView extends Div implements HasDynamicTitle {
             }
         });
         return mobileFilters;
+    }
+
+    @Override
+    public MenuBar getMenu() {
+        MenuBar menuBar = new MenuBar();
+        MenuHelper.createIconItem(menuBar, "/icons/refresh.svg", event -> refreshGrid());
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("common.delete"), event -> confirmBulkDelete());
+        return menuBar;
     }
 
     public static class Filters extends Div {
@@ -144,6 +164,7 @@ public class PrintersView extends Div implements HasDynamicTitle {
 
     private Component createGrid() {
         grid = new Grid<>(PrinterEntry.class, false);
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn(new ComponentRenderer<>(printer -> {
@@ -169,7 +190,7 @@ public class PrintersView extends Div implements HasDynamicTitle {
 
         grid.setItems(query -> printersService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                filters.getFilters(), "cn", "description").stream());
+                filters.getFilters(), "cn", "description", "distinguishedName").stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 
@@ -178,6 +199,31 @@ public class PrintersView extends Div implements HasDynamicTitle {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    private void confirmBulkDelete() {
+        if (grid == null || grid.getSelectedItems().isEmpty()) {
+            Notification.show(getMessage("bulk.no_selection"));
+            return;
+        }
+        int selectedCount = grid.getSelectedItems().size();
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(getMessage("common.delete"));
+        dialog.add(new Paragraph(getMessage("bulk.delete_confirm_text", selectedCount)));
+        Button cancel = new Button(getMessage("common.cancel"), event -> dialog.close());
+        Button confirm = new Button(getMessage("common.execute"), event -> {
+            BulkOperationResult result = printersService.bulkDelete(new java.util.ArrayList<>(grid.getSelectedItems()));
+            int updated = result == null ? 0 : result.getUpdated();
+            int failed = result == null || result.getFailures() == null ? selectedCount : result.getFailures().size();
+            grid.deselectAll();
+            refreshGrid();
+            Notification notification = Notification.show(getMessage(failed == 0 ? "bulk.success" : "bulk.error", updated));
+            notification.addThemeVariants(failed == 0 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+            dialog.close();
+        });
+        confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+        dialog.getFooter().add(cancel, confirm);
+        dialog.open();
     }
 
     public String getPageTitle() {

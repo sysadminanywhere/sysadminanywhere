@@ -5,6 +5,9 @@ import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.client.directory.UsersServiceClient;
 import com.sysadminanywhere.common.directory.dto.AddUserDto;
 import com.sysadminanywhere.common.directory.dto.ChangeUserAccountControlDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
+import com.sysadminanywhere.common.directory.dto.BulkUserAccountStatusDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
 import com.sysadminanywhere.common.directory.model.UserEntry;
@@ -108,6 +111,27 @@ public class UsersService {
                 isPasswordNeverExpires,
                 isAccountDisabled,
                 isMustChangePassword));
+    }
+
+    public BulkOperationResult bulkChangeAccountStatus(List<UserEntry> users, boolean disabled) {
+        List<String> distinguishedNames = users.stream()
+                .map(UserEntry::getDistinguishedName)
+                .filter(name -> name != null && !name.isBlank())
+                .toList();
+        return usersServiceClient.bulkChangeAccountStatus(
+                new BulkUserAccountStatusDto(distinguishedNames, disabled));
+    }
+
+    public BulkOperationResult bulkDelete(List<UserEntry> users) {
+        List<String> distinguishedNames = users.stream()
+                .map(UserEntry::getDistinguishedName)
+                .filter(name -> name != null && !name.isBlank())
+                .toList();
+        return usersServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
+    }
+
+    public BulkOperationResult bulkDeleteDistinguishedNames(List<String> distinguishedNames) {
+        return usersServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
     }
 
     public String getDefaultContainer() {

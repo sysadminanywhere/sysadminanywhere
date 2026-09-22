@@ -3,6 +3,9 @@ package com.sysadminanywhere.directory.controller;
 import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddUserDto;
 import com.sysadminanywhere.common.directory.dto.ChangeUserAccountControlDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
+import com.sysadminanywhere.common.directory.dto.BulkUserAccountStatusDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
 import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.directory.service.UsersService;
@@ -256,6 +259,27 @@ public class UsersController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to change user account control"));
         }
+    }
+
+    @PostMapping("/bulk/change-status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BulkOperationResult> bulkChangeAccountStatus(
+            @Valid @RequestBody BulkUserAccountStatusDto request) {
+        if (request == null || request.getDistinguishedNames() == null
+                || request.getDistinguishedNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(usersService.bulkChangeAccountStatus(
+                request.getDistinguishedNames(), request.isAccountDisabled()));
+    }
+
+    @PostMapping("/bulk/delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BulkOperationResult> bulkDelete(@Valid @RequestBody BulkDeleteDto request) {
+        if (request == null || request.getDistinguishedNames() == null || request.getDistinguishedNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(usersService.bulkDelete(request.getDistinguishedNames()));
     }
 
     /**

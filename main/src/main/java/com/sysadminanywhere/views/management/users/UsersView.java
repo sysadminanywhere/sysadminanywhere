@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.management.users;
 
 import com.sysadminanywhere.common.directory.model.UserEntry;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.Settings;
@@ -129,6 +130,8 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
         MenuHelper.createIconItem(menuBar, "/icons/options.svg", getMessage("users_view.bulk_disable"), event -> {
             confirmBulkAccountState(true);
         });
+
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("common.delete"), event -> confirmBulkDelete());
 
         return menuBar;
     }
@@ -283,27 +286,61 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
 
         Button cancel = new Button(getMessage("common.cancel"), event -> dialog.close());
         Button confirm = new Button(getMessage("common.execute"), event -> {
-            int updated = 0;
             try {
-                for (UserEntry user : new java.util.ArrayList<>(grid.getSelectedItems())) {
-                    usersService.changeUserAccountControl(user, user.isUserCannotChangePassword(),
-                            user.isNeverExpires(), disabled,
-                            user.getPwdLastSet() != null && user.isUserMustChangePassword());
-                    updated++;
-                }
+                BulkOperationResult result = usersService.bulkChangeAccountStatus(
+                        new java.util.ArrayList<>(grid.getSelectedItems()), disabled);
+                int updated = result == null ? 0 : result.getUpdated();
+                int failed = result == null || result.getFailures() == null ? selectedCount : result.getFailures().size();
                 grid.deselectAll();
                 refreshGrid();
-                Notification notification = Notification.show(
-                        getMessage("users_view.bulk_success", new Object[]{updated}));
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                Notification notification;
+                if (failed == 0) {
+                    notification = Notification.show(
+                            getMessage("users_view.bulk_success", new Object[]{updated}));
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                } else {
+                    notification = Notification.show(
+                            getMessage("users_view.bulk_error", new Object[]{updated}));
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
             } catch (Exception exception) {
                 Notification notification = Notification.show(
-                        getMessage("users_view.bulk_error", new Object[]{updated}));
+                        getMessage("users_view.bulk_error", new Object[]{0}));
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
             dialog.close();
         });
         confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        dialog.getFooter().add(cancel, confirm);
+        dialog.open();
+    }
+
+    private void confirmBulkDelete() {
+        if (grid == null || grid.getSelectedItems().isEmpty()) {
+            Notification.show(getMessage("bulk.no_selection"));
+            return;
+        }
+        int selectedCount = grid.getSelectedItems().size();
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(getMessage("common.delete"));
+        dialog.add(new Paragraph(getMessage("bulk.delete_confirm_text", selectedCount)));
+        Button cancel = new Button(getMessage("common.cancel"), event -> dialog.close());
+        Button confirm = new Button(getMessage("common.execute"), event -> {
+            try {
+                BulkOperationResult result = usersService.bulkDelete(new java.util.ArrayList<>(grid.getSelectedItems()));
+                int updated = result == null ? 0 : result.getUpdated();
+                int failed = result == null || result.getFailures() == null ? selectedCount : result.getFailures().size();
+                grid.deselectAll();
+                refreshGrid();
+                Notification notification = Notification.show(getMessage(failed == 0 ? "bulk.success" : "bulk.error", updated));
+                notification.addThemeVariants(failed == 0 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+            } catch (Exception exception) {
+                Notification notification = Notification.show(getMessage("bulk.error", 0));
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+            dialog.close();
+        });
+        confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
         dialog.getFooter().add(cancel, confirm);
         dialog.open();
     }

@@ -1,6 +1,8 @@
 package com.sysadminanywhere.client.directory;
 
 import com.sysadminanywhere.common.PageResponse;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,6 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.DeleteExchange;
 import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.PostExchange;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -24,5 +28,8 @@ public interface PrintersServiceClient {
 
     @DeleteExchange("/api/printers")
     void delete(@RequestParam String distinguishedName);
+
+    @PostExchange("/api/printers/bulk/delete")
+    BulkOperationResult bulkDelete(@RequestBody BulkDeleteDto request);
 
 }

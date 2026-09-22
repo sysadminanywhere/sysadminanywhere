@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.management.contacts;
 
 import com.sysadminanywhere.common.directory.model.ContactEntry;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.service.ContactsService;
@@ -13,10 +14,13 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -60,6 +64,10 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
         return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
+    private String getMessage(String key, Object... arguments) {
+        return messageSource.getMessage(key, arguments, localeService.getCurrentLocale());
+    }
+
     private HorizontalLayout createMobileFilters() {
         // Mobile version
         HorizontalLayout mobileFilters = new HorizontalLayout();
@@ -95,6 +103,7 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
         MenuHelper.createIconItem(menuBar, "/icons/plus.svg", getMessage("common.new"), event -> {
             addDialog(this::refreshGrid).open();
         });
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("common.delete"), event -> confirmBulkDelete());
 
         return menuBar;
     }
@@ -170,6 +179,7 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
 
     private Component createGrid() {
         grid = new Grid<>(ContactEntry.class, false);
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn(new ComponentRenderer<>(contact -> {
@@ -195,7 +205,7 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
 
         grid.setItems(query -> contactsService.getAll(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                filters.getFilters(), "cn", "description").stream());
+                filters.getFilters(), "cn", "description", "distinguishedName").stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 
@@ -204,6 +214,31 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    private void confirmBulkDelete() {
+        if (grid == null || grid.getSelectedItems().isEmpty()) {
+            Notification.show(getMessage("bulk.no_selection"));
+            return;
+        }
+        int selectedCount = grid.getSelectedItems().size();
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(getMessage("common.delete"));
+        dialog.add(new Paragraph(getMessage("bulk.delete_confirm_text", selectedCount)));
+        Button cancel = new Button(getMessage("common.cancel"), event -> dialog.close());
+        Button confirm = new Button(getMessage("common.execute"), event -> {
+            BulkOperationResult result = contactsService.bulkDelete(new java.util.ArrayList<>(grid.getSelectedItems()));
+            int updated = result == null ? 0 : result.getUpdated();
+            int failed = result == null || result.getFailures() == null ? selectedCount : result.getFailures().size();
+            grid.deselectAll();
+            refreshGrid();
+            Notification notification = Notification.show(getMessage(failed == 0 ? "bulk.success" : "bulk.error", updated));
+            notification.addThemeVariants(failed == 0 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+            dialog.close();
+        });
+        confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+        dialog.getFooter().add(cancel, confirm);
+        dialog.open();
     }
 
     public String getPageTitle() {

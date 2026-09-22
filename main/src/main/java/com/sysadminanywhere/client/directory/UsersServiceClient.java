@@ -3,6 +3,9 @@ package com.sysadminanywhere.client.directory;
 import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddUserDto;
 import com.sysadminanywhere.common.directory.dto.ChangeUserAccountControlDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
+import com.sysadminanywhere.common.directory.dto.BulkUserAccountStatusDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
 import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import org.springframework.data.domain.Page;
@@ -42,5 +45,11 @@ public interface UsersServiceClient {
 
     @PostExchange("/api/users/changeuac")
     ResponseEntity<?> changeUserAccountControl(@RequestBody ChangeUserAccountControlDto changeUserAccountControlDto);
+
+    @PostExchange("/api/users/bulk/change-status")
+    BulkOperationResult bulkChangeAccountStatus(@RequestBody BulkUserAccountStatusDto request);
+
+    @PostExchange("/api/users/bulk/delete")
+    BulkOperationResult bulkDelete(@RequestBody BulkDeleteDto request);
 
 }

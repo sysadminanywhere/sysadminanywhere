@@ -4,6 +4,8 @@ import com.sysadminanywhere.common.PageResponse;
 
 import com.sysadminanywhere.client.directory.ContactsServiceClient;
 import com.sysadminanywhere.common.directory.dto.AddContactDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
 import org.springframework.data.domain.Page;
@@ -86,6 +88,18 @@ public class ContactsService {
 
     public void delete(String distinguishedName) {
         contactsServiceClient.delete(distinguishedName);
+    }
+
+    public BulkOperationResult bulkDelete(List<ContactEntry> contacts) {
+        List<String> distinguishedNames = contacts.stream()
+                .map(ContactEntry::getDistinguishedName)
+                .filter(name -> name != null && !name.isBlank())
+                .toList();
+        return contactsServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
+    }
+
+    public BulkOperationResult bulkDeleteDistinguishedNames(List<String> distinguishedNames) {
+        return contactsServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
     }
 
     public String getDefaultContainer() {

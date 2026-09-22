@@ -2,6 +2,9 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddComputerDto;
+import com.sysadminanywhere.common.directory.dto.BulkComputerAccountStatusDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.directory.service.ComputersService;
 import jakarta.validation.Valid;
@@ -186,6 +189,26 @@ public class ComputersController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to delete computer"));
         }
+    }
+
+    @PostMapping("/bulk/change-status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BulkOperationResult> bulkChangeAccountStatus(
+            @Valid @RequestBody BulkComputerAccountStatusDto request) {
+        if (request == null || request.getDistinguishedNames() == null || request.getDistinguishedNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(computersService.bulkChangeAccountStatus(
+                request.getDistinguishedNames(), request.isAccountDisabled()));
+    }
+
+    @PostMapping("/bulk/delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BulkOperationResult> bulkDelete(@Valid @RequestBody BulkDeleteDto request) {
+        if (request == null || request.getDistinguishedNames() == null || request.getDistinguishedNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(computersService.bulkDelete(request.getDistinguishedNames()));
     }
 
 }

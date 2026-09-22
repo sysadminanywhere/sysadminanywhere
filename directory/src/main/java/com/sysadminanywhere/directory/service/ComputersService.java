@@ -2,6 +2,7 @@ package com.sysadminanywhere.directory.service;
 
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.directory.model.UserAccountControls;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -94,6 +95,44 @@ public class ComputersService {
     public void delete(String distinguishedName) {
         Entry entry = new DefaultEntry(distinguishedName);
         ldapService.delete(entry);
+    }
+
+    public BulkOperationResult bulkChangeAccountStatus(List<String> distinguishedNames, boolean disabled) {
+        int updated = 0;
+        List<String> failures = new ArrayList<>();
+        for (String distinguishedName : distinguishedNames) {
+            try {
+                List<Entry> entries = ldapService.search(new org.apache.directory.api.ldap.model.name.Dn(distinguishedName),
+                        "(objectClass=computer)", org.apache.directory.api.ldap.model.message.SearchScope.OBJECT);
+                if (entries == null || entries.isEmpty() || entries.get(0).get("useraccountcontrol") == null) {
+                    failures.add(distinguishedName);
+                    continue;
+                }
+                int current = Integer.parseInt(entries.get(0).get("useraccountcontrol").getString());
+                int next = disabled
+                        ? current | UserAccountControls.ACCOUNTDISABLE.getValue()
+                        : current & ~UserAccountControls.ACCOUNTDISABLE.getValue();
+                ldapService.updateProperty(distinguishedName, "userAccountControl", String.valueOf(next));
+                updated++;
+            } catch (Exception exception) {
+                failures.add(distinguishedName);
+            }
+        }
+        return new BulkOperationResult(updated, failures);
+    }
+
+    public BulkOperationResult bulkDelete(List<String> distinguishedNames) {
+        int updated = 0;
+        List<String> failures = new ArrayList<>();
+        for (String distinguishedName : distinguishedNames) {
+            try {
+                delete(distinguishedName);
+                updated++;
+            } catch (Exception exception) {
+                failures.add(distinguishedName);
+            }
+        }
+        return new BulkOperationResult(updated, failures);
     }
 
     public UserAccountControls getUserControl(int userAccountControl) {

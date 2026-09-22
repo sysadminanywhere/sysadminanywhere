@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class Entry {
 
     private String cn;
+    private String distinguishedName;
     private String type;
     private String description;
     private boolean disabled;

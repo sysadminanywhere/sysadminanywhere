@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.management.container;
 
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.domain.SearchScope;
@@ -16,16 +17,20 @@ import com.sysadminanywhere.views.management.users.AddUserDialog;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -40,6 +45,11 @@ import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 import org.vaadin.tatu.Tree;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @RolesAllowed("ADMIN")
 @Route(value = "management/containers")
 @Uses(Icon.class)
@@ -52,6 +62,7 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
     private final ComputersService computersService;
     private final GroupsService groupsService;
     private final ContactsService contactsService;
+    private final PrintersService printersService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
 
@@ -65,6 +76,7 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
                           ComputersService computersService,
                           GroupsService groupsService,
                           ContactsService contactsService,
+                          PrintersService printersService,
                           MessageSource messageSource,
                           LocaleService localeService) {
 
@@ -75,6 +87,7 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
         this.computersService = computersService;
         this.groupsService = groupsService;
         this.contactsService = contactsService;
+        this.printersService = printersService;
         this.messageSource = messageSource;
         this.localeService = localeService;
 
@@ -108,8 +121,13 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
         return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
+    private String getMessage(String key, Object... arguments) {
+        return messageSource.getMessage(key, arguments, localeService.getCurrentLocale());
+    }
+
     private Component createGrid() {
         grid = new Grid<>(Entry.class, false);
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn(new ComponentRenderer<>(item -> {
@@ -177,6 +195,7 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
         MenuHelper.createIconItem(menuBar, "/icons/refresh.svg", menuItemClickEvent -> {
             refreshGrid();
         });
+        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("common.delete"), event -> confirmBulkDelete());
 
         MenuItem menuAdd = menuBar.addItem(getMessage("common.new"));
 
@@ -195,6 +214,59 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
         });
 
         return menuBar;
+    }
+
+    private void confirmBulkDelete() {
+        if (grid == null || grid.getSelectedItems().isEmpty()) {
+            Notification.show(getMessage("bulk.no_selection"));
+            return;
+        }
+        int selectedCount = grid.getSelectedItems().size();
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(getMessage("common.delete"));
+        dialog.add(new Paragraph(getMessage("bulk.delete_confirm_text", selectedCount)));
+        Button cancel = new Button(getMessage("common.cancel"), event -> dialog.close());
+        Button confirm = new Button(getMessage("common.execute"), event -> {
+            Map<String, List<String>> byType = new HashMap<>();
+            int unsupported = 0;
+            for (Entry item : grid.getSelectedItems()) {
+                String type = item.getType() == null ? "" : item.getType().toLowerCase();
+                if (item.getDistinguishedName() == null || item.getDistinguishedName().isBlank()
+                        || !List.of("user", "computer", "group", "contact", "printer").contains(type)) {
+                    unsupported++;
+                } else {
+                    byType.computeIfAbsent(type, key -> new ArrayList<>()).add(item.getDistinguishedName());
+                }
+            }
+            int updated = 0;
+            int failed = unsupported;
+            try {
+                for (Map.Entry<String, List<String>> values : byType.entrySet()) {
+                    BulkOperationResult result = switch (values.getKey()) {
+                        case "user" -> usersService.bulkDeleteDistinguishedNames(values.getValue());
+                        case "computer" -> computersService.bulkDeleteDistinguishedNames(values.getValue());
+                        case "group" -> groupsService.bulkDeleteDistinguishedNames(values.getValue());
+                        case "contact" -> contactsService.bulkDeleteDistinguishedNames(values.getValue());
+                        case "printer" -> printersService.bulkDeleteDistinguishedNames(values.getValue());
+                        default -> null;
+                    };
+                    updated += result == null ? 0 : result.getUpdated();
+                    failed += result == null || result.getFailures() == null
+                            ? values.getValue().size() : result.getFailures().size();
+                }
+            } catch (Exception exception) {
+                failed += selectedCount - updated - failed;
+            }
+            grid.deselectAll();
+            refreshGrid();
+            Notification notification = Notification.show(getMessage(failed == 0 ? "bulk.success" : "bulk.error", updated));
+            notification.addThemeVariants(failed == 0 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+            dialog.close();
+        });
+        confirm.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_PRIMARY,
+                com.vaadin.flow.component.button.ButtonVariant.LUMO_ERROR);
+        dialog.getFooter().add(cancel, confirm);
+        dialog.open();
     }
 
     private Dialog addUserDialog(Runnable onSearch) {

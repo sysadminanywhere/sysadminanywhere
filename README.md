@@ -19,6 +19,8 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 ### 📋 Active Directory Management
 - **User Management**: Add, edit, delete users with comprehensive attribute support
 - **Bulk User Operations**: Select multiple users and enable or disable their accounts with confirmation
+- **Bulk Directory Operations**: Select computers, groups, contacts and printers with checkboxes; change computer account state or delete selected objects in one request with per-object success/failure results
+- **Container Bulk Delete**: Delete supported mixed object selections from a container view with protection for system/unknown types
 - **Status Indicators**: Disabled user and computer accounts are shown with gray icons in directory tables
 - **Group Operations**: Add/remove objects from groups with bulk operations
 - **Password Management**: Secure password reset functionality

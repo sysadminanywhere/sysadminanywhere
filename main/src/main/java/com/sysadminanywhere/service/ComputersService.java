@@ -4,6 +4,9 @@ import com.sysadminanywhere.common.PageResponse;
 
 import com.sysadminanywhere.client.directory.ComputersServiceClient;
 import com.sysadminanywhere.common.directory.dto.AddComputerDto;
+import com.sysadminanywhere.common.directory.dto.BulkComputerAccountStatusDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.*;
 import com.sysadminanywhere.model.wmi.*;
@@ -96,6 +99,27 @@ public class ComputersService {
 
     public void delete(String distinguishedName) {
         computersServiceClient.delete(distinguishedName);
+    }
+
+    public BulkOperationResult bulkChangeAccountStatus(List<ComputerEntry> computers, boolean disabled) {
+        List<String> distinguishedNames = computers.stream()
+                .map(ComputerEntry::getDistinguishedName)
+                .filter(name -> name != null && !name.isBlank())
+                .toList();
+        return computersServiceClient.bulkChangeAccountStatus(
+                new BulkComputerAccountStatusDto(distinguishedNames, disabled));
+    }
+
+    public BulkOperationResult bulkDelete(List<ComputerEntry> computers) {
+        List<String> distinguishedNames = computers.stream()
+                .map(ComputerEntry::getDistinguishedName)
+                .filter(name -> name != null && !name.isBlank())
+                .toList();
+        return computersServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
+    }
+
+    public BulkOperationResult bulkDeleteDistinguishedNames(List<String> distinguishedNames) {
+        return computersServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
     }
 
     public String getDefaultContainer() {

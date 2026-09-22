@@ -4,6 +4,8 @@ import com.sysadminanywhere.common.PageResponse;
 
 import com.sysadminanywhere.client.directory.PrintersServiceClient;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
@@ -75,6 +77,18 @@ public class PrintersService {
     @SneakyThrows
     public void delete(String distinguishedName) {
         printersServiceClient.delete(distinguishedName);
+    }
+
+    public BulkOperationResult bulkDelete(List<PrinterEntry> printers) {
+        List<String> distinguishedNames = printers.stream()
+                .map(PrinterEntry::getDistinguishedName)
+                .filter(name -> name != null && !name.isBlank())
+                .toList();
+        return printersServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
+    }
+
+    public BulkOperationResult bulkDeleteDistinguishedNames(List<String> distinguishedNames) {
+        return printersServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
     }
 
     public String getDefaultContainer() {

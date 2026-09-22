@@ -2,6 +2,8 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddContactDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
 import com.sysadminanywhere.directory.service.ContactsService;
 import jakarta.validation.Valid;
@@ -187,6 +189,15 @@ public class ContactsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to delete contact"));
         }
+    }
+
+    @PostMapping("/bulk/delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BulkOperationResult> bulkDelete(@Valid @RequestBody BulkDeleteDto request) {
+        if (request == null || request.getDistinguishedNames() == null || request.getDistinguishedNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(contactsService.bulkDelete(request.getDistinguishedNames()));
     }
 
 }

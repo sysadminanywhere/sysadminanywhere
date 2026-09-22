@@ -2,6 +2,9 @@ package com.sysadminanywhere.client.directory;
 
 import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddComputerDto;
+import com.sysadminanywhere.common.directory.dto.BulkComputerAccountStatusDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,5 +37,11 @@ public interface ComputersServiceClient {
 
     @DeleteExchange("/api/computers")
     void delete(@RequestParam String distinguishedName);
+
+    @PostExchange("/api/computers/bulk/change-status")
+    BulkOperationResult bulkChangeAccountStatus(@RequestBody BulkComputerAccountStatusDto request);
+
+    @PostExchange("/api/computers/bulk/delete")
+    BulkOperationResult bulkDelete(@RequestBody BulkDeleteDto request);
 
 }
