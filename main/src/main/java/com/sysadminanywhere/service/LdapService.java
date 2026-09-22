@@ -10,6 +10,7 @@ import com.sysadminanywhere.common.directory.dto.BulkGroupMembershipDto;
 import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.dto.BulkMoveDto;
 import com.sysadminanywhere.common.directory.dto.ChangeJournalDto;
+import com.sysadminanywhere.common.directory.dto.DomainHealthDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import com.sysadminanywhere.common.directory.model.UserAccountControls;
@@ -307,6 +308,15 @@ public class LdapService {
             return result == null ? new ArrayList<>() : result;
         } catch (Exception exception) {
             return new ArrayList<>();
+        }
+    }
+
+    public DomainHealthDto getDomainHealth() {
+        try {
+            return ldapServiceClient.getDomainHealth().getBody();
+        } catch (Exception exception) {
+            return new DomainHealthDto("ERROR", java.time.LocalDateTime.now(), List.of(
+                    new DomainHealthDto.DomainHealthCheckDto("LDAP", "ERROR", exception.getMessage())));
         }
     }
 

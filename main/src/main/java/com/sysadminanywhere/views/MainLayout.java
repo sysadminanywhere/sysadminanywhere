@@ -10,6 +10,7 @@ import com.sysadminanywhere.views.account.MeView;
 import com.sysadminanywhere.views.automation.AutomationsView;
 import com.sysadminanywhere.views.domain.AuditView;
 import com.sysadminanywhere.views.domain.ChangeHistoryView;
+import com.sysadminanywhere.views.domain.DomainHealthView;
 import com.sysadminanywhere.views.domain.DashboardView;
 import com.sysadminanywhere.views.domain.DomainView;
 import com.sysadminanywhere.views.incident.IncidentsView;
@@ -170,6 +171,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         dashboardSubNavs.addItem(createSideNavItem(getMessage("main_layout.dashboard"), DashboardView.class),
                 createSideNavItem(getMessage("main_layout.search"), SearchView.class),
                 createSideNavItem(getMessage("main_layout.domain"), DomainView.class),
+                createSideNavItem(getMessage("main_layout.domain_health"), DomainHealthView.class),
                 createSideNavItem(getMessage("main_layout.audit"), AuditView.class),
                 createSideNavItem(getMessage("main_layout.change_history"), ChangeHistoryView.class));
 

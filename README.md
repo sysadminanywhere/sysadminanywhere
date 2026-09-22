@@ -25,6 +25,7 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 - **Bulk Container Move**: Move selected supported objects to another container with a destination picker, confirmation and per-object results
 - **Audit History**: Filter directory changes by object name, DN, action and period, then inspect the available LDAP metadata
 - **Application Change Journal**: Review changes made through the application with operator, timestamp and before/after snapshots; entries are stored in a configurable JSON file (credential attributes are redacted)
+- **Domain Health**: Check LDAP connectivity, domain controllers, DNS, SYSVOL/NETLOGON SMB reachability, time drift and LDAP certificate expiry
 - **Status Indicators**: Disabled user and computer accounts are shown with gray icons in directory tables
 - **Group Operations**: Add/remove objects from groups with bulk operations
 - **Password Management**: Secure password reset functionality

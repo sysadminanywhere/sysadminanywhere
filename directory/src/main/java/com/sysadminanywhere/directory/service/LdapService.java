@@ -5,6 +5,7 @@ import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.JwtResponse;
 import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
+import com.sysadminanywhere.common.directory.dto.DomainHealthDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import io.jsonwebtoken.security.Keys;
@@ -27,12 +28,24 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,6 +58,18 @@ public class LdapService {
 
     private final UserConnectionManager userConnectionManager;
     private final ChangeJournalService changeJournalService;
+
+    @org.springframework.beans.factory.annotation.Value("${ldap.host.server:localhost}")
+    private String ldapHost;
+
+    @org.springframework.beans.factory.annotation.Value("${ldap.host.port:389}")
+    private int ldapPort;
+
+    @org.springframework.beans.factory.annotation.Value("${ldap.host.use.ssl:false}")
+    private boolean ldapUseSsl;
+
+    @org.springframework.beans.factory.annotation.Value("${ldap.host.verify-certificate:false}")
+    private boolean ldapVerifyCertificate;
 
     private final String domainName;
     private final String defaultNamingContext;
@@ -550,6 +575,121 @@ public class LdapService {
                         && (item.getAction() == null || !item.getAction().equalsIgnoreCase(actionFilter))));
         content.sort(Comparator.comparing(AuditDto::getWhenChanged).reversed());
         return content;
+    }
+
+    public DomainHealthDto getDomainHealth() {
+        LocalDateTime checkedAt = LocalDateTime.now();
+        List<DomainHealthDto.DomainHealthCheckDto> checks = new ArrayList<>();
+        Entry root = null;
+
+        try {
+            root = getRootDse();
+            checks.add(check(root != null ? "HEALTHY" : "ERROR", "LDAP",
+                    root != null ? "LDAP root DSE is available" : "LDAP root DSE is unavailable"));
+        } catch (Exception exception) {
+            checks.add(check("ERROR", "LDAP", "LDAP check failed: " + safeMessage(exception)));
+        }
+
+        checks.add(checkControllers());
+        checks.add(checkDns());
+        checks.add(checkFileServices());
+        checks.add(checkTime(root));
+        checks.add(checkCertificate());
+
+        String overallStatus = checks.stream().anyMatch(item -> "ERROR".equals(item.getStatus()))
+                ? "ERROR" : checks.stream().anyMatch(item -> "WARNING".equals(item.getStatus()))
+                ? "WARNING" : "HEALTHY";
+        return new DomainHealthDto(overallStatus, checkedAt, checks);
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto checkControllers() {
+        try {
+            List<Entry> controllers = search(new Dn("CN=Sites,CN=Configuration," + defaultNamingContext),
+                    "(objectClass=server)", SearchScope.SUBTREE);
+            int count = controllers == null ? 0 : controllers.size();
+            return check(count > 0 ? "HEALTHY" : "WARNING", "DOMAIN_CONTROLLERS",
+                    count > 0 ? count + " domain controller(s) discovered" : "No domain controllers discovered");
+        } catch (Exception exception) {
+            return check("ERROR", "DOMAIN_CONTROLLERS", "Controller discovery failed: " + safeMessage(exception));
+        }
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto checkDns() {
+        try {
+            InetAddress[] addresses = InetAddress.getAllByName(domainName);
+            return check(addresses.length > 0 ? "HEALTHY" : "WARNING", "DNS",
+                    addresses.length + " address(es) resolved for " + domainName);
+        } catch (Exception exception) {
+            return check("ERROR", "DNS", "DNS resolution failed for " + domainName);
+        }
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto checkFileServices() {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(ldapHost, 445), 2000);
+            return check("HEALTHY", "SYSVOL_NETLOGON", "SMB is reachable on " + ldapHost + ":445");
+        } catch (Exception exception) {
+            return check("WARNING", "SYSVOL_NETLOGON",
+                    "SMB port 445 is not reachable on " + ldapHost + "; SYSVOL/NETLOGON could not be verified");
+        }
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto checkTime(Entry root) {
+        if (root == null || root.get("currentTime") == null) {
+            return check("WARNING", "TIME_SYNC", "LDAP currentTime is unavailable");
+        }
+        try {
+            String value = root.get("currentTime").get().getString();
+            Instant ldapTime = LocalDateTime.parse(value,
+                    DateTimeFormatter.ofPattern("yyyyMMddHHmmss.SX")).toInstant(ZoneOffset.UTC);
+            long driftSeconds = Math.abs(Duration.between(Instant.now(), ldapTime).getSeconds());
+            return check(driftSeconds <= 300 ? "HEALTHY" : "WARNING", "TIME_SYNC",
+                    "LDAP clock drift: " + driftSeconds + " second(s)");
+        } catch (Exception exception) {
+            return check("WARNING", "TIME_SYNC", "LDAP currentTime could not be parsed");
+        }
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto checkCertificate() {
+        if (!ldapUseSsl) {
+            return check("NOT_CHECKED", "CERTIFICATE", "LDAP SSL is disabled");
+        }
+        try {
+            SSLSocketFactory factory = sslSocketFactory();
+            try (SSLSocket socket = (SSLSocket) factory.createSocket()) {
+                socket.connect(new InetSocketAddress(ldapHost, ldapPort), 3000);
+                socket.startHandshake();
+                X509Certificate certificate = (X509Certificate) socket.getSession().getPeerCertificates()[0];
+                certificate.checkValidity();
+                long days = Duration.between(Instant.now(), certificate.getNotAfter().toInstant()).toDays();
+                return check(days <= 30 ? "WARNING" : "HEALTHY", "CERTIFICATE",
+                        "Certificate expires in " + days + " day(s)");
+            }
+        } catch (Exception exception) {
+            return check("ERROR", "CERTIFICATE", "Certificate check failed: " + safeMessage(exception));
+        }
+    }
+
+    private SSLSocketFactory sslSocketFactory() throws Exception {
+        if (ldapVerifyCertificate) {
+            return (SSLSocketFactory) SSLSocketFactory.getDefault();
+        }
+        TrustManager[] trustAll = {new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+            public void checkClientTrusted(X509Certificate[] chain, String authType) { }
+            public void checkServerTrusted(X509Certificate[] chain, String authType) { }
+        }};
+        SSLContext context = SSLContext.getInstance("TLS");
+        context.init(null, trustAll, new java.security.SecureRandom());
+        return context.getSocketFactory();
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto check(String status, String name, String details) {
+        return new DomainHealthDto.DomainHealthCheckDto(name, status, details);
+    }
+
+    private String safeMessage(Exception exception) {
+        return exception.getMessage() == null ? exception.getClass().getSimpleName() : exception.getMessage();
     }
 
     public boolean deleteMember(String dn, String group) {

@@ -8,6 +8,7 @@ import com.sysadminanywhere.common.directory.dto.BulkGroupMembershipDto;
 import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.dto.BulkMoveDto;
 import com.sysadminanywhere.common.directory.dto.ChangeJournalDto;
+import com.sysadminanywhere.common.directory.dto.DomainHealthDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,9 @@ public interface LdapServiceClient {
 
     @GetExchange("/api/ldap/change-history")
     ResponseEntity<List<ChangeJournalDto>> getChangeHistory(@RequestParam Map<String, String> filters);
+
+    @GetExchange("/api/ldap/domain-health")
+    ResponseEntity<DomainHealthDto> getDomainHealth();
 
     @PostExchange("/api/ldap/search")
     ResponseEntity<List<EntryDto>> getSearch(@RequestBody SearchDto searchDto);

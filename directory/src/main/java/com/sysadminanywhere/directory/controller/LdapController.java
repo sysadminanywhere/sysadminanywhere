@@ -224,6 +224,12 @@ public class LdapController {
         return ResponseEntity.ok(changeJournalService.find(filters));
     }
 
+    @GetMapping("/domain-health")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<DomainHealthDto> getDomainHealth() {
+        return ResponseEntity.ok(ldapService.getDomainHealth());
+    }
+
     @PostMapping("/members/bulk")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BulkOperationResult> bulkChangeMembers(
