@@ -2,8 +2,10 @@ package com.sysadminanywhere.views;
 
 import com.sysadminanywhere.control.MenuButton;
 import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.OnboardingTour;
 import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.views.about.AboutView;
+import com.sysadminanywhere.views.about.HelpView;
 import com.sysadminanywhere.views.account.MeView;
 import com.sysadminanywhere.views.automation.AutomationsView;
 import com.sysadminanywhere.views.domain.AuditView;
@@ -70,6 +72,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     private final LocaleService localeService;
 
     private Locale locale;
+    private boolean tourChecked;
 
     public MainLayout(MessageSource messageSource, LocaleService localeService) {
 
@@ -84,11 +87,13 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         subNav.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
 
         buttons.addClassName("primary-navigation");
+        buttons.getElement().setAttribute("data-tour", "primary-navigation");
         buttons.setWidth("78px");
         buttons.setHeightFull();
         buttons.setAlignContent(FlexLayout.ContentAlignment.CENTER);
 
         subNav.addClassName("secondary-navigation");
+        subNav.getElement().setAttribute("data-tour", "secondary-navigation");
         subNav.setWidth("224px");
 
         Image logo = new Image("images/sa-logo.png", "Sysadmin Anywhere");
@@ -171,6 +176,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 createSideNavItem(getMessage("main_layout.contacts"), ContactsView.class));
 
         settingsSubNavs.addItem(createSideNavItem(getMessage("main_layout.settings"), SettingsView.class),
+                createSideNavItem(getMessage("main_layout.help"), HelpView.class),
                 createSideNavItem(getMessage("main_layout.about"), AboutView.class));
 
         inventorySubNavs.addItem(createSideNavItem(getMessage("main_layout.software_inventory"), InventorySoftwareView.class),
@@ -209,8 +215,12 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         if (view instanceof MenuControl) {
             menuLayout.add(((MenuControl) view).getMenu());
         }
-
         updateSubNavBasedOnRoute();
+
+        if (!tourChecked && !"login".equals(event.getLocation().getPath())) {
+            tourChecked = true;
+            getUI().ifPresent(ui -> OnboardingTour.openIfNeeded(ui, messageSource, localeService));
+        }
     }
 
     private void updateSubNavBasedOnRoute() {
@@ -306,6 +316,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         viewTitle = new H3();
         viewTitle.setWidthFull();
         viewTitle.addClassName("view-title");
+        viewTitle.getElement().setAttribute("data-tour", "page-title");
 
         menuLayout = new HorizontalLayout();
         menuLayout.setWidthFull();

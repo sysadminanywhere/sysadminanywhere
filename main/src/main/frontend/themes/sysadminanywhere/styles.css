@@ -51,3 +51,15 @@ html[theme~="dark"] body {
       background: #0f172a;
       color: #f8fafc;
 }
+
+.tour-highlight {
+      outline: 3px solid var(--lumo-primary-color);
+      outline-offset: 4px;
+      border-radius: var(--lumo-border-radius-m);
+      position: relative;
+      z-index: 2;
+}
+
+.onboarding-tour {
+      --vaadin-dialog-content-padding: var(--lumo-space-l);
+}
