@@ -48,6 +48,7 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 - **Incident Management**: Incident tracking and resolution (preview)
 - **44 PDF Reports**: Reports for users, computers, groups, printers and contacts
 - **Directory Health Reports**: Disabled accounts, password policies, stale objects, missing ownership data and critical objects
+- **Security Audit**: Privileged users/groups, service principal names (SPNs), and accounts missing contact or ownership data
 - **Validated LDAP Filters**: Report filters are validated with Apache Directory API 2.1.8
 - **Scheduled Reports**: Daily or weekly PDF/CSV generation with optional SMTP email attachments; schedules and run history are persisted
 
