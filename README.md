@@ -49,6 +49,7 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 - **44 PDF Reports**: Reports for users, computers, groups, printers and contacts
 - **Directory Health Reports**: Disabled accounts, password policies, stale objects, missing ownership data and critical objects
 - **Validated LDAP Filters**: Report filters are validated with Apache Directory API 2.1.8
+- **Scheduled Reports**: Daily or weekly PDF/CSV generation with optional SMTP email attachments; schedules and run history are persisted
 
 ### 🧭 Onboarding & User Experience
 - **Guided Tour**: An onboarding tour introduces the primary navigation, section menu and page content
@@ -201,6 +202,17 @@ JWT_SECRET=your_jwt_secret
 N8N_USER=admin
 N8N_PASSWORD=your_n8n_password
 N8N_API_KEY=your_n8n_api_key
+
+# Scheduled reports and optional SMTP delivery
+REPORTS_SCHEDULER_CONFIG_PATH=/data/scheduled-reports.json
+REPORTS_SCHEDULER_RUNS_PATH=/data/scheduled-report-runs.json
+REPORTS_SCHEDULER_OUTPUT_DIR=/data/scheduled-reports
+MAIL_HOST=
+MAIL_PORT=587
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_SMTP_AUTH=true
+MAIL_SMTP_STARTTLS=true
 ```
 
 When `LDAP_USE_SSL=true`, certificate validation is disabled by default for compatibility with existing installations. To enable validation, set `LDAP_VERIFY_CERTIFICATE=true` and ensure the issuing CA or controller certificate is available in the JVM truststore. If validation is enabled without a trusted certificate, startup can fail with `PKIX path building failed`.
@@ -239,6 +251,7 @@ The application can be configured through Spring Boot properties files. Key conf
 - Database configuration (if using external storage)
 - Caching settings
 - Logging configuration
+- Scheduled report storage (`reports.scheduler.*`) and optional SMTP delivery (`MAIL_*`)
 
 ## 🤝 Contributing
 

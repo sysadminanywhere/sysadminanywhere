@@ -27,6 +27,7 @@ import com.sysadminanywhere.views.reports.ContactReportsView;
 import com.sysadminanywhere.views.reports.GroupReportsView;
 import com.sysadminanywhere.views.reports.PrinterReportsView;
 import com.sysadminanywhere.views.reports.UserReportsView;
+import com.sysadminanywhere.views.reports.ScheduledReportsView;
 import com.sysadminanywhere.views.settings.SettingsView;
 import com.sysadminanywhere.views.search.SearchView;
 import com.vaadin.flow.component.Component;
@@ -198,7 +199,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 createSideNavItem(getMessage("main_layout.computer_reports"), ComputerReportsView.class),
                 createSideNavItem(getMessage("main_layout.group_reports"), GroupReportsView.class),
                 createSideNavItem(getMessage("main_layout.printer_reports"), PrinterReportsView.class),
-                createSideNavItem(getMessage("main_layout.contact_reports"), ContactReportsView.class));
+                createSideNavItem(getMessage("main_layout.contact_reports"), ContactReportsView.class),
+                createSideNavItem(getMessage("main_layout.scheduled_reports"), ScheduledReportsView.class));
 
         accountSubNavs.addItem(createSideNavItem(getMessage("main_layout.me"), MeView.class));
     }

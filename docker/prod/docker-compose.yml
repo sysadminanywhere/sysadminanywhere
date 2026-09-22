@@ -130,6 +130,15 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       N8N_HOST: http://n8n:5678
       N8N_API_KEY: ${N8N_API_KEY}
+      REPORTS_SCHEDULER_CONFIG_PATH: ${REPORTS_SCHEDULER_CONFIG_PATH:-/data/scheduled-reports.json}
+      REPORTS_SCHEDULER_RUNS_PATH: ${REPORTS_SCHEDULER_RUNS_PATH:-/data/scheduled-report-runs.json}
+      REPORTS_SCHEDULER_OUTPUT_DIR: ${REPORTS_SCHEDULER_OUTPUT_DIR:-/data/scheduled-reports}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      MAIL_SMTP_STARTTLS: ${MAIL_SMTP_STARTTLS:-true}
       SPRING_PROFILES_ACTIVE: prod
       ALLOWED_USERS:
       ALLOWED_GROUPS:
@@ -138,6 +147,8 @@ services:
       - directory
       - inventory
       - incident
+    volumes:
+      - report_scheduler_data:/data
     restart: unless-stopped
 
 volumes:
@@ -145,3 +156,4 @@ volumes:
   vault_data:
   n8n_data:
   directory_change_journal:
+  report_scheduler_data:
