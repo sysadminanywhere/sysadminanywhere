@@ -209,7 +209,7 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
 
     private Long getFileTime(int days) {
         ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-        ZonedDateTime targetDate = now.minusDays(180);
+        ZonedDateTime targetDate = now.minusDays(days);
 
         // 2. Windows FileTime начинается с 1601-01-01
         ZonedDateTime windowsEpoch = ZonedDateTime.of(1601, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
