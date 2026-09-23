@@ -3,6 +3,7 @@ package com.sysadminanywhere.directory.controller;
 import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.*;
 import com.sysadminanywhere.directory.service.LdapService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class LdapController {
      * Получение логов аудита с постраничным выводом
      */
     @GetMapping("/audit")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<PageResponse<AuditDto>> getAudit(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -61,7 +62,7 @@ public class LdapController {
      * Получение списка логов аудита без постраничного вывода
      */
     @GetMapping("/audit/list")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<List<AuditDto>> getAuditList(@RequestParam Map<String, String> filters) {
         try {
             List<AuditDto> result = ldapService.getAuditList(filters);
@@ -83,7 +84,7 @@ public class LdapController {
      * Поиск записей в LDAP с фильтром
      */
     @PostMapping("/search")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<List<EntryDto>> search(@Valid @RequestBody SearchDto searchDto) {
         try {
             validateSearchDto(searchDto);
@@ -116,7 +117,7 @@ public class LdapController {
      * Подсчет записей по фильтру
      */
     @PostMapping("/count")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<Long> count(@Valid @RequestBody SearchDto searchDto) {
         try {
             validateSearchDto(searchDto);
@@ -144,7 +145,7 @@ public class LdapController {
      * Получение корневого DSE записи
      */
     @GetMapping("/rootdse")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<EntryDto> getRootDse() {
         try {
             EntryDto result = ldapService.convertEntry(ldapService.getDomainEntry());
@@ -162,7 +163,7 @@ public class LdapController {
      * Добавление члена в группу
      */
     @PostMapping("/members")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<?> addMember(
             @RequestParam @NotBlank(message = "DN cannot be empty") String dn,
             @RequestParam @NotBlank(message = "Group cannot be empty") String group) {
@@ -192,7 +193,7 @@ public class LdapController {
      * Удаление члена из группы
      */
     @DeleteMapping("/members")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<?> deleteMember(
             @RequestParam @NotBlank(message = "DN cannot be empty") String dn,
             @RequestParam @NotBlank(message = "Group cannot be empty") String group) {
@@ -219,19 +220,19 @@ public class LdapController {
     }
 
     @GetMapping("/change-history")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<List<ChangeJournalDto>> getChangeHistory(@RequestParam Map<String, String> filters) {
         return ResponseEntity.ok(changeJournalService.find(filters));
     }
 
     @GetMapping("/domain-health")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<DomainHealthDto> getDomainHealth() {
         return ResponseEntity.ok(ldapService.getDomainHealth());
     }
 
     @PostMapping("/members/bulk")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<BulkOperationResult> bulkChangeMembers(
             @Valid @RequestBody BulkGroupMembershipDto request) {
         try {
@@ -252,7 +253,7 @@ public class LdapController {
     }
 
     @PostMapping("/move/bulk")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<BulkOperationResult> bulkMove(@Valid @RequestBody BulkMoveDto request) {
         try {
             if (request == null || request.getDistinguishedNames() == null
@@ -275,6 +276,7 @@ public class LdapController {
      * Аутентификация пользователя
      */
     @PostMapping("/authenticate")
+    @Operation(security = {})
     public ResponseEntity<?> authenticate(@Valid @RequestBody LoginRequest loginRequest) {
         try {
             if (loginRequest == null || loginRequest.getUsername() == null || loginRequest.getUsername().isBlank() ||

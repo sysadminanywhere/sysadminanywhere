@@ -27,7 +27,7 @@ public class WmiController {
      * Выполнение WMI запроса на удаленном хосте
      */
     @PostMapping("/execute")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<?> execute(@Valid @RequestBody ExecuteDto executeDto) {
         try {
             List<Map<String, Object>> result = wmiService.execute(
@@ -52,7 +52,7 @@ public class WmiController {
      * Очистка кэша WMI запроса
      */
     @PostMapping("/execute/clear")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<?> clearExecuteCache(@Valid @RequestBody ExecuteDto executeDto) {
         try {
             wmiService.clearExecuteCache(executeDto.getHostName(), executeDto.getWqlQuery());
@@ -75,7 +75,7 @@ public class WmiController {
      * Вызов WMI метода на удаленном хосте
      */
     @PostMapping("/invoke")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<?> invoke(@Valid @RequestBody InvokeDto invokeDto) {
         try {
             Map<String, Object> result = wmiService.invoke(
@@ -104,7 +104,7 @@ public class WmiController {
      * Выполнение системной команды на удаленном хосте
      */
     @PostMapping("/command")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<?> command(@Valid @RequestBody CommandDto commandDto) {
         try {
             wmiService.executeCommand(

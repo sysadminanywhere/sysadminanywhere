@@ -32,6 +32,21 @@ public class JwtService {
                 .compact();
     }
 
+    public String generateApiToken(String username, String tokenId, List<String> scopes, Date expiresAt) {
+        Key key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        return Jwts.builder()
+                .setId(tokenId)
+                .setSubject(username)
+                .claim("tokenType", "api")
+                .claim("roles", List.of())
+                .claim("scopes", scopes)
+                .claim("service", "api")
+                .setIssuedAt(new Date())
+                .setExpiration(expiresAt)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
     public JwtPrincipal parseAndValidate(String token) {
         SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 
@@ -44,10 +59,14 @@ public class JwtService {
         String username = claims.getSubject();
         List<String> roles = claims.get("roles", List.class);
         String service = claims.get("service", String.class);
+        String tokenType = claims.get("tokenType", String.class);
+        List<String> scopes = claims.get("scopes", List.class);
 
-        return new JwtPrincipal(username, roles, service);
+        return new JwtPrincipal(username, roles == null ? List.of() : roles, service,
+                "api".equals(tokenType), claims.getId(), scopes == null ? List.of() : scopes);
     }
 
-    public record JwtPrincipal(String username, List<String> roles, String service) {}
+    public record JwtPrincipal(String username, List<String> roles, String service,
+                               boolean apiToken, String tokenId, List<String> scopes) {}
 
 }

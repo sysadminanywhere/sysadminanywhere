@@ -1,0 +1,538 @@
+openapi: 3.1.0
+info:
+  title: SysadminAnywhere REST API
+  version: 5.0.0
+  description: >-
+    Examples for the implemented Directory, Incident, and Inventory service APIs.
+    All operations except authentication require an administrator JWT obtained from
+    POST /api/ldap/authenticate. See api-reference-ru.md and api-reference-en.md
+    for service URLs and usage notes.
+servers:
+  - url: http://localhost:8081
+    description: Directory service (local development)
+  - url: http://localhost:8082
+    description: Inventory service (local development)
+  - url: http://localhost:8083
+    description: Incident service (local development)
+security:
+  - bearerAuth: []
+paths:
+  /api/api-tokens:
+    get:
+      servers:
+        - url: http://localhost:8081
+      tags: [Authentication]
+      summary: List integration tokens without revealing their secrets
+      operationId: listApiTokens
+      responses:
+        '200':
+          description: Token metadata for active, expired, and revoked tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ApiTokenSummary' }
+    post:
+      servers:
+        - url: http://localhost:8081
+      tags: [Authentication]
+      summary: Create a scoped integration token
+      operationId: createApiToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApiTokenCreateRequest' }
+            example:
+              name: nightly-inventory-export
+              scopes: [inventory:read]
+              expiresInDays: 90
+      responses:
+        '201':
+          description: Token secret is returned only once
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiTokenCreatedResponse' }
+        '400':
+          description: Invalid name, scope, or expiry
+  /api/api-tokens/{id}:
+    delete:
+      servers:
+        - url: http://localhost:8081
+      tags: [Authentication]
+      summary: Revoke a token immediately
+      operationId: revokeApiToken
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Token revoked }
+        '404': { description: Token not found or already revoked }
+  /api/api-tokens/introspect:
+    post:
+      servers:
+        - url: http://localhost:8081
+      tags: [Authentication]
+      summary: Internal validation used by the other services
+      operationId: introspectApiToken
+      responses:
+        '200':
+          description: Token is active
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiTokenIntrospectionResponse' }
+        '401': { description: Token is invalid, expired, or revoked }
+  /api/ldap/authenticate:
+    post:
+      servers:
+        - url: http://localhost:8081
+      tags: [Authentication]
+      summary: Authenticate against Active Directory
+      operationId: authenticate
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              username: administrator
+              password: change-me
+              service: sysadminanywhere
+      responses:
+        '200':
+          description: JWT and authenticated account details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwtResponse'
+              example:
+                token: eyJhbGciOiJIUzI1NiJ9.example.signature
+                username: administrator
+                roles: [ROLE_ADMIN]
+        '401':
+          description: Invalid username or password
+  /api/ldap/search:
+    post:
+      servers:
+        - url: http://localhost:8081
+      tags: [Directory]
+      summary: Search Active Directory with an LDAP filter
+      operationId: searchDirectory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+            example:
+              distinguishedName: DC=example,DC=com
+              filter: (objectClass=user)
+              searchScope: 2
+              attributes: [cn, mail, sAMAccountName]
+      responses:
+        '200':
+          description: Matching directory entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DirectoryEntry'
+        '400':
+          description: Invalid DN, LDAP filter, or search scope
+  /api/users:
+    get:
+      servers:
+        - url: http://localhost:8081
+      tags: [Users]
+      summary: Get a page of users using an LDAP filter
+      operationId: getUsers
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 0, minimum: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 10, minimum: 1 }
+        - name: sort
+          in: query
+          description: Accepted by the endpoint for compatibility; currently not applied.
+          schema: { type: string, default: '' }
+        - name: filters
+          in: query
+          required: true
+          description: LDAP filter expression.
+          schema: { type: string }
+          example: (objectClass=user)
+        - name: attributes
+          in: query
+          required: true
+          description: Repeat this parameter for each LDAP attribute to return.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items: { type: string }
+          example: [cn, mail, sAMAccountName]
+      responses:
+        '200':
+          description: Page of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPage'
+        '400':
+          description: Invalid LDAP filter
+    post:
+      servers:
+        - url: http://localhost:8081
+      tags: [Users]
+      summary: Create an Active Directory user
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddUserRequest'
+            example:
+              distinguishedName: CN=Alex Morgan,OU=Users,DC=example,DC=com
+              cn: Alex Morgan
+              displayName: Alex Morgan
+              firstName: Alex
+              lastName: Morgan
+              initials: AM
+              password: temporary-password
+              cannotChangePassword: false
+              passwordNeverExpires: false
+              accountDisabled: true
+              mustChangePassword: true
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectoryEntry'
+        '400':
+          description: Missing required user fields or invalid data
+  /api/users/bulk/change-status:
+    post:
+      servers:
+        - url: http://localhost:8081
+      tags: [Users, Bulk operations]
+      summary: Enable or disable multiple user accounts
+      operationId: bulkChangeUserStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkUserStatusRequest'
+            example:
+              distinguishedNames:
+                - CN=Alex Morgan,OU=Users,DC=example,DC=com
+                - CN=Sam Lee,OU=Users,DC=example,DC=com
+              accountDisabled: true
+      responses:
+        '200':
+          description: Per-object operation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkOperationResult'
+        '400':
+          description: No distinguished names were supplied
+  /api/ldap/members/bulk:
+    post:
+      servers:
+        - url: http://localhost:8081
+      tags: [Groups, Bulk operations]
+      summary: Add or remove multiple objects from a group
+      operationId: bulkChangeGroupMembers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkGroupMembershipRequest'
+            example:
+              memberDistinguishedNames:
+                - CN=Alex Morgan,OU=Users,DC=example,DC=com
+                - CN=WS-042,OU=Computers,DC=example,DC=com
+              groupDistinguishedName: CN=Helpdesk,OU=Groups,DC=example,DC=com
+              remove: false
+      responses:
+        '200':
+          description: Per-object operation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkOperationResult'
+        '400':
+          description: Invalid group or member distinguished name
+  /api/inventory/health:
+    get:
+      servers:
+        - url: http://localhost:8082
+      tags: [Inventory]
+      summary: Find computers with stale or missing inventory scans
+      operationId: getInventoryHealth
+      parameters:
+        - name: staleDays
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 3650, default: 30 }
+      responses:
+        '200':
+          description: Inventory freshness summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryHealth'
+        '400':
+          description: staleDays must be between 1 and 3650
+  /api/incidents:
+    get:
+      servers:
+        - url: http://localhost:8083
+      tags: [Incidents]
+      summary: Get a page of incidents
+      operationId: getIncidents
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 0, minimum: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 10, minimum: 1 }
+        - name: sort
+          in: query
+          description: Accepted by the endpoint for compatibility; currently not applied.
+          schema: { type: string, default: '' }
+        - name: severity
+          in: query
+          required: false
+          description: Severity enum value; ALL or omission leaves severity unfiltered.
+          schema:
+            type: string
+            enum: [ALL, LOW, MEDIUM, HIGH, CRITICAL]
+          example: ALL
+        - name: status
+          in: query
+          required: false
+          description: Incident status enum value; ALL or omission leaves status unfiltered.
+          schema:
+            type: string
+            enum: [ALL, OPEN, IN_PROGRESS, RESOLVED, FALSE_POSITIVE, CLOSED]
+          example: OPEN
+      responses:
+        '200':
+          description: Page of incidents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentPage'
+  /api/incidents/{id}/close:
+    post:
+      servers:
+        - url: http://localhost:8083
+      tags: [Incidents]
+      summary: Close an incident
+      operationId: closeIncident
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: Closed incident
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Incident'
+        '404':
+          description: Incident not found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ApiTokenCreateRequest:
+      type: object
+      required: [name, scopes]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        scopes:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            enum: [directory:read, directory:write, remote:execute, inventory:read, incidents:read, incidents:write]
+        expiresInDays: { type: integer, minimum: 1, maximum: 365, default: 30 }
+    ApiTokenSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        scopes:
+          type: array
+          items: { type: string }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+        revoked: { type: boolean }
+        active: { type: boolean }
+    ApiTokenCreatedResponse:
+      type: object
+      properties:
+        apiToken: { $ref: '#/components/schemas/ApiTokenSummary' }
+        token: { type: string, description: The secret value, returned once at creation. }
+    ApiTokenIntrospectionResponse:
+      type: object
+      properties:
+        active: { type: boolean }
+        tokenId: { type: string, format: uuid }
+        subject: { type: string }
+        scopes:
+          type: array
+          items: { type: string }
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: administrator }
+        password: { type: string, format: password }
+        service: { type: string, example: sysadminanywhere }
+    JwtResponse:
+      type: object
+      properties:
+        token: { type: string }
+        username: { type: string }
+        roles:
+          type: array
+          items: { type: string }
+    SearchRequest:
+      type: object
+      required: [filter, searchScope]
+      properties:
+        distinguishedName: { type: string }
+        filter: { type: string, example: (objectClass=user) }
+        searchScope:
+          type: integer
+          description: '0 = base object, 1 = one level, 2 = subtree.'
+          enum: [0, 1, 2]
+        attributes:
+          type: array
+          items: { type: string }
+    AddUserRequest:
+      type: object
+      required: [distinguishedName, cn, password]
+      properties:
+        distinguishedName: { type: string }
+        cn: { type: string }
+        displayName: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        initials: { type: string }
+        password: { type: string, format: password }
+        cannotChangePassword: { type: boolean, default: false }
+        passwordNeverExpires: { type: boolean, default: false }
+        accountDisabled: { type: boolean, default: false }
+        mustChangePassword: { type: boolean, default: false }
+    BulkUserStatusRequest:
+      type: object
+      required: [distinguishedNames]
+      properties:
+        distinguishedNames:
+          type: array
+          minItems: 1
+          items: { type: string }
+        accountDisabled: { type: boolean, description: 'true disables accounts; false enables them.' }
+    BulkGroupMembershipRequest:
+      type: object
+      required: [memberDistinguishedNames, groupDistinguishedName]
+      properties:
+        memberDistinguishedNames:
+          type: array
+          minItems: 1
+          items: { type: string }
+        groupDistinguishedName: { type: string }
+        remove: { type: boolean, default: false }
+    DirectoryEntry:
+      type: object
+      description: Directory attributes are returned according to the requested attributes and object type.
+      additionalProperties: true
+      properties:
+        distinguishedName: { type: string }
+        cn: { type: string }
+        displayName: { type: string }
+        samAccountName: { type: string }
+        emailAddress: { type: string }
+    UserPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/DirectoryEntry' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer, format: int64 }
+        totalPages: { type: integer }
+    BulkOperationResult:
+      type: object
+      description: Per-object success and failure details returned by bulk operations.
+      properties:
+        updated: { type: integer }
+        failures:
+          type: array
+          items: { type: string }
+    InventoryHealth:
+      type: object
+      properties:
+        checkedAt: { type: string, format: date-time }
+        staleDays: { type: integer }
+        totalComputers: { type: integer }
+        staleCount: { type: integer }
+        neverScannedCount: { type: integer }
+        computers:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer, format: int64 }
+              name: { type: string }
+              checkingDate: { type: string, format: date-time, nullable: true }
+              daysSinceCheck: { type: integer, format: int64 }
+    Incident:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        signalId: { type: string }
+        name: { type: string }
+        severity: { type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL] }
+        status: { type: string, enum: [OPEN, IN_PROGRESS, RESOLVED, FALSE_POSITIVE, CLOSED] }
+        eventCount: { type: integer }
+        recommendation: { type: string }
+        affectedUser: { type: string }
+        machineName: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time, nullable: true }
+        closedAt: { type: string, format: date-time, nullable: true }
+        closedBy: { type: string, nullable: true }
+    IncidentPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/Incident' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer, format: int64 }
+        totalPages: { type: integer }

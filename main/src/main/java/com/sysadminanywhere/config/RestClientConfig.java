@@ -113,6 +113,14 @@ public class RestClientConfig {
     }
 
     @Bean
+    public ApiTokensServiceClient apiTokensServiceClient(RestClient directoryServiceRestClient) {
+        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builder()
+                .exchangeAdapter(RestClientAdapter.create(directoryServiceRestClient))
+                .build();
+        return factory.createClient(ApiTokensServiceClient.class);
+    }
+
+    @Bean
     public UsersServiceClient usersServiceClient(RestClient directoryServiceRestClient) {
         HttpServiceProxyFactory factory = HttpServiceProxyFactory.builder()
                 .exchangeAdapter(RestClientAdapter.create(directoryServiceRestClient))

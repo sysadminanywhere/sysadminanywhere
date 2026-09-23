@@ -35,7 +35,7 @@ public class UsersController {
      * Получение всех пользователей с постраничным выводом и фильтрацией
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<PageResponse<UserEntry>> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -71,7 +71,7 @@ public class UsersController {
      * Получение списка пользователей без постраничного вывода
      */
     @GetMapping("/list")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<List<UserEntry>> getList(
             @RequestParam String filters,
             @RequestParam String[] attributes) {
@@ -96,7 +96,7 @@ public class UsersController {
      * Получение пользователя по CN (Common Name)
      */
     @GetMapping("/{cn}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<UserEntry> getByCN(@PathVariable String cn) {
         try {
             if (cn == null || cn.isBlank()) {
@@ -119,7 +119,7 @@ public class UsersController {
      * Создание нового пользователя
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<UserEntry> add(@Valid @RequestBody AddUserDto addUser) {
         try {
             validateAddUserDto(addUser);
@@ -155,7 +155,7 @@ public class UsersController {
      * Обновление пользователя
      */
     @PutMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<UserEntry> update(@Valid @RequestBody UserEntry user) {
         try {
             if (user == null || user.getDistinguishedName() == null || user.getDistinguishedName().isBlank()) {
@@ -178,7 +178,7 @@ public class UsersController {
      * Удаление пользователя
      */
     @DeleteMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<?> delete(
             @RequestParam @NotBlank(message = "DistinguishedName cannot be empty") String distinguishedName) {
 
@@ -199,7 +199,7 @@ public class UsersController {
      * Сброс пароля пользователя
      */
     @PostMapping("/resetpassword")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDto resetPasswordDto) {
         try {
             if (resetPasswordDto == null || resetPasswordDto.getDistinguishedName() == null ||
@@ -232,7 +232,7 @@ public class UsersController {
      * Изменение статуса учетной записи пользователя
      */
     @PostMapping("/changeuac")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<?> changeUserAccountControl(
             @Valid @RequestBody ChangeUserAccountControlDto changeUserAccountControlDto) {
 
@@ -262,7 +262,7 @@ public class UsersController {
     }
 
     @PostMapping("/bulk/change-status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<BulkOperationResult> bulkChangeAccountStatus(
             @Valid @RequestBody BulkUserAccountStatusDto request) {
         if (request == null || request.getDistinguishedNames() == null
@@ -274,7 +274,7 @@ public class UsersController {
     }
 
     @PostMapping("/bulk/delete")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<BulkOperationResult> bulkDelete(@Valid @RequestBody BulkDeleteDto request) {
         if (request == null || request.getDistinguishedNames() == null || request.getDistinguishedNames().isEmpty()) {
             return ResponseEntity.badRequest().build();

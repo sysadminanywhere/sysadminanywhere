@@ -1,6 +1,7 @@
 package com.sysadminanywhere.directory.config;
 
 import com.sysadminanywhere.directory.service.JwtService;
+import com.sysadminanywhere.directory.service.ApiTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,9 +17,11 @@ import java.util.stream.Collectors;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final ApiTokenService apiTokenService;
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(JwtService jwtService, ApiTokenService apiTokenService) {
         this.jwtService = jwtService;
+        this.apiTokenService = apiTokenService;
     }
 
     @Override
@@ -35,10 +38,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             try {
                 var principal = jwtService.parseAndValidate(token);
+                if (principal.apiToken() && !apiTokenService.isActive(token, principal.tokenId(), principal.scopes())) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                }
 
                 var authorities = principal.roles().stream()
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
+                if (principal.apiToken()) {
+                    authorities.add(new SimpleGrantedAuthority("ROLE_API_TOKEN"));
+                    principal.scopes().stream().map(scope -> new SimpleGrantedAuthority("SCOPE_" + scope))
+                            .forEach(authorities::add);
+                }
 
                 var authentication = new UsernamePasswordAuthenticationToken(
                         principal.username(),

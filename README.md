@@ -65,7 +65,7 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 
 ### 🤖 Automation & Integration
 - **n8n Workflows**: Build automation workflows using n8n integration
-- **API Support**: RESTful API for third-party integrations
+- **API Support**: Scoped, revocable integration tokens, OpenAPI examples, and per-service Swagger UI
 - **Monitoring**: Automated monitoring and alerting capabilities
 
 ## 🌍 Internationalization
@@ -213,6 +213,7 @@ REPORTS_SCHEDULER_CONFIG_PATH=/data/scheduled-reports.json
 REPORTS_SCHEDULER_RUNS_PATH=/data/scheduled-report-runs.json
 REPORTS_SCHEDULER_OUTPUT_DIR=/data/scheduled-reports
 WEBHOOKS_CONFIG_PATH=/data/webhooks.json
+API_TOKENS_CONFIG_PATH=/data/api-tokens.json
 MAIL_HOST=
 MAIL_PORT=587
 MAIL_USERNAME=
@@ -246,7 +247,9 @@ Keep `LDAP_VERIFY_CERTIFICATE=false` only for isolated legacy environments: trus
 - **[User Guide (English)](docs/user-guide-en.md)** - Detailed usage instructions
 - **[Руководство пользователя (русский)](docs/user-guide-ru.md)** - Подробная инструкция по работе с приложением
 - **[n8n Integration Guide](docs/n8n-integration-guide-en.md)** - Automation workflow setup
-- **[API Documentation](docs/ai-openapi.yaml)** - REST API reference
+- **[API Reference (English)](docs/api-reference-en.md)** - Authentication, service URLs, and request examples
+- **[Справочник API (русский)](docs/api-reference-ru.md)** - Аутентификация, адреса сервисов и примеры запросов
+- **[OpenAPI Examples](docs/ai-openapi.yaml)** - Machine-readable examples for implemented REST endpoints
 
 ## 🔧 Configuration
 

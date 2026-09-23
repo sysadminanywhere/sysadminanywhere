@@ -37,7 +37,7 @@ public class InventoryController {
     // Software
 
     @GetMapping("/health")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<InventoryHealthDto> getInventoryHealth(
             @RequestParam(defaultValue = "30") int staleDays) {
         if (staleDays < 1 || staleDays > 3650) {
@@ -61,7 +61,7 @@ public class InventoryController {
     }
 
     @GetMapping("/software/count")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<PageResponse<SoftwareCount>> getSoftwareCount(
             @RequestParam String name,
             @RequestParam String vendor,
@@ -89,7 +89,7 @@ public class InventoryController {
     }
 
     @GetMapping("/computers/{computerId}/software")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<PageResponse<SoftwareOnComputer>> getSoftwareOnComputer(
             @PathVariable Long computerId,
             @RequestParam(defaultValue = "0") int page,
@@ -111,7 +111,7 @@ public class InventoryController {
     }
 
     @GetMapping("/software/{softwareId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<PageResponse<ComputerItem>> getComputersWithSoftware(
             @PathVariable Long softwareId,
             @RequestParam String name,
@@ -141,7 +141,7 @@ public class InventoryController {
     // Hardware
 
     @GetMapping("/hardware")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<PageResponse<HardwareItem>> getHardwares(
             @RequestParam String name,
             @RequestParam String type,
@@ -167,7 +167,7 @@ public class InventoryController {
     }
 
     @GetMapping("/hardware/{hardwareId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<HardwareModelItem> getHardwareProperties(
             @PathVariable Long hardwareId) {
 
