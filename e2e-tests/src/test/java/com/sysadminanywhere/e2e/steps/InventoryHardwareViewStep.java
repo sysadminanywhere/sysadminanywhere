@@ -22,5 +22,8 @@ public class InventoryHardwareViewStep {
         // Check page title
         String title = page.title();
         assert title.equals("Hardware") || title.equals("Оборудование") || title.equals("Matériel") : "Unexpected page title: " + title;
+
+        // The inventory page contains the OS distribution, patch status and hardware grids.
+        assert page.locator("vaadin-grid").count() >= 3 : "Inventory hardware summaries are missing";
     }
 }
