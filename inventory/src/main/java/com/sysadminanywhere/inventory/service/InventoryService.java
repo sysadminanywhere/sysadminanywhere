@@ -42,6 +42,7 @@ public class InventoryService {
     private volatile String lastScanError;
     private volatile LocalDateTime scanStartedAt;
     private volatile LocalDateTime scanFinishedAt;
+    private volatile Set<String> scanTargets = Set.of();
 
     public InventoryService(AuthService authService,
                             ComputersServiceClient computersServiceClient,
@@ -59,9 +60,16 @@ public class InventoryService {
     }
 
     public boolean startScan() {
+        return startScan(List.of());
+    }
+
+    public boolean startScan(List<String> computerNames) {
         if (!scanRunning.compareAndSet(false, true)) {
             return false;
         }
+        scanTargets = computerNames == null ? Set.of() : computerNames.stream()
+                .filter(Objects::nonNull).map(String::trim).filter(name -> !name.isEmpty())
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
         scanStartedAt = LocalDateTime.now();
         scanFinishedAt = null;
         lastScanError = null;
@@ -82,6 +90,7 @@ public class InventoryService {
             } finally {
                 scanFinishedAt = LocalDateTime.now();
                 scanRunning.set(false);
+                scanTargets = Set.of();
                 run.setFinishedAt(scanFinishedAt);
                 run.setProcessed((int) computerRepository.count());
                 if (run.getError() == null) {
@@ -143,7 +152,8 @@ public class InventoryService {
         log.info("Found {} computers", computers.size());
 
         for (ComputerEntry computerEntry : computers) {
-            if (computerEntry != null && !computerEntry.isDisabled()) {
+            if (computerEntry != null && !computerEntry.isDisabled()
+                    && (scanTargets.isEmpty() || scanTargets.contains(computerEntry.getCn()))) {
                 try {
                     Computer computer = checkComputer(computerEntry.getCn());
                     if (computerEntry.getCn() == null || computerEntry.getCn().isEmpty()) {

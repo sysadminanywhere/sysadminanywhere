@@ -117,8 +117,12 @@ public class InventoryService {
     }
 
     public boolean startScan() {
+        return startScan(List.of());
+    }
+
+    public boolean startScan(List<String> computerNames) {
         try {
-            inventoryServiceClient.startScan();
+            inventoryServiceClient.startScan(new InventoryScanRequest(computerNames));
             return true;
         } catch (Exception e) {
             log.warn("Unable to start inventory scan: {}", e.getMessage());

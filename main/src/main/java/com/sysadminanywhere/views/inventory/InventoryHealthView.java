@@ -51,6 +51,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
     private final Grid<InventoryScanRun> historyGrid = new Grid<>();
     private final TextField computerFilter = new TextField();
     private List<InventoryHealthComputer> currentComputers = List.of();
+    private final Button scanSelected = new Button();
 
     public InventoryHealthView(InventoryService inventoryService, IncidentService incidentService,
                                MessageSource messageSource, LocaleService localeService) {
@@ -77,7 +78,11 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         startScan.setVisible(SecurityContextHolder.getContext().getAuthentication() != null
                 && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority())));
-        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, staleDays, startScan, refresh);
+        scanSelected.setText(message("inventory_health_view.scan_selected"));
+        scanSelected.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        scanSelected.setVisible(startScan.isVisible());
+        scanSelected.addClickListener(event -> startSelectedScan());
+        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, staleDays, startScan, scanSelected, refresh);
         header.setWidthFull(); header.setAlignItems(Alignment.END); header.setFlexGrow(1, title);
 
         HorizontalLayout summary = new HorizontalLayout(metric(message("inventory_health_view.total"), total),
@@ -122,6 +127,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         historyGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
         historyGrid.setWidthFull();
         historyGrid.setHeight("180px");
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
         add(header, summary, new H3(message("inventory_health_view.scan_history")), historyGrid, grid);
         expand(grid);
         refresh();
@@ -134,6 +140,20 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         } else {
             Notification notification = Notification.show(message("inventory_health_view.scan_running"));
             notification.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
+        }
+    }
+
+    private void startSelectedScan() {
+        List<String> names = grid.getSelectedItems().stream().map(InventoryHealthComputer::name).toList();
+        if (names.isEmpty()) {
+            Notification notification = Notification.show(message("inventory_health_view.select_computers"));
+            notification.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
+            return;
+        }
+        if (inventoryService.startScan(names)) {
+            grid.deselectAll();
+            Notification.show(message("inventory_health_view.scan_started"));
+            updateScanStatus();
         }
     }
 

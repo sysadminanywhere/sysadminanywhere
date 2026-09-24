@@ -38,8 +38,9 @@ public class InventoryController {
 
     @PostMapping("/scan")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> startScan() {
-        return inventoryService.startScan() ? ResponseEntity.accepted().build() : ResponseEntity.status(409).build();
+    public ResponseEntity<Void> startScan(@RequestBody(required = false) InventoryScanRequest request) {
+        List<String> names = request == null ? List.of() : request.computerNames();
+        return inventoryService.startScan(names) ? ResponseEntity.accepted().build() : ResponseEntity.status(409).build();
     }
 
     @GetMapping("/scan/status")

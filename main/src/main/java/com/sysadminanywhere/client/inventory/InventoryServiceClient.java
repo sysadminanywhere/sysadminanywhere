@@ -17,7 +17,7 @@ public interface InventoryServiceClient {
     InventoryHealthDto getInventoryHealth(@RequestParam int staleDays);
 
     @PostExchange("/api/inventory/scan")
-    void startScan();
+    void startScan(@org.springframework.web.bind.annotation.RequestBody InventoryScanRequest request);
 
     @GetExchange("/api/inventory/scan/status")
     InventoryScanStatus getScanStatus();
