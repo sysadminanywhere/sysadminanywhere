@@ -11,6 +11,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
@@ -41,6 +42,8 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
     private final MessageSource messages;
     private final LocaleService locale;
     private final Grid<SoftwareLicense> grid = new Grid<>();
+    private final ComboBox<String> statusFilter = new ComboBox<>();
+    private List<SoftwareLicense> licenses = List.of();
 
     public InventoryLicensesView(InventoryService inventoryService, IncidentService incidentService, MessageSource messages, LocaleService locale) {
         this.inventoryService = inventoryService; this.incidentService = incidentService; this.messages = messages; this.locale = locale;
@@ -50,7 +53,17 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Anchor export = new Anchor(new StreamResource("software-licenses.csv", this::createCsv), msg("inventory_licenses_view.export_csv"));
         export.getElement().setAttribute("download", true);
-        HorizontalLayout header = new HorizontalLayout(title, export, add);
+        statusFilter.setItems("ALL", "COMPLIANT", "OVERUSED", "EXPIRED");
+        statusFilter.setValue("ALL");
+        statusFilter.setLabel(msg("inventory_licenses_view.status"));
+        statusFilter.setItemLabelGenerator(value -> switch (value) {
+            case "OVERUSED" -> msg("inventory_licenses_view.overused");
+            case "EXPIRED" -> msg("inventory_licenses_view.expired");
+            case "COMPLIANT" -> msg("inventory_licenses_view.compliant");
+            default -> msg("inventory_licenses_view.all");
+        });
+        statusFilter.addValueChangeListener(event -> applyFilter());
+        HorizontalLayout header = new HorizontalLayout(title, statusFilter, export, add);
         header.setWidthFull(); header.setFlexGrow(1, title);
         grid.addColumn(SoftwareLicense::name).setHeader(msg("inventory_licenses_view.name")).setAutoWidth(true);
         grid.addColumn(SoftwareLicense::vendor).setHeader(msg("inventory_licenses_view.vendor")).setAutoWidth(true);
@@ -74,14 +87,22 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
         add(header, grid); expand(grid); refresh();
     }
 
-    private void refresh() { grid.setItems(inventoryService.getLicenses()); }
+    private void refresh() { licenses = inventoryService.getLicenses(); applyFilter(); }
+
+    private void applyFilter() {
+        String selected = statusFilter.getValue() == null ? "ALL" : statusFilter.getValue();
+        grid.setItems(licenses.stream().filter(item -> "ALL".equals(selected) || selected.equals(status(item))).toList());
+    }
+
+    private String status(SoftwareLicense item) {
+        return item.used() > item.purchased() ? "OVERUSED"
+                : item.expiresAt() != null && item.expiresAt().isBefore(java.time.LocalDate.now()) ? "EXPIRED" : "COMPLIANT";
+    }
 
     private ByteArrayInputStream createCsv() {
         StringBuilder csv = new StringBuilder("Software,Vendor,Version,Purchased,Used,Expires,Status\n");
         inventoryService.getLicenses().forEach(item -> {
-            String status = item.used() > item.purchased() ? msg("inventory_licenses_view.overused")
-                    : item.expiresAt() != null && item.expiresAt().isBefore(java.time.LocalDate.now())
-                    ? msg("inventory_licenses_view.expired") : msg("inventory_licenses_view.compliant");
+            String status = msg("inventory_licenses_view." + status(item).toLowerCase());
             csv.append(csv(item.name())).append(',').append(csv(item.vendor())).append(',').append(csv(item.version())).append(',')
                     .append(item.purchased()).append(',').append(item.used()).append(',').append(csv(String.valueOf(item.expiresAt())))
                     .append(',').append(csv(status)).append('\n');
