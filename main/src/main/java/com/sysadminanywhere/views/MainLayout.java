@@ -85,6 +85,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     private Locale locale;
     private boolean tourChecked;
+    private boolean navigationAdminState;
 
     public MainLayout(MessageSource messageSource, LocaleService localeService) {
 
@@ -132,6 +133,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
     }
 
     private void addNavigation() {
+        navigationAdminState = UiAuthorization.isAdmin();
         if (topMenu != null) {
             buttons.remove(topMenu);
         }
@@ -240,6 +242,10 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
     @Override
     public void afterNavigation(AfterNavigationEvent event) {
+        boolean currentAdminState = UiAuthorization.isAdmin();
+        if (currentAdminState != navigationAdminState) {
+            addNavigation();
+        }
         viewTitle.setText(getCurrentPageTitle());
 
         menuLayout.removeAll();
