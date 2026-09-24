@@ -594,6 +594,7 @@ public class LdapService {
         }
 
         checks.add(checkControllers());
+        checks.add(checkReplication());
         checks.add(checkDns());
         checks.add(checkFileServices());
         checks.add(checkTime(root));
@@ -614,6 +615,30 @@ public class LdapService {
                     count > 0 ? count + " domain controller(s) discovered" : "No domain controllers discovered");
         } catch (Exception exception) {
             return check("ERROR", "DOMAIN_CONTROLLERS", "Controller discovery failed: " + safeMessage(exception));
+        }
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto checkReplication() {
+        try {
+            List<Entry> namingContexts = searchWithAttributes(new Dn(defaultNamingContext), "(objectClass=*)",
+                    SearchScope.OBJECT, "highestCommittedUSN", "replUpToDateVector", "uSNCreated");
+            if (namingContexts == null || namingContexts.isEmpty()) {
+                return check("ERROR", "REPLICATION", "Domain naming context is unavailable");
+            }
+            Entry namingContext = namingContexts.get(0);
+            boolean hasUsn = namingContext.get("highestCommittedUSN") != null
+                    || namingContext.get("uSNCreated") != null;
+            boolean hasVector = namingContext.get("replUpToDateVector") != null;
+            if (!hasUsn) {
+                return check("WARNING", "REPLICATION", "Replication USN metadata is unavailable");
+            }
+            if (!hasVector) {
+                return check("WARNING", "REPLICATION",
+                        "Replication metadata is readable, but no up-to-date vector was returned by this controller");
+            }
+            return check("HEALTHY", "REPLICATION", "Replication metadata and up-to-date vector are available");
+        } catch (Exception exception) {
+            return check("ERROR", "REPLICATION", "Replication check failed: " + safeMessage(exception));
         }
     }
 
