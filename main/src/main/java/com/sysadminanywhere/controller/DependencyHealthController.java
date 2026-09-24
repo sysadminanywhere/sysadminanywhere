@@ -5,6 +5,7 @@ import com.sysadminanywhere.service.DependencyHealthService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/health")
@@ -14,5 +15,6 @@ public class DependencyHealthController {
     public DependencyHealthController(DependencyHealthService service) { this.service = service; }
 
     @GetMapping("/dependencies")
+    @PreAuthorize("hasRole('ADMIN')")
     public DependencyHealth dependencies() { return service.check(); }
 }

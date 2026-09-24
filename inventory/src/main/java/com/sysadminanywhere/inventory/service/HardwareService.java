@@ -11,6 +11,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import com.sysadminanywhere.inventory.entity.*;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -28,6 +29,11 @@ public class HardwareService {
     private final HardwareModelRepository hardwareModelRepository;
     private final HardwarePropertyRepository hardwarePropertyRepository;
     private final HardwareValueRepository hardwareValueRepository;
+
+    @Value("${inventory.wmi.retry-attempts:3}")
+    private int retryAttempts;
+    @Value("${inventory.wmi.retry-delay-ms:500}")
+    private long retryDelayMs;
 
     private final Map<String, HardwareModel> modelCache = new HashMap<>();
 
@@ -80,7 +86,8 @@ public class HardwareService {
     private List<Map<String, Object>> execute(String hostName, String query) {
         List<Map<String, Object>> list = null;
 
-        try {
+        for (int attempt = 1; attempt <= Math.max(1, retryAttempts); attempt++) {
+          try {
             var response = wmiServiceClient.execute(new ExecuteDto(hostName, query));
 
             if (response == null || !response.getStatusCode().is2xxSuccessful()) {
@@ -88,9 +95,15 @@ public class HardwareService {
                         hostName, response != null ? response.getStatusCode() : "NULL");
             }
 
-            list = (List<Map<String, Object>>) response.getBody();
-        } catch (Exception ex) {
-            log.error("Failed to execute WMI query on computer {}: {}", hostName, ex.getMessage());
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                list = (List<Map<String, Object>>) response.getBody();
+            }
+          } catch (Exception ex) {
+            log.warn("WMI attempt {}/{} failed for {}: {}", attempt, retryAttempts, hostName, ex.getMessage());
+          }
+          if (list != null || attempt == Math.max(1, retryAttempts)) break;
+          try { Thread.sleep(Math.max(0, retryDelayMs)); }
+          catch (InterruptedException ex) { Thread.currentThread().interrupt(); break; }
         }
 
         if (list == null) {

@@ -7,6 +7,7 @@ import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.security.UiAuthorization;
 import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.about.HelpView;
+import com.sysadminanywhere.views.about.DependencyHealthView;
 import com.sysadminanywhere.views.account.MeView;
 import com.sysadminanywhere.views.automation.AutomationsView;
 import com.sysadminanywhere.views.domain.AuditView;
@@ -195,7 +196,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         settingsSubNavs.addItem(createSideNavItem(getMessage("main_layout.settings"), SettingsView.class));
         if (UiAuthorization.isAdmin()) {
             settingsSubNavs.addItem(createSideNavItem(getMessage("main_layout.api_tokens"), ApiTokensView.class),
-                    createSideNavItem(getMessage("main_layout.webhooks"), WebhooksView.class));
+                    createSideNavItem(getMessage("main_layout.webhooks"), WebhooksView.class),
+                    createSideNavItem(getMessage("main_layout.dependencies"), DependencyHealthView.class));
         }
         settingsSubNavs.addItem(createSideNavItem(getMessage("main_layout.help"), HelpView.class),
                 createSideNavItem(getMessage("main_layout.about"), AboutView.class));
