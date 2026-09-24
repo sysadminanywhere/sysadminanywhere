@@ -29,6 +29,7 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
     private final LocaleService locale;
     private final Grid<Issue> grid = new Grid<>();
     private final ComboBox<String> severityFilter = new ComboBox<>();
+    private final ComboBox<String> typeFilter = new ComboBox<>();
     private List<Issue> issues = List.of();
 
     public InventoryIssuesView(InventoryService inventoryService, MessageSource messages, LocaleService locale) {
@@ -40,7 +41,16 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
         severityFilter.setValue("ALL");
         severityFilter.setLabel(msg("inventory_issues_view.severity"));
         severityFilter.addValueChangeListener(event -> applyFilter());
-        HorizontalLayout header = new HorizontalLayout(title, severityFilter, refresh);
+        typeFilter.setItems("ALL", "INVENTORY", "LICENSE");
+        typeFilter.setValue("ALL");
+        typeFilter.setLabel(msg("inventory_issues_view.type"));
+        typeFilter.setItemLabelGenerator(value -> switch (value) {
+            case "INVENTORY" -> msg("inventory_issues_view.inventory");
+            case "LICENSE" -> msg("inventory_issues_view.license");
+            default -> msg("inventory_issues_view.all");
+        });
+        typeFilter.addValueChangeListener(event -> applyFilter());
+        HorizontalLayout header = new HorizontalLayout(title, typeFilter, severityFilter, refresh);
         header.setWidthFull(); header.setFlexGrow(1, title);
         grid.addColumn(Issue::severity).setHeader(msg("inventory_issues_view.severity")).setAutoWidth(true);
         grid.addColumn(Issue::type).setHeader(msg("inventory_issues_view.type")).setAutoWidth(true);
@@ -82,7 +92,11 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
 
     private void applyFilter() {
         String selected = severityFilter.getValue() == null ? "ALL" : severityFilter.getValue();
-        grid.setItems(issues.stream().filter(item -> "ALL".equals(selected) || selected.equals(item.severity())).toList());
+        String selectedType = typeFilter.getValue() == null ? "ALL" : typeFilter.getValue();
+        grid.setItems(issues.stream()
+                .filter(item -> "ALL".equals(selected) || selected.equals(item.severity()))
+                .filter(item -> "ALL".equals(selectedType) || selectedType.equals(item.actionKey().equals("open_licenses") ? "LICENSE" : "INVENTORY"))
+                .toList());
     }
 
     private String msg(String key) { return messages.getMessage(key, null, locale.getCurrentLocale()); }
