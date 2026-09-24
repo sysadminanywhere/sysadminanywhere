@@ -110,6 +110,15 @@ public class InventoryService {
         }
     }
 
+    public List<OperatingSystemCount> getOperatingSystemCounts() {
+        try {
+            return inventoryServiceClient.getOperatingSystemCounts();
+        } catch (Exception e) {
+            log.warn("Unable to load operating system summary: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
     private Long parseLong(String value) {
         try { return value == null || value.isBlank() ? null : Long.valueOf(value); }
         catch (NumberFormatException ignored) { return null; }

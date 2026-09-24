@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.inventory;
 
 import com.sysadminanywhere.common.inventory.model.HardwareItem;
+import com.sysadminanywhere.common.inventory.model.OperatingSystemCount;
 import com.sysadminanywhere.service.InventoryService;
 import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.Component;
@@ -53,7 +54,7 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
             filters = new Filters(() -> refreshGrid(), messageSource, localeService);
-            VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
+            VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createOperatingSystemSummary(), createGrid());
             layout.setSizeFull();
             add(layout);
         }
@@ -178,6 +179,20 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 
         return grid;
+    }
+
+    private Component createOperatingSystemSummary() {
+        Grid<OperatingSystemCount> summary = new Grid<>();
+        summary.setHeight("180px");
+        summary.addColumn(OperatingSystemCount::name)
+                .setHeader(getMessage("inventory_hardware_view.operating_system"))
+                .setFlexGrow(1);
+        summary.addColumn(OperatingSystemCount::computers)
+                .setHeader(getMessage("inventory_hardware_view.computers"))
+                .setAutoWidth(true);
+        summary.setItems(inventoryService.getOperatingSystemCounts());
+        summary.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
+        return summary;
     }
 
     private void refreshGrid() {

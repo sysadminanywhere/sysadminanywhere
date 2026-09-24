@@ -69,6 +69,9 @@ public interface InventoryServiceClient {
     @GetExchange("/api/inventory/hardware")
     PageResponse<HardwareItem> getHardware(@RequestParam String name, @RequestParam String type, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
 
+    @GetExchange("/api/inventory/hardware/operating-systems")
+    List<OperatingSystemCount> getOperatingSystemCounts();
+
 
     // Ping
 

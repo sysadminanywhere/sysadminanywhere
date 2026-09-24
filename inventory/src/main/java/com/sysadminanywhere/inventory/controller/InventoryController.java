@@ -227,6 +227,14 @@ public class InventoryController {
 
     // Hardware
 
+    @GetMapping("/hardware/operating-systems")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<List<OperatingSystemCount>> getOperatingSystemCounts() {
+        return ResponseEntity.ok(hardwareModelRepository.findOperatingSystemCounts().stream()
+                .map(row -> new OperatingSystemCount((String) row[0], ((Number) row[1]).longValue()))
+                .toList());
+    }
+
     @GetMapping("/hardware")
     @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<PageResponse<HardwareItem>> getHardwares(

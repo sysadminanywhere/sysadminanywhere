@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface HardwareModelRepository extends JpaRepository<HardwareModel, Long> {
@@ -18,5 +19,8 @@ public interface HardwareModelRepository extends JpaRepository<HardwareModel, Lo
     Page<HardwareItem> findByNameAndType(@Param("name") String name, @Param("type") String type, Pageable pageable);
 
     Optional<HardwareModel> findByNameAndHardwareType(String name, String hardwareType);
+
+    @Query("SELECT hm.name, COUNT(DISTINCT ch.computer.id) FROM ComputerHardware ch JOIN ch.hardwareModel hm WHERE hm.hardwareType = 'OperatingSystem' GROUP BY hm.name ORDER BY hm.name")
+    List<Object[]> findOperatingSystemCounts();
 
 }
