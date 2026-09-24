@@ -139,6 +139,8 @@ html[theme~="dark"] body {
 
 .overview-card {
       --overview-accent: var(--lumo-primary-color);
+      display: flex;
+      flex-direction: column;
       border: 1px solid var(--lumo-contrast-10pct);
       border-top: 4px solid var(--overview-accent);
       box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
@@ -175,6 +177,13 @@ html[theme~="dark"] body {
 .overview-card vaadin-horizontal-layout {
       align-items: center;
       min-height: 28px;
+}
+
+.overview-details-link {
+      display: block;
+      margin-top: auto;
+      padding-top: var(--lumo-space-s);
+      line-height: var(--lumo-line-height-s);
 }
 
 .enabled-object-icon,

@@ -255,7 +255,7 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
                 getMessage("domain_health_view.overall"), localizedHealthStatus(healthStatus),
                 getMessage("domain_health_view.check"), domainHealth == null || domainHealth.getChecks() == null
                         ? 0 : domainHealth.getChecks().size()));
-        domainCard.add(new Anchor("domain/info", getMessage("common.details")));
+        addDetailsLink(domainCard, "domain/info");
 
         var security = securityAuditService.scan();
         int securityIssues = security.privilegedUsers() + security.privilegedGroups()
@@ -265,7 +265,7 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
                 getMessage("security_audit_view.privileged_users"), security.privilegedUsers(),
                 getMessage("security_audit_view.privileged_groups"), security.privilegedGroups(),
                 getMessage("security_audit_view.missing_contact"), security.usersMissingContactData()));
-        securityCard.add(new Anchor("security/audit", getMessage("common.details")));
+        addDetailsLink(securityCard, "security/audit");
 
         long accountIssues = users.stream().filter(user -> user.isDisabled() || user.isLocked() || user.isExpired()).count();
         Card accountsCard = metricCard(getMessage("dashboard_view.users"), accountIssues == 0 ? "ok" : "warning",
@@ -273,7 +273,7 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
                 getMessage("common.disabled"), users.stream().filter(UserEntry::isDisabled).count(),
                 getMessage("common.locked"), users.stream().filter(UserEntry::isLocked).count(),
                 getMessage("common.expired"), users.stream().filter(UserEntry::isExpired).count()));
-        accountsCard.add(new Anchor("management/users", getMessage("common.details")));
+        addDetailsLink(accountsCard, "management/users");
 
         var inventory = inventoryService.getInventoryHealth(30);
         int inventoryIssues = inventory == null ? -1 : inventory.staleCount() + inventory.neverScannedCount();
@@ -284,7 +284,7 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
                 getMessage("inventory_health_view.total"), inventory == null ? 0 : inventory.totalComputers(),
                 getMessage("inventory_health_view.stale"), inventory == null ? 0 : inventory.staleCount(),
                 getMessage("inventory_health_view.never_scanned"), inventory == null ? 0 : inventory.neverScannedCount()));
-        inventoryCard.add(new Anchor("inventory/health", getMessage("common.details")));
+        addDetailsLink(inventoryCard, "inventory/health");
 
         cards.add(domainCard, securityCard, accountsCard, inventoryCard);
         return cards;
@@ -301,6 +301,8 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         status.addClassName("overview-status-badge");
         VerticalLayout content = new VerticalLayout();
         content.setPadding(false);
+        content.setWidthFull();
+        content.getStyle().set("flex", "1 1 auto");
         values.forEach((label, value) -> {
             HorizontalLayout row = new HorizontalLayout(new Span(label), new H3(String.valueOf(value)));
             row.setWidthFull();
@@ -309,6 +311,12 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         });
         card.add(status, content);
         return card;
+    }
+
+    private void addDetailsLink(Card card, String route) {
+        Anchor details = new Anchor(route, getMessage("common.details"));
+        details.addClassName("overview-details-link");
+        card.add(details);
     }
 
     private String healthClass(String value) {
