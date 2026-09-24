@@ -194,6 +194,44 @@ html[theme~="dark"] body {
       line-height: var(--lumo-line-height-s);
 }
 
+.dashboard-attention-card {
+      margin-bottom: var(--lumo-space-m);
+      border-left: 4px solid var(--lumo-primary-color);
+}
+
+.attention-item {
+      padding: var(--lumo-space-xs) 0;
+      border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+.attention-item:last-child {
+      border-bottom: 0;
+}
+
+.attention-badge {
+      min-width: 90px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      text-align: center;
+      font-size: var(--lumo-font-size-s);
+      font-weight: 700;
+}
+
+.attention-critical {
+      color: var(--lumo-error-text-color);
+      background: var(--lumo-error-color-10pct);
+}
+
+.attention-warning {
+      color: var(--lumo-warning-text-color);
+      background: var(--lumo-warning-color-10pct);
+}
+
+.attention-ok {
+      color: var(--lumo-success-text-color);
+      font-weight: 600;
+}
+
 .enabled-object-icon,
 .disabled-object-icon {
       transition: filter 140ms ease, opacity 140ms ease;

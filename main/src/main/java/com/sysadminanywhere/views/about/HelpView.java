@@ -74,6 +74,7 @@ public class HelpView extends VerticalLayout implements HasDynamicTitle {
         addHelpItem(content, "help_view.audit_title", "help_view.audit_text");
         addHelpItem(content, "help_view.change_history_title", "help_view.change_history_text");
         addHelpItem(content, "help_view.domain_health_title", "help_view.domain_health_text");
+        addHelpItem(content, "help_view.dashboard_attention_title", "help_view.dashboard_attention_text");
         addHelpItem(content, "help_view.security_audit_title", "help_view.security_audit_text");
         addHelpItem(content, "help_view.status_title", "help_view.status_text");
         addHelpItem(content, "help_view.computers_title", "help_view.computers_text");
