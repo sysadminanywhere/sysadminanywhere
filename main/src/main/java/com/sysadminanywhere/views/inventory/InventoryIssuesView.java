@@ -31,6 +31,8 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
     private final ComboBox<String> severityFilter = new ComboBox<>();
     private final ComboBox<String> typeFilter = new ComboBox<>();
     private List<Issue> issues = List.of();
+    private final Span highCount = new Span();
+    private final Span mediumCount = new Span();
 
     public InventoryIssuesView(InventoryService inventoryService, MessageSource messages, LocaleService locale) {
         this.inventoryService = inventoryService; this.messages = messages; this.locale = locale;
@@ -50,7 +52,11 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
             default -> msg("inventory_issues_view.all");
         });
         typeFilter.addValueChangeListener(event -> applyFilter());
-        HorizontalLayout header = new HorizontalLayout(title, typeFilter, severityFilter, refresh);
+        highCount.getStyle().set("color", "var(--lumo-error-text-color)").set("font-weight", "600");
+        mediumCount.getStyle().set("color", "var(--lumo-warning-text-color)").set("font-weight", "600");
+        HorizontalLayout summary = new HorizontalLayout(highCount, mediumCount);
+        HorizontalLayout header = new HorizontalLayout(title, summary, typeFilter, severityFilter, refresh);
+        header.setFlexGrow(1, title);
         header.setWidthFull(); header.setFlexGrow(1, title);
         grid.addColumn(Issue::severity).setHeader(msg("inventory_issues_view.severity")).setAutoWidth(true);
         grid.addColumn(Issue::type).setHeader(msg("inventory_issues_view.type")).setAutoWidth(true);
@@ -87,6 +93,10 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
             }
         }
         this.issues = issues;
+        highCount.setText(msg("inventory_issues_view.high_count") + ": "
+                + issues.stream().filter(item -> "HIGH".equals(item.severity())).count());
+        mediumCount.setText(msg("inventory_issues_view.medium_count") + ": "
+                + issues.stream().filter(item -> "MEDIUM".equals(item.severity())).count());
         applyFilter();
     }
 
