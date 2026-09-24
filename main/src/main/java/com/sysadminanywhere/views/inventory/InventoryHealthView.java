@@ -111,6 +111,10 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
                     ? "var(--lumo-secondary-text-color)" : "var(--lumo-warning-text-color)");
             return status;
         }).setHeader(message("inventory_health_view.status")).setAutoWidth(true);
+        grid.addColumn(item -> item.scanStatus() == null ? "-" : item.scanStatus())
+                .setHeader(message("inventory_health_view.scan_result")).setAutoWidth(true);
+        grid.addColumn(item -> item.scanError() == null ? "" : item.scanError())
+                .setHeader(message("inventory_health_view.scan_error_details")).setFlexGrow(1);
         grid.addComponentColumn(item -> {
             Button create = new Button(message("inventory_health_view.create_incident"));
             create.addClickListener(event -> confirmCreateIncident(item));

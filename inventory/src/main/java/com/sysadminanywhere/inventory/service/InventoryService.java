@@ -163,19 +163,29 @@ public class InventoryService {
         for (ComputerEntry computerEntry : computers) {
             if (computerEntry != null && !computerEntry.isDisabled()
                     && (scanTargets.isEmpty() || scanTargets.contains(computerEntry.getCn()))) {
+                Computer computer = null;
                 try {
-                    Computer computer = checkComputer(computerEntry.getCn());
+                    computer = checkComputer(computerEntry.getCn());
                     if (computerEntry.getCn() == null || computerEntry.getCn().isEmpty()) {
                         log.error("Host name is null or empty for software scan");
-                        return;
+                        throw new IllegalArgumentException("Host name is empty");
                     } else {
+                        computer.setLastScanStatus("RUNNING");
+                        computer.setLastScanError(null);
+                        computerRepository.save(computer);
                         softwareService.scanSoftware(computer);
                         hardwareService.scanHardware(computer);
 
                         computer.setCheckingDate(LocalDateTime.now());
+                        computer.setLastScanStatus("SUCCESS");
                         computerRepository.save(computer);
                     }
             } catch (Exception ex) {
+                if (computer != null) {
+                    computer.setLastScanStatus("ERROR");
+                    computer.setLastScanError(ex.getMessage());
+                    computerRepository.save(computer);
+                }
                 log.error("Error scanning on computer {}: {}",
                         computerEntry.getCn(), ex.getMessage(), ex);
             } finally {

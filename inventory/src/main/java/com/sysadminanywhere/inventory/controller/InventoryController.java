@@ -71,7 +71,8 @@ public class InventoryController {
                 .filter(computer -> computer.getCheckingDate() == null || computer.getCheckingDate().isBefore(threshold))
                 .map(computer -> new InventoryHealthComputer(
                         computer.getId(), computer.getName(), computer.getCheckingDate(),
-                        computer.getCheckingDate() == null ? -1 : Duration.between(computer.getCheckingDate(), now).toDays()))
+                        computer.getCheckingDate() == null ? -1 : Duration.between(computer.getCheckingDate(), now).toDays(),
+                        computer.getLastScanStatus(), computer.getLastScanError()))
                 .sorted(Comparator.comparing(InventoryHealthComputer::checkingDate,
                         Comparator.nullsFirst(Comparator.naturalOrder())))
                 .toList();
