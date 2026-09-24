@@ -14,6 +14,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -22,10 +23,13 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 
 import java.util.List;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -44,7 +48,9 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
         H2 title = new H2(msg("inventory_licenses_view.title"));
         Button add = new Button(msg("inventory_licenses_view.add"), e -> openEditor(null));
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        HorizontalLayout header = new HorizontalLayout(title, add);
+        Anchor export = new Anchor(new StreamResource("software-licenses.csv", this::createCsv), msg("inventory_licenses_view.export_csv"));
+        export.getElement().setAttribute("download", true);
+        HorizontalLayout header = new HorizontalLayout(title, export, add);
         header.setWidthFull(); header.setFlexGrow(1, title);
         grid.addColumn(SoftwareLicense::name).setHeader(msg("inventory_licenses_view.name")).setAutoWidth(true);
         grid.addColumn(SoftwareLicense::vendor).setHeader(msg("inventory_licenses_view.vendor")).setAutoWidth(true);
@@ -69,6 +75,21 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
     }
 
     private void refresh() { grid.setItems(inventoryService.getLicenses()); }
+
+    private ByteArrayInputStream createCsv() {
+        StringBuilder csv = new StringBuilder("Software,Vendor,Version,Purchased,Used,Expires,Status\n");
+        inventoryService.getLicenses().forEach(item -> {
+            String status = item.used() > item.purchased() ? msg("inventory_licenses_view.overused")
+                    : item.expiresAt() != null && item.expiresAt().isBefore(java.time.LocalDate.now())
+                    ? msg("inventory_licenses_view.expired") : msg("inventory_licenses_view.compliant");
+            csv.append(csv(item.name())).append(',').append(csv(item.vendor())).append(',').append(csv(item.version())).append(',')
+                    .append(item.purchased()).append(',').append(item.used()).append(',').append(csv(String.valueOf(item.expiresAt())))
+                    .append(',').append(csv(status)).append('\n');
+        });
+        return new ByteArrayInputStream(csv.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String csv(String value) { return "\"" + (value == null ? "" : value.replace("\"", "\"\"")) + "\""; }
 
     private void openEditor(SoftwareLicense current) {
         Dialog dialog = new Dialog();
