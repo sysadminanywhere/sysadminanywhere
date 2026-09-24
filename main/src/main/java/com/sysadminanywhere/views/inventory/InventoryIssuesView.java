@@ -24,9 +24,9 @@ import org.springframework.context.MessageSource;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @RolesAllowed({"ADMIN", "READER"})
 @Route("inventory/issues")
@@ -140,7 +140,11 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
                 incident.setStatus(IncidentStatus.OPEN); incident.setEventCount(1);
                 incident.setRecommendation(item.details()); incident.setContext(item.details());
                 incident.setMeta(false); incident.setCreatedAt(LocalDateTime.now());
-                incident.setDeduplicationKey("inventory-issue-" + UUID.randomUUID());
+                if ("open_inventory".equals(item.actionKey())) incident.setMachineName(item.object());
+                incident.setDeduplicationKey("inventory-issue-" + item.actionKey() + "-"
+                        + item.object().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-")
+                        + "-" + Integer.toHexString(item.object().hashCode())
+                        + "-" + item.severity().toLowerCase(Locale.ROOT));
                 incidentService.createIncident(incident);
             });
         });
