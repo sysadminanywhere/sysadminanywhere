@@ -24,6 +24,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
@@ -54,6 +55,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
     private final Grid<InventoryHealthComputer> grid = new Grid<>();
     private final Grid<InventoryScanRun> historyGrid = new Grid<>();
     private final TextField computerFilter = new TextField();
+    private final ComboBox<String> statusFilter = new ComboBox<>();
     private List<InventoryHealthComputer> currentComputers = List.of();
     private final Button scanSelected = new Button();
     private final Button retryFailed = new Button();
@@ -78,6 +80,18 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         computerFilter.setClearButtonVisible(true);
         computerFilter.setWidth("220px");
         computerFilter.addValueChangeListener(event -> applyFilter());
+        statusFilter.setLabel(message("inventory_health_view.scan_result"));
+        statusFilter.setItems("ALL", "ERROR", "SUCCESS", "RUNNING", "NEVER");
+        statusFilter.setItemLabelGenerator(value -> switch (value) {
+            case "ERROR" -> message("inventory_health_view.status_error");
+            case "SUCCESS" -> message("inventory_health_view.status_success");
+            case "RUNNING" -> message("inventory_health_view.status_running");
+            case "NEVER" -> message("inventory_health_view.status_never");
+            default -> message("inventory_health_view.status_all");
+        });
+        statusFilter.setValue("ALL");
+        statusFilter.setWidth("150px");
+        statusFilter.addValueChangeListener(event -> applyFilter());
         Button refresh = new Button(message("common.refresh"), event -> refresh());
         refresh.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button startScan = new Button(message("inventory_health_view.start_scan"), event -> startScan());
@@ -100,7 +114,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         export.setText(message("inventory_health_view.export_csv"));
         export.getElement().setAttribute("download", true);
         export.setHref(new StreamResource("inventory-health.csv", this::createCsv));
-        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, staleDays, startScan, scanSelected, retryFailed, cancelScan, export, refresh);
+        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, statusFilter, staleDays, startScan, scanSelected, retryFailed, cancelScan, export, refresh);
         header.setWidthFull(); header.setAlignItems(Alignment.END); header.setFlexGrow(1, title);
 
         HorizontalLayout summary = new HorizontalLayout(metric(message("inventory_health_view.total"), total),
@@ -231,8 +245,11 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
 
     private void applyFilter() {
         String filter = computerFilter.getValue() == null ? "" : computerFilter.getValue().trim().toLowerCase();
+        String selectedStatus = statusFilter.getValue() == null ? "ALL" : statusFilter.getValue();
         grid.setItems(currentComputers.stream()
                 .filter(item -> filter.isBlank() || item.name() != null && item.name().toLowerCase().contains(filter))
+                .filter(item -> "ALL".equals(selectedStatus) || "NEVER".equals(selectedStatus) && item.scanStatus() == null
+                        || selectedStatus.equalsIgnoreCase(item.scanStatus()))
                 .toList());
     }
 
