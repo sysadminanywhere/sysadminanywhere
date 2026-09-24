@@ -123,6 +123,7 @@ html[theme~="dark"] body {
 
 .domain-health-meta {
       box-sizing: border-box;
+      justify-content: flex-end;
       padding: 0 var(--lumo-space-xs) var(--lumo-space-s);
 }
 

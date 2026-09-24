@@ -154,11 +154,10 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
         meta.addClassName("domain-health-meta");
         meta.setWidthFull();
         meta.setAlignItems(Alignment.CENTER);
-        meta.setJustifyContentMode(JustifyContentMode.BETWEEN);
+        meta.setJustifyContentMode(JustifyContentMode.END);
         meta.setPadding(false);
         meta.setMargin(false);
         meta.setSpacing(true);
-        meta.setFlexGrow(1, checkedAt);
 
         VerticalLayout header = new VerticalLayout(overall, meta);
         header.addClassName("domain-health-header");
