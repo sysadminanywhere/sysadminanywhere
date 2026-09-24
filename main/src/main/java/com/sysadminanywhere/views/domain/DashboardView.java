@@ -276,14 +276,19 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         addDetailsLink(accountsCard, "management/users");
 
         var inventory = inventoryService.getInventoryHealth(30);
-        int inventoryIssues = inventory == null ? -1 : inventory.staleCount() + inventory.neverScannedCount();
+        long licenseIssues = inventoryService.getLicenses().stream()
+                .filter(license -> license.used() > license.purchased()
+                        || license.expiresAt() != null && license.expiresAt().isBefore(java.time.LocalDate.now()))
+                .count();
+        int inventoryIssues = inventory == null ? -1 : inventory.staleCount() + inventory.neverScannedCount() + (int) licenseIssues;
         Card inventoryCard = metricCard(getMessage("inventory_health_view.title"), inventoryIssues < 0 ? "error" :
                         inventoryIssues == 0 ? "ok" : "warning",
                 inventoryIssues < 0 ? getMessage("domain_health_view.error") : inventoryIssues == 0 ?
                         getMessage("domain_health_view.healthy") : getMessage("domain_health_view.warning"), Map.of(
                 getMessage("inventory_health_view.total"), inventory == null ? 0 : inventory.totalComputers(),
                 getMessage("inventory_health_view.stale"), inventory == null ? 0 : inventory.staleCount(),
-                getMessage("inventory_health_view.never_scanned"), inventory == null ? 0 : inventory.neverScannedCount()));
+                getMessage("inventory_health_view.never_scanned"), inventory == null ? 0 : inventory.neverScannedCount(),
+                getMessage("dashboard_view.license_issues"), licenseIssues));
         addDetailsLink(inventoryCard, "inventory/health");
 
         cards.add(domainCard, securityCard, accountsCard, inventoryCard);
