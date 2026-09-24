@@ -49,7 +49,7 @@ class HardwareServiceTest {
 
         hardwareService.scanHardware(computer);
 
-        // Should attempt all 8 WMI queries
-        verify(wmiServiceClient, times(8)).execute(any(ExecuteDto.class));
+        // Should attempt all hardware and Windows patch WMI queries
+        verify(wmiServiceClient, times(9)).execute(any(ExecuteDto.class));
     }
 }
