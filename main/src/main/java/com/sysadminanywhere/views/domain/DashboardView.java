@@ -91,7 +91,6 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         List<PrinterEntry> printers = printersService.getAll();
         List<ContactEntry> contacts = contactsService.getAll();
 
-        verticalLayout.add(createAttentionCard(users));
         verticalLayout.add(createOverviewCards(users, computers));
 
         getStoredTheme().thenAccept(v -> {
@@ -289,68 +288,6 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
 
         cards.add(domainCard, securityCard, accountsCard, inventoryCard);
         return cards;
-    }
-
-    private Card createAttentionCard(List<UserEntry> users) {
-        Card card = new Card();
-        card.addClassName("dashboard-attention-card");
-        card.setWidthFull();
-        card.setTitle(getMessage("dashboard_view.attention.title"));
-
-        VerticalLayout items = new VerticalLayout();
-        items.setPadding(false);
-        items.setSpacing(false);
-        items.setWidthFull();
-
-        var domainHealth = ldapService.getDomainHealth();
-        String healthStatus = domainHealth == null || domainHealth.getOverallStatus() == null
-                ? "UNKNOWN" : domainHealth.getOverallStatus();
-        var security = securityAuditService.scan();
-        long accountIssues = users.stream().filter(user -> user.isDisabled() || user.isLocked() || user.isExpired()).count();
-        var inventory = inventoryService.getInventoryHealth(30);
-        int inventoryIssues = inventory == null ? -1 : inventory.staleCount() + inventory.neverScannedCount();
-        int issueCount = 0;
-
-        if (!"HEALTHY".equals(healthStatus)) {
-            issueCount++;
-            addAttentionItem(items, "ERROR".equals(healthStatus) ? "critical" : "warning",
-                    getMessage("dashboard_view.attention.domain"), "domain/info");
-        }
-        if (security.privilegedUsers() + security.privilegedGroups() + security.usersMissingContactData() > 0) {
-            issueCount++;
-            addAttentionItem(items, "warning", getMessage("dashboard_view.attention.security"), "security/audit");
-        }
-        if (accountIssues > 0) {
-            issueCount++;
-            addAttentionItem(items, "warning", getMessage("dashboard_view.attention.accounts"), "management/users");
-        }
-        if (inventoryIssues != 0) {
-            issueCount++;
-            addAttentionItem(items, inventoryIssues < 0 ? "critical" : "warning",
-                    getMessage("dashboard_view.attention.inventory"), "inventory/health");
-        }
-        if (issueCount == 0) {
-            Span ok = new Span(getMessage("dashboard_view.attention.ok"));
-            ok.addClassName("attention-ok");
-            items.add(ok);
-        }
-        card.add(items);
-        return card;
-    }
-
-    private void addAttentionItem(VerticalLayout container, String severity, String text, String route) {
-        HorizontalLayout row = new HorizontalLayout();
-        row.addClassName("attention-item");
-        row.setWidthFull();
-        row.setAlignItems(Alignment.CENTER);
-        Span badge = new Span(getMessage("dashboard_view.attention." + severity));
-        badge.addClassName("attention-badge");
-        badge.addClassName("attention-" + severity);
-        Span message = new Span(text);
-        Anchor details = new Anchor(route, getMessage("common.details"));
-        row.add(badge, message, details);
-        row.setFlexGrow(1, message);
-        container.add(row);
     }
 
     private Card metricCard(String title, String statusClass, String statusText, Map<String, ?> values) {
