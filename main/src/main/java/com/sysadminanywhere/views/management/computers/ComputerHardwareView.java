@@ -23,6 +23,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 @RolesAllowed("ADMIN")
 @Route(value = "management/computers/:id?/hardware")
@@ -63,11 +64,10 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver, Ha
         ComputerSystemEntity system = computersService.getComputerSystem(id);
         OperatingSystemEntity operatingSystem = computersService.getOperatingSystem(id);
         List<ProcessorEntity> processors = safeList(computersService.getProcessor(id));
-        List<PhysicalMemoryEntity> memory = safeList(computersService.getPhysicalMemory(id));
         List<DiskDriveEntity> disks = safeList(computersService.getDiskDrive(id));
 
         content.add(new Span(message("computer_hardware_view.subtitle")), createOverview(system, operatingSystem,
-                processors, memory, disks));
+                processors, disks));
 
         VerticalLayout components = new VerticalLayout();
         components.setWidthFull();
@@ -77,19 +77,18 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver, Ha
         components.add(createHardwareObjectSection("computer_system", system));
         components.add(createHardwareObjectSection("operating_system", operatingSystem));
         components.add(createHardwareListSection("processor", processors));
-        components.add(createHardwareListSection("physical_memory", memory));
+        components.add(createLazyListSection("physical_memory", () -> safeList(computersService.getPhysicalMemory(id))));
         components.add(createHardwareListSection("disk_drive", disks));
-        components.add(createHardwareListSection("video_controller", safeList(computersService.getVideoController(id))));
-        components.add(createHardwareObjectSection("base_board", computersService.getBaseBoard(id)));
-        components.add(createHardwareObjectSection("bios", computersService.getBIOS(id)));
-        components.add(createHardwareListSection("disk_partition", safeList(computersService.getDiskPartition(id))));
-        components.add(createHardwareListSection("logical_disk", safeList(computersService.getLogicalDisk(id))));
+        components.add(createLazyListSection("video_controller", () -> safeList(computersService.getVideoController(id))));
+        components.add(createLazyObjectSection("base_board", () -> computersService.getBaseBoard(id)));
+        components.add(createLazyObjectSection("bios", () -> computersService.getBIOS(id)));
+        components.add(createLazyListSection("disk_partition", () -> safeList(computersService.getDiskPartition(id))));
+        components.add(createLazyListSection("logical_disk", () -> safeList(computersService.getLogicalDisk(id))));
         content.add(components);
     }
 
     private Component createOverview(ComputerSystemEntity system, OperatingSystemEntity os,
-                                     List<ProcessorEntity> processors, List<PhysicalMemoryEntity> memory,
-                                     List<DiskDriveEntity> disks) {
+                                     List<ProcessorEntity> processors, List<DiskDriveEntity> disks) {
         Div overview = new Div();
         overview.setWidthFull();
         overview.getStyle().set("display", "grid")
@@ -100,8 +99,8 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver, Ha
                         system == null ? null : system.getModel()), message("computer_hardware_view.model_hint")),
                 summaryCard(message("computer_hardware_view.processor"), processorSummary(processors),
                         processorHint(processors)),
-                summaryCard(message("computer_hardware_view.memory"), memorySummary(system, memory),
-                        message("computer_hardware_view.memory_hint", memory.size())),
+                summaryCard(message("computer_hardware_view.memory"), memorySummary(system, List.of()),
+                        message("computer_hardware_view.memory_hint")),
                 summaryCard(message("computer_hardware_view.storage"), storageSummary(disks),
                         message("computer_hardware_view.storage_hint", disks.size())),
                 summaryCard(message("computer_hardware_view.operating_system"), osSummary(os),
@@ -196,9 +195,13 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver, Ha
         Details section = new Details();
         section.setSummaryText(message("computer_hardware_view.component_count",
                 message("computer_hardware_view." + type), values.size()));
+        section.add(createHardwareListContent(type, values));
+        return section;
+    }
+
+    private Component createHardwareListContent(String type, List<?> values) {
         if (values.isEmpty()) {
-            section.add(new Span(message("computer_hardware_view.no_component_data")));
-            return section;
+            return new Span(message("computer_hardware_view.no_component_data"));
         }
         VerticalLayout items = new VerticalLayout();
         items.setPadding(false);
@@ -208,34 +211,68 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver, Ha
             String name = componentName(type, properties, index + 1);
             Details itemDetails = new Details();
             itemDetails.setSummaryText(name);
-            addPropertyDetails(itemDetails, properties, importantPropertiesFor(type));
+            itemDetails.add(propertyContent(properties, importantPropertiesFor(type)));
             items.add(itemDetails);
         }
-        section.add(items);
+        return items;
+    }
+
+    private Details createLazyListSection(String type, Supplier<? extends List<?>> dataSource) {
+        Details section = new Details();
+        section.setSummaryText(message("computer_hardware_view." + type));
+        Div body = new Div(new Span(message("computer_hardware_view.expand_to_load")));
+        section.add(body);
+        boolean[] loaded = {false};
+        section.addOpenedChangeListener(event -> {
+            if (event.isOpened() && !loaded[0]) {
+                loaded[0] = true;
+                body.removeAll();
+                body.add(createHardwareListContent(type, safeList(dataSource.get())));
+            }
+        });
+        return section;
+    }
+
+    private Details createLazyObjectSection(String type, Supplier<?> dataSource) {
+        Details section = new Details();
+        section.setSummaryText(message("computer_hardware_view." + type));
+        Div body = new Div(new Span(message("computer_hardware_view.expand_to_load")));
+        section.add(body);
+        boolean[] loaded = {false};
+        section.addOpenedChangeListener(event -> {
+            if (event.isOpened() && !loaded[0]) {
+                loaded[0] = true;
+                body.removeAll();
+                body.add(propertyContent(convert(dataSource.get()), importantPropertiesFor(type)));
+            }
+        });
         return section;
     }
 
     private Details createHardwareObjectSection(String type, Object value) {
         Details section = new Details();
         section.setSummaryText(message("computer_hardware_view." + type));
-        addPropertyDetails(section, convert(value), importantPropertiesFor(type));
+        section.add(propertyContent(convert(value), importantPropertiesFor(type)));
         return section;
     }
 
-    private void addPropertyDetails(Details section, List<HardwareEntity> properties, Set<String> important) {
+    private Component propertyContent(List<HardwareEntity> properties, Set<String> important) {
         if (properties.isEmpty()) {
-            section.add(new Span(message("computer_hardware_view.no_component_data")));
-            return;
+            return new Span(message("computer_hardware_view.no_component_data"));
         }
         List<HardwareEntity> keyProperties = properties.stream().filter(item -> important.contains(item.getName())).toList();
         List<HardwareEntity> otherProperties = properties.stream().filter(item -> !important.contains(item.getName())).toList();
-        section.add(createTable(keyProperties.isEmpty() ? properties : keyProperties));
+        VerticalLayout content = new VerticalLayout();
+        content.setPadding(false);
+        content.setSpacing(false);
+        content.add(createTable(keyProperties.isEmpty() ? properties : keyProperties));
         if (!otherProperties.isEmpty()) {
             Details advanced = new Details();
             advanced.setSummaryText(message("computer_hardware_view.all_properties", otherProperties.size()));
             advanced.add(createTable(otherProperties));
-            section.add(advanced);
+            content.add(advanced);
         }
+        return content;
     }
 
     private List<HardwareEntity> convert(Object obj) {
