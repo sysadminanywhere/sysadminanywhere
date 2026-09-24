@@ -3,10 +3,15 @@ package com.sysadminanywhere.views.inventory;
 import com.sysadminanywhere.common.inventory.model.InventoryHealthComputer;
 import com.sysadminanywhere.common.inventory.model.SoftwareLicense;
 import com.sysadminanywhere.service.InventoryService;
+import com.sysadminanywhere.service.IncidentService;
+import com.sysadminanywhere.common.incident.model.IncidentItem;
+import com.sysadminanywhere.common.incident.model.IncidentStatus;
+import com.sysadminanywhere.common.incident.model.Severity;
 import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
@@ -18,6 +23,8 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +32,7 @@ import java.util.List;
 @Route("inventory/issues")
 public class InventoryIssuesView extends VerticalLayout implements HasDynamicTitle {
     private final InventoryService inventoryService;
+    private final IncidentService incidentService;
     private final MessageSource messages;
     private final LocaleService locale;
     private final Grid<Issue> grid = new Grid<>();
@@ -34,8 +42,8 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
     private final Span highCount = new Span();
     private final Span mediumCount = new Span();
 
-    public InventoryIssuesView(InventoryService inventoryService, MessageSource messages, LocaleService locale) {
-        this.inventoryService = inventoryService; this.messages = messages; this.locale = locale;
+    public InventoryIssuesView(InventoryService inventoryService, IncidentService incidentService, MessageSource messages, LocaleService locale) {
+        this.inventoryService = inventoryService; this.incidentService = incidentService; this.messages = messages; this.locale = locale;
         setSizeFull();
         H2 title = new H2(msg("inventory_issues_view.title"));
         Button refresh = new Button(msg("common.refresh"), e -> refresh());
@@ -55,7 +63,8 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
         highCount.getStyle().set("color", "var(--lumo-error-text-color)").set("font-weight", "600");
         mediumCount.getStyle().set("color", "var(--lumo-warning-text-color)").set("font-weight", "600");
         HorizontalLayout summary = new HorizontalLayout(highCount, mediumCount);
-        HorizontalLayout header = new HorizontalLayout(title, summary, typeFilter, severityFilter, refresh);
+        Button createIncidents = new Button(msg("inventory_issues_view.create_incidents"), e -> confirmCreateIncidents());
+        HorizontalLayout header = new HorizontalLayout(title, summary, typeFilter, severityFilter, createIncidents, refresh);
         header.setFlexGrow(1, title);
         header.setWidthFull(); header.setFlexGrow(1, title);
         grid.addColumn(Issue::severity).setHeader(msg("inventory_issues_view.severity")).setAutoWidth(true);
@@ -107,6 +116,35 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
                 .filter(item -> "ALL".equals(selected) || selected.equals(item.severity()))
                 .filter(item -> "ALL".equals(selectedType) || selectedType.equals(item.actionKey().equals("open_licenses") ? "LICENSE" : "INVENTORY"))
                 .toList());
+    }
+
+    private void confirmCreateIncidents() {
+        String selected = severityFilter.getValue() == null ? "ALL" : severityFilter.getValue();
+        String selectedType = typeFilter.getValue() == null ? "ALL" : typeFilter.getValue();
+        List<Issue> visible = issues.stream()
+                .filter(item -> "ALL".equals(selected) || selected.equals(item.severity()))
+                .filter(item -> "ALL".equals(selectedType) || selectedType.equals(item.actionKey().equals("open_licenses") ? "LICENSE" : "INVENTORY"))
+                .toList();
+        if (visible.isEmpty()) return;
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader(msg("inventory_issues_view.create_incidents"));
+        dialog.setText(msg("inventory_issues_view.create_incidents_confirm", visible.size()));
+        dialog.setCancelable(true);
+        dialog.setConfirmText(msg("inventory_issues_view.create_incidents"));
+        dialog.addConfirmListener(event -> {
+            visible.forEach(item -> {
+                IncidentItem incident = new IncidentItem();
+                incident.setSignalId("INVENTORY_ISSUE");
+                incident.setName(item.type() + ": " + item.object());
+                incident.setSeverity("HIGH".equals(item.severity()) ? Severity.HIGH : Severity.MEDIUM);
+                incident.setStatus(IncidentStatus.OPEN); incident.setEventCount(1);
+                incident.setRecommendation(item.details()); incident.setContext(item.details());
+                incident.setMeta(false); incident.setCreatedAt(LocalDateTime.now());
+                incident.setDeduplicationKey("inventory-issue-" + UUID.randomUUID());
+                incidentService.createIncident(incident);
+            });
+        });
+        dialog.open();
     }
 
     private String msg(String key) { return messages.getMessage(key, null, locale.getCurrentLocale()); }
