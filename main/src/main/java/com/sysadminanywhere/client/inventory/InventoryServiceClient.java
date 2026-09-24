@@ -29,6 +29,15 @@ public interface InventoryServiceClient {
     @PutExchange("/api/inventory/schedule")
     InventorySchedule updateSchedule(@org.springframework.web.bind.annotation.RequestBody InventorySchedule schedule);
 
+    @GetExchange("/api/inventory/licenses")
+    List<SoftwareLicense> getLicenses();
+
+    @org.springframework.web.service.annotation.PostExchange("/api/inventory/licenses")
+    SoftwareLicense saveLicense(@org.springframework.web.bind.annotation.RequestBody SoftwareLicense license);
+
+    @org.springframework.web.service.annotation.DeleteExchange("/api/inventory/licenses/{id}")
+    void deleteLicense(@org.springframework.web.bind.annotation.PathVariable Long id);
+
     @PostExchange("/api/inventory/scan/cancel")
     void cancelScan();
 

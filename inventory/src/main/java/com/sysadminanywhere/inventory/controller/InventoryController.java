@@ -9,6 +9,8 @@ import com.sysadminanywhere.inventory.repository.ComputerRepository;
 import com.sysadminanywhere.inventory.repository.HardwareModelRepository;
 import com.sysadminanywhere.inventory.repository.HardwarePropertyRepository;
 import com.sysadminanywhere.inventory.repository.SoftwareRepository;
+import com.sysadminanywhere.inventory.repository.SoftwareLicenseRepository;
+import com.sysadminanywhere.inventory.entity.SoftwareLicense;
 import com.sysadminanywhere.inventory.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,36 @@ public class InventoryController {
     private final ComputerHardwareRepository computerHardwareRepository;
     private final HardwareModelRepository hardwareModelRepository;
     private final HardwarePropertyRepository hardwarePropertyRepository;
+    private final SoftwareLicenseRepository softwareLicenseRepository;
+
+    @GetMapping("/licenses")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<List<com.sysadminanywhere.common.inventory.model.SoftwareLicense>> getLicenses() {
+        return ResponseEntity.ok(softwareLicenseRepository.findAll().stream().map(this::licenseDto).toList());
+    }
+
+    @PostMapping("/licenses")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<com.sysadminanywhere.common.inventory.model.SoftwareLicense> saveLicense(
+            @RequestBody com.sysadminanywhere.common.inventory.model.SoftwareLicense request) {
+        SoftwareLicense entity = new SoftwareLicense();
+        entity.setId(request.id()); entity.setName(request.name()); entity.setVendor(request.vendor());
+        entity.setVersion(request.version()); entity.setPurchased(request.purchased());
+        entity.setExpiresAt(request.expiresAt()); entity.setNotes(request.notes());
+        return ResponseEntity.ok(licenseDto(softwareLicenseRepository.save(entity)));
+    }
+
+    @DeleteMapping("/licenses/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteLicense(@PathVariable Long id) {
+        softwareLicenseRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    private com.sysadminanywhere.common.inventory.model.SoftwareLicense licenseDto(SoftwareLicense item) {
+        return new com.sysadminanywhere.common.inventory.model.SoftwareLicense(item.getId(), item.getName(), item.getVendor(),
+                item.getVersion(), item.getPurchased(), item.getExpiresAt(), item.getNotes());
+    }
     private final InventoryService inventoryService;
     private final com.sysadminanywhere.inventory.service.InventoryScheduler inventoryScheduler;
 

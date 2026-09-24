@@ -158,6 +158,21 @@ public class InventoryService {
         catch (Exception e) { log.warn("Unable to update inventory schedule: {}", e.getMessage()); return null; }
     }
 
+    public List<SoftwareLicense> getLicenses() {
+        try { return inventoryServiceClient.getLicenses(); }
+        catch (Exception e) { log.warn("Unable to load software licenses: {}", e.getMessage()); return List.of(); }
+    }
+
+    public SoftwareLicense saveLicense(SoftwareLicense license) {
+        try { return inventoryServiceClient.saveLicense(license); }
+        catch (Exception e) { log.warn("Unable to save software license: {}", e.getMessage()); return null; }
+    }
+
+    public boolean deleteLicense(Long id) {
+        try { inventoryServiceClient.deleteLicense(id); return true; }
+        catch (Exception e) { log.warn("Unable to delete software license: {}", e.getMessage()); return false; }
+    }
+
     public InventoryScanStatus getScanStatus() {
         try {
             return inventoryServiceClient.getScanStatus();
