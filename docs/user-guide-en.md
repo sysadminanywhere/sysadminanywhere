@@ -65,13 +65,8 @@ Table:
 - Action,
 - When changed.
 
-### 3.4 Application change history (`/domain/change-history`)
-This page shows operations performed through Sysadmin Anywhere. Each entry contains the object, DN, action, application user, timestamp and available before/after snapshots. Filter by object, DN, operator, action and date, then click a row for details.
-
-The journal is stored in a JSON file. Configure it with `directory.audit.journal-path` or `DIRECTORY_AUDIT_JOURNAL_PATH` (local default `./data/change-journal.json`, Docker default `/data/change-journal.json`). The maximum number of entries is controlled by `DIRECTORY_AUDIT_JOURNAL_MAX_ENTRIES` and defaults to 10,000. Passwords and other sensitive attributes are replaced with `[redacted]`. Changes made directly in AD remain in the Audit page and do not have application before/after snapshots.
-
-### 3.5 Domain health (`/domain/health`)
-The page performs operational checks for LDAP, domain controller discovery, DNS resolution, SMB reachability for SYSVOL/NETLOGON, LDAP time drift and the LDAP certificate when SSL is enabled. Each check is shown separately as Healthy, Warning, Error or Not checked.
+### 3.4 Domain health (Domain page)
+The Domain page (`/domain/info`) includes operational checks for LDAP, domain controller discovery, DNS resolution, SMB reachability for SYSVOL/NETLOGON, LDAP time drift and the LDAP certificate when SSL is enabled. Each check is shown separately as Healthy, Warning, Error or Not checked; use Refresh to run the checks again.
 
 ## 4. Management Section
 
