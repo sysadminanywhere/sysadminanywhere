@@ -21,6 +21,7 @@ import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -64,6 +65,7 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
         mediumCount.getStyle().set("color", "var(--lumo-warning-text-color)").set("font-weight", "600");
         HorizontalLayout summary = new HorizontalLayout(highCount, mediumCount);
         Button createIncidents = new Button(msg("inventory_issues_view.create_incidents"), e -> confirmCreateIncidents());
+        createIncidents.setVisible(isAdmin());
         HorizontalLayout header = new HorizontalLayout(title, summary, typeFilter, severityFilter, createIncidents, refresh);
         header.setFlexGrow(1, title);
         header.setWidthFull(); header.setFlexGrow(1, title);
@@ -156,6 +158,12 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
             });
         });
         dialog.open();
+    }
+
+    private boolean isAdmin() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
     }
 
     private String msg(String key) { return messages.getMessage(key, null, locale.getCurrentLocale()); }
