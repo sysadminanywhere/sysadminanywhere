@@ -210,7 +210,7 @@
         <dependency>
             <groupId>org.vaadin.addons.componentfactory</groupId>
             <artifactId>vcf-pdf-viewer</artifactId>
-            <version>6.0.1</version>
+            <version>6.1.1</version>
         </dependency>
 
         <dependency>
