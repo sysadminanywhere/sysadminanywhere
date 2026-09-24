@@ -1,0 +1,76 @@
+package com.sysadminanywhere.views.inventory;
+
+import com.sysadminanywhere.common.inventory.model.InventoryHealthComputer;
+import com.sysadminanywhere.common.inventory.model.SoftwareLicense;
+import com.sysadminanywhere.service.InventoryService;
+import com.sysadminanywhere.service.LocaleService;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.HasDynamicTitle;
+import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+@RolesAllowed({"ADMIN", "READER"})
+@Route("inventory/issues")
+public class InventoryIssuesView extends VerticalLayout implements HasDynamicTitle {
+    private final InventoryService inventoryService;
+    private final MessageSource messages;
+    private final LocaleService locale;
+    private final Grid<Issue> grid = new Grid<>();
+
+    public InventoryIssuesView(InventoryService inventoryService, MessageSource messages, LocaleService locale) {
+        this.inventoryService = inventoryService; this.messages = messages; this.locale = locale;
+        setSizeFull();
+        H2 title = new H2(msg("inventory_issues_view.title"));
+        Button refresh = new Button(msg("common.refresh"), e -> refresh());
+        HorizontalLayout header = new HorizontalLayout(title, refresh);
+        header.setWidthFull(); header.setFlexGrow(1, title);
+        grid.addColumn(Issue::severity).setHeader(msg("inventory_issues_view.severity")).setAutoWidth(true);
+        grid.addColumn(Issue::type).setHeader(msg("inventory_issues_view.type")).setAutoWidth(true);
+        grid.addColumn(Issue::object).setHeader(msg("inventory_issues_view.object")).setAutoWidth(true);
+        grid.addColumn(Issue::details).setHeader(msg("inventory_issues_view.details")).setFlexGrow(1);
+        grid.addComponentColumn(item -> new Span(msg("inventory_issues_view." + item.actionKey())))
+                .setHeader(msg("inventory_issues_view.action")).setAutoWidth(true);
+        grid.setSizeFull();
+        add(header, grid); expand(grid); refresh();
+    }
+
+    private void refresh() {
+        List<Issue> issues = new ArrayList<>();
+        var health = inventoryService.getInventoryHealth(30);
+        if (health != null && health.computers() != null) {
+            for (InventoryHealthComputer computer : health.computers()) {
+                if ("ERROR".equalsIgnoreCase(computer.scanStatus())) {
+                    issues.add(new Issue("HIGH", msg("inventory_issues_view.inventory"), computer.name(),
+                            computer.scanError(), "open_inventory"));
+                } else {
+                    issues.add(new Issue("MEDIUM", msg("inventory_issues_view.inventory"), computer.name(),
+                            msg("inventory_issues_view.stale_details"), "open_inventory"));
+                }
+            }
+        }
+        for (SoftwareLicense license : inventoryService.getLicenses()) {
+            if (license.used() > license.purchased()) {
+                issues.add(new Issue("HIGH", msg("inventory_issues_view.license"), license.name(),
+                        msg("inventory_issues_view.overuse_details"), "open_licenses"));
+            } else if (license.expiresAt() != null && license.expiresAt().isBefore(LocalDate.now())) {
+                issues.add(new Issue("HIGH", msg("inventory_issues_view.license"), license.name(),
+                        msg("inventory_issues_view.expired_details"), "open_licenses"));
+            }
+        }
+        grid.setItems(issues);
+    }
+
+    private String msg(String key) { return messages.getMessage(key, null, locale.getCurrentLocale()); }
+    @Override public String getPageTitle() { return msg("inventory_issues_view.title"); }
+    private record Issue(String severity, String type, String object, String details, String actionKey) { }
+}
