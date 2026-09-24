@@ -16,6 +16,7 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -25,6 +26,7 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
@@ -32,6 +34,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
@@ -52,6 +56,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
     private final TextField computerFilter = new TextField();
     private List<InventoryHealthComputer> currentComputers = List.of();
     private final Button scanSelected = new Button();
+    private final Anchor export = new Anchor();
 
     public InventoryHealthView(InventoryService inventoryService, IncidentService incidentService,
                                MessageSource messageSource, LocaleService localeService) {
@@ -82,7 +87,10 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         scanSelected.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         scanSelected.setVisible(startScan.isVisible());
         scanSelected.addClickListener(event -> startSelectedScan());
-        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, staleDays, startScan, scanSelected, refresh);
+        export.setText(message("inventory_health_view.export_csv"));
+        export.getElement().setAttribute("download", true);
+        export.setHref(new StreamResource("inventory-health.csv", this::createCsv));
+        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, staleDays, startScan, scanSelected, export, refresh);
         header.setWidthFull(); header.setAlignItems(Alignment.END); header.setFlexGrow(1, title);
 
         HorizontalLayout summary = new HorizontalLayout(metric(message("inventory_health_view.total"), total),
@@ -189,6 +197,21 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         grid.setItems(currentComputers.stream()
                 .filter(item -> filter.isBlank() || item.name() != null && item.name().toLowerCase().contains(filter))
                 .toList());
+    }
+
+    private ByteArrayInputStream createCsv() {
+        StringBuilder csv = new StringBuilder("Computer,Last scan,Days since scan,Status\n");
+        currentComputers.forEach(item -> csv.append(csvValue(item.name())).append(',')
+                .append(csvValue(item.checkingDate() == null ? "" : item.checkingDate().toString())).append(',')
+                .append(item.daysSinceCheck() < 0 ? "" : item.daysSinceCheck()).append(',')
+                .append(csvValue(item.daysSinceCheck() < 0 ? message("inventory_health_view.never") :
+                        message("inventory_health_view.stale_status"))).append('\n'));
+        return new ByteArrayInputStream(csv.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String csvValue(String value) {
+        if (value == null) return "";
+        return "\"" + value.replace("\"", "\"\"") + "\"";
     }
 
     private void updateScanStatus() {
