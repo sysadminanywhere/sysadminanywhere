@@ -3,6 +3,7 @@ package com.sysadminanywhere.views.management.groups;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.model.GroupScope;
 import com.sysadminanywhere.control.ContainerField;
+import com.sysadminanywhere.control.SpreadsheetImport;
 import com.sysadminanywhere.service.GroupsService;
 import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.button.Button;
@@ -60,7 +61,7 @@ public class ImportGroupDialog extends Dialog {
         importButton.setEnabled(false);
         MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
         Upload upload = new Upload(buffer);
-        upload.setAcceptedFileTypes("text/csv", ".csv");
+        upload.setAcceptedFileTypes("text/csv", ".csv", ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         upload.addSucceededListener(event -> parse(buffer, event.getFileName(), importButton));
         form.add(container, upload);
 
@@ -94,7 +95,9 @@ public class ImportGroupDialog extends Dialog {
 
     private void parse(MultiFileMemoryBuffer buffer, String fileName, Button importButton) {
         try (InputStream input = buffer.getInputStream(fileName);
-             InputStreamReader reader = new InputStreamReader(input);
+             InputStreamReader reader = new InputStreamReader(fileName.toLowerCase().endsWith(".xlsx")
+                     ? new java.io.ByteArrayInputStream(SpreadsheetImport.firstSheetAsCsv(input.readAllBytes()).getBytes(java.nio.charset.StandardCharsets.UTF_8))
+                     : input);
              CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
             records = parser.getRecords();
             headers = parser.getHeaderMap();

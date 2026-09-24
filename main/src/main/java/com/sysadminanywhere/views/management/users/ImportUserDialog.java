@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.management.users;
 
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.control.ContainerField;
+import com.sysadminanywhere.control.SpreadsheetImport;
 import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.UsersService;
 import org.springframework.context.MessageSource;
@@ -63,12 +64,14 @@ public class ImportUserDialog extends Dialog {
 
         MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
         Upload upload = new Upload(buffer);
-        upload.setAcceptedFileTypes("text/csv", ".csv");
+        upload.setAcceptedFileTypes("text/csv", ".csv", ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
         upload.addSucceededListener(event -> {
             String fileName = event.getFileName();
             try (InputStream inputStream = buffer.getInputStream(fileName);
-                 InputStreamReader reader = new InputStreamReader(inputStream);
+                 InputStreamReader reader = new InputStreamReader(fileName.toLowerCase().endsWith(".xlsx")
+                         ? new java.io.ByteArrayInputStream(SpreadsheetImport.firstSheetAsCsv(inputStream.readAllBytes()).getBytes(java.nio.charset.StandardCharsets.UTF_8))
+                         : inputStream);
                  CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
 
                 csvRecords = new ArrayList<>();
