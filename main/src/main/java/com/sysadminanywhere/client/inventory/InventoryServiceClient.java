@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.PostExchange;
+import org.springframework.web.service.annotation.PutExchange;
 
 import java.util.List;
 
@@ -21,6 +22,12 @@ public interface InventoryServiceClient {
 
     @GetExchange("/api/inventory/scan/status")
     InventoryScanStatus getScanStatus();
+
+    @GetExchange("/api/inventory/schedule")
+    InventorySchedule getSchedule();
+
+    @PutExchange("/api/inventory/schedule")
+    InventorySchedule updateSchedule(@org.springframework.web.bind.annotation.RequestBody InventorySchedule schedule);
 
     @PostExchange("/api/inventory/scan/cancel")
     void cancelScan();

@@ -10,7 +10,6 @@ import com.sysadminanywhere.inventory.repository.InventoryScanRunRepository;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -143,7 +142,6 @@ public class InventoryService {
     */
 
     @SneakyThrows
-    @Scheduled(cron = "${cron.expression}")
     public void scan() {
         log.info("Scan started");
 

@@ -35,6 +35,23 @@ public class InventoryController {
     private final HardwareModelRepository hardwareModelRepository;
     private final HardwarePropertyRepository hardwarePropertyRepository;
     private final InventoryService inventoryService;
+    private final com.sysadminanywhere.inventory.service.InventoryScheduler inventoryScheduler;
+
+    @GetMapping("/schedule")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<InventorySchedule> getSchedule() {
+        return ResponseEntity.ok(inventoryScheduler.getSchedule());
+    }
+
+    @PutMapping("/schedule")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<InventorySchedule> updateSchedule(@RequestBody InventorySchedule schedule) {
+        try {
+            return ResponseEntity.ok(inventoryScheduler.update(schedule.cron(), schedule.enabled()));
+        } catch (IllegalArgumentException exception) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
     @PostMapping("/scan")
     @PreAuthorize("hasRole('ADMIN')")

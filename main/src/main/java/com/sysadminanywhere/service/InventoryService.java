@@ -148,6 +148,16 @@ public class InventoryService {
         }
     }
 
+    public InventorySchedule getSchedule() {
+        try { return inventoryServiceClient.getSchedule(); }
+        catch (Exception e) { log.warn("Unable to load inventory schedule: {}", e.getMessage()); return null; }
+    }
+
+    public InventorySchedule updateSchedule(String cron, boolean enabled) {
+        try { return inventoryServiceClient.updateSchedule(new InventorySchedule(cron, enabled)); }
+        catch (Exception e) { log.warn("Unable to update inventory schedule: {}", e.getMessage()); return null; }
+    }
+
     public InventoryScanStatus getScanStatus() {
         try {
             return inventoryServiceClient.getScanStatus();
