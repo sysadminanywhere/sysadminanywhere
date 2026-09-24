@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.inventory;
 
 import com.sysadminanywhere.common.inventory.model.SoftwareLicense;
+import com.sysadminanywhere.common.inventory.model.SoftwareCount;
 import com.sysadminanywhere.common.incident.model.IncidentItem;
 import com.sysadminanywhere.common.incident.model.IncidentStatus;
 import com.sysadminanywhere.common.incident.model.Severity;
@@ -16,6 +17,7 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -27,6 +29,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.PageRequest;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
 import java.util.List;
@@ -118,9 +121,41 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
     private void openEditor(SoftwareLicense current) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(msg("inventory_licenses_view.add"));
+        ComboBox<SoftwareCount> discoveredSoftware = new ComboBox<>(msg("inventory_licenses_view.select_discovered_software"));
+        discoveredSoftware.setPlaceholder(msg("inventory_licenses_view.discovered_software_placeholder"));
+        discoveredSoftware.setWidthFull();
+        discoveredSoftware.setClearButtonVisible(true);
+        discoveredSoftware.setPageSize(30);
+        discoveredSoftware.setItemLabelGenerator(item -> {
+            String label = String.join(" — ", java.util.stream.Stream.of(item.getName(), item.getVendor(), item.getVersion())
+                    .filter(value -> value != null && !value.isBlank()).toList());
+            return label + " (" + msg("inventory_licenses_view.detected_installations", new Object[]{item.getCount()}) + ")";
+        });
+        discoveredSoftware.setItems(query -> {
+            String term = query.getFilter().orElse("");
+            return inventoryService.getDiscoveredSoftware(PageRequest.of(query.getPage(), query.getPageSize()), term).stream();
+        });
         TextField name = new TextField(msg("inventory_licenses_view.name"));
         TextField vendor = new TextField(msg("inventory_licenses_view.vendor"));
         TextField version = new TextField(msg("inventory_licenses_view.version"));
+        name.setWidthFull(); vendor.setWidthFull(); version.setWidthFull();
+        Span detectedUsage = new Span(msg("inventory_licenses_view.discovered_software_hint"));
+        discoveredSoftware.addValueChangeListener(event -> {
+            SoftwareCount selected = event.getValue();
+            if (selected == null) {
+                detectedUsage.setText(msg("inventory_licenses_view.discovered_software_hint"));
+                return;
+            }
+            name.setValue(selected.getName() == null ? "" : selected.getName());
+            vendor.setValue(selected.getVendor() == null ? "" : selected.getVendor());
+            version.setValue(selected.getVersion() == null ? "" : selected.getVersion());
+            detectedUsage.setText(msg("inventory_licenses_view.detected_installations", new Object[]{selected.getCount()}));
+        });
+        if (current != null) {
+            name.setValue(current.name() == null ? "" : current.name());
+            vendor.setValue(current.vendor() == null ? "" : current.vendor());
+            version.setValue(current.version() == null ? "" : current.version());
+        }
         IntegerField purchased = new IntegerField(msg("inventory_licenses_view.purchased"));
         purchased.setMin(0); purchased.setValue(0);
         DatePicker expires = new DatePicker(msg("inventory_licenses_view.expires"));
@@ -133,7 +168,7 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
             if (saved != null) { dialog.close(); refresh(); Notification.show(msg("inventory_licenses_view.saved")); }
         });
         Button cancel = new Button(msg("common.cancel"), e -> dialog.close());
-        dialog.add(new VerticalLayout(name, vendor, version, purchased, expires, notes, new HorizontalLayout(save, cancel)));
+        dialog.add(new VerticalLayout(discoveredSoftware, detectedUsage, name, vendor, version, purchased, expires, notes, new HorizontalLayout(save, cancel)));
         dialog.open();
     }
 
@@ -163,5 +198,6 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
     }
 
     private String msg(String key) { return messages.getMessage(key, null, locale.getCurrentLocale()); }
+    private String msg(String key, Object[] arguments) { return messages.getMessage(key, arguments, locale.getCurrentLocale()); }
     @Override public String getPageTitle() { return msg("inventory_licenses_view.title"); }
 }

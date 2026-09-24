@@ -51,6 +51,10 @@ public interface InventoryServiceClient {
                                                   @RequestParam(required = false) Long minCount, @RequestParam(required = false) Long maxCount,
                                                   @RequestParam int page, @RequestParam int size, @RequestParam String sort);
 
+    @GetExchange("/api/inventory/software/discovered")
+    PageResponse<SoftwareCount> getDiscoveredSoftware(@RequestParam String search,
+                                                       @RequestParam int page, @RequestParam int size);
+
     @GetExchange("/api/inventory/software/vulnerabilities")
     List<SoftwareVulnerability> getSoftwareVulnerabilities();
 

@@ -203,6 +203,18 @@ public class InventoryController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/software/discovered")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<PageResponse<SoftwareCount>> getDiscoveredSoftware(
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
+        Pageable pageable = Pageable.ofSize(Math.max(1, Math.min(100, size))).withPage(Math.max(0, page));
+        Page<SoftwareCount> result = softwareRepository.findDiscoveredSoftware("%" + search.trim() + "%", pageable);
+        return ResponseEntity.ok(new PageResponse<>(result.getContent(), result.getNumber(), result.getSize(),
+                result.getTotalElements(), result.getTotalPages()));
+    }
+
     private String displayFilter(String value) {
         return value == null || value.isBlank() ? "<all>" : value;
     }
