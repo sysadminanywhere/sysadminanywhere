@@ -113,8 +113,9 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
             translationToEnglishMap.put(getMessage("inventory_hardware_view.processor"), "Processor");
             translationToEnglishMap.put(getMessage("inventory_hardware_view.video_controller"), "Video Controller");
             translationToEnglishMap.put(getMessage("inventory_hardware_view.physical_memory"), "Physical Memory");
+            translationToEnglishMap.put(getMessage("inventory_hardware_view.patch"), "Patch");
 
-            hardwareType.setItems(getMessage("inventory_hardware_view.computer_system"), getMessage("inventory_hardware_view.bios"), getMessage("inventory_hardware_view.base_board"), getMessage("inventory_hardware_view.disk_drive"), getMessage("inventory_hardware_view.operating_system"), getMessage("inventory_hardware_view.processor"), getMessage("inventory_hardware_view.video_controller"), getMessage("inventory_hardware_view.physical_memory"));
+            hardwareType.setItems(getMessage("inventory_hardware_view.computer_system"), getMessage("inventory_hardware_view.bios"), getMessage("inventory_hardware_view.base_board"), getMessage("inventory_hardware_view.disk_drive"), getMessage("inventory_hardware_view.operating_system"), getMessage("inventory_hardware_view.processor"), getMessage("inventory_hardware_view.video_controller"), getMessage("inventory_hardware_view.physical_memory"), getMessage("inventory_hardware_view.patch"));
             hardwareType.setValue(getMessage("inventory_hardware_view.computer_system"));
 
             setWidthFull();

@@ -58,6 +58,7 @@ public class HardwareService {
         List<Map<String, Object>> baseBoards = execute(hostName, "SELECT * FROM Win32_BaseBoard");
         List<Map<String, Object>> bios = execute(hostName, "SELECT * FROM Win32_BIOS");
         List<Map<String, Object>> computerSystems = execute(hostName, "SELECT * FROM Win32_ComputerSystem");
+        List<Map<String, Object>> patches = execute(hostName, "SELECT * FROM Win32_QuickFixEngineering");
 
         // Get current hardware models for this computer
         Set<Long> currentHardwareModelIds = new HashSet<>();
@@ -70,6 +71,7 @@ public class HardwareService {
         saveHardware(computer, HardwareType.BASE_BOARD, baseBoards, currentHardwareModelIds);
         saveHardware(computer, HardwareType.BIOS, bios, currentHardwareModelIds);
         saveHardware(computer, HardwareType.COMPUTER_SYSTEM, computerSystems, currentHardwareModelIds);
+        saveHardware(computer, HardwareType.PATCH, patches, currentHardwareModelIds);
         
         // Remove hardware that no longer exists
         removeObsoleteHardware(computer, currentHardwareModelIds);
@@ -154,6 +156,7 @@ public class HardwareService {
             case PHYSICAL_MEMORY -> getStringValue(data, "PartNumber");
             case DISK_PARTITION -> getStringValue(data, "Name");
             case COMPUTER_SYSTEM -> getStringValue(data, "Model");
+            case PATCH -> getStringValue(data, "HotFixID");
         };
     }
 
