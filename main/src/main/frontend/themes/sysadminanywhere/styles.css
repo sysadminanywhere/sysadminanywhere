@@ -125,6 +125,46 @@ html[theme~="dark"] body {
       overflow-wrap: anywhere;
 }
 
+.overview-card {
+      --overview-accent: var(--lumo-primary-color);
+      border: 1px solid var(--lumo-contrast-10pct);
+      border-top: 4px solid var(--overview-accent);
+      box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
+      transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.overview-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 14px rgba(16, 24, 40, 0.13);
+}
+
+.overview-card.overview-ok { --overview-accent: #12b76a; }
+.overview-card.overview-warning { --overview-accent: #f79009; }
+.overview-card.overview-error { --overview-accent: #f04438; }
+.overview-card.overview-unknown { --overview-accent: var(--lumo-contrast-50pct); }
+
+.overview-status-badge {
+      align-self: flex-start;
+      margin-bottom: var(--lumo-space-xs);
+      padding: 3px 10px;
+      border-radius: 999px;
+      color: var(--overview-accent);
+      background: color-mix(in srgb, var(--overview-accent) 12%, transparent);
+      font-size: var(--lumo-font-size-s);
+      font-weight: 700;
+}
+
+.overview-card h3 {
+      margin: 0;
+      color: var(--overview-accent);
+      font-size: var(--lumo-font-size-xl);
+}
+
+.overview-card vaadin-horizontal-layout {
+      align-items: center;
+      min-height: 28px;
+}
+
 .enabled-object-icon,
 .disabled-object-icon {
       transition: filter 140ms ease, opacity 140ms ease;

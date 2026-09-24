@@ -250,27 +250,37 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         var domainHealth = ldapService.getDomainHealth();
         String healthStatus = domainHealth == null || domainHealth.getOverallStatus() == null
                 ? "UNKNOWN" : domainHealth.getOverallStatus();
-        Card domainCard = metricCard(getMessage("domain_health_view.title"), Map.of(
+        Card domainCard = metricCard(getMessage("domain_health_view.title"), healthClass(healthStatus),
+                localizedHealthStatus(healthStatus), Map.of(
                 getMessage("domain_health_view.overall"), localizedHealthStatus(healthStatus),
                 getMessage("domain_health_view.check"), domainHealth == null || domainHealth.getChecks() == null
                         ? 0 : domainHealth.getChecks().size()));
         domainCard.add(new Anchor("domain/info", getMessage("common.details")));
 
         var security = securityAuditService.scan();
-        Card securityCard = metricCard(getMessage("security_audit_view.title"), Map.of(
+        int securityIssues = security.privilegedUsers() + security.privilegedGroups()
+                + security.usersMissingContactData();
+        Card securityCard = metricCard(getMessage("security_audit_view.title"), securityIssues == 0 ? "ok" : "warning",
+                securityIssues == 0 ? getMessage("domain_health_view.healthy") : getMessage("domain_health_view.warning"), Map.of(
                 getMessage("security_audit_view.privileged_users"), security.privilegedUsers(),
                 getMessage("security_audit_view.privileged_groups"), security.privilegedGroups(),
                 getMessage("security_audit_view.missing_contact"), security.usersMissingContactData()));
         securityCard.add(new Anchor("security/audit", getMessage("common.details")));
 
-        Card accountsCard = metricCard(getMessage("dashboard_view.users"), Map.of(
+        long accountIssues = users.stream().filter(user -> user.isDisabled() || user.isLocked() || user.isExpired()).count();
+        Card accountsCard = metricCard(getMessage("dashboard_view.users"), accountIssues == 0 ? "ok" : "warning",
+                accountIssues == 0 ? getMessage("domain_health_view.healthy") : getMessage("domain_health_view.warning"), Map.of(
                 getMessage("common.disabled"), users.stream().filter(UserEntry::isDisabled).count(),
                 getMessage("common.locked"), users.stream().filter(UserEntry::isLocked).count(),
                 getMessage("common.expired"), users.stream().filter(UserEntry::isExpired).count()));
         accountsCard.add(new Anchor("management/users", getMessage("common.details")));
 
         var inventory = inventoryService.getInventoryHealth(30);
-        Card inventoryCard = metricCard(getMessage("inventory_health_view.title"), Map.of(
+        int inventoryIssues = inventory == null ? -1 : inventory.staleCount() + inventory.neverScannedCount();
+        Card inventoryCard = metricCard(getMessage("inventory_health_view.title"), inventoryIssues < 0 ? "error" :
+                        inventoryIssues == 0 ? "ok" : "warning",
+                inventoryIssues < 0 ? getMessage("domain_health_view.error") : inventoryIssues == 0 ?
+                        getMessage("domain_health_view.healthy") : getMessage("domain_health_view.warning"), Map.of(
                 getMessage("inventory_health_view.total"), inventory == null ? 0 : inventory.totalComputers(),
                 getMessage("inventory_health_view.stale"), inventory == null ? 0 : inventory.staleCount(),
                 getMessage("inventory_health_view.never_scanned"), inventory == null ? 0 : inventory.neverScannedCount()));
@@ -280,11 +290,15 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         return cards;
     }
 
-    private Card metricCard(String title, Map<String, ?> values) {
+    private Card metricCard(String title, String statusClass, String statusText, Map<String, ?> values) {
         Card card = new Card();
+        card.addClassName("overview-card");
+        card.addClassName("overview-" + statusClass);
         card.setWidth("min(100%, 360px)");
         card.getStyle().set("flex", "1 1 240px");
         card.setTitle(title);
+        Span status = new Span(statusText);
+        status.addClassName("overview-status-badge");
         VerticalLayout content = new VerticalLayout();
         content.setPadding(false);
         values.forEach((label, value) -> {
@@ -293,8 +307,17 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
             row.setJustifyContentMode(JustifyContentMode.BETWEEN);
             content.add(row);
         });
-        card.add(content);
+        card.add(status, content);
         return card;
+    }
+
+    private String healthClass(String value) {
+        return switch (value) {
+            case "HEALTHY" -> "ok";
+            case "WARNING" -> "warning";
+            case "ERROR" -> "error";
+            default -> "unknown";
+        };
     }
 
     private String localizedHealthStatus(String value) {
