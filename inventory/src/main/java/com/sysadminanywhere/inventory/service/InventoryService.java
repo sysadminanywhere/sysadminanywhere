@@ -45,6 +45,7 @@ public class InventoryService {
     private volatile Set<String> scanTargets = Set.of();
     private volatile int scanProcessed;
     private volatile int scanTotal;
+    private volatile boolean cancelRequested;
 
     public InventoryService(AuthService authService,
                             ComputersServiceClient computersServiceClient,
@@ -72,6 +73,7 @@ public class InventoryService {
         scanTargets = computerNames == null ? Set.of() : computerNames.stream()
                 .filter(Objects::nonNull).map(String::trim).filter(name -> !name.isEmpty())
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());
+        cancelRequested = false;
         scanStartedAt = LocalDateTime.now();
         scanFinishedAt = null;
         lastScanError = null;
@@ -104,6 +106,12 @@ public class InventoryService {
                 scanRunRepository.save(run);
             }
         });
+        return true;
+    }
+
+    public boolean cancelScan() {
+        if (!scanRunning.get()) return false;
+        cancelRequested = true;
         return true;
     }
 
@@ -161,6 +169,10 @@ public class InventoryService {
         log.info("Found {} computers to scan", scanTotal);
 
         for (ComputerEntry computerEntry : computers) {
+            if (cancelRequested) {
+                lastScanError = "Scan cancelled by administrator";
+                break;
+            }
             if (computerEntry != null && !computerEntry.isDisabled()
                     && (scanTargets.isEmpty() || scanTargets.contains(computerEntry.getCn()))) {
                 Computer computer = null;

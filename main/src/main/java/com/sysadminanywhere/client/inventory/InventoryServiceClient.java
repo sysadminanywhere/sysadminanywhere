@@ -22,6 +22,9 @@ public interface InventoryServiceClient {
     @GetExchange("/api/inventory/scan/status")
     InventoryScanStatus getScanStatus();
 
+    @PostExchange("/api/inventory/scan/cancel")
+    void cancelScan();
+
     @GetExchange("/api/inventory/scan/history")
     List<InventoryScanRun> getScanHistory();
 

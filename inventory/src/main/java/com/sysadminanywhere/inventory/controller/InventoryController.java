@@ -49,6 +49,12 @@ public class InventoryController {
         return ResponseEntity.ok(inventoryService.getScanStatus());
     }
 
+    @PostMapping("/scan/cancel")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> cancelScan() {
+        return inventoryService.cancelScan() ? ResponseEntity.accepted().build() : ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/scan/history")
     @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<List<InventoryScanRun>> getScanHistory() {

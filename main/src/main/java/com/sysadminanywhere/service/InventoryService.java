@@ -130,6 +130,16 @@ public class InventoryService {
         }
     }
 
+    public boolean cancelScan() {
+        try {
+            inventoryServiceClient.cancelScan();
+            return true;
+        } catch (Exception e) {
+            log.warn("Unable to cancel inventory scan: {}", e.getMessage());
+            return false;
+        }
+    }
+
     public InventoryScanStatus getScanStatus() {
         try {
             return inventoryServiceClient.getScanStatus();

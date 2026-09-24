@@ -57,6 +57,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
     private List<InventoryHealthComputer> currentComputers = List.of();
     private final Button scanSelected = new Button();
     private final Button retryFailed = new Button();
+    private final Button cancelScan = new Button();
     private final Anchor export = new Anchor();
 
     public InventoryHealthView(InventoryService inventoryService, IncidentService incidentService,
@@ -92,10 +93,14 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         retryFailed.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         retryFailed.setVisible(startScan.isVisible());
         retryFailed.addClickListener(event -> retryFailedScans());
+        cancelScan.setText(message("inventory_health_view.cancel_scan"));
+        cancelScan.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        cancelScan.setVisible(startScan.isVisible());
+        cancelScan.addClickListener(event -> cancelScan());
         export.setText(message("inventory_health_view.export_csv"));
         export.getElement().setAttribute("download", true);
         export.setHref(new StreamResource("inventory-health.csv", this::createCsv));
-        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, staleDays, startScan, scanSelected, retryFailed, export, refresh);
+        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, staleDays, startScan, scanSelected, retryFailed, cancelScan, export, refresh);
         header.setWidthFull(); header.setAlignItems(Alignment.END); header.setFlexGrow(1, title);
 
         HorizontalLayout summary = new HorizontalLayout(metric(message("inventory_health_view.total"), total),
@@ -190,6 +195,13 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         }
     }
 
+    private void cancelScan() {
+        if (inventoryService.cancelScan()) {
+            Notification.show(message("inventory_health_view.cancel_requested"));
+            updateScanStatus();
+        }
+    }
+
     private HorizontalLayout metric(String label, Span value) {
         Span caption = new Span(label);
         caption.getStyle().set("font-size", "var(--lumo-font-size-s)").set("color", "var(--lumo-secondary-text-color)");
@@ -253,6 +265,10 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         } else {
             scanStatus.setText(message("inventory_health_view.scan_idle"));
         }
+        cancelScan.setVisible(status != null && status.running()
+                && SecurityContextHolder.getContext().getAuthentication() != null
+                && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority())));
         scanStatus.getStyle().set("color", "var(--lumo-secondary-text-color)");
     }
 
