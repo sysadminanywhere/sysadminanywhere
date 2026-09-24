@@ -141,6 +141,7 @@ html[theme~="dark"] body {
       --overview-accent: var(--lumo-primary-color);
       display: flex;
       flex-direction: column;
+      position: relative;
       padding: var(--lumo-space-m);
       border: 1px solid var(--lumo-contrast-10pct);
       border-top: 4px solid var(--overview-accent);
@@ -159,8 +160,9 @@ html[theme~="dark"] body {
 .overview-card.overview-unknown { --overview-accent: var(--lumo-contrast-50pct); }
 
 .overview-status-badge {
-      align-self: flex-start;
-      margin-bottom: var(--lumo-space-xs);
+      position: absolute;
+      top: var(--lumo-space-m);
+      right: var(--lumo-space-m);
       padding: 3px 10px;
       border-radius: 999px;
       color: var(--overview-accent);
@@ -177,6 +179,7 @@ html[theme~="dark"] body {
 
 .overview-card vaadin-vertical-layout {
       gap: var(--lumo-space-xs);
+      margin-top: var(--lumo-space-s);
 }
 
 .overview-card vaadin-horizontal-layout {
