@@ -78,6 +78,9 @@ public interface InventoryServiceClient {
     @GetExchange("/api/inventory/hardware/coverage")
     InventoryCoverage getInventoryCoverage();
 
+    @GetExchange("/api/inventory/hardware/patches/status")
+    List<ComputerPatchStatus> getPatchStatuses();
+
 
     // Ping
 

@@ -25,6 +25,9 @@ import java.util.List;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Locale;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 @Slf4j
 @RestController
@@ -41,6 +44,9 @@ public class InventoryController {
 
     @org.springframework.beans.factory.annotation.Value("${inventory.vulnerability.rules:}")
     private String vulnerabilityRules;
+
+    @org.springframework.beans.factory.annotation.Value("${inventory.patch.stale-days:90}")
+    private int patchStaleDays;
 
     @GetMapping("/licenses")
     @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
@@ -269,6 +275,25 @@ public class InventoryController {
         long operatingSystems = hardwareModelRepository.countComputersWithHardwareType("OperatingSystem");
         long patches = hardwareModelRepository.countComputersWithHardwareType("Patch");
         return ResponseEntity.ok(new InventoryCoverage(computers, operatingSystems, patches, softwareRepository.countWithoutVersion()));
+    }
+
+    @GetMapping("/hardware/patches/status")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<List<ComputerPatchStatus>> getPatchStatuses() {
+        LocalDate threshold = LocalDate.now().minusDays(Math.max(1, patchStaleDays));
+        return ResponseEntity.ok(computerHardwareRepository.findPatchStatuses().stream()
+                .map(item -> new ComputerPatchStatus(item.computer(), item.lastPatchDate(), isPatchStale(item.lastPatchDate(), threshold)))
+                .toList());
+    }
+
+    private boolean isPatchStale(String value, LocalDate threshold) {
+        if (value == null || value.isBlank()) return true;
+        for (DateTimeFormatter formatter : List.of(DateTimeFormatter.ISO_LOCAL_DATE,
+                DateTimeFormatter.ofPattern("MM/dd/yyyy"), DateTimeFormatter.ofPattern("M/d/yyyy"))) {
+            try { return LocalDate.parse(value.trim(), formatter).isBefore(threshold); }
+            catch (DateTimeParseException ignored) { }
+        }
+        return true;
     }
 
     @GetMapping("/hardware")

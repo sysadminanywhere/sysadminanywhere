@@ -137,6 +137,15 @@ public class InventoryService {
         }
     }
 
+    public List<ComputerPatchStatus> getPatchStatuses() {
+        try {
+            return inventoryServiceClient.getPatchStatuses();
+        } catch (Exception e) {
+            log.warn("Unable to load patch statuses: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
     private Long parseLong(String value) {
         try { return value == null || value.isBlank() ? null : Long.valueOf(value); }
         catch (NumberFormatException ignored) { return null; }

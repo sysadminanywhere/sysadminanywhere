@@ -3,6 +3,7 @@ package com.sysadminanywhere.views.inventory;
 import com.sysadminanywhere.common.inventory.model.HardwareItem;
 import com.sysadminanywhere.common.inventory.model.OperatingSystemCount;
 import com.sysadminanywhere.common.inventory.model.InventoryCoverage;
+import com.sysadminanywhere.common.inventory.model.ComputerPatchStatus;
 import com.sysadminanywhere.service.InventoryService;
 import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.Component;
@@ -55,7 +56,7 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
             filters = new Filters(() -> refreshGrid(), messageSource, localeService);
-            VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createCoverageSummary(), createOperatingSystemSummary(), createGrid());
+            VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createCoverageSummary(), createOperatingSystemSummary(), createPatchSummary(), createGrid());
             layout.setSizeFull();
             add(layout);
         }
@@ -207,6 +208,21 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
                 + coverage.softwareWithoutVersion() + " "
                 + getMessage("inventory_hardware_view.unknown_versions"));
         summary.getStyle().set("font-weight", "600");
+        return summary;
+    }
+
+    private Component createPatchSummary() {
+        Grid<ComputerPatchStatus> summary = new Grid<>();
+        summary.setHeight("180px");
+        summary.addColumn(ComputerPatchStatus::computer)
+                .setHeader(getMessage("inventory_hardware_view.computer"));
+        summary.addColumn(ComputerPatchStatus::lastPatchDate)
+                .setHeader(getMessage("inventory_hardware_view.last_patch"));
+        summary.addColumn(item -> item.stale() ? getMessage("inventory_hardware_view.stale")
+                : getMessage("inventory_hardware_view.current"))
+                .setHeader(getMessage("inventory_hardware_view.patch_status"));
+        summary.setItems(inventoryService.getPatchStatuses());
+        summary.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
         return summary;
     }
 
