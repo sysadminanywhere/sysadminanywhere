@@ -59,7 +59,7 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 
 ### Inventory roadmap
 - Configure the inventory scan schedule from Settings; `SCAN_CRON` remains the startup default
-- Add software license tracking and compliance checks (entitlements, expiration, allocation and overuse)
+- Add software license compliance checks (expiration, allocation and overuse; license registry is available under Inventory)
 
 ### 🧭 Onboarding & User Experience
 - **Guided Tour**: An onboarding tour introduces the primary navigation, section menu and page content
