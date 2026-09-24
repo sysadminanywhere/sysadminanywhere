@@ -144,6 +144,8 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
                 .setHeader(message("inventory_health_view.scan_result")).setAutoWidth(true);
         grid.addColumn(item -> item.scanError() == null ? "" : item.scanError())
                 .setHeader(message("inventory_health_view.scan_error_details")).setFlexGrow(1);
+        grid.addColumn(item -> availability(item.scanStatus()))
+                .setHeader(message("inventory_health_view.availability")).setAutoWidth(true);
         grid.addComponentColumn(item -> {
             Button create = new Button(message("inventory_health_view.create_incident"));
             create.addClickListener(event -> confirmCreateIncident(item));
@@ -289,6 +291,14 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
                 .filter(item -> "ALL".equals(selectedStatus) || "NEVER".equals(selectedStatus) && item.scanStatus() == null
                         || selectedStatus.equalsIgnoreCase(item.scanStatus()))
                 .toList());
+    }
+
+    private String availability(String status) {
+        return switch (status == null ? "" : status.toUpperCase()) {
+            case "SUCCESS" -> message("inventory_health_view.online");
+            case "ERROR" -> message("inventory_health_view.offline");
+            default -> message("inventory_health_view.unknown");
+        };
     }
 
     private ByteArrayInputStream createCsv() {
