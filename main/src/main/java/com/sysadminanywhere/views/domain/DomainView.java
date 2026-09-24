@@ -150,11 +150,19 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
             }
         };
         refresh.addClickListener(event -> load.run());
-        HorizontalLayout header = new HorizontalLayout(overall, checkedAt, refresh);
+        HorizontalLayout meta = new HorizontalLayout(checkedAt, refresh);
+        meta.addClassName("domain-health-meta");
+        meta.setWidthFull();
+        meta.setAlignItems(Alignment.CENTER);
+        meta.setJustifyContentMode(JustifyContentMode.BETWEEN);
+        meta.setPadding(false);
+        meta.setMargin(false);
+        meta.setSpacing(true);
+        meta.setFlexGrow(1, checkedAt);
+
+        VerticalLayout header = new VerticalLayout(overall, meta);
         header.addClassName("domain-health-header");
-        header.getStyle().set("display", "grid");
         header.setWidthFull();
-        header.setAlignItems(Alignment.CENTER);
         header.setPadding(false);
         header.setMargin(false);
         header.setSpacing(false);

@@ -112,34 +112,28 @@ html[theme~="dark"] body {
 }
 
 .domain-health-header {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-rows: auto auto;
-      column-gap: var(--lumo-space-m);
-      row-gap: var(--lumo-space-xs);
       min-width: 0;
+      gap: var(--lumo-space-xs);
 }
 
 .domain-health-header h5 {
-      grid-column: 1;
-      grid-row: 1;
       margin: 0;
       min-width: 0;
 }
 
-.domain-health-header vaadin-button {
-      grid-column: 2;
-      grid-row: 1 / span 2;
-      justify-self: end;
-      margin-right: var(--lumo-space-xs);
+.domain-health-meta {
+      box-sizing: border-box;
+      padding: 0 var(--lumo-space-xs) var(--lumo-space-s);
 }
 
-.domain-health-header span {
-      grid-column: 1;
-      grid-row: 2;
+.domain-health-meta span {
       min-width: 0;
       overflow-wrap: anywhere;
       line-height: var(--lumo-line-height-s);
+}
+
+.domain-health-meta vaadin-button {
+      flex: 0 0 auto;
 }
 
 .overview-card {
