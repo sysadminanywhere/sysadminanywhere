@@ -20,6 +20,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
@@ -45,6 +46,8 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
     private final Span neverScanned = new Span();
     private final Span scanStatus = new Span();
     private final Grid<InventoryHealthComputer> grid = new Grid<>();
+    private final TextField computerFilter = new TextField();
+    private List<InventoryHealthComputer> currentComputers = List.of();
 
     public InventoryHealthView(InventoryService inventoryService, IncidentService incidentService,
                                MessageSource messageSource, LocaleService localeService) {
@@ -60,6 +63,10 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         staleDays.setLabel(message("inventory_health_view.stale_days"));
         staleDays.setMin(1); staleDays.setMax(3650); staleDays.setValue(30);
         staleDays.setWidth("150px");
+        computerFilter.setPlaceholder(message("inventory_health_view.filter_placeholder"));
+        computerFilter.setClearButtonVisible(true);
+        computerFilter.setWidth("220px");
+        computerFilter.addValueChangeListener(event -> applyFilter());
         Button refresh = new Button(message("common.refresh"), event -> refresh());
         refresh.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button startScan = new Button(message("inventory_health_view.start_scan"), event -> startScan());
@@ -67,7 +74,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         startScan.setVisible(SecurityContextHolder.getContext().getAuthentication() != null
                 && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority())));
-        HorizontalLayout header = new HorizontalLayout(title, scanStatus, staleDays, startScan, refresh);
+        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, staleDays, startScan, refresh);
         header.setWidthFull(); header.setAlignItems(Alignment.END); header.setFlexGrow(1, title);
 
         HorizontalLayout summary = new HorizontalLayout(metric(message("inventory_health_view.total"), total),
@@ -80,9 +87,14 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
                 .setHeader(message("inventory_health_view.last_scan")).setAutoWidth(true);
         grid.addColumn(item -> item.daysSinceCheck() < 0 ? "-" : String.valueOf(item.daysSinceCheck()))
                 .setHeader(message("inventory_health_view.days_since_scan")).setAutoWidth(true);
-        grid.addColumn(item -> item.daysSinceCheck() < 0 ? message("inventory_health_view.never") :
-                message("inventory_health_view.stale_status"))
-                .setHeader(message("inventory_health_view.status")).setAutoWidth(true);
+        grid.addComponentColumn(item -> {
+            Span status = new Span(item.daysSinceCheck() < 0 ? message("inventory_health_view.never") :
+                    message("inventory_health_view.stale_status"));
+            status.getElement().getThemeList().add("badge");
+            status.getStyle().set("color", item.daysSinceCheck() < 0
+                    ? "var(--lumo-secondary-text-color)" : "var(--lumo-warning-text-color)");
+            return status;
+        }).setHeader(message("inventory_health_view.status")).setAutoWidth(true);
         grid.addComponentColumn(item -> {
             Button create = new Button(message("inventory_health_view.create_incident"));
             create.addClickListener(event -> confirmCreateIncident(item));
@@ -132,8 +144,16 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         total.setText(String.valueOf(result.totalComputers()));
         stale.setText(String.valueOf(result.staleCount()));
         neverScanned.setText(String.valueOf(result.neverScannedCount()));
-        grid.setItems(result.computers() == null ? List.of() : result.computers());
+        currentComputers = result.computers() == null ? List.of() : result.computers();
+        applyFilter();
         updateScanStatus();
+    }
+
+    private void applyFilter() {
+        String filter = computerFilter.getValue() == null ? "" : computerFilter.getValue().trim().toLowerCase();
+        grid.setItems(currentComputers.stream()
+                .filter(item -> filter.isBlank() || item.name() != null && item.name().toLowerCase().contains(filter))
+                .toList());
     }
 
     private void updateScanStatus() {
