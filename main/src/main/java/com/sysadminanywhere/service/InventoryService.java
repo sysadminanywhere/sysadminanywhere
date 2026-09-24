@@ -110,6 +110,15 @@ public class InventoryService {
         }
     }
 
+    public List<SoftwareVulnerability> getSoftwareVulnerabilities() {
+        try {
+            return inventoryServiceClient.getSoftwareVulnerabilities();
+        } catch (Exception e) {
+            log.warn("Unable to load software vulnerabilities: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
     public List<OperatingSystemCount> getOperatingSystemCounts() {
         try {
             return inventoryServiceClient.getOperatingSystemCounts();

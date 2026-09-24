@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 @Slf4j
 @RestController
@@ -37,6 +38,9 @@ public class InventoryController {
     private final HardwareModelRepository hardwareModelRepository;
     private final HardwarePropertyRepository hardwarePropertyRepository;
     private final SoftwareLicenseRepository softwareLicenseRepository;
+
+    @org.springframework.beans.factory.annotation.Value("${inventory.vulnerability.rules:}")
+    private String vulnerabilityRules;
 
     @GetMapping("/licenses")
     @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
@@ -112,6 +116,29 @@ public class InventoryController {
     }
 
     // Software
+
+    @GetMapping("/software/vulnerabilities")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<List<SoftwareVulnerability>> getSoftwareVulnerabilities() {
+        if (vulnerabilityRules == null || vulnerabilityRules.isBlank()) return ResponseEntity.ok(List.of());
+        List<SoftwareVulnerability> result = new java.util.ArrayList<>();
+        for (String rule : vulnerabilityRules.split("\\s*;\\s*")) {
+            String[] parts = rule.split("\\|", -1);
+            if (parts.length < 4) continue;
+            String name = parts[0].trim();
+            String version = parts[1].trim();
+            for (var software : softwareRepository.findAll()) {
+                boolean nameMatches = software.getName() != null && software.getName().equalsIgnoreCase(name);
+                boolean versionMatches = "*".equals(version) || (software.getVersion() != null && software.getVersion().equalsIgnoreCase(version));
+                if (nameMatches && versionMatches) {
+                    result.add(new SoftwareVulnerability(software.getName(), software.getVendor(), software.getVersion(),
+                            parts[2].trim().toUpperCase(Locale.ROOT), parts[3].trim(),
+                            softwareRepository.countInstallations(software.getName(), software.getVendor(), software.getVersion())));
+                }
+            }
+        }
+        return ResponseEntity.ok(result);
+    }
 
     @GetMapping("/health")
     @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")

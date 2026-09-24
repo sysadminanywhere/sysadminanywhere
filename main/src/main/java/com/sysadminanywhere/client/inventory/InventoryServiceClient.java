@@ -51,6 +51,9 @@ public interface InventoryServiceClient {
                                                   @RequestParam(required = false) Long minCount, @RequestParam(required = false) Long maxCount,
                                                   @RequestParam int page, @RequestParam int size, @RequestParam String sort);
 
+    @GetExchange("/api/inventory/software/vulnerabilities")
+    List<SoftwareVulnerability> getSoftwareVulnerabilities();
+
     @GetExchange("/api/inventory/computers/{computerId}/software")
     PageResponse<SoftwareOnComputer> getSoftwareOnComputer(@PathVariable Long computerId, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
 
