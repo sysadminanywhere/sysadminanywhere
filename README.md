@@ -52,16 +52,20 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 - **Inventory Health**: Detect computers that have not been scanned within a configurable threshold and open their details directly
 - **Inventory Operations**: Start full or selective scans, monitor progress, cancel a run, retry failed computers, review scan history, filter results and export CSV
 - **Inventory Coverage**: Review operating-system distribution, Windows patch coverage, computers without patch data and software records without versions
+- **Patch Freshness**: Track the last collected Windows patch date per computer and identify stale patch data using a configurable threshold
 - **Software Vulnerability Rules**: Match installed software by name/version (including wildcard versions), show CVE findings and create incidents from the Issues Center
 - **Finding-to-Incident Workflow**: Create a confirmed incident from a security or inventory finding with the affected object attached
 - **Safe CSV/Excel Import**: Preview user and group rows, validate required fields, import valid rows only, keep per-row errors visible and roll back objects created by the import
 - **Webhooks**: Configure signed incident and directory-change notifications with retry delivery
 - **Validated LDAP Filters**: Report filters are validated with Apache Directory API 2.1.8
 - **Scheduled Reports**: Daily or weekly PDF/CSV generation with optional SMTP email attachments; schedules and run history are persisted
+- **Service Reliability**: Retried idempotent service requests, WMI retries, a short circuit breaker, dependency health checks and an administrator-only dependency status page
+- **E2E Coverage**: Playwright-based browser checks cover navigation and inventory summary grids; the full scenario is enabled with `e2e.tests.enabled=true`
 
 ### Inventory roadmap
 - Configure the inventory scan schedule from Settings; `SCAN_CRON` remains the startup default
 - Add automated NVD/CPE synchronization for vulnerability data (local rules are currently supported)
+- Add remediation workflows for stale patches and assign owners/deadlines to inventory issues
 
 ### 🧭 Onboarding & User Experience
 - **Guided Tour**: An onboarding tour introduces the primary navigation, section menu and page content

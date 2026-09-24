@@ -26,8 +26,8 @@ public class DependencyHealthView extends VerticalLayout implements HasDynamicTi
         setSizeFull();
         Button refresh = new Button(msg("dependency_health.refresh"), event -> refresh());
         add(new H2(msg("dependency_health.title")), refresh);
-        grid.addColumn(Map.Entry::getKey).setHeader(msg("dependency_health.service"));
-        grid.addColumn(Map.Entry::getValue).setHeader(msg("dependency_health.status"));
+        grid.addColumn(item -> msg("dependency_health." + item.getKey())).setHeader(msg("dependency_health.service"));
+        grid.addColumn(item -> msg("dependency_health." + item.getValue().toLowerCase())).setHeader(msg("dependency_health.status"));
         grid.setSizeFull(); add(grid); expand(grid); refresh();
     }
 
