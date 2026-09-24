@@ -41,7 +41,6 @@ public class InventoryController {
     private final HardwareModelRepository hardwareModelRepository;
     private final HardwarePropertyRepository hardwarePropertyRepository;
     private final SoftwareLicenseRepository softwareLicenseRepository;
-
     @org.springframework.beans.factory.annotation.Value("${inventory.vulnerability.rules:}")
     private String vulnerabilityRules;
 
@@ -259,6 +258,26 @@ public class InventoryController {
 
 
     // Hardware
+
+    @GetMapping("/hardware/computers")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<PageResponse<com.sysadminanywhere.common.inventory.model.HardwareComputerItem>> getHardwareComputers(
+            @RequestParam(defaultValue = "") String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        var result = inventoryService.getComputerHardwareSummaries(name,
+                org.springframework.data.domain.PageRequest.of(Math.max(0, page), Math.max(1, Math.min(100, size))));
+        return ResponseEntity.ok(new PageResponse<>(result.getContent(), result.getNumber(), result.getSize(),
+                result.getTotalElements(), result.getTotalPages()));
+    }
+
+    @GetMapping("/hardware/computers/{computerId}")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<com.sysadminanywhere.common.inventory.model.ComputerHardwareDetails> getComputerHardwareDetails(
+            @PathVariable Long computerId) {
+        var details = inventoryService.getComputerHardwareDetails(computerId);
+        return details == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(details);
+    }
 
     @GetMapping("/hardware/operating-systems")
     @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")

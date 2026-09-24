@@ -62,6 +62,22 @@ public class InventoryService {
 
     // Hardware
 
+    public Page<HardwareComputerItem> getHardwareComputers(Pageable pageable, String name) {
+        try {
+            PageResponse<HardwareComputerItem> response = inventoryServiceClient.getHardwareComputers(
+                    name == null ? "" : name, pageable.getPageNumber(), pageable.getPageSize());
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
+        } catch (Exception e) {
+            log.warn("Unable to load computer hardware inventory: {}", e.getMessage());
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public ComputerHardwareDetails getComputerHardwareDetails(Long computerId) {
+        try { return inventoryServiceClient.getComputerHardwareDetails(computerId); }
+        catch (Exception e) { log.warn("Unable to load hardware details for computer {}: {}", computerId, e.getMessage()); return null; }
+    }
+
     public Page<HardwareCount> getHardwareCount(Pageable pageable, Map<String, String> filters) {
         try {
             String name = filters.get("name");

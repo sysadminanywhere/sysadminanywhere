@@ -14,6 +14,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.sysadminanywhere.common.inventory.model.ComputerHardwareDetails;
+import com.sysadminanywhere.common.inventory.model.HardwareComputerItem;
+import com.sysadminanywhere.common.inventory.model.HardwareModelItem;
+import com.sysadminanywhere.common.inventory.model.HardwarePropertyItem;
+import com.sysadminanywhere.inventory.entity.ComputerHardware;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -37,6 +42,7 @@ public class InventoryService {
     private final SoftwareService softwareService;
     private final HardwareService hardwareService;
     private final InventoryScanRunRepository scanRunRepository;
+    private final com.sysadminanywhere.inventory.repository.ComputerHardwareRepository computerHardwareRepository;
     private final AtomicBoolean scanRunning = new AtomicBoolean();
     private volatile String lastScanError;
     private volatile LocalDateTime scanStartedAt;
@@ -51,7 +57,8 @@ public class InventoryService {
                             ComputerRepository computerRepository,
                             SoftwareService softwareService,
                             HardwareService hardwareService,
-                            InventoryScanRunRepository scanRunRepository) {
+                            InventoryScanRunRepository scanRunRepository,
+                            com.sysadminanywhere.inventory.repository.ComputerHardwareRepository computerHardwareRepository) {
 
         this.authService = authService;
         this.computersServiceClient = computersServiceClient;
@@ -59,6 +66,30 @@ public class InventoryService {
         this.softwareService = softwareService;
         this.hardwareService = hardwareService;
         this.scanRunRepository = scanRunRepository;
+        this.computerHardwareRepository = computerHardwareRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<HardwareComputerItem> getComputerHardwareSummaries(String name, org.springframework.data.domain.Pageable pageable) {
+        return computerHardwareRepository.findComputerHardwareSummaries("%" + (name == null ? "" : name.trim()) + "%", pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public ComputerHardwareDetails getComputerHardwareDetails(Long computerId) {
+        List<ComputerHardware> records = computerHardwareRepository.findByComputerId(computerId);
+        if (records.isEmpty()) return null;
+        var computer = records.get(0).getComputer();
+        var summary = new HardwareComputerItem(computer.getId(), computer.getName(), computer.getCheckingDate(),
+                computer.getLastScanStatus(), computer.getLastScanError(), records.size());
+        List<HardwareModelItem> components = records.stream().map(record -> new HardwareModelItem(
+                record.getHardwareModel().getId(), record.getHardwareModel().getName(),
+                record.getHardwareModel().getHardwareType(), record.getProperties().stream()
+                .map(property -> new HardwarePropertyItem(property.getId(), property.getPropertyName(),
+                        property.getPropertyValue(), record.getId())).toList()))
+                .sorted(java.util.Comparator.comparing(HardwareModelItem::getType, java.util.Comparator.nullsLast(String::compareTo))
+                        .thenComparing(HardwareModelItem::getName, java.util.Comparator.nullsLast(String::compareTo)))
+                .toList();
+        return new ComputerHardwareDetails(summary, components);
     }
 
     public boolean startScan() {

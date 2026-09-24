@@ -63,6 +63,12 @@ public interface InventoryServiceClient {
 
     // Hardware
 
+    @GetExchange("/api/inventory/hardware/computers")
+    PageResponse<HardwareComputerItem> getHardwareComputers(@RequestParam String name, @RequestParam int page, @RequestParam int size);
+
+    @GetExchange("/api/inventory/hardware/computers/{computerId}")
+    ComputerHardwareDetails getComputerHardwareDetails(@PathVariable Long computerId);
+
     @GetExchange("/api/inventory/hardware/count")
     Page<Object[]> getHardwareCount(@RequestParam String name, @RequestParam String type, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
 
