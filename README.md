@@ -58,7 +58,7 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 - **Scheduled Reports**: Daily or weekly PDF/CSV generation with optional SMTP email attachments; schedules and run history are persisted
 
 ### Inventory roadmap
-- Configure the inventory scan schedule from the administration UI (currently configured with `SCAN_CRON`)
+- Configure the inventory scan schedule from Settings; `SCAN_CRON` remains the startup default
 - Add software license tracking and compliance checks (entitlements, expiration, allocation and overuse)
 
 ### 🧭 Onboarding & User Experience
