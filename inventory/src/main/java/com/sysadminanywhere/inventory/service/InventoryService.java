@@ -43,6 +43,8 @@ public class InventoryService {
     private volatile LocalDateTime scanStartedAt;
     private volatile LocalDateTime scanFinishedAt;
     private volatile Set<String> scanTargets = Set.of();
+    private volatile int scanProcessed;
+    private volatile int scanTotal;
 
     public InventoryService(AuthService authService,
                             ComputersServiceClient computersServiceClient,
@@ -73,6 +75,8 @@ public class InventoryService {
         scanStartedAt = LocalDateTime.now();
         scanFinishedAt = null;
         lastScanError = null;
+        scanProcessed = 0;
+        scanTotal = 0;
         com.sysadminanywhere.inventory.entity.InventoryScanRun run = new com.sysadminanywhere.inventory.entity.InventoryScanRun();
         run.setStartedAt(scanStartedAt);
         run.setStatus("RUNNING");
@@ -92,7 +96,8 @@ public class InventoryService {
                 scanRunning.set(false);
                 scanTargets = Set.of();
                 run.setFinishedAt(scanFinishedAt);
-                run.setProcessed((int) computerRepository.count());
+                run.setProcessed(scanProcessed);
+                run.setTotal(scanTotal);
                 if (run.getError() == null) {
                     run.setError(lastScanError);
                 }
@@ -104,7 +109,7 @@ public class InventoryService {
 
     public com.sysadminanywhere.common.inventory.model.InventoryScanStatus getScanStatus() {
         return new com.sysadminanywhere.common.inventory.model.InventoryScanStatus(
-                scanRunning.get(), 0, 0, scanStartedAt, scanFinishedAt, lastScanError);
+                scanRunning.get(), scanProcessed, scanTotal, scanStartedAt, scanFinishedAt, lastScanError);
     }
 
     public List<com.sysadminanywhere.common.inventory.model.InventoryScanRun> getScanHistory() {
@@ -149,7 +154,11 @@ public class InventoryService {
             return;
         }
 
-        log.info("Found {} computers", computers.size());
+        scanTotal = (int) computers.stream()
+                .filter(computer -> computer != null && !computer.isDisabled())
+                .filter(computer -> scanTargets.isEmpty() || scanTargets.contains(computer.getCn()))
+                .count();
+        log.info("Found {} computers to scan", scanTotal);
 
         for (ComputerEntry computerEntry : computers) {
             if (computerEntry != null && !computerEntry.isDisabled()
@@ -166,10 +175,15 @@ public class InventoryService {
                         computer.setCheckingDate(LocalDateTime.now());
                         computerRepository.save(computer);
                     }
-                } catch (Exception ex) {
-                    log.error("Error scanning on computer {}: {}",
-                            computerEntry.getCn(), ex.getMessage(), ex);
+            } catch (Exception ex) {
+                log.error("Error scanning on computer {}: {}",
+                        computerEntry.getCn(), ex.getMessage(), ex);
+            } finally {
+                if (computerEntry != null && !computerEntry.isDisabled()
+                        && (scanTargets.isEmpty() || scanTargets.contains(computerEntry.getCn()))) {
+                    scanProcessed++;
                 }
+            }
             }
         }
 

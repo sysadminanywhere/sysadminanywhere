@@ -219,7 +219,8 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         if (status == null) {
             scanStatus.setText("");
         } else if (status.running()) {
-            scanStatus.setText(message("inventory_health_view.scan_running"));
+            scanStatus.setText(message("inventory_health_view.scan_running") + " ("
+                    + status.processed() + "/" + status.total() + ")");
         } else if (status.lastError() != null) {
             scanStatus.setText(message("inventory_health_view.scan_error"));
         } else if (status.finishedAt() != null) {
