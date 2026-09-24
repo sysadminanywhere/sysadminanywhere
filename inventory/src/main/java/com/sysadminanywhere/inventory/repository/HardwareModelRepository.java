@@ -23,4 +23,7 @@ public interface HardwareModelRepository extends JpaRepository<HardwareModel, Lo
     @Query("SELECT hm.name, COUNT(DISTINCT ch.computer.id) FROM ComputerHardware ch JOIN ch.hardwareModel hm WHERE hm.hardwareType = 'OperatingSystem' GROUP BY hm.name ORDER BY hm.name")
     List<Object[]> findOperatingSystemCounts();
 
+    @Query("SELECT COUNT(DISTINCT ch.computer.id) FROM ComputerHardware ch JOIN ch.hardwareModel hm WHERE hm.hardwareType = :type")
+    long countComputersWithHardwareType(@Param("type") String type);
+
 }

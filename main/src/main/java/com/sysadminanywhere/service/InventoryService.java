@@ -119,6 +119,15 @@ public class InventoryService {
         }
     }
 
+    public InventoryCoverage getInventoryCoverage() {
+        try {
+            return inventoryServiceClient.getInventoryCoverage();
+        } catch (Exception e) {
+            log.warn("Unable to load inventory coverage: {}", e.getMessage());
+            return new InventoryCoverage(0, 0, 0);
+        }
+    }
+
     private Long parseLong(String value) {
         try { return value == null || value.isBlank() ? null : Long.valueOf(value); }
         catch (NumberFormatException ignored) { return null; }

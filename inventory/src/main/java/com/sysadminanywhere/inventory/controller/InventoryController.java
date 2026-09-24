@@ -235,6 +235,15 @@ public class InventoryController {
                 .toList());
     }
 
+    @GetMapping("/hardware/coverage")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<InventoryCoverage> getInventoryCoverage() {
+        long computers = computerRepository.count();
+        long operatingSystems = hardwareModelRepository.countComputersWithHardwareType("OperatingSystem");
+        long patches = hardwareModelRepository.countComputersWithHardwareType("Patch");
+        return ResponseEntity.ok(new InventoryCoverage(computers, operatingSystems, patches));
+    }
+
     @GetMapping("/hardware")
     @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<PageResponse<HardwareItem>> getHardwares(

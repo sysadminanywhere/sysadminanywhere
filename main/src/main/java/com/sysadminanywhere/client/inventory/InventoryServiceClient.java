@@ -72,6 +72,9 @@ public interface InventoryServiceClient {
     @GetExchange("/api/inventory/hardware/operating-systems")
     List<OperatingSystemCount> getOperatingSystemCounts();
 
+    @GetExchange("/api/inventory/hardware/coverage")
+    InventoryCoverage getInventoryCoverage();
+
 
     // Ping
 

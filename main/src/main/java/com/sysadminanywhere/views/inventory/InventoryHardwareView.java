@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.inventory;
 
 import com.sysadminanywhere.common.inventory.model.HardwareItem;
 import com.sysadminanywhere.common.inventory.model.OperatingSystemCount;
+import com.sysadminanywhere.common.inventory.model.InventoryCoverage;
 import com.sysadminanywhere.service.InventoryService;
 import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.Component;
@@ -54,7 +55,7 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
             filters = new Filters(() -> refreshGrid(), messageSource, localeService);
-            VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createOperatingSystemSummary(), createGrid());
+            VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createCoverageSummary(), createOperatingSystemSummary(), createGrid());
             layout.setSizeFull();
             add(layout);
         }
@@ -193,6 +194,17 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
                 .setAutoWidth(true);
         summary.setItems(inventoryService.getOperatingSystemCounts());
         summary.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
+        return summary;
+    }
+
+    private Component createCoverageSummary() {
+        InventoryCoverage coverage = inventoryService.getInventoryCoverage();
+        Span summary = new Span(getMessage("inventory_hardware_view.coverage") + ": "
+                + coverage.withOperatingSystem() + "/" + coverage.computers() + " "
+                + getMessage("inventory_hardware_view.operating_system") + ", "
+                + coverage.withPatches() + "/" + coverage.computers() + " "
+                + getMessage("inventory_hardware_view.patch"));
+        summary.getStyle().set("font-weight", "600");
         return summary;
     }
 
