@@ -63,8 +63,9 @@ public class InventoryController {
     }
 
     private com.sysadminanywhere.common.inventory.model.SoftwareLicense licenseDto(SoftwareLicense item) {
+        long used = softwareRepository.countInstallations(item.getName(), item.getVendor(), item.getVersion());
         return new com.sysadminanywhere.common.inventory.model.SoftwareLicense(item.getId(), item.getName(), item.getVendor(),
-                item.getVersion(), item.getPurchased(), item.getExpiresAt(), item.getNotes());
+                item.getVersion(), item.getPurchased(), used, item.getExpiresAt(), item.getNotes());
     }
     private final InventoryService inventoryService;
     private final com.sysadminanywhere.inventory.service.InventoryScheduler inventoryScheduler;

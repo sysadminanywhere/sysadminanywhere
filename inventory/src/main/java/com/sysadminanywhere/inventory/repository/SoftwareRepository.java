@@ -15,6 +15,9 @@ import java.util.List;
 @Repository
 public interface SoftwareRepository extends JpaRepository<Software, Long> {
 
+    @Query("select count(i) from Installation i join i.software s where s.name = :name and s.vendor = :vendor and (:version is null or s.version = :version)")
+    long countInstallations(@Param("name") String name, @Param("vendor") String vendor, @Param("version") String version);
+
     List<Software> findByNameAndVendor(String name, String vendor);
 
     List<Software> findByNameAndVendorAndVersion(String name, String vendor, String version);

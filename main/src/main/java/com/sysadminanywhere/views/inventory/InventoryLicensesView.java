@@ -42,6 +42,11 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
         grid.addColumn(SoftwareLicense::vendor).setHeader(msg("inventory_licenses_view.vendor")).setAutoWidth(true);
         grid.addColumn(SoftwareLicense::version).setHeader(msg("inventory_licenses_view.version")).setAutoWidth(true);
         grid.addColumn(SoftwareLicense::purchased).setHeader(msg("inventory_licenses_view.purchased")).setAutoWidth(true);
+        grid.addColumn(SoftwareLicense::used).setHeader(msg("inventory_licenses_view.used")).setAutoWidth(true);
+        grid.addColumn(item -> item.used() > item.purchased() ? msg("inventory_licenses_view.overused")
+                        : item.expiresAt() != null && item.expiresAt().isBefore(java.time.LocalDate.now())
+                        ? msg("inventory_licenses_view.expired") : msg("inventory_licenses_view.compliant"))
+                .setHeader(msg("inventory_licenses_view.status")).setAutoWidth(true);
         grid.addColumn(item -> item.expiresAt() == null ? "-" : item.expiresAt().toString())
                 .setHeader(msg("inventory_licenses_view.expires")).setAutoWidth(true);
         grid.addComponentColumn(item -> new Button(msg("common.delete"), e -> {
@@ -66,7 +71,7 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
         Button save = new Button(msg("common.save"), e -> {
             if (name.isEmpty()) { name.setInvalid(true); return; }
             SoftwareLicense saved = inventoryService.saveLicense(new SoftwareLicense(current == null ? null : current.id(),
-                    name.getValue(), vendor.getValue(), version.getValue(), purchased.getValue() == null ? 0 : purchased.getValue(),
+                    name.getValue(), vendor.getValue(), version.getValue(), purchased.getValue() == null ? 0 : purchased.getValue(), 0,
                     expires.getValue(), notes.getValue()));
             if (saved != null) { dialog.close(); refresh(); Notification.show(msg("inventory_licenses_view.saved")); }
         });
