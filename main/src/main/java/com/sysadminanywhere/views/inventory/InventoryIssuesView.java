@@ -5,6 +5,7 @@ import com.sysadminanywhere.common.inventory.model.SoftwareLicense;
 import com.sysadminanywhere.service.InventoryService;
 import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Anchor;
@@ -27,13 +28,19 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
     private final MessageSource messages;
     private final LocaleService locale;
     private final Grid<Issue> grid = new Grid<>();
+    private final ComboBox<String> severityFilter = new ComboBox<>();
+    private List<Issue> issues = List.of();
 
     public InventoryIssuesView(InventoryService inventoryService, MessageSource messages, LocaleService locale) {
         this.inventoryService = inventoryService; this.messages = messages; this.locale = locale;
         setSizeFull();
         H2 title = new H2(msg("inventory_issues_view.title"));
         Button refresh = new Button(msg("common.refresh"), e -> refresh());
-        HorizontalLayout header = new HorizontalLayout(title, refresh);
+        severityFilter.setItems("ALL", "HIGH", "MEDIUM");
+        severityFilter.setValue("ALL");
+        severityFilter.setLabel(msg("inventory_issues_view.severity"));
+        severityFilter.addValueChangeListener(event -> applyFilter());
+        HorizontalLayout header = new HorizontalLayout(title, severityFilter, refresh);
         header.setWidthFull(); header.setFlexGrow(1, title);
         grid.addColumn(Issue::severity).setHeader(msg("inventory_issues_view.severity")).setAutoWidth(true);
         grid.addColumn(Issue::type).setHeader(msg("inventory_issues_view.type")).setAutoWidth(true);
@@ -69,7 +76,13 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
                         msg("inventory_issues_view.expired_details"), "open_licenses"));
             }
         }
-        grid.setItems(issues);
+        this.issues = issues;
+        applyFilter();
+    }
+
+    private void applyFilter() {
+        String selected = severityFilter.getValue() == null ? "ALL" : severityFilter.getValue();
+        grid.setItems(issues.stream().filter(item -> "ALL".equals(selected) || selected.equals(item.severity())).toList());
     }
 
     private String msg(String key) { return messages.getMessage(key, null, locale.getCurrentLocale()); }
