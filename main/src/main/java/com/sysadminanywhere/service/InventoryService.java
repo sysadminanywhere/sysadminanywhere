@@ -124,7 +124,7 @@ public class InventoryService {
             return inventoryServiceClient.getInventoryCoverage();
         } catch (Exception e) {
             log.warn("Unable to load inventory coverage: {}", e.getMessage());
-            return new InventoryCoverage(0, 0, 0);
+            return new InventoryCoverage(0, 0, 0, 0);
         }
     }
 

@@ -203,7 +203,9 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
                 + coverage.withOperatingSystem() + "/" + coverage.computers() + " "
                 + getMessage("inventory_hardware_view.operating_system") + ", "
                 + coverage.withPatches() + "/" + coverage.computers() + " "
-                + getMessage("inventory_hardware_view.patch"));
+                + getMessage("inventory_hardware_view.patch") + ", "
+                + coverage.softwareWithoutVersion() + " "
+                + getMessage("inventory_hardware_view.unknown_versions"));
         summary.getStyle().set("font-weight", "600");
         return summary;
     }

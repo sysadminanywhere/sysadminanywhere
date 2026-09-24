@@ -241,7 +241,7 @@ public class InventoryController {
         long computers = computerRepository.count();
         long operatingSystems = hardwareModelRepository.countComputersWithHardwareType("OperatingSystem");
         long patches = hardwareModelRepository.countComputersWithHardwareType("Patch");
-        return ResponseEntity.ok(new InventoryCoverage(computers, operatingSystems, patches));
+        return ResponseEntity.ok(new InventoryCoverage(computers, operatingSystems, patches, softwareRepository.countWithoutVersion()));
     }
 
     @GetMapping("/hardware")
