@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Service
@@ -34,6 +36,10 @@ public class InventoryService {
     private final ComputerRepository computerRepository;
     private final SoftwareService softwareService;
     private final HardwareService hardwareService;
+    private final AtomicBoolean scanRunning = new AtomicBoolean();
+    private volatile String lastScanError;
+    private volatile LocalDateTime scanStartedAt;
+    private volatile LocalDateTime scanFinishedAt;
 
     public InventoryService(AuthService authService,
                             ComputersServiceClient computersServiceClient,
@@ -46,6 +52,32 @@ public class InventoryService {
         this.computerRepository = computerRepository;
         this.softwareService = softwareService;
         this.hardwareService = hardwareService;
+    }
+
+    public boolean startScan() {
+        if (!scanRunning.compareAndSet(false, true)) {
+            return false;
+        }
+        scanStartedAt = LocalDateTime.now();
+        scanFinishedAt = null;
+        lastScanError = null;
+        CompletableFuture.runAsync(() -> {
+            try {
+                scan();
+            } catch (Exception exception) {
+                lastScanError = exception.getMessage();
+                log.error("Inventory scan failed", exception);
+            } finally {
+                scanFinishedAt = LocalDateTime.now();
+                scanRunning.set(false);
+            }
+        });
+        return true;
+    }
+
+    public com.sysadminanywhere.common.inventory.model.InventoryScanStatus getScanStatus() {
+        return new com.sysadminanywhere.common.inventory.model.InventoryScanStatus(
+                scanRunning.get(), 0, 0, scanStartedAt, scanFinishedAt, lastScanError);
     }
 
     /*

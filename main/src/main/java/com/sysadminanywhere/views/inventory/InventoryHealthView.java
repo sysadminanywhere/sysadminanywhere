@@ -25,6 +25,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
@@ -42,6 +43,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
     private final Span total = new Span();
     private final Span stale = new Span();
     private final Span neverScanned = new Span();
+    private final Span scanStatus = new Span();
     private final Grid<InventoryHealthComputer> grid = new Grid<>();
 
     public InventoryHealthView(InventoryService inventoryService, IncidentService incidentService,
@@ -60,7 +62,12 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         staleDays.setWidth("150px");
         Button refresh = new Button(message("common.refresh"), event -> refresh());
         refresh.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        HorizontalLayout header = new HorizontalLayout(title, staleDays, refresh);
+        Button startScan = new Button(message("inventory_health_view.start_scan"), event -> startScan());
+        startScan.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        startScan.setVisible(SecurityContextHolder.getContext().getAuthentication() != null
+                && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority())));
+        HorizontalLayout header = new HorizontalLayout(title, scanStatus, staleDays, startScan, refresh);
         header.setWidthFull(); header.setAlignItems(Alignment.END); header.setFlexGrow(1, title);
 
         HorizontalLayout summary = new HorizontalLayout(metric(message("inventory_health_view.total"), total),
@@ -94,6 +101,16 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         refresh();
     }
 
+    private void startScan() {
+        if (inventoryService.startScan()) {
+            Notification.show(message("inventory_health_view.scan_started"));
+            updateScanStatus();
+        } else {
+            Notification notification = Notification.show(message("inventory_health_view.scan_running"));
+            notification.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
+        }
+    }
+
     private HorizontalLayout metric(String label, Span value) {
         Span caption = new Span(label);
         caption.getStyle().set("font-size", "var(--lumo-font-size-s)").set("color", "var(--lumo-secondary-text-color)");
@@ -116,6 +133,23 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         stale.setText(String.valueOf(result.staleCount()));
         neverScanned.setText(String.valueOf(result.neverScannedCount()));
         grid.setItems(result.computers() == null ? List.of() : result.computers());
+        updateScanStatus();
+    }
+
+    private void updateScanStatus() {
+        var status = inventoryService.getScanStatus();
+        if (status == null) {
+            scanStatus.setText("");
+        } else if (status.running()) {
+            scanStatus.setText(message("inventory_health_view.scan_running"));
+        } else if (status.lastError() != null) {
+            scanStatus.setText(message("inventory_health_view.scan_error"));
+        } else if (status.finishedAt() != null) {
+            scanStatus.setText(message("inventory_health_view.scan_finished"));
+        } else {
+            scanStatus.setText(message("inventory_health_view.scan_idle"));
+        }
+        scanStatus.getStyle().set("color", "var(--lumo-secondary-text-color)");
     }
 
     private void confirmCreateIncident(InventoryHealthComputer computer) {

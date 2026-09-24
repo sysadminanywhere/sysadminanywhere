@@ -116,4 +116,23 @@ public class InventoryService {
         }
     }
 
+    public boolean startScan() {
+        try {
+            inventoryServiceClient.startScan();
+            return true;
+        } catch (Exception e) {
+            log.warn("Unable to start inventory scan: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    public InventoryScanStatus getScanStatus() {
+        try {
+            return inventoryServiceClient.getScanStatus();
+        } catch (Exception e) {
+            log.warn("Unable to load inventory scan status: {}", e.getMessage());
+            return null;
+        }
+    }
+
 }

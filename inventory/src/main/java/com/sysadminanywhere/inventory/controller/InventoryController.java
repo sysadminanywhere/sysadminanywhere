@@ -9,6 +9,7 @@ import com.sysadminanywhere.inventory.repository.ComputerRepository;
 import com.sysadminanywhere.inventory.repository.HardwareModelRepository;
 import com.sysadminanywhere.inventory.repository.HardwarePropertyRepository;
 import com.sysadminanywhere.inventory.repository.SoftwareRepository;
+import com.sysadminanywhere.inventory.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,6 +34,19 @@ public class InventoryController {
     private final ComputerHardwareRepository computerHardwareRepository;
     private final HardwareModelRepository hardwareModelRepository;
     private final HardwarePropertyRepository hardwarePropertyRepository;
+    private final InventoryService inventoryService;
+
+    @PostMapping("/scan")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> startScan() {
+        return inventoryService.startScan() ? ResponseEntity.accepted().build() : ResponseEntity.status(409).build();
+    }
+
+    @GetMapping("/scan/status")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<InventoryScanStatus> getScanStatus() {
+        return ResponseEntity.ok(inventoryService.getScanStatus());
+    }
 
     // Software
 
