@@ -17,6 +17,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.card.Card;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -33,6 +34,7 @@ import org.springframework.data.domain.PageRequest;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Locale;
 
 @RolesAllowed({"ADMIN", "READER"})
 @Route(value = "inventory/hardware")
@@ -40,6 +42,7 @@ import java.util.Map;
 public class InventoryHardwareView extends Div implements HasDynamicTitle {
 
     private Grid<HardwareItem> grid;
+    private int patchStaleDays = 90;
 
     private Filters filters;
     private final InventoryService inventoryService;
@@ -58,13 +61,19 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
             filters = new Filters(() -> refreshGrid(), messageSource, localeService);
+            InventoryCoverage coverage = inventoryService.getInventoryCoverage();
+            patchStaleDays = coverage.patchStaleDays() == null ? 90 : Math.max(1, coverage.patchStaleDays());
             VerticalLayout layout = new VerticalLayout(
                     new Span(getMessage("inventory_hardware_view.subtitle")),
                     createFilterSection(),
-                    createCoverageSection(),
-                    createSummarySection(getMessage("inventory_hardware_view.os_distribution"), createOperatingSystemSummary()),
-                    createSummarySection(getMessage("inventory_hardware_view.patch_freshness"), createPatchSummary()),
-                    createSummarySection(getMessage("inventory_hardware_view.hardware_records"), createGrid()));
+                    createCoverageSection(coverage),
+                    createSummarySection(getMessage("inventory_hardware_view.os_distribution"),
+                            getMessage("inventory_hardware_view.os_distribution_hint"), createOperatingSystemSummary()),
+                    createSummarySection(getMessage("inventory_hardware_view.patch_freshness"),
+                            getMessage("inventory_hardware_view.patch_freshness_hint",
+                                    new Object[]{patchStaleDays}), createPatchSummary()),
+                    createSummarySection(getMessage("inventory_hardware_view.hardware_records"),
+                            getMessage("inventory_hardware_view.hardware_records_hint"), createGrid()));
             layout.setSizeFull();
             layout.setPadding(true);
             layout.setSpacing(true);
@@ -74,6 +83,10 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
 
     private String getMessage(String key) {
         return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    }
+
+    private String getMessage(String key, Object[] arguments) {
+        return messageSource.getMessage(key, arguments, localeService.getCurrentLocale());
     }
 
     private HorizontalLayout createMobileFilters() {
@@ -112,8 +125,9 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
             this.messageSource = messageSource;
             this.localeService = localeService;
 
-            this.hardwareType = new ComboBox<>(getMessage("inventory_hardware_view.type"));
-            this.name = new TextField(getMessage("inventory_hardware_view.name"));
+            this.hardwareType = new ComboBox<>(getMessage("inventory_hardware_view.filter_category"));
+            this.name = new TextField(getMessage("inventory_hardware_view.filter_name"));
+            this.name.setPlaceholder(getMessage("inventory_hardware_view.filter_name_placeholder"));
 
             // Create reverse mapping from translated values to English keys
             this.translationToEnglishMap = new java.util.HashMap<>();
@@ -177,8 +191,9 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
         grid = new Grid<>(HardwareItem.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
-        grid.addColumn("name").setHeader(getMessage("inventory_hardware_view.name")).setAutoWidth(true);
-        grid.addColumn("type").setHeader(getMessage("inventory_hardware_view.type")).setAutoWidth(true);
+        grid.addColumn(HardwareItem::getName).setHeader(getMessage("inventory_hardware_view.hardware_name_header")).setAutoWidth(true);
+        grid.addColumn(item -> getHardwareTypeLabel(item.getType()))
+                .setHeader(getMessage("inventory_hardware_view.hardware_type_header")).setAutoWidth(true);
 
         grid.addItemClickListener(item -> {
             grid.getUI().ifPresent(ui ->
@@ -195,43 +210,74 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
     }
 
     private Component createFilterSection() {
-        VerticalLayout section = new VerticalLayout(createMobileFilters(), filters);
+        VerticalLayout section = new VerticalLayout(createMobileFilters(),
+                new Span(getMessage("inventory_hardware_view.filters_hint")), filters);
         section.setPadding(false);
         section.setSpacing(false);
         section.setWidthFull();
         return section;
     }
 
-    private Component createSummarySection(String title, Component content) {
+    private Component createSummarySection(String title, String description, Component content) {
         Card card = new Card();
         card.setWidthFull();
-        card.add(new H3(title), content);
+        card.add(new H3(title), new Span(description), content);
         return card;
     }
 
-    private Component createCoverageSection() {
-        InventoryCoverage coverage = inventoryService.getInventoryCoverage();
+    private Component createCoverageSection(InventoryCoverage coverage) {
         HorizontalLayout metrics = new HorizontalLayout(
-                coverageMetric(getMessage("inventory_hardware_view.operating_system"), coverage.withOperatingSystem(), coverage.computers()),
-                coverageMetric(getMessage("inventory_hardware_view.patch"), coverage.withPatches(), coverage.computers()),
-                coverageMetric(getMessage("inventory_hardware_view.unknown_versions"), coverage.softwareWithoutVersion(), null));
+                coverageMetric(getMessage("inventory_hardware_view.coverage_os_title"),
+                        coverage.withOperatingSystem(), coverage.computers()),
+                coverageMetric(getMessage("inventory_hardware_view.coverage_patch_title"),
+                        coverage.withPatches(), coverage.computers()));
         metrics.setWidthFull();
-        metrics.setFlexGrow(1, metrics.getComponentAt(0), metrics.getComponentAt(1), metrics.getComponentAt(2));
+        metrics.setFlexGrow(1, metrics.getComponentAt(0), metrics.getComponentAt(1));
         Card card = new Card();
         card.setWidthFull();
-        card.add(new H3(getMessage("inventory_hardware_view.coverage")), metrics);
+        card.add(new H3(getMessage("inventory_hardware_view.coverage")),
+                new Span(getMessage("inventory_hardware_view.coverage_hint")), metrics);
         return card;
     }
 
-    private Component coverageMetric(String label, long value, Long total) {
+    private Component coverageMetric(String label, long covered, long total) {
         VerticalLayout metric = new VerticalLayout();
-        metric.setPadding(true);
+        metric.setPadding(false);
         metric.setSpacing(false);
+        metric.setWidthFull();
         Span name = new Span(label);
-        Span amount = new Span(total == null ? String.valueOf(value) : value + "/" + total);
-        amount.getStyle().set("font-size", "var(--lumo-font-size-xl)").set("font-weight", "700");
-        metric.add(name, amount);
+        name.getStyle().set("font-weight", "600");
+        if (total <= 0) {
+            metric.add(name, new Span(getMessage("inventory_hardware_view.coverage_no_computers")));
+            return metric;
+        }
+        long missing = Math.max(0, total - covered);
+        int percentage = (int) Math.round((covered * 100.0) / total);
+        Span amount = new Span(getMessage("inventory_hardware_view.coverage_count", new Object[]{covered, total, percentage}));
+        amount.getStyle().set("font-size", "var(--lumo-font-size-l)");
+        ProgressBar progress = new ProgressBar();
+        progress.setValue(Math.min(1.0, Math.max(0.0, covered / (double) total)));
+        Span missingText = new Span(getMessage("inventory_hardware_view.coverage_missing", new Object[]{missing}));
+        missingText.getStyle().set("color", missing == 0 ? "var(--lumo-success-text-color)" : "var(--lumo-secondary-text-color)");
+        metric.add(name, amount, progress, missingText);
         return metric;
+    }
+
+    private String getHardwareTypeLabel(String type) {
+        if (type == null) return "";
+        String key = switch (type.replace(" ", "").toLowerCase(Locale.ROOT)) {
+            case "computersystem" -> "computer_system";
+            case "bios" -> "bios";
+            case "baseboard" -> "base_board";
+            case "diskdrive" -> "disk_drive";
+            case "operatingsystem" -> "operating_system";
+            case "processor" -> "processor";
+            case "videocontroller" -> "video_controller";
+            case "physicalmemory" -> "physical_memory";
+            case "patch" -> "patch";
+            default -> null;
+        };
+        return key == null ? type : getMessage("inventory_hardware_view." + key);
     }
 
     private Component createOperatingSystemSummary() {
@@ -241,7 +287,7 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
                 .setHeader(getMessage("inventory_hardware_view.operating_system"))
                 .setFlexGrow(1);
         summary.addColumn(OperatingSystemCount::computers)
-                .setHeader(getMessage("inventory_hardware_view.computers"))
+                .setHeader(getMessage("inventory_hardware_view.computers_count"))
                 .setAutoWidth(true);
         summary.setItems(inventoryService.getOperatingSystemCounts());
         summary.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
@@ -253,10 +299,12 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
         summary.setHeight("180px");
         summary.addColumn(ComputerPatchStatus::computer)
                 .setHeader(getMessage("inventory_hardware_view.computer"));
-        summary.addColumn(ComputerPatchStatus::lastPatchDate)
+        summary.addColumn(item -> item.lastPatchDate() == null || item.lastPatchDate().isBlank()
+                        ? getMessage("inventory_hardware_view.patch_date_unavailable") : item.lastPatchDate())
                 .setHeader(getMessage("inventory_hardware_view.last_patch"));
-        summary.addColumn(item -> item.stale() ? getMessage("inventory_hardware_view.stale")
-                : getMessage("inventory_hardware_view.current"))
+        summary.addColumn(item -> item.stale()
+                        ? getMessage("inventory_hardware_view.needs_review", new Object[]{patchStaleDays})
+                        : getMessage("inventory_hardware_view.within_freshness_limit", new Object[]{patchStaleDays}))
                 .setHeader(getMessage("inventory_hardware_view.patch_status"));
         summary.setItems(inventoryService.getPatchStatuses());
         summary.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
