@@ -42,6 +42,8 @@ Displayed charts:
 - computer breakdown (total, disabled, workstations, servers, domain controllers);
 - group breakdown (total, security, distribution, built-in).
 
+The dashboard also shows overview cards for domain health, security findings, account status and inventory health. Each card includes a link to the detailed page. Inventory health uses a 30-day stale threshold for the dashboard summary.
+
 ### 3.2 Domain (`/domain/info`)
 Purpose: domain and controller information.
 

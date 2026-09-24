@@ -16,7 +16,10 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.AnchorTarget;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -30,6 +33,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Route(value = "")
@@ -49,6 +54,9 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
     private final ContactsService contactsService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
+    private final LdapService ldapService;
+    private final SecurityAuditService securityAuditService;
+    private final InventoryService inventoryService;
 
     private final String title = "dashboard_view.title";
 
@@ -57,6 +65,9 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
                          GroupsService groupsService,
                          PrintersService printersService,
                          ContactsService contactsService,
+                         LdapService ldapService,
+                         SecurityAuditService securityAuditService,
+                         InventoryService inventoryService,
                          MessageSource messageSource,
                          LocaleService localeService) {
 
@@ -65,6 +76,9 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         this.groupsService = groupsService;
         this.printersService = printersService;
         this.contactsService = contactsService;
+        this.ldapService = ldapService;
+        this.securityAuditService = securityAuditService;
+        this.inventoryService = inventoryService;
         this.messageSource = messageSource;
         this.localeService = localeService;
 
@@ -76,6 +90,8 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         List<GroupEntry> groups = groupsService.getAll();
         List<PrinterEntry> printers = printersService.getAll();
         List<ContactEntry> contacts = contactsService.getAll();
+
+        verticalLayout.add(createOverviewCards(users, computers));
 
         getStoredTheme().thenAccept(v -> {
             boolean isDarkTheme = v.contains("dark");
@@ -223,6 +239,71 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
             add(verticalLayout);
 
         });
+    }
+
+    private HorizontalLayout createOverviewCards(List<UserEntry> users, List<ComputerEntry> computers) {
+        HorizontalLayout cards = new HorizontalLayout();
+        cards.setWidthFull();
+        cards.setWrap(true);
+        cards.setSpacing(true);
+
+        var domainHealth = ldapService.getDomainHealth();
+        String healthStatus = domainHealth == null || domainHealth.getOverallStatus() == null
+                ? "UNKNOWN" : domainHealth.getOverallStatus();
+        Card domainCard = metricCard(getMessage("domain_health_view.title"), Map.of(
+                getMessage("domain_health_view.overall"), localizedHealthStatus(healthStatus),
+                getMessage("domain_health_view.check"), domainHealth == null || domainHealth.getChecks() == null
+                        ? 0 : domainHealth.getChecks().size()));
+        domainCard.add(new Anchor("domain/info", getMessage("common.details")));
+
+        var security = securityAuditService.scan();
+        Card securityCard = metricCard(getMessage("security_audit_view.title"), Map.of(
+                getMessage("security_audit_view.privileged_users"), security.privilegedUsers(),
+                getMessage("security_audit_view.privileged_groups"), security.privilegedGroups(),
+                getMessage("security_audit_view.missing_contact"), security.usersMissingContactData()));
+        securityCard.add(new Anchor("security/audit", getMessage("common.details")));
+
+        Card accountsCard = metricCard(getMessage("dashboard_view.users"), Map.of(
+                getMessage("common.disabled"), users.stream().filter(UserEntry::isDisabled).count(),
+                getMessage("common.locked"), users.stream().filter(UserEntry::isLocked).count(),
+                getMessage("common.expired"), users.stream().filter(UserEntry::isExpired).count()));
+        accountsCard.add(new Anchor("management/users", getMessage("common.details")));
+
+        var inventory = inventoryService.getInventoryHealth(30);
+        Card inventoryCard = metricCard(getMessage("inventory_health_view.title"), Map.of(
+                getMessage("inventory_health_view.total"), inventory == null ? 0 : inventory.totalComputers(),
+                getMessage("inventory_health_view.stale"), inventory == null ? 0 : inventory.staleCount(),
+                getMessage("inventory_health_view.never_scanned"), inventory == null ? 0 : inventory.neverScannedCount()));
+        inventoryCard.add(new Anchor("inventory/health", getMessage("common.details")));
+
+        cards.add(domainCard, securityCard, accountsCard, inventoryCard);
+        return cards;
+    }
+
+    private Card metricCard(String title, Map<String, ?> values) {
+        Card card = new Card();
+        card.setWidth("min(100%, 360px)");
+        card.getStyle().set("flex", "1 1 240px");
+        card.setTitle(title);
+        VerticalLayout content = new VerticalLayout();
+        content.setPadding(false);
+        values.forEach((label, value) -> {
+            HorizontalLayout row = new HorizontalLayout(new Span(label), new H3(String.valueOf(value)));
+            row.setWidthFull();
+            row.setJustifyContentMode(JustifyContentMode.BETWEEN);
+            content.add(row);
+        });
+        card.add(content);
+        return card;
+    }
+
+    private String localizedHealthStatus(String value) {
+        return switch (value) {
+            case "HEALTHY" -> getMessage("domain_health_view.healthy");
+            case "WARNING" -> getMessage("domain_health_view.warning");
+            case "ERROR" -> getMessage("domain_health_view.error");
+            default -> getMessage("domain_health_view.not_checked");
+        };
     }
 
     private String getMessage(String key) {
