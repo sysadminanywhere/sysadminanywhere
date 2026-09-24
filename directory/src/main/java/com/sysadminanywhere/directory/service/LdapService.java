@@ -893,12 +893,23 @@ public class LdapService {
         } finally {
             if (connection != null) {
                 try {
-                    connection.close();
+                    closeConnection(connection);
                 } catch (IOException e) {
                     log.error("Failed to close LDAP connection", e);
                 }
             }
         }
+    }
+
+    private void closeConnection(LdapConnection connection) throws IOException {
+        if (connection.isConnected()) {
+            try {
+                connection.unBind();
+            } catch (Exception exception) {
+                log.debug("LDAP unbind failed while closing operation session: {}", exception.getMessage());
+            }
+        }
+        connection.close();
     }
 
     private <T> T executeAsUser(LdapConnectionOperation<T> operation) {

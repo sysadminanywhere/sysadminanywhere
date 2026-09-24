@@ -144,7 +144,7 @@ public class UserConnectionManager {
                 if (connections.remove(connectionKey, holder)) {
                     try {
                         log.info("Auto-closing LDAP pool for {} (idle {} ms)", connectionKey, idleTime);
-                        holder.connection.close();
+                        closeConnection(holder.connection);
                         closedConnections++;
 
                     } catch (Exception e) {
@@ -164,6 +164,19 @@ public class UserConnectionManager {
             return "legacy";
         }
         return service.trim().toLowerCase();
+    }
+
+    /** Close idle LDAP sessions with an LDAP unbind before closing the MINA socket. */
+    private void closeConnection(LdapConnection connection) throws Exception {
+        if (connection == null) return;
+        if (connection.isConnected()) {
+            try {
+                connection.unBind();
+            } catch (Exception exception) {
+                log.debug("LDAP unbind failed while closing idle session: {}", exception.getMessage());
+            }
+        }
+        connection.close();
     }
 
     /** Trust manager used for the legacy LDAPS mode. */
