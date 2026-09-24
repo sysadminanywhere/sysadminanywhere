@@ -14,7 +14,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -27,6 +27,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 
 import java.util.List;
 import java.io.ByteArrayInputStream;
@@ -48,7 +49,6 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
     public InventoryLicensesView(InventoryService inventoryService, IncidentService incidentService, MessageSource messages, LocaleService locale) {
         this.inventoryService = inventoryService; this.incidentService = incidentService; this.messages = messages; this.locale = locale;
         setSizeFull();
-        H2 title = new H2(msg("inventory_licenses_view.title"));
         Button add = new Button(msg("inventory_licenses_view.add"), e -> openEditor(null));
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Anchor export = new Anchor(new StreamResource("software-licenses.csv", this::createCsv), msg("inventory_licenses_view.export_csv"));
@@ -63,8 +63,9 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
             default -> msg("inventory_licenses_view.all");
         });
         statusFilter.addValueChangeListener(event -> applyFilter());
-        HorizontalLayout header = new HorizontalLayout(title, statusFilter, export, add);
-        header.setWidthFull(); header.setFlexGrow(1, title);
+        HorizontalLayout header = new HorizontalLayout(statusFilter, export, add);
+        header.setWidthFull();
+        header.setAlignItems(Alignment.END);
         grid.addColumn(SoftwareLicense::name).setHeader(msg("inventory_licenses_view.name")).setAutoWidth(true);
         grid.addColumn(SoftwareLicense::vendor).setHeader(msg("inventory_licenses_view.vendor")).setAutoWidth(true);
         grid.addColumn(SoftwareLicense::version).setHeader(msg("inventory_licenses_view.version")).setAutoWidth(true);
@@ -83,6 +84,8 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
             Button delete = new Button(msg("common.delete"), e -> { if (inventoryService.deleteLicense(item.id())) refresh(); });
             return new HorizontalLayout(incident, delete);
         }).setHeader(msg("common.actions")).setAutoWidth(true);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
+        grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
         grid.setSizeFull();
         add(header, grid); expand(grid); refresh();
     }

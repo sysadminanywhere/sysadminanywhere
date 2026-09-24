@@ -14,7 +14,6 @@ import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.card.Card;
@@ -60,7 +59,6 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
         } else {
             filters = new Filters(() -> refreshGrid(), messageSource, localeService);
             VerticalLayout layout = new VerticalLayout(
-                    new H2(getMessage("inventory_hardware_view.title")),
                     new Span(getMessage("inventory_hardware_view.subtitle")),
                     createFilterSection(),
                     createCoverageSection(),

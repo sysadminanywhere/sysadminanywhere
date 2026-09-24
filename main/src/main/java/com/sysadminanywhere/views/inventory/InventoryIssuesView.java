@@ -11,8 +11,8 @@ import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -22,6 +22,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -46,7 +47,6 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
     public InventoryIssuesView(InventoryService inventoryService, IncidentService incidentService, MessageSource messages, LocaleService locale) {
         this.inventoryService = inventoryService; this.incidentService = incidentService; this.messages = messages; this.locale = locale;
         setSizeFull();
-        H2 title = new H2(msg("inventory_issues_view.title"));
         Button refresh = new Button(msg("common.refresh"), e -> refresh());
         severityFilter.setItems("ALL", "HIGH", "MEDIUM");
         severityFilter.setValue("ALL");
@@ -66,9 +66,9 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
         HorizontalLayout summary = new HorizontalLayout(highCount, mediumCount);
         Button createIncidents = new Button(msg("inventory_issues_view.create_incidents"), e -> confirmCreateIncidents());
         createIncidents.setVisible(isAdmin());
-        HorizontalLayout header = new HorizontalLayout(title, summary, typeFilter, severityFilter, createIncidents, refresh);
-        header.setFlexGrow(1, title);
-        header.setWidthFull(); header.setFlexGrow(1, title);
+        HorizontalLayout header = new HorizontalLayout(summary, typeFilter, severityFilter, createIncidents, refresh);
+        header.setWidthFull();
+        header.setAlignItems(Alignment.END);
         grid.addColumn(Issue::severity).setHeader(msg("inventory_issues_view.severity")).setAutoWidth(true);
         grid.addColumn(Issue::type).setHeader(msg("inventory_issues_view.type")).setAutoWidth(true);
         grid.addColumn(Issue::object).setHeader(msg("inventory_issues_view.object")).setAutoWidth(true);
@@ -76,6 +76,8 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
         grid.addComponentColumn(item -> new Anchor(item.actionKey().equals("open_licenses") ? "inventory/licenses" : "inventory/health",
                         msg("inventory_issues_view." + item.actionKey())))
                 .setHeader(msg("inventory_issues_view.action")).setAutoWidth(true);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
+        grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
         grid.setSizeFull();
         add(header, grid); expand(grid); refresh();
     }
