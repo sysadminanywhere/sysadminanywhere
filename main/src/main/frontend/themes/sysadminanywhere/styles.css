@@ -141,6 +141,7 @@ html[theme~="dark"] body {
       --overview-accent: var(--lumo-primary-color);
       display: flex;
       flex-direction: column;
+      padding: var(--lumo-space-m);
       border: 1px solid var(--lumo-contrast-10pct);
       border-top: 4px solid var(--overview-accent);
       box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
@@ -172,6 +173,10 @@ html[theme~="dark"] body {
       margin: 0;
       color: var(--overview-accent);
       font-size: var(--lumo-font-size-xl);
+}
+
+.overview-card vaadin-vertical-layout {
+      gap: var(--lumo-space-xs);
 }
 
 .overview-card vaadin-horizontal-layout {
