@@ -159,6 +159,7 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
     }
 
     private String msg(String key) { return messages.getMessage(key, null, locale.getCurrentLocale()); }
+    private String msg(String key, Object... args) { return messages.getMessage(key, args, locale.getCurrentLocale()); }
     @Override public String getPageTitle() { return msg("inventory_issues_view.title"); }
     private record Issue(String severity, String type, String object, String details, String actionKey) { }
 }
