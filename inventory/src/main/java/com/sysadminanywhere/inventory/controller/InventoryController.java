@@ -69,6 +69,8 @@ public class InventoryController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String sort) {
 
+        String requestedName = name;
+        String requestedVendor = vendor;
         name = name + "%";
         vendor = vendor + "%";
         Pageable pageable = Pageable.ofSize(size).withPage(page);
@@ -76,7 +78,8 @@ public class InventoryController {
         Page<SoftwareCount> result = softwareRepository.getSoftwareInstallationCount(
                 name, vendor, pageable);
 
-        log.info("Retrieved software count for name: {}, vendor: {}", name, vendor);
+        log.info("Retrieved software count for name: {}, vendor: {}",
+                displayFilter(requestedName), displayFilter(requestedVendor));
 
         PageResponse<SoftwareCount> response = new PageResponse<>(
                 result.getContent(),
@@ -86,6 +89,10 @@ public class InventoryController {
                 result.getTotalPages()
         );
         return ResponseEntity.ok(response);
+    }
+
+    private String displayFilter(String value) {
+        return value == null || value.isBlank() ? "<all>" : value;
     }
 
     @GetMapping("/computers/{computerId}/software")
