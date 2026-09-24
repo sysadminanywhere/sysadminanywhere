@@ -36,7 +36,7 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "management/groups")
 @Uses(Icon.class)
 @Uses(Upload.class)
@@ -210,7 +210,8 @@ public class GroupsView extends Div implements MenuControl, HasDynamicTitle {
 
     private Component createGrid() {
         grid = new Grid<>(GroupEntry.class, false);
-        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        grid.setSelectionMode(com.sysadminanywhere.security.UiAuthorization.isAdmin()
+                ? Grid.SelectionMode.MULTI : Grid.SelectionMode.NONE);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn(new ComponentRenderer<>(group -> {

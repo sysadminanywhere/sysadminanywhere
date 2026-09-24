@@ -195,6 +195,12 @@ LDAP_PORT=389
 LDAP_USE_SSL=false
 # Leave false for legacy behavior; set true to validate the LDAP certificate.
 LDAP_VERIFY_CERTIFICATE=false
+# Optional administrator group DNs (semicolon-separated). Empty uses Domain Admins.
+LDAP_ADMIN_GROUP_DNS=
+# Optional exact administrator login names (comma-separated).
+LDAP_ADMIN_USERS=
+# Account allowed to run read-only WMI queries for inventory.
+LDAP_WMI_READ_USERS=readonly
 # Application-level change journal (JSON)
 DIRECTORY_AUDIT_JOURNAL_PATH=/data/change-journal.json
 DIRECTORY_AUDIT_JOURNAL_MAX_ENTRIES=10000
@@ -240,6 +246,8 @@ LDAP_VERIFY_CERTIFICATE=true
 For Docker, mount the truststore into the `directory` container and set
 `JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/path/to/truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit`.
 Keep `LDAP_VERIFY_CERTIFICATE=false` only for isolated legacy environments: trust-any mode is vulnerable to man-in-the-middle attacks.
+
+LDAP login now grants `ROLE_READER` by default. A direct member of `CN=Domain Admins,CN=Users,<domain base DN>` also receives `ROLE_ADMIN`. Override administrator group DNs with `LDAP_ADMIN_GROUP_DNS` (semicolon-separated) or grant exact login names through `LDAP_ADMIN_USERS` (comma-separated). Admin access is required for directory changes, automation, settings, API tokens, and remote commands. Readers can browse directory objects, inventory, incidents, and reports. Group membership is read at login; sign in again after changing it. For the inventory scan account, set `LDAP_WMI_READ_USERS` to its exact login name (for example `readonly`); this permits WMI queries but not remote commands or method invocations. These variables are passed to the Directory container by `docker/prod/docker-compose.yml`.
 
 ## 📚 Documentation
 

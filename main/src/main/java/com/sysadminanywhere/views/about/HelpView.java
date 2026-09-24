@@ -17,7 +17,7 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 
 @Route(value = "settings/help")
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 public class HelpView extends VerticalLayout implements HasDynamicTitle {
 
     private final MessageSource messageSource;
@@ -47,6 +47,7 @@ public class HelpView extends VerticalLayout implements HasDynamicTitle {
         card.setWidthFull();
         card.setTitle(getMessage("help_view.navigation_title"));
         VerticalLayout content = new VerticalLayout();
+        addHelpItem(content, "help_view.access_roles_title", "help_view.access_roles_text");
         addHelpItem(content, "help_view.dashboard_title", "help_view.dashboard_text");
         addHelpItem(content, "help_view.search_title", "help_view.search_text");
         addHelpItem(content, "help_view.management_title", "help_view.management_text");

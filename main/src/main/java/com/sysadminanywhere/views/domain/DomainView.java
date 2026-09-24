@@ -23,7 +23,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "domain/info")
 public class DomainView extends VerticalLayout implements HasDynamicTitle {
 

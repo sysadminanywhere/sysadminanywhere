@@ -36,7 +36,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "domain/audit")
 public class AuditView extends Div implements HasDynamicTitle {
 

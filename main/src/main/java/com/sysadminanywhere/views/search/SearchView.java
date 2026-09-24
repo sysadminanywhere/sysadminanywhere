@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Route("search")
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 public class SearchView extends VerticalLayout implements HasDynamicTitle {
 
     private final UsersService usersService;

@@ -58,6 +58,7 @@ public class LdapService {
 
     private final UserConnectionManager userConnectionManager;
     private final ChangeJournalService changeJournalService;
+    private final LdapRolePolicy rolePolicy;
 
     @org.springframework.beans.factory.annotation.Value("${ldap.host.server:localhost}")
     private String ldapHost;
@@ -93,12 +94,14 @@ public class LdapService {
     public LdapService(JwtService jwtService,
                        VaultService vaultService,
                        UserConnectionManager userConnectionManager,
-                       ChangeJournalService changeJournalService) {
+                       ChangeJournalService changeJournalService,
+                       LdapRolePolicy rolePolicy) {
 
         this.jwtService = jwtService;
         this.vaultService = vaultService;
         this.userConnectionManager = userConnectionManager;
         this.changeJournalService = changeJournalService;
+        this.rolePolicy = rolePolicy;
 
         domainEntry = getRootDse();
         baseDn = new Dn(domainEntry.get("rootdomainnamingcontext").get().getString());
@@ -827,21 +830,57 @@ public class LdapService {
     public JwtResponse authenticate(String username, String password, String service) {
         String serviceContext = normalizeService(service);
 
-        boolean authenticated = execute(conn -> {
+        return execute(conn -> {
             conn.bind(userConnectionManager.createBindRequest(username, password));
+            Entry account = findBoundAccount(conn, username);
+            List<String> groups = memberOf(account);
+            List<String> roles = rolePolicy.roles(username, groups, defaultNamingContext);
             vaultService.savePassword(serviceContext, username, password);
-            return true;
+            String jwt = jwtService.generateToken(username, roles, serviceContext, groups);
+            return new JwtResponse(jwt, username, roles);
         });
+    }
 
-        String jwt = null;
-        List<String> roles = new ArrayList<>();
-
-        if (authenticated) {
-            roles = List.of("ROLE_ADMIN");
-            jwt = jwtService.generateToken(username, roles, serviceContext);
+    private Entry findBoundAccount(LdapConnection connection, String username) throws Exception {
+        if (username.contains("=") && username.contains(",")) {
+            Entry account = connection.lookup(new Dn(username), "memberOf");
+            if (account == null) throw new IllegalStateException("Bound LDAP account was not found");
+            return account;
         }
 
-        return new JwtResponse(jwt, username, roles);
+        String accountName = username;
+        if (accountName.contains("\\")) accountName = accountName.substring(accountName.lastIndexOf('\\') + 1);
+        String attribute = accountName.contains("@") ? "userPrincipalName" : "sAMAccountName";
+        SearchRequest request = new SearchRequestImpl();
+        request.setBase(baseDn);
+        request.setScope(SearchScope.SUBTREE);
+        request.setFilter("(&(objectClass=user)(" + attribute + "=" + escapeFilterValue(accountName) + "))");
+        request.addAttributes("memberOf");
+        request.setTimeLimit(10);
+        Entry account = null;
+        try (SearchCursor cursor = connection.search(request)) {
+            while (cursor.next()) {
+                if (cursor.get() instanceof SearchResultEntry result) {
+                    if (account != null) throw new IllegalStateException("Ambiguous LDAP account name");
+                    account = result.getEntry().clone();
+                }
+            }
+        }
+        if (account == null) throw new IllegalStateException("Bound LDAP account was not found");
+        return account;
+    }
+
+    private List<String> memberOf(Entry account) {
+        Attribute attribute = account.get("memberOf");
+        if (attribute == null) return List.of();
+        List<String> groups = new ArrayList<>();
+        for (Value value : attribute) groups.add(value.getString());
+        return groups;
+    }
+
+    private String escapeFilterValue(String value) {
+        return value.replace("\\", "\\5c").replace("*", "\\2a")
+                .replace("(", "\\28").replace(")", "\\29").replace("\u0000", "\\00");
     }
 
     private <T> T execute(LdapConnectionOperation<T> operation) {

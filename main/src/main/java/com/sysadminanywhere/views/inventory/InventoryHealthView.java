@@ -31,7 +31,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "inventory/health")
 public class InventoryHealthView extends VerticalLayout implements HasDynamicTitle {
     private final InventoryService inventoryService;

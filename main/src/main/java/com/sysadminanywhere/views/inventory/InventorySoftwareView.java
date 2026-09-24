@@ -28,7 +28,7 @@ import org.springframework.data.domain.PageRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "inventory/software")
 @Uses(Icon.class)
 public class InventorySoftwareView extends Div implements HasDynamicTitle {

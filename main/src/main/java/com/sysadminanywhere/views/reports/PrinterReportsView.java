@@ -25,7 +25,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "reports/printers")
 @Uses(Icon.class)
 public class PrinterReportsView extends Div implements HasDynamicTitle {

@@ -35,7 +35,7 @@ import java.util.concurrent.CompletableFuture;
 @Route(value = "")
 @RouteAlias(value = "domain/dashboard")
 @RouteAlias(value = "dashboard")
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 public class DashboardView extends VerticalLayout implements HasDynamicTitle {
 
     private final String ColumnWidth = "55%";

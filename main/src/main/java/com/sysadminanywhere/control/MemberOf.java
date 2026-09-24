@@ -5,6 +5,7 @@ import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.model.GroupItem;
 import com.sysadminanywhere.service.LdapService;
 import com.sysadminanywhere.service.LocaleService;
+import com.sysadminanywhere.security.UiAuthorization;
 import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.HasComponents;
@@ -114,7 +115,8 @@ public class MemberOf extends Composite<Div> implements HasComponents, HasSize {
         layoutWithoutSpacing.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         layoutWithoutSpacing.setWidth("50%");
 
-        HorizontalLayout layout = new HorizontalLayout(title, layoutWithoutSpacing);
+        HorizontalLayout layout = UiAuthorization.isAdmin()
+                ? new HorizontalLayout(title, layoutWithoutSpacing) : new HorizontalLayout(title);
         layout.setWidthFull();
 
         div.add(layout, listMemberOf);

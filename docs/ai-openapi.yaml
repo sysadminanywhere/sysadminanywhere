@@ -112,7 +112,7 @@ paths:
               example:
                 token: eyJhbGciOiJIUzI1NiJ9.example.signature
                 username: administrator
-                roles: [ROLE_ADMIN]
+                roles: [ROLE_READER, ROLE_ADMIN]
         '401':
           description: Invalid username or password
   /api/ldap/search:

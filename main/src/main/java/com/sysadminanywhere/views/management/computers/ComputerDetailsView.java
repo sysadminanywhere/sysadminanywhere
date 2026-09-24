@@ -7,6 +7,7 @@ import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.service.LocaleService;
+import com.sysadminanywhere.security.UiAuthorization;
 import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -38,7 +39,7 @@ import jakarta.annotation.security.RolesAllowed;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "management/computers/:id?/details")
 @Uses(Icon.class)
 @Uses(ListBox.class)
@@ -63,7 +64,7 @@ public class ComputerDetailsView extends Div implements BeforeEnterObserver, Men
         id = event.getRouteParameters().get("id").
                 orElse(null);
 
-        getComputerInfo();
+        if (UiAuthorization.isAdmin()) getComputerInfo();
         updateView();
     }
 

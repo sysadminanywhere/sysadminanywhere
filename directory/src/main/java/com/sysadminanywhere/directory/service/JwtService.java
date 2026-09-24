@@ -20,11 +20,16 @@ public class JwtService {
     private String secret;
 
     public String generateToken(String username, List<String> roles, String service) {
+        return generateToken(username, roles, service, List.of());
+    }
+
+    public String generateToken(String username, List<String> roles, String service, List<String> groups) {
         Key key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 
         return Jwts.builder()
                 .setSubject(username)
                 .claim("roles", roles)
+                .claim("groups", groups)
                 .claim("service", service)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))

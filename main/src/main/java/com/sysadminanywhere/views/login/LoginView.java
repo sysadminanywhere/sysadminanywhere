@@ -140,13 +140,11 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver, HasD
 
         List<String> groups = claims.get("groups", List.class);
 
-        if (groups == null) {
-            // If groups not in token, try to use roles as groups
-            List<String> roles = claims.get("roles", List.class);
-            return roles != null ? roles : List.of();
-        }
-
-        return groups;
+        List<String> roles = claims.get("roles", List.class);
+        return java.util.stream.Stream.concat(
+                groups == null ? java.util.stream.Stream.<String>empty() : groups.stream(),
+                roles == null ? java.util.stream.Stream.<String>empty() : roles.stream())
+                .distinct().toList();
     }
 
     public String getPageTitle() {

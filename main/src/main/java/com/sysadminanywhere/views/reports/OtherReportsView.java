@@ -10,7 +10,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "reports/others")
 @Uses(Icon.class)
 public class OtherReportsView extends Div implements HasDynamicTitle {

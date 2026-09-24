@@ -6,6 +6,7 @@ import com.sysadminanywhere.common.incident.model.Severity;
 import com.sysadminanywhere.service.IncidentService;
 import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.Utils;
+import com.sysadminanywhere.security.UiAuthorization;
 import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -52,10 +53,12 @@ public class IncidentDialog extends Dialog {
         ComboBox<String> comboSeverity = new ComboBox<>(getMessage("incident_dialog.severity"));
         comboSeverity.setItems(List.of("Low", "Medium", "High", "Critical"));
         comboSeverity.setValue(incident.getSeverity().name());
+        comboSeverity.setReadOnly(!UiAuthorization.isAdmin());
 
         ComboBox<String> comboStatus = new ComboBox<>(getMessage("incident_dialog.status"));
         comboStatus.setItems(List.of("Open", "In Progress", "Resolved", "False Positive", "Closed"));
         comboStatus.setValue(incident.getStatus().name().replace("_", " "));
+        comboStatus.setReadOnly(!UiAuthorization.isAdmin());
 
         TextField txtFirstEventTime = new TextField(getMessage("incident_dialog.first_event_time"));
         txtFirstEventTime.setValue(Utils.formatLocalDateTime(incident.getFirstEventTime()));
@@ -114,7 +117,7 @@ public class IncidentDialog extends Dialog {
 
         Button cancelButton = new Button(getMessage("common.cancel"), e -> close());
         getFooter().add(cancelButton);
-        getFooter().add(saveButton);
+        if (UiAuthorization.isAdmin()) getFooter().add(saveButton);
     }
 
     private String getMessage(String key) {

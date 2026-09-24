@@ -29,7 +29,7 @@ import org.springframework.data.domain.PageRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route("incidents")
 public class IncidentsView extends Div implements HasDynamicTitle {
 

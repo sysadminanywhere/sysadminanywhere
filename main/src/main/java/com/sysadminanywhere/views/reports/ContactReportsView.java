@@ -25,7 +25,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "reports/contacts")
 @Uses(Icon.class)
 public class ContactReportsView extends Div implements HasDynamicTitle {

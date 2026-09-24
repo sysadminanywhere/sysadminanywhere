@@ -39,7 +39,7 @@ import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "management/computers")
 @Uses(Icon.class)
 public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
@@ -203,7 +203,8 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
 
     private Component createGrid() {
         grid = new Grid<>(ComputerEntry.class, false);
-        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        grid.setSelectionMode(com.sysadminanywhere.security.UiAuthorization.isAdmin()
+                ? Grid.SelectionMode.MULTI : Grid.SelectionMode.NONE);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn(new ComponentRenderer<>(computer -> {

@@ -36,7 +36,7 @@ import jakarta.annotation.security.RolesAllowed;
 
 import java.io.ByteArrayInputStream;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "management/users/:id?/details")
 @Uses(Upload.class)
 @Uses(Icon.class)

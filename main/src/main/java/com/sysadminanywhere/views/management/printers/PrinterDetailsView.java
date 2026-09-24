@@ -4,6 +4,7 @@ import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import com.sysadminanywhere.service.LocaleService;
 import com.sysadminanywhere.service.PrintersService;
+import com.sysadminanywhere.security.UiAuthorization;
 import org.springframework.context.MessageSource;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.Uses;
@@ -22,7 +23,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @PageTitle("Printer details")
 @Route(value = "management/printers/:id?/details")
 @Uses(Icon.class)
@@ -86,7 +87,8 @@ public class PrinterDetailsView extends Div implements BeforeEnterObserver {
         horizontalLayout.setWidthFull();
         horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        HorizontalLayout horizontalLayout2 = new HorizontalLayout(menuBar);
+        HorizontalLayout horizontalLayout2 = UiAuthorization.isAdmin()
+                ? new HorizontalLayout(menuBar) : new HorizontalLayout();
         horizontalLayout2.setWidthFull();
         horizontalLayout2.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
 

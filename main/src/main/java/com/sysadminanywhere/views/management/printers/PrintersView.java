@@ -34,7 +34,7 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "management/printers")
 @Uses(Icon.class)
 public class PrintersView extends Div implements MenuControl, HasDynamicTitle {
@@ -164,7 +164,8 @@ public class PrintersView extends Div implements MenuControl, HasDynamicTitle {
 
     private Component createGrid() {
         grid = new Grid<>(PrinterEntry.class, false);
-        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        grid.setSelectionMode(com.sysadminanywhere.security.UiAuthorization.isAdmin()
+                ? Grid.SelectionMode.MULTI : Grid.SelectionMode.NONE);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn(new ComponentRenderer<>(printer -> {

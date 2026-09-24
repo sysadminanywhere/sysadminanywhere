@@ -29,7 +29,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "security/audit")
 public class SecurityAuditView extends VerticalLayout implements HasDynamicTitle {
     private final SecurityAuditService securityAuditService;

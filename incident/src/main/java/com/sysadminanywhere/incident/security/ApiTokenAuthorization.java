@@ -15,11 +15,13 @@ public class ApiTokenAuthorization {
         if (authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"))) {
             return true;
         }
+        if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) return false;
+        HttpServletRequest request = attributes.getRequest();
+        if ("GET".equalsIgnoreCase(request.getMethod()) && authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_READER"))) return true;
         if (authentication.getAuthorities().stream().noneMatch(authority -> authority.getAuthority().equals("ROLE_API_TOKEN"))) {
             return false;
         }
-        if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) return false;
-        HttpServletRequest request = attributes.getRequest();
         String scope = "GET".equalsIgnoreCase(request.getMethod()) ? "SCOPE_incidents:read" : "SCOPE_incidents:write";
         return authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals(scope));
     }

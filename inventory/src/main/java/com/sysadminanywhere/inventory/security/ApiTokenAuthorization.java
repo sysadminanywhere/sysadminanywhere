@@ -14,10 +14,12 @@ public class ApiTokenAuthorization {
         if (authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"))) {
             return true;
         }
+        if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) return false;
+        if ("GET".equalsIgnoreCase(attributes.getRequest().getMethod()) && authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_READER"))) return true;
         if (authentication.getAuthorities().stream().noneMatch(authority -> authority.getAuthority().equals("ROLE_API_TOKEN"))) {
             return false;
         }
-        if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) return false;
         return authentication.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("SCOPE_inventory:read"));
     }

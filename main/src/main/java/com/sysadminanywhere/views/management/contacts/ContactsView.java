@@ -34,7 +34,7 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "management/contacts")
 @Uses(Icon.class)
 public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
@@ -179,7 +179,8 @@ public class ContactsView extends Div implements MenuControl, HasDynamicTitle {
 
     private Component createGrid() {
         grid = new Grid<>(ContactEntry.class, false);
-        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        grid.setSelectionMode(com.sysadminanywhere.security.UiAuthorization.isAdmin()
+                ? Grid.SelectionMode.MULTI : Grid.SelectionMode.NONE);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn(new ComponentRenderer<>(contact -> {

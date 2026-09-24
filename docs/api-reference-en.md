@@ -31,7 +31,7 @@ The response contains `token`, `username`, and `roles`. Send the token with prot
 Authorization: Bearer <token>
 ```
 
-Regular AD authentication issues a one-hour JWT and currently assigns `ROLE_ADMIN` to each successful login. For integrations, use dedicated restricted API tokens from `/settings/api-tokens`: permissions can be limited by service and operation type, and a token can be revoked immediately. The token secret is shown only when created. OpenAPI and Swagger UI endpoints are public.
+Regular AD authentication issues a one-hour JWT. Every successful login receives `ROLE_READER`; direct membership in `CN=Domain Admins,CN=Users,<domain base DN>` additionally grants `ROLE_ADMIN`. Configure alternative exact group DNs with `LDAP_ADMIN_GROUP_DNS` (semicolon-separated) or exact login names with `LDAP_ADMIN_USERS` (comma-separated). Readers can use GET endpoints and LDAP search/count; writes require admin. `LDAP_WMI_READ_USERS` grants listed login names read-only `/api/wmi/execute` access for inventory scans, not remote commands or method invocations. Roles are evaluated at login, so sign in again after membership changes. For integrations, use dedicated restricted API tokens from `/settings/api-tokens`: permissions can be limited by service and operation type, and a token can be revoked immediately. The token secret is shown only when created. OpenAPI and Swagger UI endpoints are public.
 
 | Scope | Access |
 | --- | --- |

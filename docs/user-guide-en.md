@@ -12,6 +12,8 @@ Sysadmin Anywhere is a web interface for Active Directory administration and rel
 - "Forgot password" button is disabled.
 - After successful authentication, the dashboard opens (`/`).
 
+Every AD login has read access. Direct members of the domain's `Domain Admins` group can also change objects and use administrative features. Administrators can configure other group DNs or exact login names through `LDAP_ADMIN_GROUP_DNS` and `LDAP_ADMIN_USERS` in the Directory service. Readers can browse the dashboard, directory, inventory, incidents, reports, and help; editing controls and bulk selection are unavailable. WMI inventory scanning needs `LDAP_WMI_READ_USERS` set to its service login. Sign in again after a role change.
+
 ### 2.2 Interface Layout
 The interface consists of:
 - left vertical top-level panel (Dashboard, Management, Incidents, Automation, Inventory, Reports, Account, Settings);

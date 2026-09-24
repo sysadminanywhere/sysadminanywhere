@@ -4,6 +4,7 @@ import com.sysadminanywhere.control.MenuButton;
 import com.sysadminanywhere.control.MenuControl;
 import com.sysadminanywhere.control.OnboardingTour;
 import com.sysadminanywhere.service.LocaleService;
+import com.sysadminanywhere.security.UiAuthorization;
 import com.sysadminanywhere.views.about.AboutView;
 import com.sysadminanywhere.views.about.HelpView;
 import com.sysadminanywhere.views.account.MeView;
@@ -147,11 +148,14 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         accountSubNavs = new SideNav();
         automationsSubNavs = new SideNav();
 
-        topMenu = new VerticalLayout(createMainButtonItem("main_layout.dashboard", getMessage("main_layout.dashboard"), DashboardView.class, "icons/dashboard.svg"),
+        topMenu = new VerticalLayout();
+        topMenu.add(createMainButtonItem("main_layout.dashboard", getMessage("main_layout.dashboard"), DashboardView.class, "icons/dashboard.svg"),
                 createMainButtonItem("main_layout.management", getMessage("main_layout.management"), ContainersView.class, "icons/management.svg"),
-                createMainButtonItem("main_layout.incidents", getMessage("main_layout.incidents"), IncidentsView.class, "icons/incident.svg"),
-                createMainButtonItem("main_layout.automation", getMessage("main_layout.automation"), AutomationsView.class, "icons/automation.svg"),
-                createMainButtonItem("main_layout.inventory", getMessage("main_layout.inventory"), InventorySoftwareView.class, "icons/inventory.svg"),
+                createMainButtonItem("main_layout.incidents", getMessage("main_layout.incidents"), IncidentsView.class, "icons/incident.svg"));
+        if (UiAuthorization.isAdmin()) {
+            topMenu.add(createMainButtonItem("main_layout.automation", getMessage("main_layout.automation"), AutomationsView.class, "icons/automation.svg"));
+        }
+        topMenu.add(createMainButtonItem("main_layout.inventory", getMessage("main_layout.inventory"), InventorySoftwareView.class, "icons/inventory.svg"),
                 createMainButtonItem("main_layout.reports", getMessage("main_layout.reports"), UserReportsView.class, "icons/reports.svg"));
         topMenu.setMargin(false);
         topMenu.setPadding(false);
@@ -162,7 +166,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
 
         bottomMenu.add(createMainButtonItem("main_layout.account", getMessage("main_layout.account"), MeView.class, "icons/user.svg"));
 
-        bottomMenu.add(createMainButtonItem("main_layout.settings", getMessage("main_layout.settings"), SettingsView.class, "icons/settings.svg"));
+        bottomMenu.add(createMainButtonItem("main_layout.settings", getMessage("main_layout.settings"),
+                UiAuthorization.isAdmin() ? SettingsView.class : HelpView.class, "icons/settings.svg"));
 
         bottomMenu.setHeightFull();
         bottomMenu.setMargin(false);
@@ -189,10 +194,12 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 createSideNavItem(getMessage("main_layout.printers"), PrintersView.class),
                 createSideNavItem(getMessage("main_layout.contacts"), ContactsView.class));
 
-        settingsSubNavs.addItem(createSideNavItem(getMessage("main_layout.settings"), SettingsView.class),
-                createSideNavItem(getMessage("main_layout.api_tokens"), ApiTokensView.class),
-                createSideNavItem(getMessage("main_layout.webhooks"), WebhooksView.class),
-                createSideNavItem(getMessage("main_layout.help"), HelpView.class),
+        if (UiAuthorization.isAdmin()) {
+            settingsSubNavs.addItem(createSideNavItem(getMessage("main_layout.settings"), SettingsView.class),
+                    createSideNavItem(getMessage("main_layout.api_tokens"), ApiTokensView.class),
+                    createSideNavItem(getMessage("main_layout.webhooks"), WebhooksView.class));
+        }
+        settingsSubNavs.addItem(createSideNavItem(getMessage("main_layout.help"), HelpView.class),
                 createSideNavItem(getMessage("main_layout.about"), AboutView.class));
 
         inventorySubNavs.addItem(createSideNavItem(getMessage("main_layout.software_inventory"), InventorySoftwareView.class),
@@ -207,8 +214,10 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 createSideNavItem(getMessage("main_layout.computer_reports"), ComputerReportsView.class),
                 createSideNavItem(getMessage("main_layout.group_reports"), GroupReportsView.class),
                 createSideNavItem(getMessage("main_layout.printer_reports"), PrinterReportsView.class),
-                createSideNavItem(getMessage("main_layout.contact_reports"), ContactReportsView.class),
-                createSideNavItem(getMessage("main_layout.scheduled_reports"), ScheduledReportsView.class));
+                createSideNavItem(getMessage("main_layout.contact_reports"), ContactReportsView.class));
+        if (UiAuthorization.isAdmin()) {
+            reportsSubNavs.addItem(createSideNavItem(getMessage("main_layout.scheduled_reports"), ScheduledReportsView.class));
+        }
 
         accountSubNavs.addItem(createSideNavItem(getMessage("main_layout.me"), MeView.class));
     }
@@ -232,7 +241,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         menuLayout.removeAll();
 
         Component view = getContent();
-        if (view instanceof MenuControl) {
+        if (UiAuthorization.isAdmin() && view instanceof MenuControl) {
             menuLayout.add(((MenuControl) view).getMenu());
         }
         updateSubNavBasedOnRoute();

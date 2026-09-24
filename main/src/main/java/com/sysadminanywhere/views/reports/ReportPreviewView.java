@@ -32,7 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "reports/report")
 @Uses(Icon.class)
 public class ReportPreviewView extends VerticalLayout implements BeforeEnterObserver, HasDynamicTitle {

@@ -51,7 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "management/containers")
 @Uses(Icon.class)
 public class ContainersView extends Div implements MenuControl, HasDynamicTitle {
@@ -128,7 +128,8 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
 
     private Component createGrid() {
         grid = new Grid<>(Entry.class, false);
-        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        grid.setSelectionMode(com.sysadminanywhere.security.UiAuthorization.isAdmin()
+                ? Grid.SelectionMode.MULTI : Grid.SelectionMode.NONE);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn(new ComponentRenderer<>(item -> {

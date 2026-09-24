@@ -17,7 +17,7 @@ import org.springframework.context.MessageSource;
 
 import java.util.List;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "inventory/hardware/:id?/details")
 @Uses(Icon.class)
 public class InventoryHardwarePropertiesView extends Div  implements BeforeEnterObserver, HasDynamicTitle {
