@@ -1,12 +1,17 @@
 package com.sysadminanywhere.views.inventory;
 
 import com.sysadminanywhere.common.inventory.model.SoftwareLicense;
+import com.sysadminanywhere.common.incident.model.IncidentItem;
+import com.sysadminanywhere.common.incident.model.IncidentStatus;
+import com.sysadminanywhere.common.incident.model.Severity;
+import com.sysadminanywhere.service.IncidentService;
 import com.sysadminanywhere.service.InventoryService;
 import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
@@ -21,17 +26,20 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 
 import java.util.List;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @RolesAllowed("ADMIN")
 @Route("inventory/licenses")
 public class InventoryLicensesView extends VerticalLayout implements HasDynamicTitle {
     private final InventoryService inventoryService;
+    private final IncidentService incidentService;
     private final MessageSource messages;
     private final LocaleService locale;
     private final Grid<SoftwareLicense> grid = new Grid<>();
 
-    public InventoryLicensesView(InventoryService inventoryService, MessageSource messages, LocaleService locale) {
-        this.inventoryService = inventoryService; this.messages = messages; this.locale = locale;
+    public InventoryLicensesView(InventoryService inventoryService, IncidentService incidentService, MessageSource messages, LocaleService locale) {
+        this.inventoryService = inventoryService; this.incidentService = incidentService; this.messages = messages; this.locale = locale;
         setSizeFull();
         H2 title = new H2(msg("inventory_licenses_view.title"));
         Button add = new Button(msg("inventory_licenses_view.add"), e -> openEditor(null));
@@ -49,9 +57,13 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
                 .setHeader(msg("inventory_licenses_view.status")).setAutoWidth(true);
         grid.addColumn(item -> item.expiresAt() == null ? "-" : item.expiresAt().toString())
                 .setHeader(msg("inventory_licenses_view.expires")).setAutoWidth(true);
-        grid.addComponentColumn(item -> new Button(msg("common.delete"), e -> {
-            if (inventoryService.deleteLicense(item.id())) refresh();
-        })).setHeader(msg("common.actions")).setAutoWidth(true);
+        grid.addComponentColumn(item -> {
+            Button incident = new Button(msg("inventory_licenses_view.create_incident"));
+            incident.setVisible(item.used() > item.purchased() || item.expiresAt() != null && item.expiresAt().isBefore(java.time.LocalDate.now()));
+            incident.addClickListener(e -> confirmIncident(item));
+            Button delete = new Button(msg("common.delete"), e -> { if (inventoryService.deleteLicense(item.id())) refresh(); });
+            return new HorizontalLayout(incident, delete);
+        }).setHeader(msg("common.actions")).setAutoWidth(true);
         grid.setSizeFull();
         add(header, grid); expand(grid); refresh();
     }
@@ -77,6 +89,31 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
         });
         Button cancel = new Button(msg("common.cancel"), e -> dialog.close());
         dialog.add(new VerticalLayout(name, vendor, version, purchased, expires, notes, new HorizontalLayout(save, cancel)));
+        dialog.open();
+    }
+
+    private void confirmIncident(SoftwareLicense license) {
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader(msg("inventory_licenses_view.create_incident"));
+        dialog.setText(msg("inventory_licenses_view.create_incident_confirm"));
+        dialog.setCancelable(true);
+        dialog.setConfirmText(msg("inventory_licenses_view.create_incident"));
+        dialog.addConfirmListener(event -> {
+            IncidentItem incident = new IncidentItem();
+            incident.setSignalId("SOFTWARE_LICENSE_COMPLIANCE");
+            incident.setName("Software license issue: " + license.name());
+            incident.setSeverity(Severity.HIGH);
+            incident.setStatus(IncidentStatus.OPEN);
+            incident.setEventCount(1);
+            incident.setRecommendation("Review software licensing and remove unauthorized installations or renew the license.");
+            incident.setContext("Used: " + license.used() + ", purchased: " + license.purchased()
+                    + ", expires: " + license.expiresAt());
+            incident.setMeta(false);
+            incident.setCreatedAt(LocalDateTime.now());
+            incident.setDeduplicationKey("license-compliance-" + license.id() + "-" + UUID.randomUUID());
+            incidentService.createIncident(incident);
+            Notification.show(msg("inventory_licenses_view.incident_created"));
+        });
         dialog.open();
     }
 
