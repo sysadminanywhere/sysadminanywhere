@@ -152,9 +152,12 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
         refresh.addClickListener(event -> load.run());
         HorizontalLayout header = new HorizontalLayout(overall, checkedAt, refresh);
         header.addClassName("domain-health-header");
+        header.getStyle().set("display", "grid");
         header.setWidthFull();
         header.setAlignItems(Alignment.CENTER);
-        header.setFlexGrow(1, overall);
+        header.setPadding(false);
+        header.setMargin(false);
+        header.setSpacing(false);
         card.add(header, grid);
         load.run();
         return card;
