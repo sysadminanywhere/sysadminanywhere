@@ -7,6 +7,7 @@ import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -38,7 +39,8 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
         grid.addColumn(Issue::type).setHeader(msg("inventory_issues_view.type")).setAutoWidth(true);
         grid.addColumn(Issue::object).setHeader(msg("inventory_issues_view.object")).setAutoWidth(true);
         grid.addColumn(Issue::details).setHeader(msg("inventory_issues_view.details")).setFlexGrow(1);
-        grid.addComponentColumn(item -> new Span(msg("inventory_issues_view." + item.actionKey())))
+        grid.addComponentColumn(item -> new Anchor(item.actionKey().equals("open_licenses") ? "inventory/licenses" : "inventory/health",
+                        msg("inventory_issues_view." + item.actionKey())))
                 .setHeader(msg("inventory_issues_view.action")).setAutoWidth(true);
         grid.setSizeFull();
         add(header, grid); expand(grid); refresh();
