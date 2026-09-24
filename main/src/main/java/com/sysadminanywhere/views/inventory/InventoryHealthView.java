@@ -60,6 +60,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
     private final Button scanSelected = new Button();
     private final Button retryFailed = new Button();
     private final Button cancelScan = new Button();
+    private final Button createErrorIncidents = new Button();
     private final Anchor export = new Anchor();
 
     public InventoryHealthView(InventoryService inventoryService, IncidentService incidentService,
@@ -111,10 +112,14 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         cancelScan.addThemeVariants(ButtonVariant.LUMO_ERROR);
         cancelScan.setVisible(startScan.isVisible());
         cancelScan.addClickListener(event -> cancelScan());
+        createErrorIncidents.setText(message("inventory_health_view.create_error_incidents"));
+        createErrorIncidents.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        createErrorIncidents.setVisible(startScan.isVisible());
+        createErrorIncidents.addClickListener(event -> confirmErrorIncidents());
         export.setText(message("inventory_health_view.export_csv"));
         export.getElement().setAttribute("download", true);
         export.setHref(new StreamResource("inventory-health.csv", this::createCsv));
-        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, statusFilter, staleDays, startScan, scanSelected, retryFailed, cancelScan, export, refresh);
+        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, statusFilter, staleDays, startScan, scanSelected, retryFailed, cancelScan, createErrorIncidents, export, refresh);
         header.setWidthFull(); header.setAlignItems(Alignment.END); header.setFlexGrow(1, title);
 
         HorizontalLayout summary = new HorizontalLayout(metric(message("inventory_health_view.total"), total),
@@ -214,6 +219,39 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
             Notification.show(message("inventory_health_view.cancel_requested"));
             updateScanStatus();
         }
+    }
+
+    private void confirmErrorIncidents() {
+        List<InventoryHealthComputer> failed = currentComputers.stream()
+                .filter(item -> "ERROR".equalsIgnoreCase(item.scanStatus())).toList();
+        if (failed.isEmpty()) {
+            Notification.show(message("inventory_health_view.no_failed_scans"));
+            return;
+        }
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader(message("inventory_health_view.create_error_incidents"));
+        dialog.setText(message("inventory_health_view.create_error_incidents_confirm", failed.size()));
+        dialog.setCancelable(true);
+        dialog.setConfirmText(message("inventory_health_view.create_error_incidents"));
+        dialog.addConfirmListener(event -> {
+            failed.forEach(computer -> {
+                IncidentItem incident = new IncidentItem();
+                incident.setSignalId("INVENTORY_SCAN_ERROR");
+                incident.setName("Inventory scan failed: " + computer.name());
+                incident.setSeverity(Severity.HIGH);
+                incident.setStatus(IncidentStatus.OPEN);
+                incident.setEventCount(1);
+                incident.setRecommendation("Check connectivity and WMI permissions, then retry the inventory scan.");
+                incident.setContext(computer.scanError());
+                incident.setMachineName(computer.name());
+                incident.setMeta(false);
+                incident.setCreatedAt(LocalDateTime.now());
+                incident.setDeduplicationKey("inventory-error-" + computer.id() + "-" + UUID.randomUUID());
+                incidentService.createIncident(incident);
+            });
+            Notification.show(message("inventory_health_view.incidents_created"));
+        });
+        dialog.open();
     }
 
     private HorizontalLayout metric(String label, Span value) {
@@ -320,5 +358,6 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
     }
 
     private String message(String key) { return messageSource.getMessage(key, null, localeService.getCurrentLocale()); }
+    private String message(String key, Object... args) { return messageSource.getMessage(key, args, localeService.getCurrentLocale()); }
     @Override public String getPageTitle() { return message("inventory_health_view.title"); }
 }
