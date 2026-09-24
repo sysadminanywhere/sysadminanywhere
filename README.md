@@ -51,15 +51,17 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 - **Security Audit**: Privileged users/groups, service principal names (SPNs), and accounts missing contact or ownership data
 - **Inventory Health**: Detect computers that have not been scanned within a configurable threshold and open their details directly
 - **Inventory Operations**: Start full or selective scans, monitor progress, cancel a run, retry failed computers, review scan history, filter results and export CSV
+- **Inventory Coverage**: Review operating-system distribution, Windows patch coverage, computers without patch data and software records without versions
+- **Software Vulnerability Rules**: Match installed software by name/version (including wildcard versions), show CVE findings and create incidents from the Issues Center
 - **Finding-to-Incident Workflow**: Create a confirmed incident from a security or inventory finding with the affected object attached
-- **Safe CSV Import**: Preview user and group rows, validate required fields, import valid rows only, and keep per-row errors visible
+- **Safe CSV/Excel Import**: Preview user and group rows, validate required fields, import valid rows only, keep per-row errors visible and roll back objects created by the import
 - **Webhooks**: Configure signed incident and directory-change notifications with retry delivery
 - **Validated LDAP Filters**: Report filters are validated with Apache Directory API 2.1.8
 - **Scheduled Reports**: Daily or weekly PDF/CSV generation with optional SMTP email attachments; schedules and run history are persisted
 
 ### Inventory roadmap
 - Configure the inventory scan schedule from Settings; `SCAN_CRON` remains the startup default
-- Add software license compliance checks (expiration, allocation and overuse; license registry is available under Inventory)
+- Add automated NVD/CPE synchronization for vulnerability data (local rules are currently supported)
 
 ### 🧭 Onboarding & User Experience
 - **Guided Tour**: An onboarding tour introduces the primary navigation, section menu and page content
