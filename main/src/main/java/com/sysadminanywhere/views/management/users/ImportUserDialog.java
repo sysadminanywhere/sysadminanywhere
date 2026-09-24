@@ -9,6 +9,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -39,6 +40,7 @@ public class ImportUserDialog extends Dialog {
     private Map<String, Integer> headerMap = null;
     private final Grid<ImportPreviewRow> previewGrid = new Grid<>();
     private final List<ImportPreviewRow> previewRows = new ArrayList<>();
+    private final List<String> importedDistinguishedNames = new ArrayList<>();
 
     public ImportUserDialog(UsersService usersService, MessageSource messageSource, LocaleService localeService, Runnable onSearch) {
         this.usersService = usersService;
@@ -56,6 +58,8 @@ public class ImportUserDialog extends Dialog {
         formLayout.setColspan(containerField, 2);
 
         Button saveButton = new Button(getMessage("import_user_dialog.import"));
+        Button rollbackButton = new Button(getMessage("import_user_dialog.rollback"));
+        rollbackButton.setEnabled(false);
 
         MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
         Upload upload = new Upload(buffer);
@@ -148,6 +152,7 @@ public class ImportUserDialog extends Dialog {
                         newUser.setDescription(value(record, "description"));
 
                     usersService.update(newUser);
+                    if (newUser.getDistinguishedName() != null) importedDistinguishedNames.add(newUser.getDistinguishedName());
                     imported++;
                     if (preview != null) preview.status("Imported");
                 } catch (Exception ex) {
@@ -163,7 +168,7 @@ public class ImportUserDialog extends Dialog {
             Notification notification = Notification.show(getMessage("import_user_dialog.result", imported, failed));
             notification.addThemeVariants(failed == 0 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_CONTRAST);
             onSearch.run();
-            if (failed == 0) close();
+            rollbackButton.setEnabled(!importedDistinguishedNames.isEmpty());
         });
 
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -180,8 +185,25 @@ public class ImportUserDialog extends Dialog {
             close();
         });
 
+        rollbackButton.addClickListener(e -> {
+            ConfirmDialog confirm = new ConfirmDialog();
+            confirm.setHeader(getMessage("import_user_dialog.rollback"));
+            confirm.setText(getMessage("import_user_dialog.rollback_confirm", importedDistinguishedNames.size()));
+            confirm.setCancelable(true);
+            confirm.setConfirmText(getMessage("import_user_dialog.rollback"));
+            confirm.addConfirmListener(event -> {
+                importedDistinguishedNames.reversed().forEach(usersService::delete);
+                importedDistinguishedNames.clear();
+                rollbackButton.setEnabled(false);
+                Notification.show(getMessage("import_user_dialog.rollback_done"));
+                onSearch.run();
+            });
+            confirm.open();
+        });
+
         getFooter().add(templateButton);
         getFooter().add(cancelButton);
+        getFooter().add(rollbackButton);
         getFooter().add(saveButton);
 
     }

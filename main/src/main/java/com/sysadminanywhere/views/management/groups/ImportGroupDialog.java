@@ -8,6 +8,7 @@ import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -37,6 +38,7 @@ public class ImportGroupDialog extends Dialog {
     private final List<PreviewRow> previewRows = new ArrayList<>();
     private List<CSVRecord> records = List.of();
     private Map<String, Integer> headers;
+    private final List<String> importedDistinguishedNames = new ArrayList<>();
 
     public ImportGroupDialog(GroupsService groupsService, MessageSource messageSource, LocaleService localeService, Runnable onSearch) {
         this.groupsService = groupsService;
@@ -52,6 +54,8 @@ public class ImportGroupDialog extends Dialog {
         form.setColspan(container, 2);
 
         Button importButton = new Button(message("import_group_dialog.import"));
+        Button rollbackButton = new Button(message("import_group_dialog.rollback"));
+        rollbackButton.setEnabled(false);
         importButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         importButton.setEnabled(false);
         MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
@@ -69,8 +73,23 @@ public class ImportGroupDialog extends Dialog {
         previewGrid.setVisible(false);
         add(new VerticalLayout(form, previewGrid));
 
-        importButton.addClickListener(event -> importRows(container));
-        getFooter().add(new Button(message("common.cancel"), event -> close()), importButton);
+        importButton.addClickListener(event -> importRows(container, rollbackButton));
+        rollbackButton.addClickListener(event -> {
+            ConfirmDialog confirm = new ConfirmDialog();
+            confirm.setHeader(message("import_group_dialog.rollback"));
+            confirm.setText(message("import_group_dialog.rollback_confirm", importedDistinguishedNames.size()));
+            confirm.setCancelable(true);
+            confirm.setConfirmText(message("import_group_dialog.rollback"));
+            confirm.addConfirmListener(ignored -> {
+                importedDistinguishedNames.reversed().forEach(groupsService::delete);
+                importedDistinguishedNames.clear();
+                rollbackButton.setEnabled(false);
+                Notification.show(message("import_group_dialog.rollback_done"));
+                onSearch.run();
+            });
+            confirm.open();
+        });
+        getFooter().add(new Button(message("common.cancel"), event -> close()), rollbackButton, importButton);
     }
 
     private void parse(MultiFileMemoryBuffer buffer, String fileName, Button importButton) {
@@ -108,7 +127,7 @@ public class ImportGroupDialog extends Dialog {
         return null;
     }
 
-    private void importRows(ContainerField container) {
+    private void importRows(ContainerField container, Button rollbackButton) {
         int imported = 0, failed = 0;
         for (CSVRecord record : records) {
             PreviewRow row = find(record.getRecordNumber());
@@ -119,6 +138,8 @@ public class ImportGroupDialog extends Dialog {
                 group.setDescription(value(record, "description"));
                 groupsService.add(container.getValue(), group, GroupScope.valueOf(value(record, "scope")),
                         value(record, "type").equalsIgnoreCase("security"));
+                GroupEntry created = groupsService.getByCN(value(record, "name"));
+                if (created != null && created.getDistinguishedName() != null) importedDistinguishedNames.add(created.getDistinguishedName());
                 if (row != null) row.status("Imported");
                 imported++;
             } catch (Exception exception) {
@@ -130,7 +151,7 @@ public class ImportGroupDialog extends Dialog {
         Notification notification = Notification.show(message("import_group_dialog.result", imported, failed));
         notification.addThemeVariants(failed == 0 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_CONTRAST);
         onSearch.run();
-        if (failed == 0) close();
+        rollbackButton.setEnabled(!importedDistinguishedNames.isEmpty());
     }
 
     private boolean hasValue(CSVRecord record, String key) {
