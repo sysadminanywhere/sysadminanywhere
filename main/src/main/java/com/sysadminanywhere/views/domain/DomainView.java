@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.domain;
 
 import com.sysadminanywhere.common.directory.dto.EntryDto;
+import com.sysadminanywhere.common.directory.dto.DomainHealthDto;
 import com.sysadminanywhere.control.Table;
 import com.sysadminanywhere.domain.ADHelper;
 import com.sysadminanywhere.domain.SearchScope;
@@ -11,6 +12,15 @@ import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
@@ -49,7 +59,7 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
         lblDistinguishedName.setWidth("100%");
         lblDistinguishedName.getStyle().setMarginBottom("20px");
 
-        add(lblDomain, lblDistinguishedName, getControllers(), getProperties());
+        add(lblDomain, lblDistinguishedName, getControllers(), getProperties(), getHealth());
     }
 
     private String getMessage(String key) {
@@ -100,6 +110,62 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
         }
 
         return card;
+    }
+
+    private Card getHealth() {
+        Card card = new Card();
+        card.setTitle(getMessage("domain_health_view.title"));
+        H5 overall = new H5();
+        Span checkedAt = new Span();
+        Button refresh = new Button(getMessage("common.refresh"));
+        refresh.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        Grid<DomainHealthDto.DomainHealthCheckDto> grid = new Grid<>();
+        grid.addColumn(DomainHealthDto.DomainHealthCheckDto::getName)
+                .setHeader(getMessage("domain_health_view.check")).setAutoWidth(true);
+        grid.addComponentColumn(item -> healthStatus(item.getStatus()))
+                .setHeader(getMessage("domain_health_view.status")).setAutoWidth(true);
+        grid.addColumn(DomainHealthDto.DomainHealthCheckDto::getDetails)
+                .setHeader(getMessage("domain_health_view.details")).setFlexGrow(1);
+        grid.setWidthFull();
+        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
+        grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
+        Runnable load = () -> {
+            DomainHealthDto result = ldapService.getDomainHealth();
+            if (result == null) result = new DomainHealthDto("ERROR", null, List.of());
+            overall.setText(getMessage("domain_health_view.overall") + ": " + localizedHealthStatus(result.getOverallStatus()));
+            checkedAt.setText(result.getCheckedAt() == null ? "" :
+                    getMessage("domain_health_view.checked_at") + ": " + result.getCheckedAt());
+            grid.setItems(result.getChecks() == null ? List.of() : result.getChecks());
+            if ("ERROR".equals(result.getOverallStatus())) {
+                Notification notification = Notification.show(getMessage("domain_health_view.error"));
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+        };
+        refresh.addClickListener(event -> load.run());
+        HorizontalLayout header = new HorizontalLayout(overall, checkedAt, refresh);
+        header.setWidthFull();
+        header.setAlignItems(Alignment.CENTER);
+        header.setFlexGrow(1, overall);
+        card.add(header, grid);
+        load.run();
+        return card;
+    }
+
+    private Span healthStatus(String value) {
+        Span badge = new Span(localizedHealthStatus(value));
+        badge.getElement().getThemeList().add("badge");
+        badge.getElement().getThemeList().add("ERROR".equals(value) ? "error" :
+                "WARNING".equals(value) ? "warning" : "HEALTHY".equals(value) ? "success" : "contrast");
+        return badge;
+    }
+
+    private String localizedHealthStatus(String value) {
+        return switch (value == null ? "UNKNOWN" : value) {
+            case "HEALTHY" -> getMessage("domain_health_view.healthy");
+            case "WARNING" -> getMessage("domain_health_view.warning");
+            case "ERROR" -> getMessage("domain_health_view.error");
+            default -> getMessage("domain_health_view.not_checked");
+        };
     }
 
     public String getPageTitle() {

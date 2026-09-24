@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 
 @RolesAllowed({"ADMIN", "READER"})
-@Route(value = "domain/change-history")
 public class ChangeHistoryView extends Div implements HasDynamicTitle {
 
     private final LdapService ldapService;

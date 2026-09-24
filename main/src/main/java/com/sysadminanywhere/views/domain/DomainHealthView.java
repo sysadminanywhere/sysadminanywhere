@@ -21,7 +21,6 @@ import org.springframework.context.MessageSource;
 
 import java.util.List;
 
-@Route(value = "domain/health")
 @RolesAllowed({"ADMIN", "READER"})
 public class DomainHealthView extends VerticalLayout implements HasDynamicTitle {
     private final LdapService ldapService;

@@ -10,8 +10,6 @@ import com.sysadminanywhere.views.about.HelpView;
 import com.sysadminanywhere.views.account.MeView;
 import com.sysadminanywhere.views.automation.AutomationsView;
 import com.sysadminanywhere.views.domain.AuditView;
-import com.sysadminanywhere.views.domain.ChangeHistoryView;
-import com.sysadminanywhere.views.domain.DomainHealthView;
 import com.sysadminanywhere.views.domain.SecurityAuditView;
 import com.sysadminanywhere.views.domain.DashboardView;
 import com.sysadminanywhere.views.domain.DomainView;
@@ -167,7 +165,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         bottomMenu.add(createMainButtonItem("main_layout.account", getMessage("main_layout.account"), MeView.class, "icons/user.svg"));
 
         bottomMenu.add(createMainButtonItem("main_layout.settings", getMessage("main_layout.settings"),
-                UiAuthorization.isAdmin() ? SettingsView.class : HelpView.class, "icons/settings.svg"));
+                SettingsView.class, "icons/settings.svg"));
 
         bottomMenu.setHeightFull();
         bottomMenu.setMargin(false);
@@ -181,10 +179,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         dashboardSubNavs.addItem(createSideNavItem(getMessage("main_layout.dashboard"), DashboardView.class),
                 createSideNavItem(getMessage("main_layout.search"), SearchView.class),
                 createSideNavItem(getMessage("main_layout.domain"), DomainView.class),
-                createSideNavItem(getMessage("main_layout.domain_health"), DomainHealthView.class),
                 createSideNavItem(getMessage("main_layout.security_audit"), SecurityAuditView.class),
-                createSideNavItem(getMessage("main_layout.audit"), AuditView.class),
-                createSideNavItem(getMessage("main_layout.change_history"), ChangeHistoryView.class));
+                createSideNavItem(getMessage("main_layout.audit"), AuditView.class));
 
         managementSubNavs.addItem(
                 createSideNavItem(getMessage("main_layout.containers"), ContainersView.class),
@@ -194,9 +190,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
                 createSideNavItem(getMessage("main_layout.printers"), PrintersView.class),
                 createSideNavItem(getMessage("main_layout.contacts"), ContactsView.class));
 
+        settingsSubNavs.addItem(createSideNavItem(getMessage("main_layout.settings"), SettingsView.class));
         if (UiAuthorization.isAdmin()) {
-            settingsSubNavs.addItem(createSideNavItem(getMessage("main_layout.settings"), SettingsView.class),
-                    createSideNavItem(getMessage("main_layout.api_tokens"), ApiTokensView.class),
+            settingsSubNavs.addItem(createSideNavItem(getMessage("main_layout.api_tokens"), ApiTokensView.class),
                     createSideNavItem(getMessage("main_layout.webhooks"), WebhooksView.class));
         }
         settingsSubNavs.addItem(createSideNavItem(getMessage("main_layout.help"), HelpView.class),
