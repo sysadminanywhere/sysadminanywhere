@@ -18,6 +18,7 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -119,12 +120,26 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         export.setText(message("inventory_health_view.export_csv"));
         export.getElement().setAttribute("download", true);
         export.setHref(new StreamResource("inventory-health.csv", this::createCsv));
-        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, statusFilter, staleDays, startScan, scanSelected, retryFailed, cancelScan, createErrorIncidents, export, refresh);
-        header.setWidthFull(); header.setAlignItems(Alignment.END); header.setFlexGrow(1, title);
+        Span subtitle = new Span(message("inventory_health_view.subtitle"));
+        HorizontalLayout titleRow = new HorizontalLayout(title, scanStatus, refresh);
+        titleRow.setWidthFull();
+        titleRow.setAlignItems(Alignment.CENTER);
+        titleRow.setFlexGrow(1, title);
+
+        HorizontalLayout filtersRow = new HorizontalLayout(computerFilter, statusFilter, staleDays);
+        filtersRow.setWidthFull();
+        filtersRow.setAlignItems(Alignment.END);
+        HorizontalLayout actionsRow = new HorizontalLayout(startScan, scanSelected, retryFailed, cancelScan, createErrorIncidents, export);
+        actionsRow.setWidthFull();
+        actionsRow.setAlignItems(Alignment.CENTER);
+        Card controls = new Card();
+        controls.setWidthFull();
+        controls.add(new H3(message("inventory_health_view.scan_controls")), subtitle, filtersRow, actionsRow);
 
         HorizontalLayout summary = new HorizontalLayout(metric(message("inventory_health_view.total"), total),
                 metric(message("inventory_health_view.stale"), stale), metric(message("inventory_health_view.never_scanned"), neverScanned));
         summary.setWidthFull();
+        summary.setFlexGrow(1, summary.getComponentAt(0), summary.getComponentAt(1), summary.getComponentAt(2));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         grid.addColumn(InventoryHealthComputer::name).setHeader(message("inventory_health_view.name")).setAutoWidth(true);
@@ -171,7 +186,17 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         historyGrid.setWidthFull();
         historyGrid.setHeight("180px");
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
-        add(header, summary, new H3(message("inventory_health_view.scan_history")), historyGrid, grid);
+        Card summaryCard = new Card();
+        summaryCard.setWidthFull();
+        summaryCard.add(new H3(message("inventory_health_view.summary")), summary);
+        Card historyCard = new Card();
+        historyCard.setWidthFull();
+        historyCard.add(new H3(message("inventory_health_view.scan_history")), historyGrid);
+        Card computersCard = new Card();
+        computersCard.setWidthFull();
+        computersCard.add(new H3(message("inventory_health_view.computers")),
+                new Span(message("inventory_health_view.computers_hint")), grid);
+        add(controls, summaryCard, historyCard, computersCard);
         expand(grid);
         refresh();
     }
@@ -256,14 +281,14 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         dialog.open();
     }
 
-    private HorizontalLayout metric(String label, Span value) {
+    private Card metric(String label, Span value) {
         Span caption = new Span(label);
         caption.getStyle().set("font-size", "var(--lumo-font-size-s)").set("color", "var(--lumo-secondary-text-color)");
         value.getStyle().set("font-size", "var(--lumo-font-size-xl)").set("font-weight", "600");
-        VerticalLayout content = new VerticalLayout(caption, value);
-        content.setPadding(true); content.setSpacing(false);
-        content.addClassNames(LumoUtility.Background.CONTRAST_5, LumoUtility.BorderRadius.MEDIUM);
-        return new HorizontalLayout(content);
+        Card content = new Card();
+        content.add(caption, value);
+        content.setWidthFull();
+        return content;
     }
 
     private void refresh() {

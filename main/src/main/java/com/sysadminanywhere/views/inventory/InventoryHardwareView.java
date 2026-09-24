@@ -14,7 +14,10 @@ import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -56,8 +59,17 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         } else {
             filters = new Filters(() -> refreshGrid(), messageSource, localeService);
-            VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createCoverageSummary(), createOperatingSystemSummary(), createPatchSummary(), createGrid());
+            VerticalLayout layout = new VerticalLayout(
+                    new H2(getMessage("inventory_hardware_view.title")),
+                    new Span(getMessage("inventory_hardware_view.subtitle")),
+                    createFilterSection(),
+                    createCoverageSection(),
+                    createSummarySection(getMessage("inventory_hardware_view.os_distribution"), createOperatingSystemSummary()),
+                    createSummarySection(getMessage("inventory_hardware_view.patch_freshness"), createPatchSummary()),
+                    createSummarySection(getMessage("inventory_hardware_view.hardware_records"), createGrid()));
             layout.setSizeFull();
+            layout.setPadding(true);
+            layout.setSpacing(true);
             add(layout);
         }
     }
@@ -184,6 +196,46 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
         return grid;
     }
 
+    private Component createFilterSection() {
+        VerticalLayout section = new VerticalLayout(createMobileFilters(), filters);
+        section.setPadding(false);
+        section.setSpacing(false);
+        section.setWidthFull();
+        return section;
+    }
+
+    private Component createSummarySection(String title, Component content) {
+        Card card = new Card();
+        card.setWidthFull();
+        card.add(new H3(title), content);
+        return card;
+    }
+
+    private Component createCoverageSection() {
+        InventoryCoverage coverage = inventoryService.getInventoryCoverage();
+        HorizontalLayout metrics = new HorizontalLayout(
+                coverageMetric(getMessage("inventory_hardware_view.operating_system"), coverage.withOperatingSystem(), coverage.computers()),
+                coverageMetric(getMessage("inventory_hardware_view.patch"), coverage.withPatches(), coverage.computers()),
+                coverageMetric(getMessage("inventory_hardware_view.unknown_versions"), coverage.softwareWithoutVersion(), null));
+        metrics.setWidthFull();
+        metrics.setFlexGrow(1, metrics.getComponentAt(0), metrics.getComponentAt(1), metrics.getComponentAt(2));
+        Card card = new Card();
+        card.setWidthFull();
+        card.add(new H3(getMessage("inventory_hardware_view.coverage")), metrics);
+        return card;
+    }
+
+    private Component coverageMetric(String label, long value, Long total) {
+        VerticalLayout metric = new VerticalLayout();
+        metric.setPadding(true);
+        metric.setSpacing(false);
+        Span name = new Span(label);
+        Span amount = new Span(total == null ? String.valueOf(value) : value + "/" + total);
+        amount.getStyle().set("font-size", "var(--lumo-font-size-xl)").set("font-weight", "700");
+        metric.add(name, amount);
+        return metric;
+    }
+
     private Component createOperatingSystemSummary() {
         Grid<OperatingSystemCount> summary = new Grid<>();
         summary.setHeight("180px");
@@ -195,19 +247,6 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
                 .setAutoWidth(true);
         summary.setItems(inventoryService.getOperatingSystemCounts());
         summary.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
-        return summary;
-    }
-
-    private Component createCoverageSummary() {
-        InventoryCoverage coverage = inventoryService.getInventoryCoverage();
-        Span summary = new Span(getMessage("inventory_hardware_view.coverage") + ": "
-                + coverage.withOperatingSystem() + "/" + coverage.computers() + " "
-                + getMessage("inventory_hardware_view.operating_system") + ", "
-                + coverage.withPatches() + "/" + coverage.computers() + " "
-                + getMessage("inventory_hardware_view.patch") + ", "
-                + coverage.softwareWithoutVersion() + " "
-                + getMessage("inventory_hardware_view.unknown_versions"));
-        summary.getStyle().set("font-weight", "600");
         return summary;
     }
 
