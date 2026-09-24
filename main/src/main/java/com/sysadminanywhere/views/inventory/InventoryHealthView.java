@@ -56,6 +56,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
     private final TextField computerFilter = new TextField();
     private List<InventoryHealthComputer> currentComputers = List.of();
     private final Button scanSelected = new Button();
+    private final Button retryFailed = new Button();
     private final Anchor export = new Anchor();
 
     public InventoryHealthView(InventoryService inventoryService, IncidentService incidentService,
@@ -87,10 +88,14 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         scanSelected.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         scanSelected.setVisible(startScan.isVisible());
         scanSelected.addClickListener(event -> startSelectedScan());
+        retryFailed.setText(message("inventory_health_view.retry_failed"));
+        retryFailed.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        retryFailed.setVisible(startScan.isVisible());
+        retryFailed.addClickListener(event -> retryFailedScans());
         export.setText(message("inventory_health_view.export_csv"));
         export.getElement().setAttribute("download", true);
         export.setHref(new StreamResource("inventory-health.csv", this::createCsv));
-        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, staleDays, startScan, scanSelected, export, refresh);
+        HorizontalLayout header = new HorizontalLayout(title, scanStatus, computerFilter, staleDays, startScan, scanSelected, retryFailed, export, refresh);
         header.setWidthFull(); header.setAlignItems(Alignment.END); header.setFlexGrow(1, title);
 
         HorizontalLayout summary = new HorizontalLayout(metric(message("inventory_health_view.total"), total),
@@ -165,6 +170,22 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         if (inventoryService.startScan(names)) {
             grid.deselectAll();
             Notification.show(message("inventory_health_view.scan_started"));
+            updateScanStatus();
+        }
+    }
+
+    private void retryFailedScans() {
+        List<String> names = currentComputers.stream()
+                .filter(item -> "ERROR".equalsIgnoreCase(item.scanStatus()))
+                .map(InventoryHealthComputer::name)
+                .toList();
+        if (names.isEmpty()) {
+            Notification notification = Notification.show(message("inventory_health_view.no_failed_scans"));
+            notification.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
+            return;
+        }
+        if (inventoryService.startScan(names)) {
+            Notification.show(message("inventory_health_view.retry_started"));
             updateScanStatus();
         }
     }
