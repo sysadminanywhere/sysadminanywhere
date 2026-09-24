@@ -14,6 +14,8 @@ Sysadmin Anywhere is a web interface for Active Directory administration and rel
 
 Every AD login has read access. Direct members of the domain's `Domain Admins` group can also change objects and use administrative features. Administrators can configure other group DNs or exact login names through `LDAP_ADMIN_GROUP_DNS` and `LDAP_ADMIN_USERS` in the Directory service. Readers can browse the dashboard, directory, inventory, incidents, reports, and help; editing controls and bulk selection are unavailable. WMI inventory scanning needs `LDAP_WMI_READ_USERS` set to its service login. Sign in again after a role change.
 
+If an inventory scan reports `ConnectException` for `DIRECTORY_SERVICE`, Directory is unavailable at the configured address (for local runs, normally `http://localhost:8081`). Start Directory or correct the URL. Inventory retries temporary connection failures; the number of attempts and delay are controlled by `DIRECTORY_AUTH_MAX_ATTEMPTS` and `DIRECTORY_AUTH_RETRY_DELAY_MS`.
+
 ### 2.2 Interface Layout
 The interface consists of:
 - left vertical top-level panel (Dashboard, Management, Incidents, Automation, Inventory, Reports, Account, Settings);

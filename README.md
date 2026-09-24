@@ -249,6 +249,8 @@ Keep `LDAP_VERIFY_CERTIFICATE=false` only for isolated legacy environments: trus
 
 LDAP login now grants `ROLE_READER` by default. A direct member of `CN=Domain Admins,CN=Users,<domain base DN>` also receives `ROLE_ADMIN`. Override administrator group DNs with `LDAP_ADMIN_GROUP_DNS` (semicolon-separated) or grant exact login names through `LDAP_ADMIN_USERS` (comma-separated). Admin access is required for directory changes, automation, settings, API tokens, and remote commands. Readers can browse directory objects, inventory, incidents, and reports. Group membership is read at login; sign in again after changing it. For the inventory scan account, set `LDAP_WMI_READ_USERS` to its exact login name (for example `readonly`); this permits WMI queries but not remote commands or method invocations. These variables are passed to the Directory container by `docker/prod/docker-compose.yml`.
 
+The inventory service retries a temporary connection failure to Directory. Configure `DIRECTORY_AUTH_MAX_ATTEMPTS` and `DIRECTORY_AUTH_RETRY_DELAY_MS` if Directory starts more slowly in your environment. A `ConnectException` to `localhost:8081` means the Directory service is not listening at the configured `DIRECTORY_SERVICE` address; start it or point the inventory service to the correct host.
+
 ## 📚 Documentation
 
 - **[Official Documentation](https://docs.sysadminanywhere.com)** - Comprehensive user guides and API documentation
