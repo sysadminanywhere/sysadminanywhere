@@ -6,6 +6,7 @@ import com.sysadminanywhere.inventory.client.ComputersServiceClient;
 import com.sysadminanywhere.inventory.client.WmiServiceClient;
 import com.sysadminanywhere.inventory.entity.Computer;
 import com.sysadminanywhere.inventory.repository.ComputerRepository;
+import com.sysadminanywhere.inventory.repository.InventoryScanRunRepository;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +37,7 @@ public class InventoryService {
     private final ComputerRepository computerRepository;
     private final SoftwareService softwareService;
     private final HardwareService hardwareService;
+    private final InventoryScanRunRepository scanRunRepository;
     private final AtomicBoolean scanRunning = new AtomicBoolean();
     private volatile String lastScanError;
     private volatile LocalDateTime scanStartedAt;
@@ -45,13 +47,15 @@ public class InventoryService {
                             ComputersServiceClient computersServiceClient,
                             ComputerRepository computerRepository,
                             SoftwareService softwareService,
-                            HardwareService hardwareService) {
+                            HardwareService hardwareService,
+                            InventoryScanRunRepository scanRunRepository) {
 
         this.authService = authService;
         this.computersServiceClient = computersServiceClient;
         this.computerRepository = computerRepository;
         this.softwareService = softwareService;
         this.hardwareService = hardwareService;
+        this.scanRunRepository = scanRunRepository;
     }
 
     public boolean startScan() {
@@ -61,15 +65,29 @@ public class InventoryService {
         scanStartedAt = LocalDateTime.now();
         scanFinishedAt = null;
         lastScanError = null;
+        com.sysadminanywhere.inventory.entity.InventoryScanRun run = new com.sysadminanywhere.inventory.entity.InventoryScanRun();
+        run.setStartedAt(scanStartedAt);
+        run.setStatus("RUNNING");
+        run.setTotal((int) computerRepository.count());
+        scanRunRepository.save(run);
         CompletableFuture.runAsync(() -> {
             try {
                 scan();
+                run.setStatus(lastScanError == null ? "COMPLETED" : "FAILED");
             } catch (Exception exception) {
                 lastScanError = exception.getMessage();
+                run.setStatus("FAILED");
+                run.setError(lastScanError);
                 log.error("Inventory scan failed", exception);
             } finally {
                 scanFinishedAt = LocalDateTime.now();
                 scanRunning.set(false);
+                run.setFinishedAt(scanFinishedAt);
+                run.setProcessed((int) computerRepository.count());
+                if (run.getError() == null) {
+                    run.setError(lastScanError);
+                }
+                scanRunRepository.save(run);
             }
         });
         return true;
@@ -78,6 +96,14 @@ public class InventoryService {
     public com.sysadminanywhere.common.inventory.model.InventoryScanStatus getScanStatus() {
         return new com.sysadminanywhere.common.inventory.model.InventoryScanStatus(
                 scanRunning.get(), 0, 0, scanStartedAt, scanFinishedAt, lastScanError);
+    }
+
+    public List<com.sysadminanywhere.common.inventory.model.InventoryScanRun> getScanHistory() {
+        return scanRunRepository.findTop20ByOrderByStartedAtDesc().stream()
+                .map(run -> new com.sysadminanywhere.common.inventory.model.InventoryScanRun(
+                        run.getId(), run.getStartedAt(), run.getFinishedAt(), run.getStatus(),
+                        run.getProcessed(), run.getTotal(), run.getError()))
+                .toList();
     }
 
     /*

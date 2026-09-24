@@ -22,6 +22,9 @@ public interface InventoryServiceClient {
     @GetExchange("/api/inventory/scan/status")
     InventoryScanStatus getScanStatus();
 
+    @GetExchange("/api/inventory/scan/history")
+    List<InventoryScanRun> getScanHistory();
+
     // Software
 
     @GetExchange("/api/inventory/software/count")

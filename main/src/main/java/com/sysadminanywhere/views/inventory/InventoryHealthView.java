@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.inventory;
 
 import com.sysadminanywhere.common.inventory.model.InventoryHealthComputer;
 import com.sysadminanywhere.common.inventory.model.InventoryHealthDto;
+import com.sysadminanywhere.common.inventory.model.InventoryScanRun;
 import com.sysadminanywhere.common.incident.model.IncidentItem;
 import com.sysadminanywhere.common.incident.model.IncidentStatus;
 import com.sysadminanywhere.common.incident.model.Severity;
@@ -14,6 +15,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -46,6 +48,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
     private final Span neverScanned = new Span();
     private final Span scanStatus = new Span();
     private final Grid<InventoryHealthComputer> grid = new Grid<>();
+    private final Grid<InventoryScanRun> historyGrid = new Grid<>();
     private final TextField computerFilter = new TextField();
     private List<InventoryHealthComputer> currentComputers = List.of();
 
@@ -108,7 +111,18 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
         grid.setSizeFull();
-        add(header, summary, grid);
+        historyGrid.addColumn(item -> item.startedAt() == null ? "-" : item.startedAt().format(formatter))
+                .setHeader(message("inventory_health_view.scan_started_at")).setAutoWidth(true);
+        historyGrid.addColumn(item -> item.finishedAt() == null ? "-" : item.finishedAt().format(formatter))
+                .setHeader(message("inventory_health_view.scan_finished_at")).setAutoWidth(true);
+        historyGrid.addColumn(InventoryScanRun::status)
+                .setHeader(message("inventory_health_view.scan_status")).setAutoWidth(true);
+        historyGrid.addColumn(item -> item.error() == null ? "" : item.error())
+                .setHeader(message("inventory_health_view.scan_error_details")).setFlexGrow(1);
+        historyGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
+        historyGrid.setWidthFull();
+        historyGrid.setHeight("180px");
+        add(header, summary, new H3(message("inventory_health_view.scan_history")), historyGrid, grid);
         expand(grid);
         refresh();
     }
@@ -147,6 +161,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         currentComputers = result.computers() == null ? List.of() : result.computers();
         applyFilter();
         updateScanStatus();
+        historyGrid.setItems(inventoryService.getScanHistory());
     }
 
     private void applyFilter() {

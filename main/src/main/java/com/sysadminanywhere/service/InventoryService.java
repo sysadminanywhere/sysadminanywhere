@@ -135,4 +135,13 @@ public class InventoryService {
         }
     }
 
+    public List<InventoryScanRun> getScanHistory() {
+        try {
+            return inventoryServiceClient.getScanHistory();
+        } catch (Exception e) {
+            log.warn("Unable to load inventory scan history: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
 }

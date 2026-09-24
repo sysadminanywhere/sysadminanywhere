@@ -48,6 +48,12 @@ public class InventoryController {
         return ResponseEntity.ok(inventoryService.getScanStatus());
     }
 
+    @GetMapping("/scan/history")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<List<InventoryScanRun>> getScanHistory() {
+        return ResponseEntity.ok(inventoryService.getScanHistory());
+    }
+
     // Software
 
     @GetMapping("/health")
