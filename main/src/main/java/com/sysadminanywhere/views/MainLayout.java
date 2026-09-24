@@ -280,7 +280,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
             } else if (currentRoute.startsWith("reports")) {
                 subNav.add(reportsSubNavs);
             } else if (currentRoute.startsWith("dashboard") || currentRoute.startsWith("domain")
-                    || currentRoute.startsWith("search") || currentRoute.isEmpty()) {
+                    || currentRoute.startsWith("security/") || currentRoute.startsWith("search")
+                    || currentRoute.isEmpty()) {
                 subNav.add(dashboardSubNavs);
             }
         }
