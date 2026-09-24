@@ -111,6 +111,20 @@ html[theme~="dark"] body {
       font-size: var(--lumo-font-size-l);
 }
 
+.domain-health-header {
+      flex-wrap: wrap;
+      min-width: 0;
+}
+
+.domain-health-header vaadin-button {
+      flex: 0 0 auto;
+}
+
+.domain-health-header span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+}
+
 .enabled-object-icon,
 .disabled-object-icon {
       transition: filter 140ms ease, opacity 140ms ease;

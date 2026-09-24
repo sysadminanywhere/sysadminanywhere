@@ -31,11 +31,14 @@ import lombok.SneakyThrows;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RolesAllowed({"ADMIN", "READER"})
 @Route(value = "domain/info")
 public class DomainView extends VerticalLayout implements HasDynamicTitle {
+
+    private static final DateTimeFormatter HEALTH_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final LdapService ldapService;
     private final MessageSource messageSource;
@@ -70,6 +73,7 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
     private Card getControllers(){
         Card card = new Card();
         card.setWidthFull();
+        card.setMinWidth("0");
         card.setTitle(getMessage("dashboard_view.domain_controllers"));
 
         List<EntryDto> controllers = ldapService.search("CN=Sites,CN=Configuration," + ldapService.getDefaultNamingContext(), "(objectClass=server)", SearchScope.SUBTREE);
@@ -117,6 +121,7 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
     private Card getHealth() {
         Card card = new Card();
         card.setWidthFull();
+        card.setMinWidth("0");
         card.setTitle(getMessage("domain_health_view.title"));
         H5 overall = new H5();
         Span checkedAt = new Span();
@@ -137,7 +142,7 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
             if (result == null) result = new DomainHealthDto("ERROR", null, List.of());
             overall.setText(getMessage("domain_health_view.overall") + ": " + localizedHealthStatus(result.getOverallStatus()));
             checkedAt.setText(result.getCheckedAt() == null ? "" :
-                    getMessage("domain_health_view.checked_at") + ": " + result.getCheckedAt());
+                    getMessage("domain_health_view.checked_at") + ": " + formatHealthTime(result.getCheckedAt()));
             grid.setItems(result.getChecks() == null ? List.of() : result.getChecks());
             if ("ERROR".equals(result.getOverallStatus())) {
                 Notification notification = Notification.show(getMessage("domain_health_view.error"));
@@ -146,12 +151,17 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
         };
         refresh.addClickListener(event -> load.run());
         HorizontalLayout header = new HorizontalLayout(overall, checkedAt, refresh);
+        header.addClassName("domain-health-header");
         header.setWidthFull();
         header.setAlignItems(Alignment.CENTER);
         header.setFlexGrow(1, overall);
         card.add(header, grid);
         load.run();
         return card;
+    }
+
+    private String formatHealthTime(LocalDateTime value) {
+        return value == null ? "" : value.format(HEALTH_TIME_FORMAT);
     }
 
     private Span healthStatus(String value) {
