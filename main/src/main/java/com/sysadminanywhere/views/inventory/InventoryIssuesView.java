@@ -110,6 +110,13 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
                     msg("inventory_issues_view.software_versions_details", coverage.softwareWithoutVersion()),
                     "open_inventory"));
         }
+        long computersWithoutPatches = Math.max(0, coverage.computers() - coverage.withPatches());
+        if (computersWithoutPatches > 0) {
+            issues.add(new Issue("MEDIUM", msg("inventory_issues_view.inventory"),
+                    msg("inventory_issues_view.missing_patches"),
+                    msg("inventory_issues_view.missing_patches_details", computersWithoutPatches),
+                    "open_inventory"));
+        }
         this.issues = issues;
         highCount.setText(msg("inventory_issues_view.high_count") + ": "
                 + issues.stream().filter(item -> "HIGH".equals(item.severity())).count());
