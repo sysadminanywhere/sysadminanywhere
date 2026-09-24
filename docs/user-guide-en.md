@@ -68,6 +68,9 @@ Table:
 ### 3.4 Domain health (Domain page)
 The Domain page (`/domain/info`) includes operational checks for LDAP, domain controller discovery, DNS resolution, SMB reachability for SYSVOL/NETLOGON, LDAP time drift and the LDAP certificate when SSL is enabled. Each check is shown separately as Healthy, Warning, Error or Not checked; use Refresh to run the checks again.
 
+### 3.5 Global search (`/domain/search`)
+Search users, computers, groups, contacts and printers by common directory attributes. Click any result row to open that object's details card.
+
 ## 4. Management Section
 
 ### 4.1 Containers (`/management/containers`)

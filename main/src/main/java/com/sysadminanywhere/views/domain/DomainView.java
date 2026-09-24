@@ -69,6 +69,7 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
     @SneakyThrows
     private Card getControllers(){
         Card card = new Card();
+        card.setWidthFull();
         card.setTitle(getMessage("dashboard_view.domain_controllers"));
 
         List<EntryDto> controllers = ldapService.search("CN=Sites,CN=Configuration," + ldapService.getDefaultNamingContext(), "(objectClass=server)", SearchScope.SUBTREE);
@@ -88,6 +89,7 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
 
     private Card getProperties(){
         Card card = new Card();
+        card.setWidthFull();
         card.setTitle(getMessage("common.details"));
 
         EntryDto domainEntry = ldapService.getRootDse();
@@ -114,6 +116,7 @@ public class DomainView extends VerticalLayout implements HasDynamicTitle {
 
     private Card getHealth() {
         Card card = new Card();
+        card.setWidthFull();
         card.setTitle(getMessage("domain_health_view.title"));
         H5 overall = new H5();
         Span checkedAt = new Span();

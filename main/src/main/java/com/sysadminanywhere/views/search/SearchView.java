@@ -22,7 +22,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-@Route("search")
+@Route("domain/search")
 @RolesAllowed({"ADMIN", "READER"})
 public class SearchView extends VerticalLayout implements HasDynamicTitle {
 
@@ -114,6 +114,7 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
         grid.addColumn(UserEntry::getEmailAddress).setHeader(message("search.email")).setAutoWidth(true);
         grid.setItems(entries);
         grid.addItemClickListener(event -> navigate("management/users", event.getItem().getCn()));
+        grid.getElement().getStyle().set("cursor", "pointer");
         addResult(message("search.users"), grid);
     }
 
@@ -128,6 +129,7 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
         grid.addColumn(ComputerEntry::getDnsHostName).setHeader(message("search.host")).setAutoWidth(true);
         grid.setItems(entries);
         grid.addItemClickListener(event -> navigate("management/computers", event.getItem().getCn()));
+        grid.getElement().getStyle().set("cursor", "pointer");
         addResult(message("search.computers"), grid);
     }
 
@@ -140,6 +142,7 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
         grid.addColumn(GroupEntry::getDescription).setHeader(message("search.description")).setAutoWidth(true);
         grid.setItems(entries);
         grid.addItemClickListener(event -> navigate("management/groups", event.getItem().getCn()));
+        grid.getElement().getStyle().set("cursor", "pointer");
         addResult(message("search.groups"), grid);
     }
 
@@ -154,6 +157,7 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
         grid.addColumn(ContactEntry::getEmailAddress).setHeader(message("search.email")).setAutoWidth(true);
         grid.setItems(entries);
         grid.addItemClickListener(event -> navigate("management/contacts", event.getItem().getCn()));
+        grid.getElement().getStyle().set("cursor", "pointer");
         addResult(message("search.contacts"), grid);
     }
 
@@ -168,6 +172,7 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
         grid.addColumn(PrinterEntry::getServerName).setHeader(message("search.server")).setAutoWidth(true);
         grid.setItems(entries);
         grid.addItemClickListener(event -> navigate("management/printers", event.getItem().getCn()));
+        grid.getElement().getStyle().set("cursor", "pointer");
         addResult(message("search.printers"), grid);
     }
 
