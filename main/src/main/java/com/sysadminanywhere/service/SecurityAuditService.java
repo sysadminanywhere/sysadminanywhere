@@ -3,6 +3,7 @@ package com.sysadminanywhere.service;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.model.UserEntry;
+import com.sysadminanywhere.common.directory.model.UserAccountControls;
 import com.sysadminanywhere.model.SecurityAuditSnapshot;
 import com.sysadminanywhere.model.SecurityFinding;
 import org.springframework.stereotype.Service;
@@ -77,6 +78,10 @@ public class SecurityAuditService {
                     "USER_HYGIENE", "WARNING", "USER", display(user.getDisplayName(), user.getCn()),
                     user.getDistinguishedName(), missingContactDetails(user))));
 
+            users.stream().filter(this::hasWeakAuthenticationSetting).forEach(user -> findings.add(new SecurityFinding(
+                    "WEAK_AUTHENTICATION", "HIGH", "USER", display(user.getDisplayName(), user.getCn()),
+                    user.getDistinguishedName(), weakAuthenticationDetails(user))));
+
             return new SecurityAuditSnapshot(checkedAt, privilegedUsers.size(), privilegedGroups.size(),
                     spnUsers.size(), spnComputers.size(), missingContact.size(), findings, null);
         } catch (Exception exception) {
@@ -105,6 +110,28 @@ public class SecurityAuditService {
         if (!hasText(user.getEmailAddress())) missing.add("email");
         if (!hasText(user.getManager())) missing.add("manager");
         return "Missing: " + String.join(", ", missing);
+    }
+
+    private boolean hasWeakAuthenticationSetting(UserEntry user) {
+        int control = user.getUserAccountControl();
+        return hasControl(control, UserAccountControls.USE_DES_KEY_ONLY)
+                || hasControl(control, UserAccountControls.DONT_REQUIRE_PREAUTH)
+                || hasControl(control, UserAccountControls.PASSWD_NOTREQD)
+                || hasControl(control, UserAccountControls.DONT_EXPIRE_PASSWD);
+    }
+
+    private String weakAuthenticationDetails(UserEntry user) {
+        List<String> settings = new ArrayList<>();
+        int control = user.getUserAccountControl();
+        if (hasControl(control, UserAccountControls.USE_DES_KEY_ONLY)) settings.add("DES-only encryption");
+        if (hasControl(control, UserAccountControls.DONT_REQUIRE_PREAUTH)) settings.add("Kerberos pre-authentication disabled");
+        if (hasControl(control, UserAccountControls.PASSWD_NOTREQD)) settings.add("password not required");
+        if (hasControl(control, UserAccountControls.DONT_EXPIRE_PASSWD)) settings.add("password never expires");
+        return "Weak account settings: " + String.join(", ", settings);
+    }
+
+    private boolean hasControl(int value, UserAccountControls control) {
+        return (value & control.getValue()) == control.getValue();
     }
 
     private String display(String preferred, String fallback) {
