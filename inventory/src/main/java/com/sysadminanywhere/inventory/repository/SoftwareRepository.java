@@ -19,8 +19,10 @@ public interface SoftwareRepository extends JpaRepository<Software, Long> {
 
     List<Software> findByNameAndVendorAndVersion(String name, String vendor, String version);
 
-    @Query("select new com.sysadminanywhere.common.inventory.model.SoftwareCount(s.id, s.name, s.vendor, s.version, count(i)) from Software s JOIN s.installations i WHERE s.name LIKE :name and s.vendor LIKE :vendor GROUP BY s.id, s.name, s.vendor, s.version order by s.name")
-    Page<SoftwareCount> getSoftwareInstallationCount(@Param("name") String name, @Param("vendor") String vendor, Pageable pageable);
+    @Query("select new com.sysadminanywhere.common.inventory.model.SoftwareCount(s.id, s.name, s.vendor, s.version, count(i)) from Software s JOIN s.installations i WHERE s.name LIKE :name and s.vendor LIKE :vendor GROUP BY s.id, s.name, s.vendor, s.version HAVING (:minCount is null or count(i) >= :minCount) and (:maxCount is null or count(i) <= :maxCount) order by s.name")
+    Page<SoftwareCount> getSoftwareInstallationCount(@Param("name") String name, @Param("vendor") String vendor,
+                                                      @Param("minCount") Long minCount, @Param("maxCount") Long maxCount,
+                                                      Pageable pageable);
 
     @Query("select new com.sysadminanywhere.common.inventory.model.SoftwareOnComputer(s.name, s.vendor, s.version, i.installDate, null) FROM Installation i JOIN i.software s WHERE i.computer.id = :computerId order by s.name")
     Page<SoftwareOnComputer> getSoftwareOnComputer(@Param("computerId") Long computerId, Pageable pageable);

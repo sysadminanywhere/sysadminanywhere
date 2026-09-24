@@ -17,6 +17,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
@@ -90,6 +91,8 @@ public class InventorySoftwareView extends Div implements HasDynamicTitle {
 
         private final TextField name;
         private final TextField vendor;
+        private final IntegerField minCount;
+        private final IntegerField maxCount;
         private final MessageSource messageSource;
         private final LocaleService localeService;
 
@@ -99,6 +102,8 @@ public class InventorySoftwareView extends Div implements HasDynamicTitle {
 
             this.name = new TextField(getMessage("inventory_software_view.name"));
             this.vendor = new TextField(getMessage("inventory_software_view.vendor"));
+            this.minCount = new IntegerField(getMessage("inventory_software_view.min_count"));
+            this.maxCount = new IntegerField(getMessage("inventory_software_view.max_count"));
 
             setWidthFull();
             addClassName("filter-layout");
@@ -111,6 +116,8 @@ public class InventorySoftwareView extends Div implements HasDynamicTitle {
             resetBtn.addClickListener(e -> {
                 name.clear();
                 vendor.clear();
+                minCount.clear();
+                maxCount.clear();
                 onSearch.run();
             });
             Button searchBtn = new Button(getMessage("common.search"));
@@ -121,7 +128,7 @@ public class InventorySoftwareView extends Div implements HasDynamicTitle {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(name, vendor, actions);
+            add(name, vendor, minCount, maxCount, actions);
         }
 
         private String getMessage(String key) {
@@ -132,6 +139,8 @@ public class InventorySoftwareView extends Div implements HasDynamicTitle {
             Map<String, String> filters = new HashMap<>();
             filters.put("name", name.getValue());
             filters.put("vendor", vendor.getValue());
+            filters.put("minCount", minCount.getValue() == null ? "" : String.valueOf(minCount.getValue()));
+            filters.put("maxCount", maxCount.getValue() == null ? "" : String.valueOf(maxCount.getValue()));
             return filters;
         }
 

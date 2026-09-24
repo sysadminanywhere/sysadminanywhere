@@ -93,6 +93,8 @@ public class InventoryController {
     public ResponseEntity<PageResponse<SoftwareCount>> getSoftwareCount(
             @RequestParam String name,
             @RequestParam String vendor,
+            @RequestParam(required = false) Long minCount,
+            @RequestParam(required = false) Long maxCount,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String sort) {
@@ -104,7 +106,7 @@ public class InventoryController {
         Pageable pageable = Pageable.ofSize(size).withPage(page);
 
         Page<SoftwareCount> result = softwareRepository.getSoftwareInstallationCount(
-                name, vendor, pageable);
+                name, vendor, minCount, maxCount, pageable);
 
         log.info("Retrieved software count for name: {}, vendor: {}",
                 displayFilter(requestedName), displayFilter(requestedVendor));

@@ -31,7 +31,9 @@ public interface InventoryServiceClient {
     // Software
 
     @GetExchange("/api/inventory/software/count")
-    PageResponse<SoftwareCount> getSoftwareCount(@RequestParam String name, @RequestParam String vendor, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
+    PageResponse<SoftwareCount> getSoftwareCount(@RequestParam String name, @RequestParam String vendor,
+                                                  @RequestParam(required = false) Long minCount, @RequestParam(required = false) Long maxCount,
+                                                  @RequestParam int page, @RequestParam int size, @RequestParam String sort);
 
     @GetExchange("/api/inventory/computers/{computerId}/software")
     PageResponse<SoftwareOnComputer> getSoftwareOnComputer(@PathVariable Long computerId, @RequestParam int page, @RequestParam int size, @RequestParam String sort);

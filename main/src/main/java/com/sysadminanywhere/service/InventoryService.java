@@ -39,7 +39,10 @@ public class InventoryService {
         try {
             String name = filters.get("name");
             String vendor = filters.get("vendor");
-            PageResponse<SoftwareCount> response = inventoryServiceClient.getSoftwareCount(name, vendor, pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString());
+            Long minCount = parseLong(filters.get("minCount"));
+            Long maxCount = parseLong(filters.get("maxCount"));
+            PageResponse<SoftwareCount> response = inventoryServiceClient.getSoftwareCount(name, vendor, minCount, maxCount,
+                    pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString());
             return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
@@ -105,6 +108,11 @@ public class InventoryService {
         } catch (Exception ex) {
             return false;
         }
+    }
+
+    private Long parseLong(String value) {
+        try { return value == null || value.isBlank() ? null : Long.valueOf(value); }
+        catch (NumberFormatException ignored) { return null; }
     }
 
     public InventoryHealthDto getInventoryHealth(int staleDays) {
