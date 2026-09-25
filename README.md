@@ -101,6 +101,7 @@ Full multi-language support with professional translations:
 - **Architecture**: Modular multi-module Maven project
 - **Security**: Spring Security with AD integration
 - **Caching**: Spring Cache for performance optimization
+- **Dashboard**: The page opens with summary placeholders, then loads directory, security, domain health and inventory data. Domain health and security audit snapshots are reused for up to one minute; Refresh requests fresh values. Snapshot timestamps are shown on the cards.
 
 ### Report Catalog
 

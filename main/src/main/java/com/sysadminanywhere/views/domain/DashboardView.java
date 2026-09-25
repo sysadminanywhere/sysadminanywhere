@@ -13,35 +13,33 @@ import com.sysadminanywhere.common.directory.model.*;
 import com.sysadminanywhere.service.*;
 import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.ClientCallable;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.AnchorTarget;
-import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.card.Card;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.HasDynamicTitle;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.time.format.DateTimeFormatter;
 
 @Route(value = "")
 @RouteAlias(value = "domain/dashboard")
 @RouteAlias(value = "dashboard")
 @RolesAllowed({"ADMIN", "READER"})
 public class DashboardView extends VerticalLayout implements HasDynamicTitle {
+    private static final Logger log = LoggerFactory.getLogger(DashboardView.class);
 
     private final String ColumnWidth = "55%";
     private final String ChartHeight = "300px";
@@ -54,9 +52,12 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
     private final ContactsService contactsService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
-    private final LdapService ldapService;
-    private final SecurityAuditService securityAuditService;
     private final InventoryService inventoryService;
+    private final DashboardSnapshotService dashboardSnapshotService;
+    private final VerticalLayout content = new VerticalLayout();
+    private final Span loading = new Span();
+    private boolean loadingStarted;
+    private long loadGeneration;
 
     private final String title = "dashboard_view.title";
 
@@ -65,9 +66,8 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
                          GroupsService groupsService,
                          PrintersService printersService,
                          ContactsService contactsService,
-                         LdapService ldapService,
-                         SecurityAuditService securityAuditService,
                          InventoryService inventoryService,
+                         DashboardSnapshotService dashboardSnapshotService,
                          MessageSource messageSource,
                          LocaleService localeService) {
 
@@ -76,24 +76,61 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         this.groupsService = groupsService;
         this.printersService = printersService;
         this.contactsService = contactsService;
-        this.ldapService = ldapService;
-        this.securityAuditService = securityAuditService;
         this.inventoryService = inventoryService;
+        this.dashboardSnapshotService = dashboardSnapshotService;
         this.messageSource = messageSource;
         this.localeService = localeService;
 
-        VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.setWidthFull();
+        setWidthFull();
+        content.setWidthFull();
+        content.setPadding(false);
+        loading.setText(getMessage("dashboard_view.loading"));
+        Button refresh = new Button(getMessage("common.refresh"), event -> {
+            dashboardSnapshotService.invalidate();
+            loadingStarted = false;
+            loadDashboard();
+        });
+        add(refresh, loading, content);
+        content.add(createLoadingCards());
+        getElement().executeJs("requestAnimationFrame(() => $0.$server.loadDashboard())", getElement());
+    }
 
-        List<ComputerEntry> computers = computersService.getAll();
-        List<UserEntry> users = usersService.getAll();
-        List<GroupEntry> groups = groupsService.getAll();
-        List<PrinterEntry> printers = printersService.getAll();
-        List<ContactEntry> contacts = contactsService.getAll();
+    private HorizontalLayout createLoadingCards() {
+        HorizontalLayout cards = new HorizontalLayout();
+        cards.setWidthFull();
+        cards.setWrap(true);
+        cards.add(metricCard(getMessage("domain_health_view.title"), "unknown", "…", Map.of()),
+                metricCard(getMessage("security_audit_view.title"), "unknown", "…", Map.of()),
+                metricCard(getMessage("dashboard_view.users"), "unknown", "…", Map.of()),
+                metricCard(getMessage("inventory_health_view.title"), "unknown", "…", Map.of()));
+        return cards;
+    }
 
-        verticalLayout.add(createOverviewCards(users, computers));
+    @ClientCallable
+    public void loadDashboard() {
+        if (loadingStarted) return;
+        loadingStarted = true;
+        long generation = ++loadGeneration;
+        loading.setText(getMessage("dashboard_view.loading"));
+        loading.setVisible(true);
+        long startedAt = System.nanoTime();
+        try {
+            List<ComputerEntry> computers = computersService.getAll();
+            List<UserEntry> users = usersService.getAll();
+            List<GroupEntry> groups = groupsService.getAll();
+            List<PrinterEntry> printers = printersService.getAll();
+            List<ContactEntry> contacts = contactsService.getAll();
+            long directoryMs = (System.nanoTime() - startedAt) / 1_000_000;
 
-        getStoredTheme().thenAccept(v -> {
+            HorizontalLayout overview = createOverviewCards(users, computers);
+            long overviewMs = (System.nanoTime() - startedAt) / 1_000_000 - directoryMs;
+            log.info("Dashboard data loaded: directory={} ms, overview={} ms", directoryMs, overviewMs);
+            content.removeAll();
+            content.add(overview);
+            loading.setVisible(false);
+
+            getStoredTheme().thenAccept(v -> {
+            if (generation != loadGeneration || !isAttached()) return;
             boolean isDarkTheme = v.contains("dark");
 
             String theme = isDarkTheme ? "dark" : "light";
@@ -234,11 +271,14 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
             line.setWrap(true);
             line.add(chartSummary, chartUsers, chartComputers, chartGroups);
 
-            verticalLayout.add(line);
+            content.add(line);
 
-            add(verticalLayout);
-
-        });
+            });
+        } catch (RuntimeException exception) {
+            log.warn("Dashboard loading failed", exception);
+            loading.setText(getMessage("domain_health_view.error"));
+            loadingStarted = false;
+        }
     }
 
     private HorizontalLayout createOverviewCards(List<UserEntry> users, List<ComputerEntry> computers) {
@@ -247,7 +287,7 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         cards.setWrap(true);
         cards.setSpacing(true);
 
-        var domainHealth = ldapService.getDomainHealth();
+        var domainHealth = dashboardSnapshotService.domainHealth();
         String healthStatus = domainHealth == null || domainHealth.getOverallStatus() == null
                 ? "UNKNOWN" : domainHealth.getOverallStatus();
         Card domainCard = metricCard(getMessage("domain_health_view.title"), healthClass(healthStatus),
@@ -255,16 +295,23 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
                 getMessage("domain_health_view.overall"), localizedHealthStatus(healthStatus),
                 getMessage("domain_health_view.check"), domainHealth == null || domainHealth.getChecks() == null
                         ? 0 : domainHealth.getChecks().size()));
+        if (domainHealth != null && domainHealth.getCheckedAt() != null) {
+            addCheckedAt(domainCard, domainHealth.getCheckedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        }
         addDetailsLink(domainCard, "domain/info");
 
-        var security = securityAuditService.scan();
+        var security = dashboardSnapshotService.securityAudit();
         int securityIssues = security.privilegedUsers() + security.privilegedGroups()
                 + security.usersMissingContactData();
-        Card securityCard = metricCard(getMessage("security_audit_view.title"), securityIssues == 0 ? "ok" : "warning",
-                securityIssues == 0 ? getMessage("domain_health_view.healthy") : getMessage("domain_health_view.warning"), Map.of(
+        boolean securityFailed = security.error() != null;
+        Card securityCard = metricCard(getMessage("security_audit_view.title"), securityFailed ? "error" : securityIssues == 0 ? "ok" : "warning",
+                securityFailed ? getMessage("domain_health_view.error") : securityIssues == 0 ? getMessage("domain_health_view.healthy") : getMessage("domain_health_view.warning"), Map.of(
                 getMessage("security_audit_view.privileged_users"), security.privilegedUsers(),
                 getMessage("security_audit_view.privileged_groups"), security.privilegedGroups(),
                 getMessage("security_audit_view.missing_contact"), security.usersMissingContactData()));
+        if (security.checkedAt() != null) {
+            addCheckedAt(securityCard, security.checkedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        }
         addDetailsLink(securityCard, "security/audit");
 
         long accountIssues = users.stream().filter(user -> user.isDisabled() || user.isLocked() || user.isExpired()).count();
@@ -322,6 +369,12 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         Anchor details = new Anchor(route, getMessage("common.details"));
         details.addClassName("overview-details-link");
         card.add(details);
+    }
+
+    private void addCheckedAt(Card card, String value) {
+        Span checkedAt = new Span(getMessage("domain_health_view.checked_at") + ": " + value);
+        checkedAt.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+        card.add(checkedAt);
     }
 
     private String healthClass(String value) {
