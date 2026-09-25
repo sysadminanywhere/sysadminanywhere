@@ -23,7 +23,9 @@ public class InventoryHardwareViewStep {
         String title = page.title();
         assert title.equals("Hardware") || title.equals("Оборудование") || title.equals("Matériel") : "Unexpected page title: " + title;
 
-        // The inventory page contains the OS distribution, patch status and hardware grids.
-        assert page.locator("vaadin-grid").count() >= 3 : "Inventory hardware summaries are missing";
+        // Hardware uses the same filter-and-grid layout as Software.
+        assert page.locator("vaadin-grid").count() == 1 : "Hardware catalog is missing";
+        assert page.locator(".filter-layout vaadin-text-field").count() == 1 : "Hardware name filter is missing";
+        assert page.locator(".filter-layout vaadin-combo-box").count() == 1 : "Hardware category filter is missing";
     }
 }
