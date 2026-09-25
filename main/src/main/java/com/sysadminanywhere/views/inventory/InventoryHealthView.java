@@ -3,6 +3,9 @@ package com.sysadminanywhere.views.inventory;
 import com.sysadminanywhere.common.inventory.model.InventoryHealthComputer;
 import com.sysadminanywhere.common.inventory.model.InventoryHealthDto;
 import com.sysadminanywhere.common.inventory.model.InventoryScanRun;
+import com.sysadminanywhere.common.inventory.model.InventoryCoverage;
+import com.sysadminanywhere.common.inventory.model.OperatingSystemCount;
+import com.sysadminanywhere.common.inventory.model.ComputerPatchStatus;
 import com.sysadminanywhere.common.incident.model.IncidentItem;
 import com.sysadminanywhere.common.incident.model.IncidentStatus;
 import com.sysadminanywhere.common.incident.model.Severity;
@@ -19,6 +22,8 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.card.Card;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -63,6 +68,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
     private final Button cancelScan = new Button();
     private final Button createErrorIncidents = new Button();
     private final Anchor export = new Anchor();
+    private boolean platformSummariesLoaded;
 
     public InventoryHealthView(InventoryService inventoryService, IncidentService incidentService,
                                MessageSource messageSource, LocaleService localeService) {
@@ -196,9 +202,99 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         computersCard.setWidthFull();
         computersCard.add(new H3(message("inventory_health_view.computers")),
                 new Span(message("inventory_health_view.computers_hint")), grid);
-        add(controls, summaryCard, historyCard, computersCard);
+        Details platformSummaries = new Details();
+        platformSummaries.setSummaryText(message("inventory_health_view.platform_summaries"));
+        platformSummaries.setWidthFull();
+        platformSummaries.addOpenedChangeListener(event -> {
+            if (event.isOpened() && !platformSummariesLoaded) {
+                platformSummariesLoaded = true;
+                platformSummaries.add(createPlatformSummaries());
+            }
+        });
+        add(controls, summaryCard, historyCard, computersCard, platformSummaries);
         expand(grid);
         refresh();
+    }
+
+    private VerticalLayout createPlatformSummaries() {
+        VerticalLayout content = new VerticalLayout();
+        content.setPadding(false);
+        content.setWidthFull();
+        InventoryCoverage coverage = inventoryService.getInventoryCoverage();
+        if (coverage != null) {
+            Card coverageCard = new Card();
+            coverageCard.setWidthFull();
+            HorizontalLayout metrics = new HorizontalLayout(
+                    coverageMetric(message("inventory_hardware_view.coverage_os_title"),
+                            coverage.withOperatingSystem(), coverage.computers()),
+                    coverageMetric(message("inventory_hardware_view.coverage_patch_title"),
+                            coverage.withPatches(), coverage.computers()));
+            metrics.setWidthFull();
+            metrics.setFlexGrow(1, metrics.getComponentAt(0), metrics.getComponentAt(1));
+            coverageCard.add(new H3(message("inventory_hardware_view.coverage")),
+                    new Span(message("inventory_hardware_view.coverage_hint")), metrics);
+            content.add(coverageCard);
+        }
+
+        Grid<OperatingSystemCount> operatingSystems = new Grid<>(OperatingSystemCount.class, false);
+        operatingSystems.addColumn(OperatingSystemCount::name)
+                .setHeader(message("inventory_hardware_view.operating_system")).setFlexGrow(1);
+        operatingSystems.addColumn(OperatingSystemCount::computers)
+                .setHeader(message("inventory_hardware_view.computers_count")).setAutoWidth(true);
+        operatingSystems.setItems(inventoryService.getOperatingSystemCounts());
+        operatingSystems.setHeight("180px");
+        operatingSystems.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
+        Card operatingSystemCard = new Card();
+        operatingSystemCard.setWidthFull();
+        operatingSystemCard.add(new H3(message("inventory_hardware_view.os_distribution")),
+                new Span(message("inventory_hardware_view.os_distribution_hint")), operatingSystems);
+        content.add(operatingSystemCard);
+
+        int patchStaleDays = coverage == null || coverage.patchStaleDays() == null
+                ? 90 : Math.max(1, coverage.patchStaleDays());
+        Grid<ComputerPatchStatus> patches = new Grid<>(ComputerPatchStatus.class, false);
+        patches.addColumn(ComputerPatchStatus::computer)
+                .setHeader(message("inventory_hardware_view.computer")).setAutoWidth(true);
+        patches.addColumn(item -> item.lastPatchDate() == null || item.lastPatchDate().isBlank()
+                        ? message("inventory_hardware_view.patch_date_unavailable") : item.lastPatchDate())
+                .setHeader(message("inventory_hardware_view.last_patch")).setAutoWidth(true);
+        patches.addColumn(item -> item.stale()
+                        ? message("inventory_hardware_view.needs_review", patchStaleDays)
+                        : message("inventory_hardware_view.within_freshness_limit", patchStaleDays))
+                .setHeader(message("inventory_hardware_view.patch_status")).setAutoWidth(true);
+        patches.setItems(inventoryService.getPatchStatuses());
+        patches.setHeight("180px");
+        patches.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
+        Card patchCard = new Card();
+        patchCard.setWidthFull();
+        patchCard.add(new H3(message("inventory_hardware_view.patch_freshness")),
+                new Span(message("inventory_hardware_view.patch_freshness_hint", patchStaleDays)), patches);
+        content.add(patchCard);
+        return content;
+    }
+
+    private VerticalLayout coverageMetric(String label, long covered, long total) {
+        VerticalLayout metric = new VerticalLayout();
+        metric.setPadding(false);
+        metric.setSpacing(false);
+        metric.setWidthFull();
+        Span name = new Span(label);
+        name.getStyle().set("font-weight", "600");
+        if (total <= 0) {
+            metric.add(name, new Span(message("inventory_hardware_view.coverage_no_computers")));
+            return metric;
+        }
+        long missing = Math.max(0, total - covered);
+        int percentage = (int) Math.round(covered * 100.0 / total);
+        Span amount = new Span(message("inventory_hardware_view.coverage_count", covered, total, percentage));
+        amount.getStyle().set("font-size", "var(--lumo-font-size-l)");
+        ProgressBar progress = new ProgressBar();
+        progress.setValue(Math.min(1.0, Math.max(0.0, covered / (double) total)));
+        Span missingText = new Span(message("inventory_hardware_view.coverage_missing", missing));
+        missingText.getStyle().set("color", missing == 0
+                ? "var(--lumo-success-text-color)" : "var(--lumo-secondary-text-color)");
+        metric.add(name, amount, progress, missingText);
+        return metric;
     }
 
     private void startScan() {
