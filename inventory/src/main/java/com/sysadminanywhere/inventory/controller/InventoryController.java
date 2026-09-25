@@ -8,6 +8,7 @@ import com.sysadminanywhere.inventory.repository.ComputerHardwareRepository;
 import com.sysadminanywhere.inventory.repository.ComputerRepository;
 import com.sysadminanywhere.inventory.repository.HardwareModelRepository;
 import com.sysadminanywhere.inventory.repository.HardwarePropertyRepository;
+import com.sysadminanywhere.inventory.repository.HardwareChangeRepository;
 import com.sysadminanywhere.inventory.repository.SoftwareRepository;
 import com.sysadminanywhere.inventory.repository.SoftwareLicenseRepository;
 import com.sysadminanywhere.inventory.entity.SoftwareLicense;
@@ -38,6 +39,7 @@ public class InventoryController {
     private final ComputerRepository computerRepository;
     private final SoftwareRepository softwareRepository;
     private final ComputerHardwareRepository computerHardwareRepository;
+    private final HardwareChangeRepository hardwareChangeRepository;
     private final HardwareModelRepository hardwareModelRepository;
     private final HardwarePropertyRepository hardwarePropertyRepository;
     private final SoftwareLicenseRepository softwareLicenseRepository;
@@ -270,6 +272,53 @@ public class InventoryController {
 
 
     // Hardware
+
+    @GetMapping("/hardware/catalog")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<PageResponse<com.sysadminanywhere.common.inventory.model.HardwareCatalogItem>> getHardwareCatalog(
+            @RequestParam(defaultValue = "") String name,
+            @RequestParam(required = false) String type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
+        var pageable = org.springframework.data.domain.PageRequest.of(Math.max(0, page), Math.max(1, Math.min(100, size)));
+        var result = hardwareModelRepository.findHardwareCatalog("%" + name.trim() + "%",
+                type == null || type.isBlank() ? null : type, pageable);
+        return ResponseEntity.ok(new PageResponse<>(result.getContent(), result.getNumber(), result.getSize(),
+                result.getTotalElements(), result.getTotalPages()));
+    }
+
+    @GetMapping("/hardware/catalog/{modelId}")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<com.sysadminanywhere.common.inventory.model.HardwareCatalogItem> getHardwareCatalogItem(
+            @PathVariable Long modelId) {
+        return hardwareModelRepository.findHardwareCatalogItem(modelId)
+                .map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/hardware/models/{modelId}/computers")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<PageResponse<com.sysadminanywhere.common.inventory.model.HardwareComputerItem>> getComputersByHardwareModel(
+            @PathVariable Long modelId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        var pageable = org.springframework.data.domain.PageRequest.of(Math.max(0, page), Math.max(1, Math.min(100, size)));
+        var result = computerHardwareRepository.findComputersByHardwareModelId(modelId, pageable);
+        return ResponseEntity.ok(new PageResponse<>(result.getContent(), result.getNumber(), result.getSize(),
+                result.getTotalElements(), result.getTotalPages()));
+    }
+
+    @GetMapping("/hardware/changes")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<PageResponse<com.sysadminanywhere.common.inventory.model.HardwareChangeItem>> getHardwareChanges(
+            @RequestParam(required = false) Long computerId,
+            @RequestParam(required = false) Long modelId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        var pageable = org.springframework.data.domain.PageRequest.of(Math.max(0, page), Math.max(1, Math.min(100, size)));
+        var result = hardwareChangeRepository.findHistory(computerId, modelId, pageable);
+        return ResponseEntity.ok(new PageResponse<>(result.getContent(), result.getNumber(), result.getSize(),
+                result.getTotalElements(), result.getTotalPages()));
+    }
 
     @GetMapping("/hardware/computers")
     @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")

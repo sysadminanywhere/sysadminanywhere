@@ -7,6 +7,7 @@ import com.sysadminanywhere.inventory.repository.ComputerHardwareRepository;
 import com.sysadminanywhere.inventory.repository.HardwareModelRepository;
 import com.sysadminanywhere.inventory.repository.HardwarePropertyRepository;
 import com.sysadminanywhere.inventory.repository.HardwareValueRepository;
+import com.sysadminanywhere.inventory.repository.HardwareChangeRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,6 +35,9 @@ class HardwareServiceTest {
     @Mock
     private HardwareValueRepository hardwareValueRepository;
 
+    @Mock
+    private HardwareChangeRepository hardwareChangeRepository;
+
     @InjectMocks
     private HardwareService hardwareService;
 
@@ -45,11 +49,10 @@ class HardwareServiceTest {
 
         // When WMI fails (returns null), the service should handle it gracefully
         when(wmiServiceClient.execute(any(ExecuteDto.class))).thenReturn(null);
-        when(computerHardwareRepository.findByComputerId(anyLong())).thenReturn(java.util.Collections.emptyList());
-
         hardwareService.scanHardware(computer);
 
         // Should attempt all hardware and Windows patch WMI queries
         verify(wmiServiceClient, times(9)).execute(any(ExecuteDto.class));
+        verify(computerHardwareRepository, never()).delete(any());
     }
 }

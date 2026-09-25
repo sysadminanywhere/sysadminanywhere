@@ -7,6 +7,7 @@ import com.sysadminanywhere.inventory.repository.ComputerHardwareRepository;
 import com.sysadminanywhere.inventory.repository.HardwareModelRepository;
 import com.sysadminanywhere.inventory.repository.HardwarePropertyRepository;
 import com.sysadminanywhere.inventory.repository.HardwareValueRepository;
+import com.sysadminanywhere.inventory.repository.HardwareChangeRepository;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import com.sysadminanywhere.inventory.entity.*;
 import java.time.LocalDateTime;
 import java.util.*;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @Slf4j
@@ -29,6 +26,7 @@ public class HardwareService {
     private final HardwareModelRepository hardwareModelRepository;
     private final HardwarePropertyRepository hardwarePropertyRepository;
     private final HardwareValueRepository hardwareValueRepository;
+    private final HardwareChangeRepository hardwareChangeRepository;
 
     @Value("${inventory.wmi.retry-attempts:3}")
     private int retryAttempts;
@@ -41,13 +39,15 @@ public class HardwareService {
                            ComputerHardwareRepository computerHardwareRepository,
                            HardwareModelRepository hardwareModelRepository,
                            HardwarePropertyRepository hardwarePropertyRepository,
-                           HardwareValueRepository hardwareValueRepository) {
+                           HardwareValueRepository hardwareValueRepository,
+                           HardwareChangeRepository hardwareChangeRepository) {
 
         this.wmiServiceClient = wmiServiceClient;
         this.computerHardwareRepository = computerHardwareRepository;
         this.hardwareModelRepository = hardwareModelRepository;
         this.hardwarePropertyRepository = hardwarePropertyRepository;
         this.hardwareValueRepository = hardwareValueRepository;
+        this.hardwareChangeRepository = hardwareChangeRepository;
     }
     @SneakyThrows
     @SuppressWarnings("unchecked")
@@ -55,6 +55,7 @@ public class HardwareService {
     public void scanHardware(Computer computer) {
         String hostName = computer.getName();
         log.info("Scanning hardware on computer {}", hostName);
+        boolean firstHistoryScan = !hardwareChangeRepository.existsByComputerId(computer.getId());
 
         List<Map<String, Object>> diskDrives = execute(hostName, "SELECT * FROM Win32_DiskDrive");
         List<Map<String, Object>> operatingSystems = execute(hostName, "SELECT * FROM Win32_OperatingSystem");
@@ -65,22 +66,28 @@ public class HardwareService {
         List<Map<String, Object>> bios = execute(hostName, "SELECT * FROM Win32_BIOS");
         List<Map<String, Object>> computerSystems = execute(hostName, "SELECT * FROM Win32_ComputerSystem");
         List<Map<String, Object>> patches = execute(hostName, "SELECT * FROM Win32_QuickFixEngineering");
+        boolean completeScan = java.util.stream.Stream.of(diskDrives, operatingSystems, processors, videoControllers,
+                physicalMemory, baseBoards, bios, computerSystems, patches).noneMatch(Objects::isNull);
 
         // Get current hardware models for this computer
         Set<Long> currentHardwareModelIds = new HashSet<>();
         
-        saveHardware(computer, HardwareType.DISK_DRIVE, diskDrives, currentHardwareModelIds);
-        saveHardware(computer, HardwareType.OPERATING_SYSTEM, operatingSystems, currentHardwareModelIds);
-        saveHardware(computer, HardwareType.PROCESSOR, processors, currentHardwareModelIds);
-        saveHardware(computer, HardwareType.VIDEO_CONTROLLER, videoControllers, currentHardwareModelIds);
-        saveHardware(computer, HardwareType.PHYSICAL_MEMORY, physicalMemory, currentHardwareModelIds);
-        saveHardware(computer, HardwareType.BASE_BOARD, baseBoards, currentHardwareModelIds);
-        saveHardware(computer, HardwareType.BIOS, bios, currentHardwareModelIds);
-        saveHardware(computer, HardwareType.COMPUTER_SYSTEM, computerSystems, currentHardwareModelIds);
-        saveHardware(computer, HardwareType.PATCH, patches, currentHardwareModelIds);
+        saveHardware(computer, HardwareType.DISK_DRIVE, diskDrives, currentHardwareModelIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.OPERATING_SYSTEM, operatingSystems, currentHardwareModelIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.PROCESSOR, processors, currentHardwareModelIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.VIDEO_CONTROLLER, videoControllers, currentHardwareModelIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.PHYSICAL_MEMORY, physicalMemory, currentHardwareModelIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.BASE_BOARD, baseBoards, currentHardwareModelIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.BIOS, bios, currentHardwareModelIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.COMPUTER_SYSTEM, computerSystems, currentHardwareModelIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.PATCH, patches, currentHardwareModelIds, firstHistoryScan);
         
         // Remove hardware that no longer exists
-        removeObsoleteHardware(computer, currentHardwareModelIds);
+        if (completeScan) {
+            removeObsoleteHardware(computer, currentHardwareModelIds);
+        } else {
+            log.warn("Keeping previous hardware records for {} because one or more WMI queries failed", hostName);
+        }
     }
 
     private List<Map<String, Object>> execute(String hostName, String query) {
@@ -113,7 +120,8 @@ public class HardwareService {
         return list;
     }
 
-    private void saveHardware(Computer computer, HardwareType hardwareType, List<Map<String, Object>> list, Set<Long> currentHardwareModelIds) {
+    private void saveHardware(Computer computer, HardwareType hardwareType, List<Map<String, Object>> list,
+                              Set<Long> currentHardwareModelIds, boolean firstHistoryScan) {
         if (list == null || list.isEmpty()) {
             return;
         }
@@ -130,6 +138,7 @@ public class HardwareService {
                     .findByComputerIdAndHardwareModelId(computer.getId(), hardwareModel.getId());
 
             ComputerHardware computerHardware;
+            boolean newlyInstalled = existingHardware.isEmpty();
             if (existingHardware.isPresent()) {
                 // Update existing record
                 computerHardware = existingHardware.get();
@@ -142,7 +151,13 @@ public class HardwareService {
 
             computerHardware = computerHardwareRepository.save(computerHardware);
 
-            saveHardwareProperties(computerHardware, data, hardwareType);
+            if (newlyInstalled) {
+                recordChange(computer, hardwareModel, "INSTALLED", null, null, null);
+            } else if (firstHistoryScan) {
+                recordChange(computer, hardwareModel, "FIRST_OBSERVED", null, null, null);
+            }
+
+            saveHardwareProperties(computerHardware, data, hardwareType, !newlyInstalled);
         }
     }
 
@@ -153,6 +168,8 @@ public class HardwareService {
             if (!currentHardwareModelIds.contains(hardware.getHardwareModel().getId())) {
                 log.info("Removing obsolete hardware: {} for computer {}", 
                         hardware.getHardwareModel().getName(), computer.getName());
+                recordChange(computer, hardware.getHardwareModel(), "REMOVED", null,
+                        hardware.getHardwareModel().getName(), null);
                 computerHardwareRepository.delete(hardware);
             }
         }
@@ -188,7 +205,8 @@ public class HardwareService {
         });
     }
 
-    private void saveHardwareProperties(ComputerHardware computerHardware, Map<String, Object> data, HardwareType hardwareType) {
+    private void saveHardwareProperties(ComputerHardware computerHardware, Map<String, Object> data,
+                                        HardwareType hardwareType, boolean trackChanges) {
         Set<String> processedProperties = new HashSet<>();
 
         // Get existing properties for this computer hardware
@@ -219,6 +237,10 @@ public class HardwareService {
             if (existingProperty != null) {
                 // Update existing property if value changed
                 if (!existingProperty.getPropertyValue().equals(propertyValueStr)) {
+                    if (trackChanges) {
+                        recordChange(computerHardware.getComputer(), computerHardware.getHardwareModel(),
+                                "CONFIGURATION_CHANGED", propertyName, existingProperty.getPropertyValue(), propertyValueStr);
+                    }
                     existingProperty.setPropertyValue(propertyValueStr);
                     hardwarePropertyRepository.save(existingProperty);
                     log.debug("Updated property {} for hardware {}", propertyName, computerHardware.getId());
@@ -237,6 +259,35 @@ public class HardwareService {
                 log.debug("Created new property {} for hardware {}", propertyName, computerHardware.getId());
             }
         }
+
+        for (HardwareProperty existingProperty : existingPropertiesMap.values()) {
+            if (data.containsKey(existingProperty.getPropertyName())
+                    && data.get(existingProperty.getPropertyName()) == null) {
+                if (trackChanges) {
+                    recordChange(computerHardware.getComputer(), computerHardware.getHardwareModel(),
+                            "CONFIGURATION_CHANGED", existingProperty.getPropertyName(),
+                            existingProperty.getPropertyValue(), null);
+                }
+                hardwarePropertyRepository.delete(existingProperty);
+            }
+        }
+    }
+
+    private void recordChange(Computer computer, HardwareModel model, String changeType,
+                              String propertyName, String oldValue, String newValue) {
+        if (model == null || "Patch".equals(model.getHardwareType())
+                || "OperatingSystem".equals(model.getHardwareType())) {
+            return;
+        }
+        HardwareChange change = new HardwareChange();
+        change.setComputer(computer);
+        change.setHardwareModel(model);
+        change.setChangeType(changeType);
+        change.setPropertyName(propertyName);
+        change.setOldValue(oldValue);
+        change.setNewValue(newValue);
+        change.setChangedAt(LocalDateTime.now());
+        hardwareChangeRepository.save(change);
     }
 
     private HardwareValue findOrCreateHardwareValue(Computer computer, String propertyValue) {

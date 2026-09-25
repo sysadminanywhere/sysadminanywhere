@@ -89,6 +89,47 @@ public class InventoryService {
         catch (Exception e) { log.warn("Unable to load hardware details for computer {}: {}", computerId, e.getMessage()); return null; }
     }
 
+    public Page<HardwareCatalogItem> getHardwareCatalog(Pageable pageable, String name, String type) {
+        try {
+            PageResponse<HardwareCatalogItem> response = inventoryServiceClient.getHardwareCatalog(
+                    name == null ? "" : name, type, pageable.getPageNumber(), pageable.getPageSize());
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
+        } catch (Exception e) {
+            log.warn("Unable to load hardware catalog: {}", e.getMessage());
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public HardwareCatalogItem getHardwareCatalogItem(Long modelId) {
+        try { return inventoryServiceClient.getHardwareCatalogItem(modelId); }
+        catch (Exception e) {
+            log.warn("Unable to load hardware model {}: {}", modelId, e.getMessage());
+            return null;
+        }
+    }
+
+    public Page<HardwareComputerItem> getComputersByHardwareModel(Long modelId, Pageable pageable) {
+        try {
+            PageResponse<HardwareComputerItem> response = inventoryServiceClient.getComputersByHardwareModel(
+                    modelId, pageable.getPageNumber(), pageable.getPageSize());
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
+        } catch (Exception e) {
+            log.warn("Unable to load computers using hardware model {}: {}", modelId, e.getMessage());
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<HardwareChangeItem> getHardwareChanges(Long computerId, Long modelId, Pageable pageable) {
+        try {
+            PageResponse<HardwareChangeItem> response = inventoryServiceClient.getHardwareChanges(computerId, modelId,
+                    pageable.getPageNumber(), pageable.getPageSize());
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
+        } catch (Exception e) {
+            log.warn("Unable to load hardware change history: {}", e.getMessage());
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
     public Page<HardwareCount> getHardwareCount(Pageable pageable, Map<String, String> filters) {
         try {
             String name = filters.get("name");

@@ -73,6 +73,21 @@ public interface InventoryServiceClient {
     @GetExchange("/api/inventory/hardware/computers/{computerId}")
     ComputerHardwareDetails getComputerHardwareDetails(@PathVariable Long computerId);
 
+    @GetExchange("/api/inventory/hardware/catalog")
+    PageResponse<HardwareCatalogItem> getHardwareCatalog(@RequestParam String name,
+            @RequestParam(required = false) String type, @RequestParam int page, @RequestParam int size);
+
+    @GetExchange("/api/inventory/hardware/catalog/{modelId}")
+    HardwareCatalogItem getHardwareCatalogItem(@PathVariable Long modelId);
+
+    @GetExchange("/api/inventory/hardware/models/{modelId}/computers")
+    PageResponse<HardwareComputerItem> getComputersByHardwareModel(@PathVariable Long modelId,
+            @RequestParam int page, @RequestParam int size);
+
+    @GetExchange("/api/inventory/hardware/changes")
+    PageResponse<HardwareChangeItem> getHardwareChanges(@RequestParam(required = false) Long computerId,
+            @RequestParam(required = false) Long modelId, @RequestParam int page, @RequestParam int size);
+
     @GetExchange("/api/inventory/hardware/count")
     Page<Object[]> getHardwareCount(@RequestParam String name, @RequestParam String type, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
 
