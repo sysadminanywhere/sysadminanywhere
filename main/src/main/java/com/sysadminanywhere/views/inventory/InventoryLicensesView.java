@@ -121,6 +121,8 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
     private void openEditor(SoftwareLicense current) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(msg("inventory_licenses_view.add"));
+        dialog.setWidth("520px");
+        dialog.setMaxWidth("calc(100vw - 32px)");
         ComboBox<SoftwareCount> discoveredSoftware = new ComboBox<>(msg("inventory_licenses_view.select_discovered_software"));
         discoveredSoftware.setPlaceholder(msg("inventory_licenses_view.discovered_software_placeholder"));
         discoveredSoftware.setWidthFull();
@@ -160,6 +162,7 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
         purchased.setMin(0); purchased.setValue(0);
         DatePicker expires = new DatePicker(msg("inventory_licenses_view.expires"));
         TextArea notes = new TextArea(msg("inventory_licenses_view.notes"));
+        purchased.setWidthFull(); expires.setWidthFull(); notes.setWidthFull();
         Button save = new Button(msg("common.save"), e -> {
             if (name.isEmpty()) { name.setInvalid(true); return; }
             SoftwareLicense saved = inventoryService.saveLicense(new SoftwareLicense(current == null ? null : current.id(),
@@ -168,7 +171,10 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
             if (saved != null) { dialog.close(); refresh(); Notification.show(msg("inventory_licenses_view.saved")); }
         });
         Button cancel = new Button(msg("common.cancel"), e -> dialog.close());
-        dialog.add(new VerticalLayout(discoveredSoftware, detectedUsage, name, vendor, version, purchased, expires, notes, new HorizontalLayout(save, cancel)));
+        VerticalLayout form = new VerticalLayout(discoveredSoftware, detectedUsage, name, vendor, version,
+                purchased, expires, notes, new HorizontalLayout(save, cancel));
+        form.setWidthFull();
+        dialog.add(form);
         dialog.open();
     }
 
