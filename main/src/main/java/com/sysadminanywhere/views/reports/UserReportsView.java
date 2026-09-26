@@ -39,6 +39,7 @@ public class UserReportsView extends Div implements HasDynamicTitle {
     public UserReportsView(MessageSource messageSource, LocaleService localeService) {
         this.messageSource = messageSource;
         this.localeService = localeService;
+        addClassName("review-report-catalog");
 
         listBox.setRenderer(new ComponentRenderer<>(item -> {
             HorizontalLayout row = new HorizontalLayout();

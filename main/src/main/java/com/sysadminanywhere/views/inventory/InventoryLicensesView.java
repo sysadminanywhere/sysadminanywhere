@@ -52,6 +52,8 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
     public InventoryLicensesView(InventoryService inventoryService, IncidentService incidentService, MessageSource messages, LocaleService locale) {
         this.inventoryService = inventoryService; this.incidentService = incidentService; this.messages = messages; this.locale = locale;
         setSizeFull();
+        addClassName("review-page");
+        setPadding(false);
         Button add = new Button(msg("inventory_licenses_view.add"), e -> openEditor(null));
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Anchor export = new Anchor(new StreamResource("software-licenses.csv", this::createCsv), msg("inventory_licenses_view.export_csv"));
@@ -67,6 +69,7 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
         });
         statusFilter.addValueChangeListener(event -> applyFilter());
         HorizontalLayout header = new HorizontalLayout(statusFilter, export, add);
+        header.addClassName("review-toolbar");
         header.setWidthFull();
         header.setAlignItems(Alignment.END);
         grid.addColumn(SoftwareLicense::name).setHeader(msg("inventory_licenses_view.name")).setAutoWidth(true);
@@ -74,9 +77,7 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
         grid.addColumn(SoftwareLicense::version).setHeader(msg("inventory_licenses_view.version")).setAutoWidth(true);
         grid.addColumn(SoftwareLicense::purchased).setHeader(msg("inventory_licenses_view.purchased")).setAutoWidth(true);
         grid.addColumn(SoftwareLicense::used).setHeader(msg("inventory_licenses_view.used")).setAutoWidth(true);
-        grid.addColumn(item -> item.used() > item.purchased() ? msg("inventory_licenses_view.overused")
-                        : item.expiresAt() != null && item.expiresAt().isBefore(java.time.LocalDate.now())
-                        ? msg("inventory_licenses_view.expired") : msg("inventory_licenses_view.compliant"))
+        grid.addComponentColumn(this::licenseBadge)
                 .setHeader(msg("inventory_licenses_view.status")).setAutoWidth(true);
         grid.addColumn(item -> item.expiresAt() == null ? "-" : item.expiresAt().toString())
                 .setHeader(msg("inventory_licenses_view.expires")).setAutoWidth(true);
@@ -91,6 +92,14 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
         grid.setSizeFull();
         add(header, grid); expand(grid); refresh();
+    }
+
+    private Span licenseBadge(SoftwareLicense item) {
+        String value = status(item);
+        Span badge = new Span(msg("inventory_licenses_view." + value.toLowerCase(java.util.Locale.ROOT)));
+        badge.getElement().getThemeList().add("badge");
+        badge.getElement().getThemeList().add("COMPLIANT".equals(value) ? "success" : "error");
+        return badge;
     }
 
     private void refresh() { licenses = inventoryService.getLicenses(); applyFilter(); }

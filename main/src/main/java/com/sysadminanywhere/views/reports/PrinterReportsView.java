@@ -37,6 +37,7 @@ public class PrinterReportsView extends Div implements HasDynamicTitle {
     public PrinterReportsView(MessageSource messageSource, LocaleService localeService) {
         this.messageSource = messageSource;
         this.localeService = localeService;
+        addClassName("review-report-catalog");
 
         listBox.setRenderer(new ComponentRenderer<>(item -> {
             HorizontalLayout row = new HorizontalLayout();

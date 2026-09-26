@@ -13,7 +13,6 @@ import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -62,8 +61,6 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         setWidthFull();
         setPadding(false);
 
-        H2 title = new H2(msg("dashboard_view.title"));
-        title.addClassName("dashboard-title");
         Button refresh = new Button(msg("common.refresh"), event -> {
             directorySnapshots.invalidate();
             healthSnapshots.invalidate();
@@ -76,7 +73,7 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
             getElement().executeJs("requestAnimationFrame(() => $0.$server.loadDashboard())", getElement());
         });
         refresh.addClassName("dashboard-refresh");
-        Div header = new Div(title, refresh);
+        Div header = new Div(refresh);
         header.addClassName("dashboard-header");
 
         loading.setText(msg("dashboard_view.loading"));

@@ -17,7 +17,6 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
@@ -77,10 +76,10 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         this.messageSource = messageSource;
         this.localeService = localeService;
         setSizeFull();
-        setPadding(true);
+        addClassName("review-page");
+        setPadding(false);
         setSpacing(true);
 
-        H2 title = new H2(message("inventory_health_view.title"));
         staleDays.setLabel(message("inventory_health_view.stale_days"));
         staleDays.setMin(1); staleDays.setMax(3650); staleDays.setValue(30);
         staleDays.setWidth("150px");
@@ -101,9 +100,9 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         statusFilter.setWidth("150px");
         statusFilter.addValueChangeListener(event -> applyFilter());
         Button refresh = new Button(message("common.refresh"), event -> refresh());
-        refresh.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        refresh.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         Button startScan = new Button(message("inventory_health_view.start_scan"), event -> startScan());
-        startScan.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        startScan.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         startScan.setVisible(SecurityContextHolder.getContext().getAuthentication() != null
                 && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority())));
@@ -120,22 +119,24 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         cancelScan.setVisible(startScan.isVisible());
         cancelScan.addClickListener(event -> cancelScan());
         createErrorIncidents.setText(message("inventory_health_view.create_error_incidents"));
-        createErrorIncidents.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        createErrorIncidents.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         createErrorIncidents.setVisible(startScan.isVisible());
         createErrorIncidents.addClickListener(event -> confirmErrorIncidents());
         export.setText(message("inventory_health_view.export_csv"));
         export.getElement().setAttribute("download", true);
         export.setHref(new StreamResource("inventory-health.csv", this::createCsv));
         Span subtitle = new Span(message("inventory_health_view.subtitle"));
-        HorizontalLayout titleRow = new HorizontalLayout(title, scanStatus, refresh);
+        HorizontalLayout titleRow = new HorizontalLayout(scanStatus, refresh);
+        titleRow.addClassName("review-toolbar");
         titleRow.setWidthFull();
         titleRow.setAlignItems(Alignment.CENTER);
-        titleRow.setFlexGrow(1, title);
 
         HorizontalLayout filtersRow = new HorizontalLayout(computerFilter, statusFilter, staleDays);
+        filtersRow.addClassName("review-toolbar");
         filtersRow.setWidthFull();
         filtersRow.setAlignItems(Alignment.END);
         HorizontalLayout actionsRow = new HorizontalLayout(startScan, scanSelected, retryFailed, cancelScan, createErrorIncidents, export);
+        actionsRow.addClassName("review-toolbar");
         actionsRow.setWidthFull();
         actionsRow.setAlignItems(Alignment.CENTER);
         Card controls = new Card();
@@ -211,7 +212,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
                 platformSummaries.add(createPlatformSummaries());
             }
         });
-        add(controls, summaryCard, historyCard, computersCard, platformSummaries);
+        add(titleRow, controls, summaryCard, historyCard, computersCard, platformSummaries);
         expand(grid);
         refresh();
     }

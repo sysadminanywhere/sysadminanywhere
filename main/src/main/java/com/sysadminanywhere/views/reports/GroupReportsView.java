@@ -40,6 +40,7 @@ public class GroupReportsView extends Div implements HasDynamicTitle {
     public GroupReportsView(MessageSource messageSource, LocaleService localeService) {
         this.messageSource = messageSource;
         this.localeService = localeService;
+        addClassName("review-report-catalog");
 
         listBox.setRenderer(new ComponentRenderer<>(item -> {
             HorizontalLayout row = new HorizontalLayout();

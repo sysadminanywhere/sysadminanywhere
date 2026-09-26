@@ -21,6 +21,7 @@ public class OtherReportsView extends Div implements HasDynamicTitle {
     public OtherReportsView(MessageSource messageSource, LocaleService localeService) {
         this.messageSource = messageSource;
         this.localeService = localeService;
+        addClassName("review-report-catalog");
     }
 
     private String getMessage(String key) {

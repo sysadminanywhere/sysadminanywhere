@@ -10,7 +10,6 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -51,16 +50,15 @@ public class SecurityAuditView extends VerticalLayout implements HasDynamicTitle
         this.messageSource = messageSource;
         this.localeService = localeService;
         setSizeFull();
-        setPadding(true);
+        addClassName("review-page");
+        setPadding(false);
         setSpacing(true);
 
-        H2 title = new H2(message("security_audit_view.title"));
         Button refresh = new Button(message("common.refresh"), event -> refresh());
-        refresh.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        HorizontalLayout header = new HorizontalLayout(title, refresh);
+        HorizontalLayout header = new HorizontalLayout(refresh);
+        header.addClassName("review-toolbar");
         header.setWidthFull();
         header.setAlignItems(Alignment.CENTER);
-        header.setFlexGrow(1, title);
 
         HorizontalLayout summary = new HorizontalLayout(metric(message("security_audit_view.privileged_users"), privilegedUsers),
                 metric(message("security_audit_view.privileged_groups"), privilegedGroups),
@@ -68,7 +66,8 @@ public class SecurityAuditView extends VerticalLayout implements HasDynamicTitle
                 metric(message("security_audit_view.computer_spn"), computerSpn),
                 metric(message("security_audit_view.missing_contact"), hygiene));
         summary.setWidthFull();
-        summary.setFlexGrow(1, summary.getComponentAt(0), summary.getComponentAt(1), summary.getComponentAt(2), summary.getComponentAt(3), summary.getComponentAt(4));
+        summary.addClassName("review-metrics");
+        summary.setWrap(true);
 
         findings.addColumn(SecurityFinding::category).setHeader(message("security_audit_view.category")).setAutoWidth(true);
         findings.addComponentColumn(item -> badge(item.severity())).setHeader(message("security_audit_view.severity")).setAutoWidth(true);
@@ -99,8 +98,10 @@ public class SecurityAuditView extends VerticalLayout implements HasDynamicTitle
         VerticalLayout content = new VerticalLayout(caption, value);
         content.setPadding(true);
         content.setSpacing(false);
-        content.addClassNames(LumoUtility.Background.CONTRAST_5, LumoUtility.BorderRadius.MEDIUM);
-        return new HorizontalLayout(content);
+        content.addClassName("review-metric");
+        HorizontalLayout wrapper = new HorizontalLayout(content);
+        wrapper.addClassName("review-metric-wrapper");
+        return wrapper;
     }
 
     private Span badge(String severity) {

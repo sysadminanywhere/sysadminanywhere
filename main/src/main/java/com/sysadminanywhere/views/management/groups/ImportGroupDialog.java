@@ -47,7 +47,8 @@ public class ImportGroupDialog extends Dialog {
         this.localeService = localeService;
         this.onSearch = onSearch;
         setHeaderTitle(message("import_group_dialog.title"));
-        setMaxWidth("800px");
+        setWidth("800px");
+        setMaxWidth("calc(100vw - 32px)");
 
         FormLayout form = new FormLayout();
         ContainerField container = new ContainerField(groupsService.getLdapService(), messageSource, localeService);
@@ -72,7 +73,10 @@ public class ImportGroupDialog extends Dialog {
         previewGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
         previewGrid.setHeight("240px");
         previewGrid.setVisible(false);
-        add(new VerticalLayout(form, previewGrid));
+        VerticalLayout content = new VerticalLayout(form, previewGrid);
+        content.setPadding(false);
+        content.setWidthFull();
+        add(content);
 
         importButton.addClickListener(event -> importRows(container, rollbackButton));
         rollbackButton.addClickListener(event -> {

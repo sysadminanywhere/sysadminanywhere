@@ -10,7 +10,6 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -38,13 +37,13 @@ public class WebhooksView extends VerticalLayout implements HasDynamicTitle {
         this.webhookService = webhookService;
         this.messageSource = messageSource;
         this.localeService = localeService;
-        setSizeFull(); setPadding(true); setSpacing(true);
-        H2 title = new H2(message("webhooks_view.title"));
+        setSizeFull(); addClassName("review-page"); setPadding(false); setSpacing(true);
         Button add = new Button(message("webhooks_view.new"), event -> edit(null));
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button refresh = new Button(message("common.refresh"), event -> refresh());
-        HorizontalLayout header = new HorizontalLayout(title, add, refresh);
-        header.setWidthFull(); header.setAlignItems(Alignment.CENTER); header.setFlexGrow(1, title);
+        HorizontalLayout header = new HorizontalLayout(add, refresh);
+        header.addClassName("review-toolbar");
+        header.setWidthFull(); header.setAlignItems(Alignment.CENTER);
 
         grid.addColumn(WebhookSubscription::getUrl).setHeader(message("webhooks_view.url")).setFlexGrow(1);
         grid.addColumn(item -> item.getEvents() == null ? "*" : String.join(", ", item.getEvents()))
@@ -63,12 +62,14 @@ public class WebhooksView extends VerticalLayout implements HasDynamicTitle {
                 : new WebhookSubscription(source.getId(), source.isEnabled(), source.getUrl(), source.getSecret(), source.getEvents());
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(source == null ? message("webhooks_view.new") : message("webhooks_view.edit"));
+        dialog.setWidth("520px");
+        dialog.setMaxWidth("calc(100vw - 32px)");
         TextField url = new TextField(message("webhooks_view.url")); url.setWidthFull(); url.setValue(value.getUrl());
         PasswordField secret = new PasswordField(message("webhooks_view.secret")); secret.setWidthFull(); secret.setValue(value.getSecret() == null ? "" : value.getSecret());
         TextField events = new TextField(message("webhooks_view.events")); events.setWidthFull(); events.setValue(value.getEvents() == null ? "*" : String.join(",", value.getEvents()));
         events.setHelperText("incident.created, user.created, group.created, *");
         Checkbox enabled = new Checkbox(message("webhooks_view.enabled"), value.isEnabled());
-        VerticalLayout form = new VerticalLayout(url, secret, events, enabled); form.setPadding(false); form.setWidth("520px");
+        VerticalLayout form = new VerticalLayout(url, secret, events, enabled); form.setPadding(false); form.setWidthFull();
         dialog.add(form);
         Button save = new Button(message("webhooks_view.save"), event -> {
             try {

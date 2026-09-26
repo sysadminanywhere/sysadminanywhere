@@ -12,8 +12,7 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -44,21 +43,23 @@ public class ScheduledReportsView extends VerticalLayout implements HasDynamicTi
         this.messageSource = messageSource;
         this.localeService = localeService;
         setSizeFull();
-        setPadding(true);
+        addClassName("review-page");
+        setPadding(false);
         setSpacing(true);
 
-        H2 heading = new H2(message("scheduled_reports_view.title"));
         Button add = new Button(message("scheduled_reports_view.new"), event -> edit(null));
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button refresh = new Button(message("common.refresh"), event -> refresh());
-        HorizontalLayout toolbar = new HorizontalLayout(heading, add, refresh);
+        HorizontalLayout toolbar = new HorizontalLayout(add, refresh);
+        toolbar.addClassName("review-toolbar");
         toolbar.setWidthFull();
         toolbar.setAlignItems(Alignment.CENTER);
-        toolbar.setFlexGrow(1, heading);
 
         configureConfigsGrid();
         configureRunsGrid();
-        add(toolbar, configs, new Span(message("scheduled_reports_view.runs")), runs);
+        H3 runsHeading = new H3(message("scheduled_reports_view.runs"));
+        runsHeading.addClassName("review-section-title");
+        add(toolbar, configs, runsHeading, runs);
         configs.setHeight("260px");
         runs.setHeight("220px");
         refresh();
@@ -101,6 +102,8 @@ public class ScheduledReportsView extends VerticalLayout implements HasDynamicTi
                         source.getHour(), source.getMinute(), source.getFormat(), source.getRecipients());
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(source == null ? message("scheduled_reports_view.new") : message("scheduled_reports_view.edit"));
+        dialog.setWidth("480px");
+        dialog.setMaxWidth("calc(100vw - 32px)");
 
         ComboBox<String> entry = new ComboBox<>(message("scheduled_reports_view.entry"));
         entry.setItems("users", "computers", "groups", "printers", "contacts");
@@ -125,7 +128,7 @@ public class ScheduledReportsView extends VerticalLayout implements HasDynamicTi
         time.setWidthFull();
         VerticalLayout form = new VerticalLayout(entry, report, frequency, time, format, recipients, enabled);
         form.setPadding(false);
-        form.setWidth("420px");
+        form.setWidthFull();
         dialog.add(form);
         Button save = new Button(message("scheduled_reports_view.save"), event -> {
             try {

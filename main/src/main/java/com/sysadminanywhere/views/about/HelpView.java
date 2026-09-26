@@ -27,6 +27,8 @@ public class HelpView extends VerticalLayout implements HasDynamicTitle {
         this.messageSource = messageSource;
         this.localeService = localeService;
         setWidthFull();
+        addClassName("review-page");
+        setPadding(false);
         add(getWelcomeCard(), getNavigationCard(), getWorkflowsCard(), getSupportCard());
     }
 

@@ -12,7 +12,6 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -45,17 +44,17 @@ public class ApiTokensView extends VerticalLayout implements HasDynamicTitle {
         this.messageSource = messageSource;
         this.localeService = localeService;
         setSizeFull();
-        setPadding(true);
+        addClassName("review-page");
+        setPadding(false);
         setSpacing(true);
 
-        H2 title = new H2(message("api_tokens_view.title"));
         Button create = new Button(message("api_tokens_view.create"), event -> create());
         create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button refresh = new Button(message("common.refresh"), event -> refresh());
-        HorizontalLayout header = new HorizontalLayout(title, create, refresh);
+        HorizontalLayout header = new HorizontalLayout(create, refresh);
+        header.addClassName("review-toolbar");
         header.setWidthFull();
         header.setAlignItems(Alignment.CENTER);
-        header.setFlexGrow(1, title);
 
         grid.addColumn(ApiTokenSummary::name).setHeader(message("api_tokens_view.name")).setFlexGrow(1);
         grid.addColumn(item -> String.join(", ", item.scopes())).setHeader(message("api_tokens_view.scopes")).setFlexGrow(2);
@@ -81,6 +80,8 @@ public class ApiTokensView extends VerticalLayout implements HasDynamicTitle {
     private void create() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(message("api_tokens_view.create"));
+        dialog.setWidth("560px");
+        dialog.setMaxWidth("calc(100vw - 32px)");
         TextField name = new TextField(message("api_tokens_view.name"));
         name.setWidthFull();
         CheckboxGroup<String> scopes = new CheckboxGroup<>(message("api_tokens_view.scopes"));
@@ -94,7 +95,7 @@ public class ApiTokensView extends VerticalLayout implements HasDynamicTitle {
         expires.setStepButtonsVisible(true);
         VerticalLayout form = new VerticalLayout(name, scopes, expires);
         form.setPadding(false);
-        form.setWidth("560px");
+        form.setWidthFull();
         dialog.add(form);
 
         Button save = new Button(message("api_tokens_view.create"), event -> {
@@ -122,12 +123,17 @@ public class ApiTokensView extends VerticalLayout implements HasDynamicTitle {
     private void showToken(ApiTokenCreatedResponse result) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(message("api_tokens_view.created_title"));
+        dialog.setWidth("640px");
+        dialog.setMaxWidth("calc(100vw - 32px)");
         TextArea token = new TextArea(message("api_tokens_view.token"));
         token.setValue(result.token());
         token.setReadOnly(true);
-        token.setWidth("640px");
+        token.setWidthFull();
         token.setMinHeight("110px");
-        dialog.add(new VerticalLayout(new com.vaadin.flow.component.html.Paragraph(message("api_tokens_view.copy_once")), token));
+        VerticalLayout content = new VerticalLayout(new com.vaadin.flow.component.html.Paragraph(message("api_tokens_view.copy_once")), token);
+        content.setPadding(false);
+        content.setWidthFull();
+        dialog.add(content);
         dialog.getFooter().add(new Button(message("common.close"), event -> dialog.close()));
         dialog.open();
     }

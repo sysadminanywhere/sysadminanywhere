@@ -47,6 +47,8 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
     public InventoryIssuesView(InventoryService inventoryService, IncidentService incidentService, MessageSource messages, LocaleService locale) {
         this.inventoryService = inventoryService; this.incidentService = incidentService; this.messages = messages; this.locale = locale;
         setSizeFull();
+        addClassName("review-page");
+        setPadding(false);
         Button refresh = new Button(msg("common.refresh"), e -> refresh());
         severityFilter.setItems("ALL", "HIGH", "MEDIUM");
         severityFilter.setValue("ALL");
@@ -67,9 +69,10 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
         Button createIncidents = new Button(msg("inventory_issues_view.create_incidents"), e -> confirmCreateIncidents());
         createIncidents.setVisible(isAdmin());
         HorizontalLayout header = new HorizontalLayout(summary, typeFilter, severityFilter, createIncidents, refresh);
+        header.addClassName("review-toolbar");
         header.setWidthFull();
         header.setAlignItems(Alignment.END);
-        grid.addColumn(Issue::severity).setHeader(msg("inventory_issues_view.severity")).setAutoWidth(true);
+        grid.addComponentColumn(item -> issueBadge(item.severity())).setHeader(msg("inventory_issues_view.severity")).setAutoWidth(true);
         grid.addColumn(Issue::type).setHeader(msg("inventory_issues_view.type")).setAutoWidth(true);
         grid.addColumn(Issue::object).setHeader(msg("inventory_issues_view.object")).setAutoWidth(true);
         grid.addColumn(Issue::details).setHeader(msg("inventory_issues_view.details")).setFlexGrow(1);
@@ -80,6 +83,13 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
         grid.setSizeFull();
         add(header, grid); expand(grid); refresh();
+    }
+
+    private Span issueBadge(String severity) {
+        Span badge = new Span(severity);
+        badge.getElement().getThemeList().add("badge");
+        badge.getElement().getThemeList().add("HIGH".equals(severity) ? "error" : "warning");
+        return badge;
     }
 
     private void refresh() {
