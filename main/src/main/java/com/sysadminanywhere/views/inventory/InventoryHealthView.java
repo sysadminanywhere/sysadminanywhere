@@ -75,7 +75,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         this.incidentService = incidentService;
         this.messageSource = messageSource;
         this.localeService = localeService;
-        setSizeFull();
+        setWidthFull();
         addClassName("review-page");
         setPadding(false);
         setSpacing(true);
@@ -146,6 +146,8 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         HorizontalLayout summary = new HorizontalLayout(metric(message("inventory_health_view.total"), total),
                 metric(message("inventory_health_view.stale"), stale), metric(message("inventory_health_view.never_scanned"), neverScanned));
         summary.setWidthFull();
+        summary.setWrap(true);
+        summary.addClassName("inventory-health-summary");
         summary.setFlexGrow(1, summary.getComponentAt(0), summary.getComponentAt(1), summary.getComponentAt(2));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -180,7 +182,8 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         });
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
-        grid.setSizeFull();
+        grid.setWidthFull();
+        grid.setHeight("320px");
         historyGrid.addColumn(item -> item.startedAt() == null ? "-" : item.startedAt().format(formatter))
                 .setHeader(message("inventory_health_view.scan_started_at")).setAutoWidth(true);
         historyGrid.addColumn(item -> item.finishedAt() == null ? "-" : item.finishedAt().format(formatter))
@@ -201,6 +204,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         historyCard.add(new H3(message("inventory_health_view.scan_history")), historyGrid);
         Card computersCard = new Card();
         computersCard.setWidthFull();
+        computersCard.addClassName("inventory-computers-card");
         computersCard.add(new H3(message("inventory_health_view.computers")),
                 new Span(message("inventory_health_view.computers_hint")), grid);
         Details platformSummaries = new Details();
@@ -213,7 +217,6 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
             }
         });
         add(titleRow, controls, summaryCard, historyCard, computersCard, platformSummaries);
-        expand(grid);
         refresh();
     }
 
@@ -383,7 +386,11 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         caption.getStyle().set("font-size", "var(--lumo-font-size-s)").set("color", "var(--lumo-secondary-text-color)");
         value.getStyle().set("font-size", "var(--lumo-font-size-xl)").set("font-weight", "600");
         Card content = new Card();
-        content.add(caption, value);
+        VerticalLayout stack = new VerticalLayout(caption, value);
+        stack.setPadding(false);
+        stack.setSpacing(false);
+        content.add(stack);
+        content.addClassName("inventory-health-metric");
         content.setWidthFull();
         return content;
     }

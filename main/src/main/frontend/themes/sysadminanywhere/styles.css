@@ -166,6 +166,12 @@ html[theme~="dark"] body {
       background: var(--lumo-base-color);
 }
 
+.inventory-health-summary { gap: var(--lumo-space-m); }
+.inventory-health-summary > vaadin-card { flex: 1 1 200px; min-width: 0; }
+.inventory-health-metric vaadin-vertical-layout { gap: var(--lumo-space-xs); }
+.inventory-computers-card { flex: 0 0 auto; min-width: 0; }
+.inventory-computers-card vaadin-grid { flex: 0 0 auto; }
+
 .review-report-catalog {
       box-sizing: border-box;
       width: 100%;
