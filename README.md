@@ -43,7 +43,7 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 - **Performance Monitoring**: Real-time computer performance metrics
 
 ### 📊 Inventory & Reporting
-- **Hardware Inventory**: Browse installed processors, graphics cards, disks, memory and other components by model; see how many computers report each model, open the affected computers, and review installation/removal/configuration changes between scans. Removal is recorded only after successful WMI scans; a missing device is an investigation signal, not proof of theft.
+- **Hardware Inventory**: Browse installed processors, graphics cards, disks, memory and other components by model; see how many computers report each model, open the affected computers, and review additions, removals and serial-confirmed replacements between scans. Routine WMI property updates do not create hardware change events. Removal is recorded only after successful WMI scans; a missing device is an investigation signal, not proof of theft.
 - **Software Inventory**: Comprehensive software asset management
 - **Incident Management**: Incident tracking and resolution (preview)
 - **44 PDF Reports**: Reports for users, computers, groups, printers and contacts

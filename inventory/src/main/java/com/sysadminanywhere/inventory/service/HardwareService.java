@@ -55,7 +55,8 @@ public class HardwareService {
     public void scanHardware(Computer computer) {
         String hostName = computer.getName();
         log.info("Scanning hardware on computer {}", hostName);
-        boolean firstHistoryScan = !hardwareChangeRepository.existsByComputerId(computer.getId());
+        boolean firstHistoryScan = !hardwareChangeRepository.existsByComputerIdAndChangeTypeNot(
+                computer.getId(), "CONFIGURATION_CHANGED");
 
         List<Map<String, Object>> diskDrives = execute(hostName, "SELECT * FROM Win32_DiskDrive");
         List<Map<String, Object>> operatingSystems = execute(hostName, "SELECT * FROM Win32_OperatingSystem");
@@ -71,16 +72,19 @@ public class HardwareService {
 
         // Get current hardware models for this computer
         Set<Long> currentHardwareModelIds = new HashSet<>();
+        Set<Long> processedHardwareModelIds = new HashSet<>();
+        List<ComputerHardware> previousHardware = computerHardwareRepository.findByComputerId(computer.getId());
+        Set<Long> matchedHardwareIds = new HashSet<>();
         
-        saveHardware(computer, HardwareType.DISK_DRIVE, diskDrives, currentHardwareModelIds, firstHistoryScan);
-        saveHardware(computer, HardwareType.OPERATING_SYSTEM, operatingSystems, currentHardwareModelIds, firstHistoryScan);
-        saveHardware(computer, HardwareType.PROCESSOR, processors, currentHardwareModelIds, firstHistoryScan);
-        saveHardware(computer, HardwareType.VIDEO_CONTROLLER, videoControllers, currentHardwareModelIds, firstHistoryScan);
-        saveHardware(computer, HardwareType.PHYSICAL_MEMORY, physicalMemory, currentHardwareModelIds, firstHistoryScan);
-        saveHardware(computer, HardwareType.BASE_BOARD, baseBoards, currentHardwareModelIds, firstHistoryScan);
-        saveHardware(computer, HardwareType.BIOS, bios, currentHardwareModelIds, firstHistoryScan);
-        saveHardware(computer, HardwareType.COMPUTER_SYSTEM, computerSystems, currentHardwareModelIds, firstHistoryScan);
-        saveHardware(computer, HardwareType.PATCH, patches, currentHardwareModelIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.DISK_DRIVE, diskDrives, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.OPERATING_SYSTEM, operatingSystems, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.PROCESSOR, processors, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.VIDEO_CONTROLLER, videoControllers, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.PHYSICAL_MEMORY, physicalMemory, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.BASE_BOARD, baseBoards, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.BIOS, bios, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.COMPUTER_SYSTEM, computerSystems, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.PATCH, patches, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
         
         // Remove hardware that no longer exists
         if (completeScan) {
@@ -121,9 +125,18 @@ public class HardwareService {
     }
 
     private void saveHardware(Computer computer, HardwareType hardwareType, List<Map<String, Object>> list,
-                              Set<Long> currentHardwareModelIds, boolean firstHistoryScan) {
+                              Set<Long> currentHardwareModelIds, Set<Long> processedHardwareModelIds,
+                              List<ComputerHardware> previousHardware, Set<Long> matchedHardwareIds,
+                              boolean firstHistoryScan) {
         if (list == null || list.isEmpty()) {
             return;
+        }
+
+        Map<String, Long> modelOccurrences = new HashMap<>();
+        if (hasReliableSerial(hardwareType)) {
+            for (Map<String, Object> data : list) {
+                modelOccurrences.merge(extractModelName(data, hardwareType), 1L, Long::sum);
+            }
         }
 
         for (Map<String, Object> data : list) {
@@ -132,16 +145,25 @@ public class HardwareService {
 
             // Add to current hardware set
             currentHardwareModelIds.add(hardwareModel.getId());
+            if (!processedHardwareModelIds.add(hardwareModel.getId())) {
+                // This schema stores one computer/model row, not one row for each identical device.
+                continue;
+            }
 
             // Check if ComputerHardware already exists
             Optional<ComputerHardware> existingHardware = computerHardwareRepository
                     .findByComputerIdAndHardwareModelId(computer.getId(), hardwareModel.getId());
+            if (existingHardware.isEmpty()) {
+                existingHardware = matchingPreviousDevice(previousHardware, matchedHardwareIds, hardwareType, data);
+                existingHardware.ifPresent(hardware -> hardware.setHardwareModel(hardwareModel));
+            }
 
             ComputerHardware computerHardware;
             boolean newlyInstalled = existingHardware.isEmpty();
             if (existingHardware.isPresent()) {
                 // Update existing record
                 computerHardware = existingHardware.get();
+                matchedHardwareIds.add(computerHardware.getId());
             } else {
                 // Create new record
                 computerHardware = new ComputerHardware();
@@ -152,12 +174,24 @@ public class HardwareService {
             computerHardware = computerHardwareRepository.save(computerHardware);
 
             if (newlyInstalled) {
-                recordChange(computer, hardwareModel, "INSTALLED", null, null, null);
+                recordChange(computer, hardwareModel, "INSTALLED", null, null, modelName);
             } else if (firstHistoryScan) {
                 recordChange(computer, hardwareModel, "FIRST_OBSERVED", null, null, null);
             }
 
-            saveHardwareProperties(computerHardware, data, hardwareType, !newlyInstalled);
+            List<HardwareProperty> existingProperties = newlyInstalled ? List.of()
+                    : hardwarePropertyRepository.findByComputerHardwareId(computerHardware.getId());
+            if (!newlyInstalled && !firstHistoryScan && hasReliableSerial(hardwareType)
+                    && modelOccurrences.getOrDefault(modelName, 0L) == 1L) {
+                String previousSerial = propertyValue(existingProperties, "SerialNumber");
+                String scannedSerial = mapValue(data, "SerialNumber");
+                if (reliableIdentifier(previousSerial) && reliableIdentifier(scannedSerial)
+                        && !previousSerial.trim().equalsIgnoreCase(scannedSerial.trim())) {
+                    recordChange(computer, hardwareModel, "REPLACED", "SerialNumber",
+                            previousSerial.trim(), scannedSerial.trim());
+                }
+            }
+            saveHardwareProperties(computerHardware, data, existingProperties);
         }
     }
 
@@ -206,14 +240,8 @@ public class HardwareService {
     }
 
     private void saveHardwareProperties(ComputerHardware computerHardware, Map<String, Object> data,
-                                        HardwareType hardwareType, boolean trackChanges) {
+                                        List<HardwareProperty> existingProperties) {
         Set<String> processedProperties = new HashSet<>();
-
-        // Get existing properties for this computer hardware
-        List<HardwareProperty> existingProperties = hardwarePropertyRepository.findAll()
-                .stream()
-                .filter(prop -> prop.getComputerHardware().getId().equals(computerHardware.getId()))
-                .toList();
 
         Map<String, HardwareProperty> existingPropertiesMap = new HashMap<>();
         for (HardwareProperty prop : existingProperties) {
@@ -237,10 +265,6 @@ public class HardwareService {
             if (existingProperty != null) {
                 // Update existing property if value changed
                 if (!existingProperty.getPropertyValue().equals(propertyValueStr)) {
-                    if (trackChanges) {
-                        recordChange(computerHardware.getComputer(), computerHardware.getHardwareModel(),
-                                "CONFIGURATION_CHANGED", propertyName, existingProperty.getPropertyValue(), propertyValueStr);
-                    }
                     existingProperty.setPropertyValue(propertyValueStr);
                     hardwarePropertyRepository.save(existingProperty);
                     log.debug("Updated property {} for hardware {}", propertyName, computerHardware.getId());
@@ -263,20 +287,71 @@ public class HardwareService {
         for (HardwareProperty existingProperty : existingPropertiesMap.values()) {
             if (data.containsKey(existingProperty.getPropertyName())
                     && data.get(existingProperty.getPropertyName()) == null) {
-                if (trackChanges) {
-                    recordChange(computerHardware.getComputer(), computerHardware.getHardwareModel(),
-                            "CONFIGURATION_CHANGED", existingProperty.getPropertyName(),
-                            existingProperty.getPropertyValue(), null);
-                }
                 hardwarePropertyRepository.delete(existingProperty);
             }
         }
     }
 
+    private boolean hasReliableSerial(HardwareType type) {
+        return type == HardwareType.DISK_DRIVE || type == HardwareType.PHYSICAL_MEMORY
+                || type == HardwareType.BASE_BOARD;
+    }
+
+    private Optional<ComputerHardware> matchingPreviousDevice(List<ComputerHardware> previousHardware,
+            Set<Long> matchedHardwareIds, HardwareType type, Map<String, Object> scannedValues) {
+        String identifierName = switch (type) {
+            case DISK_DRIVE, PHYSICAL_MEMORY, BASE_BOARD -> "SerialNumber";
+            case VIDEO_CONTROLLER -> "PNPDeviceID";
+            case PROCESSOR -> "ProcessorId";
+            default -> null;
+        };
+        if (identifierName == null) return Optional.empty();
+        String scannedIdentifier = mapValue(scannedValues, identifierName);
+        if (!reliableIdentifier(scannedIdentifier)) return Optional.empty();
+        for (ComputerHardware previous : previousHardware) {
+            if (matchedHardwareIds.contains(previous.getId())
+                    || !type.toString().equals(previous.getHardwareModel().getHardwareType())) {
+                continue;
+            }
+            String previousIdentifier = propertyValue(
+                    hardwarePropertyRepository.findByComputerHardwareId(previous.getId()), identifierName);
+            if (reliableIdentifier(previousIdentifier)
+                    && previousIdentifier.trim().equalsIgnoreCase(scannedIdentifier.trim())) {
+                return Optional.of(previous);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private String propertyValue(List<HardwareProperty> properties, String name) {
+        return properties.stream().filter(property -> name.equalsIgnoreCase(property.getPropertyName()))
+                .map(HardwareProperty::getPropertyValue).findFirst().orElse(null);
+    }
+
+    private String mapValue(Map<String, Object> values, String name) {
+        return values.entrySet().stream().filter(entry -> name.equalsIgnoreCase(entry.getKey()))
+                .map(Map.Entry::getValue).filter(Objects::nonNull).map(Object::toString)
+                .findFirst().orElse(null);
+    }
+
+    private boolean reliableIdentifier(String value) {
+        if (value == null || value.isBlank()) return false;
+        String normalized = value.trim();
+        String alphanumeric = normalized.replaceAll("[^0-9A-Za-z]", "");
+        return !alphanumeric.isEmpty()
+                && !Set.of("unknown", "none", "notavailable", "notspecified", "notapplicable",
+                        "tobefilledbyoem", "na", "null", "defaultstring", "systemserialnumber")
+                        .contains(alphanumeric.toLowerCase(Locale.ROOT))
+                && !alphanumeric.matches("0+");
+    }
+
     private void recordChange(Computer computer, HardwareModel model, String changeType,
                               String propertyName, String oldValue, String newValue) {
-        if (model == null || "Patch".equals(model.getHardwareType())
-                || "OperatingSystem".equals(model.getHardwareType())) {
+        if (model == null || "Unknown".equalsIgnoreCase(model.getName())
+                || "Patch".equals(model.getHardwareType())
+                || "OperatingSystem".equals(model.getHardwareType())
+                || "BIOS".equals(model.getHardwareType())
+                || "ComputerSystem".equals(model.getHardwareType())) {
             return;
         }
         HardwareChange change = new HardwareChange();

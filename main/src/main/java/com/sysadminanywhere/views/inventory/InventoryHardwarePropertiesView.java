@@ -150,7 +150,7 @@ public class InventoryHardwarePropertiesView extends Div implements BeforeEnterO
             case "installed" -> "change_installed";
             case "first_observed" -> "change_first_observed";
             case "removed" -> "change_removed";
-            case "configuration_changed" -> "change_configuration";
+            case "replaced" -> "change_replaced";
             default -> null;
         };
         return key == null ? type : msg("inventory_hardware_view." + key);
