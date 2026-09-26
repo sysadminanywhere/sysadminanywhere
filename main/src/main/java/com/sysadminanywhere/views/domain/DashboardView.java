@@ -1,38 +1,34 @@
 package com.sysadminanywhere.views.domain;
 
-import com.github.appreciated.apexcharts.ApexCharts;
-import com.github.appreciated.apexcharts.ApexChartsBuilder;
-import com.github.appreciated.apexcharts.config.builder.*;
-import com.github.appreciated.apexcharts.config.chart.Type;
-import com.github.appreciated.apexcharts.config.chart.builder.ToolbarBuilder;
-import com.github.appreciated.apexcharts.config.plotoptions.builder.BarBuilder;
-import com.github.appreciated.apexcharts.config.builder.XAxisBuilder;
-import com.github.appreciated.apexcharts.helper.Series;
+import com.sysadminanywhere.common.directory.model.ComputerEntry;
+import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.model.UserEntry;
-import com.sysadminanywhere.common.directory.model.*;
-import com.sysadminanywhere.service.*;
+import com.sysadminanywhere.common.directory.dto.DomainHealthDto;
+import com.sysadminanywhere.model.SecurityAuditSnapshot;
+import com.sysadminanywhere.service.DashboardDirectorySnapshotService;
+import com.sysadminanywhere.service.DashboardSnapshotService;
+import com.sysadminanywhere.service.InventoryService;
 import com.sysadminanywhere.service.LocaleService;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.card.Card;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import jakarta.annotation.security.RolesAllowed;
-import org.springframework.context.MessageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.function.Predicate;
 
 @Route(value = "")
 @RouteAlias(value = "domain/dashboard")
@@ -40,345 +36,315 @@ import java.time.format.DateTimeFormatter;
 @RolesAllowed({"ADMIN", "READER"})
 public class DashboardView extends VerticalLayout implements HasDynamicTitle {
     private static final Logger log = LoggerFactory.getLogger(DashboardView.class);
+    private static final DateTimeFormatter CHECKED_AT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    private final String ColumnWidth = "55%";
-    private final String ChartHeight = "300px";
-    private final String ChartWidth = "400px";
-
-    private final ComputersService computersService;
-    private final UsersService usersService;
-    private final GroupsService groupsService;
-    private final PrintersService printersService;
-    private final ContactsService contactsService;
-    private final MessageSource messageSource;
-    private final LocaleService localeService;
+    private final DashboardDirectorySnapshotService directorySnapshots;
+    private final DashboardSnapshotService healthSnapshots;
     private final InventoryService inventoryService;
-    private final DashboardSnapshotService dashboardSnapshotService;
-    private final VerticalLayout content = new VerticalLayout();
+    private final MessageSource messages;
+    private final LocaleService locale;
+    private final Div content = new Div();
     private final Span loading = new Span();
     private boolean loadingStarted;
-    private long loadGeneration;
+    private int loadGeneration;
+    private Div statusContainer;
 
-    private final String title = "dashboard_view.title";
-
-    public DashboardView(ComputersService computersService,
-                         UsersService usersService,
-                         GroupsService groupsService,
-                         PrintersService printersService,
-                         ContactsService contactsService,
-                         InventoryService inventoryService,
-                         DashboardSnapshotService dashboardSnapshotService,
-                         MessageSource messageSource,
-                         LocaleService localeService) {
-
-        this.computersService = computersService;
-        this.usersService = usersService;
-        this.groupsService = groupsService;
-        this.printersService = printersService;
-        this.contactsService = contactsService;
+    public DashboardView(DashboardDirectorySnapshotService directorySnapshots,
+                         DashboardSnapshotService healthSnapshots,
+                         InventoryService inventoryService, MessageSource messages, LocaleService locale) {
+        this.directorySnapshots = directorySnapshots;
+        this.healthSnapshots = healthSnapshots;
         this.inventoryService = inventoryService;
-        this.dashboardSnapshotService = dashboardSnapshotService;
-        this.messageSource = messageSource;
-        this.localeService = localeService;
+        this.messages = messages;
+        this.locale = locale;
 
+        addClassName("dashboard-page");
         setWidthFull();
-        content.setWidthFull();
-        content.setPadding(false);
-        loading.setText(getMessage("dashboard_view.loading"));
-        Button refresh = new Button(getMessage("common.refresh"), event -> {
-            dashboardSnapshotService.invalidate();
-            loadingStarted = false;
-            loadDashboard();
-        });
-        add(refresh, loading, content);
-        content.add(createLoadingCards());
-        getElement().executeJs("requestAnimationFrame(() => $0.$server.loadDashboard())", getElement());
-    }
+        setPadding(false);
 
-    private HorizontalLayout createLoadingCards() {
-        HorizontalLayout cards = new HorizontalLayout();
-        cards.setWidthFull();
-        cards.setWrap(true);
-        cards.add(metricCard(getMessage("domain_health_view.title"), "unknown", "…", Map.of()),
-                metricCard(getMessage("security_audit_view.title"), "unknown", "…", Map.of()),
-                metricCard(getMessage("dashboard_view.users"), "unknown", "…", Map.of()),
-                metricCard(getMessage("inventory_health_view.title"), "unknown", "…", Map.of()));
-        return cards;
+        H2 title = new H2(msg("dashboard_view.title"));
+        title.addClassName("dashboard-title");
+        Button refresh = new Button(msg("common.refresh"), event -> {
+            directorySnapshots.invalidate();
+            healthSnapshots.invalidate();
+            ++loadGeneration;
+            loadingStarted = false;
+            loading.setText(msg("dashboard_view.loading"));
+            loading.setVisible(true);
+            content.removeAll();
+            content.add(skeletonCards());
+            getElement().executeJs("requestAnimationFrame(() => $0.$server.loadDashboard())", getElement());
+        });
+        refresh.addClassName("dashboard-refresh");
+        Div header = new Div(title, refresh);
+        header.addClassName("dashboard-header");
+
+        loading.setText(msg("dashboard_view.loading"));
+        loading.addClassName("dashboard-loading");
+        content.addClassName("dashboard-content");
+        content.add(skeletonCards());
+        add(header, loading, content);
+        getElement().executeJs("requestAnimationFrame(() => $0.$server.loadDashboard())", getElement());
     }
 
     @ClientCallable
     public void loadDashboard() {
         if (loadingStarted) return;
         loadingStarted = true;
-        long generation = ++loadGeneration;
-        loading.setText(getMessage("dashboard_view.loading"));
+        int generation = ++loadGeneration;
+        loading.setText(msg("dashboard_view.loading"));
         loading.setVisible(true);
         long startedAt = System.nanoTime();
         try {
-            List<ComputerEntry> computers = computersService.getAll();
-            List<UserEntry> users = usersService.getAll();
-            List<GroupEntry> groups = groupsService.getAll();
-            List<PrinterEntry> printers = printersService.getAll();
-            List<ContactEntry> contacts = contactsService.getAll();
-            long directoryMs = (System.nanoTime() - startedAt) / 1_000_000;
-
-            HorizontalLayout overview = createOverviewCards(users, computers);
-            long overviewMs = (System.nanoTime() - startedAt) / 1_000_000 - directoryMs;
-            log.info("Dashboard data loaded: directory={} ms, overview={} ms", directoryMs, overviewMs);
+            DashboardDirectorySnapshotService.Snapshot directory = directorySnapshots.get();
             content.removeAll();
-            content.add(overview);
+            statusContainer = statusSkeleton();
+            content.add(directoryCards(directory), statusContainer, charts(directory));
             loading.setVisible(false);
-
-            getStoredTheme().thenAccept(v -> {
-            if (generation != loadGeneration || !isAttached()) return;
-            boolean isDarkTheme = v.contains("dark");
-
-            String theme = isDarkTheme ? "dark" : "light";
-            String foreColor = isDarkTheme ? "white" : "black";
-
-            ApexCharts chartSummary = ApexChartsBuilder.get()
-                    .withTooltip(TooltipBuilder.get()
-                            .withFillSeriesColor(false)
-                            .withTheme(theme).build())
-                    .withChart(ChartBuilder.get()
-                            .withType(Type.BAR)
-                            .withForeColor(foreColor)
-                            .withToolbar(ToolbarBuilder.get().withShow(false).build())
-                            .build())
-                    .withPlotOptions(PlotOptionsBuilder.get()
-                            .withBar(BarBuilder.get()
-                                    .withHorizontal(false)
-                                    .withColumnWidth(ColumnWidth)
-                                    .build())
-                            .build())
-                    .withDataLabels(DataLabelsBuilder.get()
-                            .withEnabled(false).build())
-                    .withStroke(StrokeBuilder.get()
-                            .withShow(true)
-                            .withWidth(2.0)
-                            .withColors("transparent")
-                            .build())
-                    .withSeries(new Series<>(getMessage("dashboard_view.computers"), computers.size()),
-                            new Series<>(getMessage("dashboard_view.users"), users.size()),
-                            new Series<>(getMessage("dashboard_view.groups"), groups.size()),
-                            new Series<>(getMessage("main_layout.printers"), printers.size()),
-                            new Series<>(getMessage("main_layout.contacts"), contacts.size()))
-                    .withXaxis(XAxisBuilder.get().withCategories("Count").build())
-                    .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
-            chartSummary.setHeight(ChartHeight);
-            chartSummary.setWidth(ChartWidth);
-            chartSummary.setTitle(TitleSubtitleBuilder.get().withText(getMessage("dashboard_view.summary")).build());
-
-            ApexCharts chartUsers = ApexChartsBuilder.get()
-                    .withTooltip(TooltipBuilder.get()
-                            .withFillSeriesColor(false)
-                            .withTheme(theme).build())
-                    .withChart(ChartBuilder.get()
-                            .withType(Type.BAR)
-                            .withForeColor(foreColor)
-                            .withToolbar(ToolbarBuilder.get().withShow(false).build())
-                            .build())
-                    .withPlotOptions(PlotOptionsBuilder.get()
-                            .withBar(BarBuilder.get()
-                                    .withHorizontal(false)
-                                    .withColumnWidth(ColumnWidth)
-                                    .build())
-                            .build())
-                    .withDataLabels(DataLabelsBuilder.get()
-                            .withEnabled(false).build())
-                    .withStroke(StrokeBuilder.get()
-                            .withShow(true)
-                            .withWidth(2.0)
-                            .withColors("transparent")
-                            .build())
-                    .withSeries(new Series<>(getMessage("dashboard_view.number_of_users"), users.size()),
-                            new Series<>(getMessage("common.disabled"), users.stream().filter(c -> c.isDisabled()).count()),
-                            new Series<>(getMessage("common.locked"), users.stream().filter(c -> c.isLocked()).count()),
-                            new Series<>(getMessage("common.expired"), users.stream().filter(c -> c.isExpired()).count()),
-                            new Series<>(getMessage("common.never_expires"), users.stream().filter(c -> c.isNeverExpires()).count()))
-                    .withXaxis(XAxisBuilder.get().withCategories("Count").build())
-                    .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
-            chartUsers.setHeight(ChartHeight);
-            chartUsers.setWidth(ChartWidth);
-            chartUsers.setTitle(TitleSubtitleBuilder.get().withText(getMessage("dashboard_view.users")).build());
-
-            ApexCharts chartComputers = ApexChartsBuilder.get()
-                    .withTooltip(TooltipBuilder.get()
-                            .withFillSeriesColor(false)
-                            .withTheme(theme).build())
-                    .withChart(ChartBuilder.get()
-                            .withType(Type.BAR)
-                            .withForeColor(foreColor)
-                            .withToolbar(ToolbarBuilder.get().withShow(false).build())
-                            .build())
-                    .withPlotOptions(PlotOptionsBuilder.get()
-                            .withBar(BarBuilder.get()
-                                    .withHorizontal(false)
-                                    .withColumnWidth(ColumnWidth)
-                                    .build())
-                            .build())
-                    .withDataLabels(DataLabelsBuilder.get()
-                            .withEnabled(false).build())
-                    .withStroke(StrokeBuilder.get()
-                            .withShow(true)
-                            .withWidth(2.0)
-                            .withColors("transparent")
-                            .build())
-                    .withSeries(new Series<>(getMessage("dashboard_view.number_of_computers"), computers.size()),
-                            new Series<>(getMessage("common.disabled"), computers.stream().filter(c -> c.isDisabled()).count()),
-                            new Series<>(getMessage("dashboard_view.workstations"), computers.stream().filter(c -> c.isWorkstation()).count()),
-                            new Series<>(getMessage("dashboard_view.servers"), computers.stream().filter(c -> c.isServer()).count()),
-                            new Series<>(getMessage("dashboard_view.domain_controllers"), computers.stream().filter(c -> c.isDomainController()).count()))
-                    .withXaxis(XAxisBuilder.get().withCategories("Count").build())
-                    .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
-            chartComputers.setHeight(ChartHeight);
-            chartComputers.setWidth(ChartWidth);
-            chartComputers.setTitle(TitleSubtitleBuilder.get().withText(getMessage("dashboard_view.computers")).build());
-
-            ApexCharts chartGroups = ApexChartsBuilder.get()
-                    .withTooltip(TooltipBuilder.get()
-                            .withFillSeriesColor(false)
-                            .withTheme(theme).build())
-                    .withChart(ChartBuilder.get()
-                            .withType(Type.BAR)
-                            .withForeColor(foreColor)
-                            .withToolbar(ToolbarBuilder.get().withShow(false).build())
-                            .build())
-                    .withPlotOptions(PlotOptionsBuilder.get()
-                            .withBar(BarBuilder.get()
-                                    .withHorizontal(false)
-                                    .withColumnWidth(ColumnWidth)
-                                    .build())
-                            .build())
-                    .withDataLabels(DataLabelsBuilder.get()
-                            .withEnabled(false).build())
-                    .withStroke(StrokeBuilder.get()
-                            .withShow(true)
-                            .withWidth(2.0)
-                            .withColors("transparent")
-                            .build())
-                    .withSeries(new Series<>(getMessage("dashboard_view.number_of_groups"), groups.size()),
-                            new Series<>(getMessage("dashboard_view.security"), groups.stream().filter(c -> c.isSecurity()).count()),
-                            new Series<>(getMessage("dashboard_view.distribution"), groups.stream().filter(c -> c.isDistribution()).count()),
-                            new Series<>(getMessage("dashboard_view.built_in"), groups.stream().filter(c -> c.isBuiltIn()).count()))
-                    .withXaxis(XAxisBuilder.get().withCategories("Count").build())
-                    .withFill(FillBuilder.get().withOpacity(1.0).build()).build();
-            chartGroups.setHeight(ChartHeight);
-            chartGroups.setWidth(ChartWidth);
-            chartGroups.setTitle(TitleSubtitleBuilder.get().withText(getMessage("dashboard_view.groups")).build());
-
-            HorizontalLayout line = new HorizontalLayout();
-            line.setWrap(true);
-            line.add(chartSummary, chartUsers, chartComputers, chartGroups);
-
-            content.add(line);
-
-            });
+            log.info("Dashboard overview rendered in {} ms", (System.nanoTime() - startedAt) / 1_000_000);
+            getElement().executeJs("requestAnimationFrame(() => $0.$server.loadStatus($1))", getElement(), generation);
         } catch (RuntimeException exception) {
             log.warn("Dashboard loading failed", exception);
-            loading.setText(getMessage("domain_health_view.error"));
+            loading.setText(msg("domain_health_view.error"));
             loadingStarted = false;
         }
     }
 
-    private HorizontalLayout createOverviewCards(List<UserEntry> users, List<ComputerEntry> computers) {
-        HorizontalLayout cards = new HorizontalLayout();
-        cards.setWidthFull();
-        cards.setWrap(true);
-        cards.setSpacing(true);
-
-        var domainHealth = dashboardSnapshotService.domainHealth();
-        String healthStatus = domainHealth == null || domainHealth.getOverallStatus() == null
-                ? "UNKNOWN" : domainHealth.getOverallStatus();
-        Card domainCard = metricCard(getMessage("domain_health_view.title"), healthClass(healthStatus),
-                localizedHealthStatus(healthStatus), Map.of(
-                getMessage("domain_health_view.overall"), localizedHealthStatus(healthStatus),
-                getMessage("domain_health_view.check"), domainHealth == null || domainHealth.getChecks() == null
-                        ? 0 : domainHealth.getChecks().size()));
-        if (domainHealth != null && domainHealth.getCheckedAt() != null) {
-            addCheckedAt(domainCard, domainHealth.getCheckedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+    @ClientCallable
+    public void loadStatus(int generation) {
+        if (generation != loadGeneration || statusContainer == null || !isAttached()) return;
+        try {
+            statusContainer.removeAll();
+            statusContainer.add(statusCards());
+        } catch (RuntimeException exception) {
+            log.warn("Dashboard status loading failed", exception);
+            statusContainer.removeAll();
+            statusContainer.add(new Span(msg("domain_health_view.error")));
         }
-        addDetailsLink(domainCard, "domain/info");
-
-        var security = dashboardSnapshotService.securityAudit();
-        int securityIssues = security.privilegedUsers() + security.privilegedGroups()
-                + security.usersMissingContactData();
-        boolean securityFailed = security.error() != null;
-        Card securityCard = metricCard(getMessage("security_audit_view.title"), securityFailed ? "error" : securityIssues == 0 ? "ok" : "warning",
-                securityFailed ? getMessage("domain_health_view.error") : securityIssues == 0 ? getMessage("domain_health_view.healthy") : getMessage("domain_health_view.warning"), Map.of(
-                getMessage("security_audit_view.privileged_users"), security.privilegedUsers(),
-                getMessage("security_audit_view.privileged_groups"), security.privilegedGroups(),
-                getMessage("security_audit_view.missing_contact"), security.usersMissingContactData()));
-        if (security.checkedAt() != null) {
-            addCheckedAt(securityCard, security.checkedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        }
-        addDetailsLink(securityCard, "security/audit");
-
-        long accountIssues = users.stream().filter(user -> user.isDisabled() || user.isLocked() || user.isExpired()).count();
-        Card accountsCard = metricCard(getMessage("dashboard_view.users"), accountIssues == 0 ? "ok" : "warning",
-                accountIssues == 0 ? getMessage("domain_health_view.healthy") : getMessage("domain_health_view.warning"), Map.of(
-                getMessage("common.disabled"), users.stream().filter(UserEntry::isDisabled).count(),
-                getMessage("common.locked"), users.stream().filter(UserEntry::isLocked).count(),
-                getMessage("common.expired"), users.stream().filter(UserEntry::isExpired).count()));
-        addDetailsLink(accountsCard, "management/users");
-
-        var inventory = inventoryService.getInventoryHealth(30);
-        long licenseIssues = inventoryService.getLicenses().stream()
-                .filter(license -> license.used() > license.purchased()
-                        || license.expiresAt() != null && license.expiresAt().isBefore(java.time.LocalDate.now()))
-                .count();
-        int inventoryIssues = inventory == null ? -1 : inventory.staleCount() + inventory.neverScannedCount() + (int) licenseIssues;
-        Card inventoryCard = metricCard(getMessage("inventory_health_view.title"), inventoryIssues < 0 ? "error" :
-                        inventoryIssues == 0 ? "ok" : "warning",
-                inventoryIssues < 0 ? getMessage("domain_health_view.error") : inventoryIssues == 0 ?
-                        getMessage("domain_health_view.healthy") : getMessage("domain_health_view.warning"), Map.of(
-                getMessage("inventory_health_view.total"), inventory == null ? 0 : inventory.totalComputers(),
-                getMessage("inventory_health_view.stale"), inventory == null ? 0 : inventory.staleCount(),
-                getMessage("inventory_health_view.never_scanned"), inventory == null ? 0 : inventory.neverScannedCount(),
-                getMessage("dashboard_view.license_issues"), licenseIssues));
-        addDetailsLink(inventoryCard, "inventory/health");
-
-        cards.add(domainCard, securityCard, accountsCard, inventoryCard);
-        return cards;
     }
 
-    private Card metricCard(String title, String statusClass, String statusText, Map<String, ?> values) {
-        Card card = new Card();
-        card.addClassName("overview-card");
-        card.addClassName("overview-" + statusClass);
-        card.setWidth("min(100%, 360px)");
-        card.getStyle().set("flex", "1 1 240px");
-        card.setTitle(title);
-        Span status = new Span(statusText);
-        status.addClassName("overview-status-badge");
-        VerticalLayout content = new VerticalLayout();
-        content.setPadding(false);
-        content.setWidthFull();
-        content.getStyle().set("flex", "1 1 auto");
-        values.forEach((label, value) -> {
-            HorizontalLayout row = new HorizontalLayout(new Span(label), new H3(String.valueOf(value)));
-            row.setWidthFull();
-            row.setJustifyContentMode(JustifyContentMode.BETWEEN);
-            content.add(row);
-        });
-        card.add(status, content);
+    private Div statusSkeleton() {
+        Div container = new Div();
+        container.addClassName("dashboard-status-container");
+        Div section = section(msg("dashboard_view.status_section"));
+        Div grid = new Div();
+        grid.addClassName("dashboard-status-grid");
+        for (int i = 0; i < 5; i++) {
+            Div placeholder = new Div();
+            placeholder.addClassName("dashboard-skeleton");
+            grid.add(placeholder);
+        }
+        section.add(grid);
+        container.add(section);
+        return container;
+    }
+
+    private Div skeletonCards() {
+        Div grid = new Div();
+        grid.addClassName("dashboard-metrics");
+        for (int i = 0; i < 5; i++) {
+            Div placeholder = new Div();
+            placeholder.addClassName("dashboard-skeleton");
+            grid.add(placeholder);
+        }
+        return grid;
+    }
+
+    private Div directoryCards(DashboardDirectorySnapshotService.Snapshot data) {
+        Div section = section(msg("dashboard_view.summary"));
+        Div grid = new Div();
+        grid.addClassName("dashboard-metrics");
+        grid.add(metric(msg("dashboard_view.users"), data.users().size(), "management/users",
+                        msg("common.disabled") + ": " + count(data.users(), UserEntry::isDisabled)),
+                metric(msg("dashboard_view.computers"), data.computers().size(), "management/computers",
+                        msg("common.disabled") + ": " + count(data.computers(), ComputerEntry::isDisabled)),
+                metric(msg("dashboard_view.groups"), data.groups().size(), "management/groups",
+                        msg("dashboard_view.security") + ": " + count(data.groups(), GroupEntry::isSecurity)),
+                metric(msg("main_layout.printers"), data.printers(), "management/printers", null),
+                metric(msg("main_layout.contacts"), data.contacts(), "management/contacts", null));
+        section.add(grid);
+        return section;
+    }
+
+    private Div metric(String label, long value, String route, String detail) {
+        Anchor card = new Anchor(route);
+        card.addClassName("dashboard-metric");
+        Span name = new Span(label);
+        name.addClassName("dashboard-metric-label");
+        Span count = new Span(Long.toString(value));
+        count.addClassName("dashboard-metric-value");
+        card.add(name, count);
+        if (detail != null) {
+            Span note = new Span(detail);
+            note.addClassName("dashboard-metric-note");
+            card.add(note);
+        }
+        return new Div(card);
+    }
+
+    private Div statusCards() {
+        Div section = section(msg("dashboard_view.status_section"));
+        Div grid = new Div();
+        grid.addClassName("dashboard-status-grid");
+
+        DomainHealthDto domain;
+        try {
+            domain = healthSnapshots.domainHealth();
+        } catch (RuntimeException exception) {
+            log.warn("Domain health is unavailable", exception);
+            domain = null;
+        }
+        String domainStatus = domain == null || domain.getOverallStatus() == null ? "UNKNOWN" : domain.getOverallStatus();
+        Div domainCard = statusCard(msg("domain_health_view.title"), healthClass(domainStatus),
+                localizedHealth(domainStatus), "domain/info");
+        statusRow(domainCard, msg("domain_health_view.check"), domain == null || domain.getChecks() == null ? 0 : domain.getChecks().size());
+        if (domain != null && domain.getCheckedAt() != null) {
+            statusFootnote(domainCard, msg("domain_health_view.checked_at") + ": " + domain.getCheckedAt().format(CHECKED_AT));
+        }
+
+        SecurityAuditSnapshot audit;
+        try {
+            audit = healthSnapshots.securityAudit();
+        } catch (RuntimeException exception) {
+            log.warn("Security audit is unavailable", exception);
+            audit = null;
+        }
+        boolean auditError = audit == null || audit.error() != null;
+        long weakSettings = auditError ? 0 : audit.findings().stream()
+                .filter(finding -> "WEAK_AUTHENTICATION".equals(finding.category())).count();
+        long auditIssues = auditError ? 0 : audit.usersMissingContactData() + weakSettings;
+        Div securityCard = statusCard(msg("security_audit_view.title"), auditError ? "error" : auditIssues > 0 ? "warning" : "ok",
+                auditError ? msg("domain_health_view.error") : auditIssues > 0 ? msg("domain_health_view.warning") : msg("domain_health_view.healthy"),
+                "security/audit");
+        if (!auditError) {
+            statusRow(securityCard, msg("security_audit_view.missing_contact"), audit.usersMissingContactData());
+            statusRow(securityCard, msg("dashboard_view.weak_settings"), weakSettings);
+            statusRow(securityCard, msg("security_audit_view.privileged_users"), audit.privilegedUsers());
+        }
+
+        DashboardDirectorySnapshotService.Snapshot data = directorySnapshots.get();
+        long accountIssues = data.users().stream().filter(user -> user.isDisabled() || user.isLocked() || user.isExpired()).count();
+        Div accountsCard = statusCard(msg("dashboard_view.users"), accountIssues > 0 ? "warning" : "ok",
+                accountIssues > 0 ? msg("domain_health_view.warning") : msg("domain_health_view.healthy"), "management/users");
+        statusRow(accountsCard, msg("common.disabled"), count(data.users(), UserEntry::isDisabled));
+        statusRow(accountsCard, msg("common.locked"), count(data.users(), UserEntry::isLocked));
+        statusRow(accountsCard, msg("common.expired"), count(data.users(), UserEntry::isExpired));
+
+        var inventory = inventoryService.getInventoryHealth(30);
+        int inventoryIssues = inventory == null ? -1 : inventory.staleCount() + inventory.neverScannedCount();
+        Div inventoryCard = statusCard(msg("inventory_health_view.title"), inventoryIssues < 0 ? "error" : inventoryIssues > 0 ? "warning" : "ok",
+                inventoryIssues < 0 ? msg("domain_health_view.error") : inventoryIssues > 0 ? msg("domain_health_view.warning") : msg("domain_health_view.healthy"),
+                "inventory/health");
+        if (inventory != null) {
+            statusRow(inventoryCard, msg("inventory_health_view.total"), inventory.totalComputers());
+            statusRow(inventoryCard, msg("inventory_health_view.stale"), inventory.staleCount());
+            statusRow(inventoryCard, msg("inventory_health_view.never_scanned"), inventory.neverScannedCount());
+        }
+
+        var licenses = inventoryService.getLicenses();
+        long licenseIssues = licenses.stream().filter(license -> license.used() > license.purchased()
+                || license.expiresAt() != null && license.expiresAt().isBefore(LocalDate.now())).count();
+        Div licenseCard = statusCard(msg("inventory_licenses_view.title"), licenseIssues > 0 ? "warning" : "ok",
+                licenseIssues > 0 ? msg("domain_health_view.warning") : msg("domain_health_view.healthy"), "inventory/licenses");
+        statusRow(licenseCard, msg("dashboard_view.license_issues"), licenseIssues);
+        statusRow(licenseCard, msg("dashboard_view.license_total"), licenses.size());
+
+        grid.add(domainCard, securityCard, accountsCard, inventoryCard, licenseCard);
+        section.add(grid);
+        return section;
+    }
+
+    private Div charts(DashboardDirectorySnapshotService.Snapshot data) {
+        Div section = section(msg("dashboard_view.distribution"));
+        Div grid = new Div();
+        grid.addClassName("dashboard-chart-grid");
+        grid.add(chart(msg("dashboard_view.users"), data.users().size(),
+                        part(msg("common.disabled"), count(data.users(), UserEntry::isDisabled), "warning"),
+                        part(msg("common.locked"), count(data.users(), UserEntry::isLocked), "error"),
+                        part(msg("common.expired"), count(data.users(), UserEntry::isExpired), "error"),
+                        part(msg("common.never_expires"), count(data.users(), UserEntry::isNeverExpires), "primary")),
+                chart(msg("dashboard_view.computers"), data.computers().size(),
+                        part(msg("dashboard_view.workstations"), count(data.computers(), ComputerEntry::isWorkstation), "primary"),
+                        part(msg("dashboard_view.servers"), count(data.computers(), ComputerEntry::isServer), "teal"),
+                        part(msg("dashboard_view.domain_controllers"), count(data.computers(), ComputerEntry::isDomainController), "violet"),
+                        part(msg("common.disabled"), count(data.computers(), ComputerEntry::isDisabled), "warning")),
+                chart(msg("dashboard_view.groups"), data.groups().size(),
+                        part(msg("dashboard_view.security"), count(data.groups(), GroupEntry::isSecurity), "primary"),
+                        part(msg("dashboard_view.distribution"), count(data.groups(), GroupEntry::isDistribution), "teal"),
+                        part(msg("dashboard_view.built_in"), count(data.groups(), GroupEntry::isBuiltIn), "violet")));
+        section.add(grid);
+        return section;
+    }
+
+    private Div chart(String title, long total, ChartPart... parts) {
+        Div panel = new Div();
+        panel.addClassName("dashboard-chart");
+        H3 heading = new H3(title);
+        heading.addClassName("dashboard-chart-title");
+        panel.add(heading);
+        for (ChartPart part : parts) {
+            Div row = new Div();
+            row.addClassName("dashboard-chart-row");
+            Span label = new Span(part.label());
+            Span value = new Span(Long.toString(part.value()));
+            Div track = new Div();
+            track.addClassName("dashboard-chart-track");
+            Div fill = new Div();
+            fill.addClassNames("dashboard-chart-fill", "dashboard-chart-" + part.tone());
+            fill.getStyle().set("width", total == 0 ? "0%" : Math.min(100, Math.round(part.value() * 100.0 / total)) + "%");
+            track.add(fill);
+            row.add(label, value, track);
+            panel.add(row);
+        }
+        return panel;
+    }
+
+    private ChartPart part(String label, long value, String tone) {
+        return new ChartPart(label, value, tone);
+    }
+
+    private record ChartPart(String label, long value, String tone) {
+    }
+
+    private Div section(String title) {
+        Div section = new Div();
+        section.addClassName("dashboard-section");
+        H3 heading = new H3(title);
+        heading.addClassName("dashboard-section-title");
+        section.add(heading);
+        return section;
+    }
+
+    private Div statusCard(String title, String tone, String status, String route) {
+        Div card = new Div();
+        card.addClassNames("dashboard-status-card", "dashboard-status-" + tone);
+        Div heading = new Div();
+        heading.addClassName("dashboard-status-heading");
+        H3 name = new H3(title);
+        Span badge = new Span(status);
+        badge.addClassName("dashboard-status-badge");
+        heading.add(name, badge);
+        card.add(heading);
+        Anchor details = new Anchor(route, msg("common.details") + " →");
+        details.addClassName("dashboard-status-link");
+        card.add(details);
         return card;
     }
 
-    private void addDetailsLink(Card card, String route) {
-        Anchor details = new Anchor(route, getMessage("common.details"));
-        details.addClassName("overview-details-link");
-        card.add(details);
+    private void statusRow(Div card, String label, long value) {
+        Div row = new Div(new Span(label), new Span(Long.toString(value)));
+        row.addClassName("dashboard-status-row");
+        card.addComponentAtIndex(card.getComponentCount() - 1, row);
     }
 
-    private void addCheckedAt(Card card, String value) {
-        Span checkedAt = new Span(getMessage("domain_health_view.checked_at") + ": " + value);
-        checkedAt.getStyle().set("font-size", "var(--lumo-font-size-xs)");
-        card.add(checkedAt);
+    private void statusFootnote(Div card, String text) {
+        Span note = new Span(text);
+        note.addClassName("dashboard-status-note");
+        card.addComponentAtIndex(card.getComponentCount() - 1, note);
     }
 
-    private String healthClass(String value) {
-        return switch (value) {
+    private String healthClass(String status) {
+        return switch (status) {
             case "HEALTHY" -> "ok";
             case "WARNING" -> "warning";
             case "ERROR" -> "error";
@@ -386,33 +352,25 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         };
     }
 
-    private String localizedHealthStatus(String value) {
-        return switch (value) {
-            case "HEALTHY" -> getMessage("domain_health_view.healthy");
-            case "WARNING" -> getMessage("domain_health_view.warning");
-            case "ERROR" -> getMessage("domain_health_view.error");
-            default -> getMessage("domain_health_view.not_checked");
+    private String localizedHealth(String status) {
+        return switch (status) {
+            case "HEALTHY" -> msg("domain_health_view.healthy");
+            case "WARNING" -> msg("domain_health_view.warning");
+            case "ERROR" -> msg("domain_health_view.error");
+            default -> msg("domain_health_view.not_checked");
         };
     }
 
-    private String getMessage(String key) {
-        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    private <T> long count(List<T> items, Predicate<T> predicate) {
+        return items.stream().filter(predicate).count();
     }
 
-    private CompletableFuture<String> getStoredTheme() {
-        CompletableFuture<String> future = new CompletableFuture<>();
-
-        UI.getCurrent().getPage().executeJs("return localStorage.getItem('theme');")
-                .then(String.class, theme -> {
-                    future.complete(theme != null ? theme : "light");
-                });
-
-        return future;
+    private String msg(String key) {
+        return messages.getMessage(key, null, locale.getCurrentLocale());
     }
 
     @Override
     public String getPageTitle() {
-        return getMessage(title);
+        return msg("dashboard_view.title");
     }
-
 }
