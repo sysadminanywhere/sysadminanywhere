@@ -50,6 +50,7 @@ public class ImportUserDialog extends Dialog {
         this.onSearch = onSearch;
 
         setHeaderTitle(getMessage("import_user_dialog.title"));
+        setWidth("min(800px, calc(100vw - 32px))");
         setMaxWidth("800px");
 
         FormLayout formLayout = new FormLayout();

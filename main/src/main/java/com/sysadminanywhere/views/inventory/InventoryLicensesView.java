@@ -14,11 +14,13 @@ import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -30,12 +32,13 @@ import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 
 import java.util.List;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.Locale;
 import java.util.UUID;
 
 @RolesAllowed("ADMIN")
@@ -45,15 +48,20 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
     private final IncidentService incidentService;
     private final MessageSource messages;
     private final LocaleService locale;
-    private final Grid<SoftwareLicense> grid = new Grid<>();
     private final ComboBox<String> statusFilter = new ComboBox<>();
+    private final TextField searchFilter = new TextField();
+    private final Div licenseList = new Div();
+    private final Span totalCount = new Span();
+    private final Span compliantCount = new Span();
+    private final Span attentionCount = new Span();
     private List<SoftwareLicense> licenses = List.of();
 
     public InventoryLicensesView(InventoryService inventoryService, IncidentService incidentService, MessageSource messages, LocaleService locale) {
         this.inventoryService = inventoryService; this.incidentService = incidentService; this.messages = messages; this.locale = locale;
-        setSizeFull();
+        setWidthFull();
         addClassName("review-page");
         setPadding(false);
+        setSpacing(true);
         Button add = new Button(msg("inventory_licenses_view.add"), e -> openEditor(null));
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Anchor export = new Anchor(new StreamResource("software-licenses.csv", this::createCsv), msg("inventory_licenses_view.export_csv"));
@@ -68,56 +76,173 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
             default -> msg("inventory_licenses_view.all");
         });
         statusFilter.addValueChangeListener(event -> applyFilter());
-        HorizontalLayout header = new HorizontalLayout(statusFilter, export, add);
+        searchFilter.setPlaceholder(msg("inventory_licenses_view.search_placeholder"));
+        searchFilter.setAriaLabel(msg("inventory_licenses_view.search_placeholder"));
+        searchFilter.setClearButtonVisible(true);
+        searchFilter.addValueChangeListener(event -> applyFilter());
+        Span intro = new Span(msg("inventory_licenses_view.subtitle"));
+        intro.addClassName("review-intro-text");
+        HorizontalLayout header = new HorizontalLayout(export, add);
         header.addClassName("review-toolbar");
         header.setWidthFull();
-        header.setAlignItems(Alignment.END);
-        grid.addColumn(SoftwareLicense::name).setHeader(msg("inventory_licenses_view.name")).setAutoWidth(true);
-        grid.addColumn(SoftwareLicense::vendor).setHeader(msg("inventory_licenses_view.vendor")).setAutoWidth(true);
-        grid.addColumn(SoftwareLicense::version).setHeader(msg("inventory_licenses_view.version")).setAutoWidth(true);
-        grid.addColumn(SoftwareLicense::purchased).setHeader(msg("inventory_licenses_view.purchased")).setAutoWidth(true);
-        grid.addColumn(SoftwareLicense::used).setHeader(msg("inventory_licenses_view.used")).setAutoWidth(true);
-        grid.addComponentColumn(this::licenseBadge)
-                .setHeader(msg("inventory_licenses_view.status")).setAutoWidth(true);
-        grid.addColumn(item -> item.expiresAt() == null ? "-" : item.expiresAt().toString())
-                .setHeader(msg("inventory_licenses_view.expires")).setAutoWidth(true);
-        grid.addComponentColumn(item -> {
-            Button incident = new Button(msg("inventory_licenses_view.create_incident"));
-            incident.setVisible(item.used() > item.purchased() || item.expiresAt() != null && item.expiresAt().isBefore(java.time.LocalDate.now()));
-            incident.addClickListener(e -> confirmIncident(item));
-            Button delete = new Button(msg("common.delete"), e -> { if (inventoryService.deleteLicense(item.id())) refresh(); });
-            return new HorizontalLayout(incident, delete);
-        }).setHeader(msg("common.actions")).setAutoWidth(true);
-        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
-        grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
-        grid.setSizeFull();
-        add(header, grid); expand(grid); refresh();
+        header.setAlignItems(Alignment.CENTER);
+        HorizontalLayout summary = new HorizontalLayout(
+                metric(msg("inventory_licenses_view.total_count"), totalCount),
+                metric(msg("inventory_licenses_view.compliant"), compliantCount),
+                metric(msg("inventory_licenses_view.attention_count"), attentionCount));
+        summary.addClassName("license-summary");
+        summary.setWidthFull();
+        Div records = new Div();
+        records.addClassName("license-records");
+        HorizontalLayout filters = new HorizontalLayout(searchFilter, statusFilter);
+        filters.addClassName("review-filter-bar");
+        filters.setWidthFull();
+        licenseList.addClassName("license-list");
+        records.add(new H3(msg("inventory_licenses_view.records")), filters, licenseList);
+        add(intro, header, summary, records);
+        refresh();
     }
 
-    private Span licenseBadge(SoftwareLicense item) {
-        String value = status(item);
-        Span badge = new Span(msg("inventory_licenses_view." + value.toLowerCase(java.util.Locale.ROOT)));
+    private Card metric(String label, Span value) {
+        Card card = new Card();
+        card.addClassName("review-stat-card");
+        Span caption = new Span(label);
+        caption.addClassName("review-stat-label");
+        value.addClassName("review-stat-value");
+        VerticalLayout stack = new VerticalLayout(caption, value);
+        stack.setPadding(false);
+        stack.setSpacing(false);
+        card.add(stack);
+        return card;
+    }
+
+    private Span licenseBadge(String value) {
+        Span badge = new Span(msg("inventory_licenses_view." + value.toLowerCase(Locale.ROOT)));
         badge.getElement().getThemeList().add("badge");
         badge.getElement().getThemeList().add("COMPLIANT".equals(value) ? "success" : "error");
         return badge;
     }
 
-    private void refresh() { licenses = inventoryService.getLicenses(); applyFilter(); }
+    private Card licenseCard(SoftwareLicense item) {
+        Card card = new Card();
+        card.addClassName("license-item");
+        if (needsAttention(item)) card.addClassName("license-item-attention");
+
+        Div heading = new Div();
+        heading.addClassName("license-item-heading");
+        Div identity = new Div();
+        H3 name = new H3(item.name() == null ? "—" : item.name());
+        Span meta = new Span(String.join(" · ", java.util.stream.Stream.of(item.vendor(), item.version())
+                .filter(value -> value != null && !value.isBlank()).toList()));
+        meta.addClassName("license-item-meta");
+        identity.add(name, meta);
+        Div badges = new Div();
+        badges.addClassName("license-item-badges");
+        if (overused(item)) badges.add(licenseBadge("OVERUSED"));
+        if (expired(item)) badges.add(licenseBadge("EXPIRED"));
+        if (!needsAttention(item)) badges.add(licenseBadge("COMPLIANT"));
+        heading.add(identity, badges);
+
+        Div usage = new Div();
+        usage.addClassName("license-item-usage");
+        Span usageLabel = new Span(msg("inventory_licenses_view.usage"));
+        Span usageValue = new Span(msg("inventory_licenses_view.usage_count", item.used(), item.purchased()));
+        usageValue.addClassName("license-item-usage-value");
+        ProgressBar progress = new ProgressBar();
+        progress.setValue(item.purchased() <= 0 ? (item.used() > 0 ? 1 : 0)
+                : Math.min(1.0, item.used() / (double) item.purchased()));
+        progress.getElement().setAttribute("aria-label", msg("inventory_licenses_view.usage"));
+        if (overused(item)) progress.addClassName("license-usage-overused");
+        usage.add(usageLabel, usageValue, progress);
+
+        Div footer = new Div();
+        footer.addClassName("license-item-footer");
+        Span expiry = new Span(msg("inventory_licenses_view.expires") + ": "
+                + (item.expiresAt() == null ? msg("inventory_licenses_view.no_expiry") : item.expiresAt()));
+        HorizontalLayout actions = new HorizontalLayout();
+        actions.addClassName("license-item-actions");
+        Button edit = new Button(msg("inventory_licenses_view.edit"), event -> openEditor(item));
+        edit.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        edit.getElement().setAttribute("aria-label", msg("inventory_licenses_view.edit") + " " + item.name());
+        actions.add(edit);
+        if (needsAttention(item)) {
+            Button incident = new Button(msg("inventory_licenses_view.create_incident"), event -> confirmIncident(item));
+            incident.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            actions.add(incident);
+        }
+        Button delete = new Button(msg("common.delete"), event -> confirmDelete(item));
+        delete.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
+        delete.getElement().setAttribute("aria-label", msg("common.delete") + " " + item.name());
+        actions.add(delete);
+        footer.add(expiry, actions);
+        Div body = new Div(heading, usage);
+        if (item.notes() != null && !item.notes().isBlank()) {
+            Span notes = new Span(item.notes());
+            notes.addClassName("license-item-notes");
+            body.add(notes);
+        }
+        body.add(footer);
+        body.addClassName("license-item-body");
+        card.add(body);
+        return card;
+    }
+
+    private void confirmDelete(SoftwareLicense item) {
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader(msg("inventory_licenses_view.delete_title"));
+        dialog.setText(msg("inventory_licenses_view.delete_confirm", item.name()));
+        dialog.setCancelable(true);
+        dialog.setConfirmText(msg("common.delete"));
+        dialog.setConfirmButtonTheme("error primary");
+        dialog.addConfirmListener(event -> {
+            if (inventoryService.deleteLicense(item.id())) refresh();
+        });
+        dialog.open();
+    }
+
+    private void refresh() {
+        licenses = inventoryService.getLicenses();
+        long compliant = licenses.stream().filter(item -> !needsAttention(item)).count();
+        totalCount.setText(String.valueOf(licenses.size()));
+        compliantCount.setText(String.valueOf(compliant));
+        attentionCount.setText(String.valueOf(licenses.size() - compliant));
+        applyFilter();
+    }
 
     private void applyFilter() {
         String selected = statusFilter.getValue() == null ? "ALL" : statusFilter.getValue();
-        grid.setItems(licenses.stream().filter(item -> "ALL".equals(selected) || selected.equals(status(item))).toList());
+        String query = searchFilter.getValue() == null ? "" : searchFilter.getValue().trim().toLowerCase(Locale.ROOT);
+        List<SoftwareLicense> visible = licenses.stream()
+                .filter(item -> "ALL".equals(selected) || "COMPLIANT".equals(selected) && !needsAttention(item)
+                        || "OVERUSED".equals(selected) && overused(item)
+                        || "EXPIRED".equals(selected) && expired(item))
+                .filter(item -> query.isBlank() || java.util.stream.Stream.of(item.name(), item.vendor(), item.version())
+                        .filter(value -> value != null && value.toLowerCase(Locale.ROOT).contains(query)).findAny().isPresent())
+                .toList();
+        licenseList.removeAll();
+        if (visible.isEmpty()) {
+            Span empty = new Span(msg(licenses.isEmpty() ? "inventory_licenses_view.empty" : "inventory_licenses_view.no_matches"));
+            empty.addClassName("license-empty");
+            licenseList.add(empty);
+        } else {
+            visible.forEach(item -> licenseList.add(licenseCard(item)));
+        }
     }
 
     private String status(SoftwareLicense item) {
-        return item.used() > item.purchased() ? "OVERUSED"
-                : item.expiresAt() != null && item.expiresAt().isBefore(java.time.LocalDate.now()) ? "EXPIRED" : "COMPLIANT";
+        return overused(item) ? "OVERUSED" : expired(item) ? "EXPIRED" : "COMPLIANT";
     }
+
+    private boolean overused(SoftwareLicense item) { return item.used() > item.purchased(); }
+    private boolean expired(SoftwareLicense item) { return item.expiresAt() != null && item.expiresAt().isBefore(LocalDate.now()); }
+    private boolean needsAttention(SoftwareLicense item) { return overused(item) || expired(item); }
 
     private ByteArrayInputStream createCsv() {
         StringBuilder csv = new StringBuilder("Software,Vendor,Version,Purchased,Used,Expires,Status\n");
         inventoryService.getLicenses().forEach(item -> {
-            String status = msg("inventory_licenses_view." + status(item).toLowerCase());
+            String status = overused(item) && expired(item)
+                    ? msg("inventory_licenses_view.overused") + ", " + msg("inventory_licenses_view.expired")
+                    : msg("inventory_licenses_view." + status(item).toLowerCase(Locale.ROOT));
             csv.append(csv(item.name())).append(',').append(csv(item.vendor())).append(',').append(csv(item.version())).append(',')
                     .append(item.purchased()).append(',').append(item.used()).append(',').append(csv(String.valueOf(item.expiresAt())))
                     .append(',').append(csv(status)).append('\n');
@@ -129,12 +254,13 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
 
     private void openEditor(SoftwareLicense current) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(msg("inventory_licenses_view.add"));
-        dialog.setWidth("520px");
+        dialog.setHeaderTitle(msg(current == null ? "inventory_licenses_view.add" : "inventory_licenses_view.edit"));
+        dialog.setWidth("min(520px, calc(100vw - 32px))");
         dialog.setMaxWidth("calc(100vw - 32px)");
         ComboBox<SoftwareCount> discoveredSoftware = new ComboBox<>(msg("inventory_licenses_view.select_discovered_software"));
         discoveredSoftware.setPlaceholder(msg("inventory_licenses_view.discovered_software_placeholder"));
         discoveredSoftware.setWidthFull();
+        discoveredSoftware.setVisible(current == null);
         discoveredSoftware.setClearButtonVisible(true);
         discoveredSoftware.setPageSize(30);
         discoveredSoftware.setItemLabelGenerator(item -> {
@@ -151,6 +277,7 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
         TextField version = new TextField(msg("inventory_licenses_view.version"));
         name.setWidthFull(); vendor.setWidthFull(); version.setWidthFull();
         Span detectedUsage = new Span(msg("inventory_licenses_view.discovered_software_hint"));
+        detectedUsage.setVisible(current == null);
         discoveredSoftware.addValueChangeListener(event -> {
             SoftwareCount selected = event.getValue();
             if (selected == null) {
@@ -168,9 +295,13 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
             version.setValue(current.version() == null ? "" : current.version());
         }
         IntegerField purchased = new IntegerField(msg("inventory_licenses_view.purchased"));
-        purchased.setMin(0); purchased.setValue(0);
+        purchased.setMin(0); purchased.setValue(current == null ? 0 : Math.toIntExact(current.purchased()));
         DatePicker expires = new DatePicker(msg("inventory_licenses_view.expires"));
         TextArea notes = new TextArea(msg("inventory_licenses_view.notes"));
+        if (current != null) {
+            if (current.expiresAt() != null) expires.setValue(current.expiresAt());
+            notes.setValue(current.notes() == null ? "" : current.notes());
+        }
         purchased.setWidthFull(); expires.setWidthFull(); notes.setWidthFull();
         Button save = new Button(msg("common.save"), e -> {
             if (name.isEmpty()) { name.setInvalid(true); return; }
@@ -213,6 +344,6 @@ public class InventoryLicensesView extends VerticalLayout implements HasDynamicT
     }
 
     private String msg(String key) { return messages.getMessage(key, null, locale.getCurrentLocale()); }
-    private String msg(String key, Object[] arguments) { return messages.getMessage(key, arguments, locale.getCurrentLocale()); }
+    private String msg(String key, Object... arguments) { return messages.getMessage(key, arguments, locale.getCurrentLocale()); }
     @Override public String getPageTitle() { return msg("inventory_licenses_view.title"); }
 }

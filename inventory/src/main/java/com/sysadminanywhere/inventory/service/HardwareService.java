@@ -66,9 +66,20 @@ public class HardwareService {
         List<Map<String, Object>> baseBoards = execute(hostName, "SELECT * FROM Win32_BaseBoard");
         List<Map<String, Object>> bios = execute(hostName, "SELECT * FROM Win32_BIOS");
         List<Map<String, Object>> computerSystems = execute(hostName, "SELECT * FROM Win32_ComputerSystem");
+        List<Map<String, Object>> opticalDrives = execute(hostName, "SELECT * FROM Win32_CDROMDrive");
+        List<Map<String, Object>> soundDevices = execute(hostName, "SELECT * FROM Win32_SoundDevice");
+        List<Map<String, Object>> keyboards = execute(hostName, "SELECT * FROM Win32_Keyboard");
+        List<Map<String, Object>> pointingDevices = execute(hostName, "SELECT * FROM Win32_PointingDevice");
+        List<Map<String, Object>> networkAdapters = execute(hostName, "SELECT * FROM Win32_NetworkAdapter WHERE PhysicalAdapter = True");
         List<Map<String, Object>> patches = execute(hostName, "SELECT * FROM Win32_QuickFixEngineering");
         boolean completeScan = java.util.stream.Stream.of(diskDrives, operatingSystems, processors, videoControllers,
                 physicalMemory, baseBoards, bios, computerSystems, patches).noneMatch(Objects::isNull);
+        Set<String> unavailableTypes = new HashSet<>();
+        if (opticalDrives == null) unavailableTypes.add(HardwareType.OPTICAL_DRIVE.toString());
+        if (soundDevices == null) unavailableTypes.add(HardwareType.SOUND_DEVICE.toString());
+        if (keyboards == null) unavailableTypes.add(HardwareType.KEYBOARD.toString());
+        if (pointingDevices == null) unavailableTypes.add(HardwareType.POINTING_DEVICE.toString());
+        if (networkAdapters == null) unavailableTypes.add(HardwareType.NETWORK_ADAPTER.toString());
 
         // Get current hardware models for this computer
         Set<Long> currentHardwareModelIds = new HashSet<>();
@@ -84,11 +95,16 @@ public class HardwareService {
         saveHardware(computer, HardwareType.BASE_BOARD, baseBoards, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
         saveHardware(computer, HardwareType.BIOS, bios, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
         saveHardware(computer, HardwareType.COMPUTER_SYSTEM, computerSystems, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.OPTICAL_DRIVE, opticalDrives, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.SOUND_DEVICE, soundDevices, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.KEYBOARD, keyboards, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.POINTING_DEVICE, pointingDevices, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
+        saveHardware(computer, HardwareType.NETWORK_ADAPTER, networkAdapters, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
         saveHardware(computer, HardwareType.PATCH, patches, currentHardwareModelIds, processedHardwareModelIds, previousHardware, matchedHardwareIds, firstHistoryScan);
         
         // Remove hardware that no longer exists
         if (completeScan) {
-            removeObsoleteHardware(computer, currentHardwareModelIds);
+            removeObsoleteHardware(computer, currentHardwareModelIds, unavailableTypes);
         } else {
             log.warn("Keeping previous hardware records for {} because one or more WMI queries failed", hostName);
         }
@@ -195,10 +211,12 @@ public class HardwareService {
         }
     }
 
-    private void removeObsoleteHardware(Computer computer, Set<Long> currentHardwareModelIds) {
+    private void removeObsoleteHardware(Computer computer, Set<Long> currentHardwareModelIds,
+                                        Set<String> unavailableTypes) {
         List<ComputerHardware> existingHardware = computerHardwareRepository.findByComputerId(computer.getId());
         
         for (ComputerHardware hardware : existingHardware) {
+            if (unavailableTypes.contains(hardware.getHardwareModel().getHardwareType())) continue;
             if (!currentHardwareModelIds.contains(hardware.getHardwareModel().getId())) {
                 log.info("Removing obsolete hardware: {} for computer {}", 
                         hardware.getHardwareModel().getName(), computer.getName());
@@ -220,6 +238,7 @@ public class HardwareService {
             case PHYSICAL_MEMORY -> getStringValue(data, "PartNumber");
             case DISK_PARTITION -> getStringValue(data, "Name");
             case COMPUTER_SYSTEM -> getStringValue(data, "Model");
+            case OPTICAL_DRIVE, SOUND_DEVICE, KEYBOARD, POINTING_DEVICE, NETWORK_ADAPTER -> getStringValue(data, "Name");
             case PATCH -> getStringValue(data, "HotFixID");
         };
     }

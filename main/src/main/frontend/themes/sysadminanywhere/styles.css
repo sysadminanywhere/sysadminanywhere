@@ -1,5 +1,6 @@
 @import url('./main-layout.css');
 @import url('./views/gridwith-filters-view.css');
+@import url('./views/hardware-explorer.css');
 html {
       --lumo-primary-color: #2563d8;
       --lumo-primary-text-color: #1557c0;
@@ -112,6 +113,27 @@ html[theme~="dark"] body {
       font-size: var(--lumo-font-size-l);
 }
 
+.directory-load-error {
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      padding: var(--lumo-space-m) var(--lumo-space-l);
+      border: 1px solid var(--lumo-error-color-50pct);
+      border-radius: var(--lumo-border-radius-m);
+      color: var(--lumo-error-text-color);
+      background: var(--lumo-error-color-10pct);
+}
+
+.dialog-save-error {
+      display: block;
+      padding: var(--lumo-space-m);
+      border-radius: var(--lumo-border-radius-m);
+      color: var(--lumo-error-text-color);
+      background: var(--lumo-error-color-10pct);
+}
+
+.directory-load-error[hidden], .dialog-save-error[hidden] { display: none; }
+
 .review-page {
       box-sizing: border-box;
       min-width: 0;
@@ -171,6 +193,87 @@ html[theme~="dark"] body {
 .inventory-health-metric vaadin-vertical-layout { gap: var(--lumo-space-xs); }
 .inventory-computers-card { flex: 0 0 auto; min-width: 0; }
 .inventory-computers-card vaadin-grid { flex: 0 0 auto; }
+
+.review-intro-text {
+      display: block;
+      color: var(--lumo-secondary-text-color);
+      line-height: 1.5;
+}
+
+.review-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--lumo-space-m);
+}
+
+.review-page vaadin-card.review-stat-card {
+      display: flex;
+      flex-direction: column;
+      gap: var(--lumo-space-xs);
+      padding: var(--lumo-space-m) var(--lumo-space-l);
+      border-top: 3px solid var(--lumo-primary-color);
+}
+
+.review-page vaadin-card.review-stat-danger { border-top-color: var(--lumo-error-color); }
+.review-page vaadin-card.review-stat-warning { border-top-color: var(--lumo-warning-color); }
+.review-stat-label { color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); }
+.review-stat-value { font-size: var(--lumo-font-size-xxl); font-weight: 700; line-height: 1.2; }
+.review-stat-danger .review-stat-value { color: var(--lumo-error-text-color); }
+.review-stat-warning .review-stat-value { color: var(--lumo-warning-text-color); }
+
+.review-page vaadin-card.review-data-card,
+.review-page vaadin-card.review-action-card,
+.review-page vaadin-card.review-summary-card { padding: var(--lumo-space-l); }
+.review-data-card > span { display: block; margin-bottom: var(--lumo-space-m); color: var(--lumo-secondary-text-color); }
+.review-filter-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--lumo-space-m); margin-bottom: var(--lumo-space-m); }
+.review-filter-bar vaadin-combo-box,
+.review-filter-bar vaadin-text-field { flex: 1 1 190px; max-width: 320px; }
+.inventory-status-row { justify-content: space-between; margin-bottom: 0; }
+.inventory-scan-status { color: var(--lumo-secondary-text-color); }
+.review-summary-card > vaadin-integer-field { margin-bottom: var(--lumo-space-m); }
+.review-action-card .review-toolbar { justify-content: flex-start; margin-bottom: 0; }
+
+.license-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--lumo-space-s);
+}
+.review-page .license-summary vaadin-card.review-stat-card {
+      padding: var(--lumo-space-s) var(--lumo-space-m);
+      border-top-width: 0;
+      box-shadow: none;
+}
+.license-summary .review-stat-label { line-height: 1.25; }
+.license-summary .review-stat-value { font-size: var(--lumo-font-size-xl); }
+.license-records { width: 100%; min-width: 0; }
+.license-records h3 { margin: var(--lumo-space-m) 0 var(--lumo-space-xs); }
+.license-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 370px), 1fr));
+      gap: var(--lumo-space-m);
+      width: 100%;
+}
+.review-page vaadin-card.license-item {
+      width: 100%;
+      padding: var(--lumo-space-l);
+      border-left: 3px solid var(--lumo-success-color);
+}
+.review-page vaadin-card.license-item-attention { border-left-color: var(--lumo-error-color); }
+.license-item-body { display: grid; gap: var(--lumo-space-m); min-width: 0; }
+.license-item-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--lumo-space-s); }
+.license-item-heading > div:first-child { min-width: 0; }
+.license-item-heading h3 { margin: 0; overflow-wrap: anywhere; }
+.license-item-meta { display: block; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); }
+.license-item-badges { display: flex; flex-wrap: wrap; align-content: flex-start; gap: var(--lumo-space-xs); }
+.license-item-usage { display: grid; grid-template-columns: 1fr auto; gap: var(--lumo-space-xs) var(--lumo-space-m); }
+.license-item-usage-value { font-weight: 700; }
+.license-item-usage vaadin-progress-bar { grid-column: 1 / -1; width: 100%; }
+.license-usage-overused::part(value) { background: var(--lumo-error-color); }
+.license-item-notes { color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); overflow-wrap: anywhere; }
+.license-item-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--lumo-space-s); padding-top: var(--lumo-space-s); border-top: 1px solid var(--lumo-contrast-10pct); }
+.license-item-footer > span { color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); }
+.license-item-actions { flex-wrap: wrap; gap: var(--lumo-space-xs); }
+.license-empty { display: block; padding: var(--lumo-space-xl); border: 1px dashed var(--lumo-contrast-20pct); border-radius: var(--lumo-border-radius-l); color: var(--lumo-secondary-text-color); text-align: center; }
 
 .review-report-catalog {
       box-sizing: border-box;
@@ -324,6 +427,16 @@ html[theme~="dark"] body {
       .review-page, .review-report-catalog { padding: var(--lumo-space-m); }
       .review-toolbar { justify-content: flex-start; }
       .review-toolbar vaadin-combo-box { flex: 1 1 160px; }
+      .review-stat-grid { grid-template-columns: 1fr; }
+      .review-page vaadin-card.review-data-card,
+      .review-page vaadin-card.review-action-card,
+      .review-page vaadin-card.review-summary-card { padding: var(--lumo-space-m); }
+      .review-filter-bar vaadin-combo-box,
+      .review-filter-bar vaadin-text-field { max-width: none; }
+      .license-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .license-summary .review-stat-label { font-size: var(--lumo-font-size-xs); }
+      .license-summary .review-stat-value { font-size: var(--lumo-font-size-l); }
+      .review-page vaadin-card.license-item { padding: var(--lumo-space-m); }
 }
 
 .enabled-object-icon,

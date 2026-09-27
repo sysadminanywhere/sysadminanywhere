@@ -5,8 +5,6 @@ import com.sysadminanywhere.common.inventory.model.HardwareComputerItem;
 import com.sysadminanywhere.common.inventory.model.HardwareCatalogItem;
 import com.sysadminanywhere.service.InventoryService;
 import com.sysadminanywhere.service.LocaleService;
-import com.vaadin.flow.component.card.Card;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -61,9 +59,10 @@ public class InventoryHardwarePropertiesView extends Div implements BeforeEnterO
         content.setSizeFull();
         content.setPadding(true);
         content.setSpacing(true);
-        content.add(new H2(model.name()), new Span(typeLabel(model.type())),
-                new Span(msg("inventory_hardware_view.installed_on_computers") + ": " + model.computerCount()),
-                new H3(msg("inventory_hardware_view.computers_with_model")), createComputersGrid(),
+        Div header = new Div(new H2(model.name()), new Span(typeLabel(model.type()) + " · "
+                + msg("inventory_hardware_view.installed_on_computers") + ": " + model.computerCount()));
+        header.addClassName("hardware-catalog-header");
+        content.add(header, new H3(msg("inventory_hardware_view.computers_with_model")), createComputersGrid(),
                 new H3(msg("inventory_hardware_view.configuration_history")), createHistoryGrid(null, modelId));
         add(content);
     }
@@ -75,7 +74,8 @@ public class InventoryHardwarePropertiesView extends Div implements BeforeEnterO
                 .setHeader(msg("inventory_hardware_view.last_scan")).setAutoWidth(true);
         grid.addColumn(HardwareComputerItem::componentCount)
                 .setHeader(msg("inventory_hardware_view.component_count")).setAutoWidth(true);
-        grid.addItemClickListener(event -> showComputerDetails(event.getItem()));
+        grid.addItemClickListener(event -> grid.getUI().ifPresent(ui -> ui.navigate(
+                "inventory/hardware/" + modelId + "/computers/" + event.getItem().id())));
         grid.setPageSize(20);
         grid.setItems(query -> inventoryService.getComputersByHardwareModel(modelId,
                 PageRequest.of(query.getPage(), query.getPageSize())).stream());
@@ -104,37 +104,6 @@ public class InventoryHardwarePropertiesView extends Div implements BeforeEnterO
         return grid;
     }
 
-    private void showComputerDetails(HardwareComputerItem computer) {
-        var details = inventoryService.getComputerHardwareDetails(computer.id());
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(computer.name());
-        dialog.setWidth("min(1000px, 96vw)");
-        VerticalLayout layout = new VerticalLayout();
-        layout.setPadding(false);
-        layout.setSpacing(true);
-        if (details == null || details.components().isEmpty()) {
-            layout.add(new Span(msg("inventory_hardware_view.no_component_data")));
-        } else {
-            for (var component : details.components()) {
-                Card card = new Card();
-                card.setWidthFull();
-                card.add(new H3(typeLabel(component.getType()) + " — " + component.getName()));
-                Grid<com.sysadminanywhere.common.inventory.model.HardwarePropertyItem> properties = new Grid<>();
-                properties.addColumn(item -> propertyLabel(item.getPropertyName())).setHeader(msg("inventory_hardware_view.property"));
-                properties.addColumn(com.sysadminanywhere.common.inventory.model.HardwarePropertyItem::getPropertyValue)
-                        .setHeader(msg("inventory_hardware_view.value")).setFlexGrow(1);
-                properties.setItems(component.getProperties());
-                properties.setAllRowsVisible(true);
-                properties.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
-                card.add(properties);
-                layout.add(card);
-            }
-        }
-        layout.add(new H3(msg("inventory_hardware_view.configuration_history")), createHistoryGrid(computer.id(), null));
-        dialog.add(layout);
-        dialog.open();
-    }
-
     private String typeLabel(String type) {
         if (type == null) return "";
         String key = switch (type.replace(" ", "").toLowerCase(Locale.ROOT)) {
@@ -146,6 +115,11 @@ public class InventoryHardwarePropertiesView extends Div implements BeforeEnterO
             case "processor" -> "processor";
             case "videocontroller" -> "video_controller";
             case "physicalmemory" -> "physical_memory";
+            case "opticaldrive" -> "optical_drive";
+            case "sounddevice" -> "audio";
+            case "keyboard" -> "keyboard";
+            case "pointingdevice" -> "pointing_device";
+            case "networkadapter" -> "network";
             case "patch" -> "patch";
             case "installed" -> "change_installed";
             case "first_observed" -> "change_first_observed";
@@ -157,8 +131,12 @@ public class InventoryHardwarePropertiesView extends Div implements BeforeEnterO
     }
 
     private String propertyLabel(String value) {
-        return value == null ? "" : value.replaceAll("(?<=[a-z0-9])(?=[A-Z])", " ")
+        if (value == null) return "";
+        String fallback = value.replaceAll("(?<=[a-z0-9])(?=[A-Z])", " ")
                 .replaceAll("(?<=[A-Z])(?=[A-Z][a-z])", " ");
+        String key = Character.toLowerCase(value.charAt(0)) + value.substring(1);
+        return messageSource.getMessage("computer_hardware_view.property." + key, null, fallback,
+                localeService.getCurrentLocale());
     }
 
     private String date(java.time.LocalDateTime value) {
@@ -170,5 +148,8 @@ public class InventoryHardwarePropertiesView extends Div implements BeforeEnterO
     }
 
     private String msg(String key) { return messageSource.getMessage(key, null, localeService.getCurrentLocale()); }
+    private String message(String key, Object... args) {
+        return messageSource.getMessage(key, args, localeService.getCurrentLocale());
+    }
     @Override public String getPageTitle() { return model == null ? msg("inventory_hardware_view.title") : model.name(); }
 }

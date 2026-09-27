@@ -203,7 +203,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
     private Dialog resetPasswordForm() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(getMessage("user_details_view.reset_password"));
-        dialog.setWidth("500px");
+        dialog.setWidth("min(500px, calc(100vw - 32px))");
 
         FormLayout formLayout = new FormLayout();
 
@@ -243,7 +243,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
     private Dialog optionsForm() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(getMessage("user_details_view.user_options"));
-        dialog.setWidth("600px");
+        dialog.setWidth("min(600px, calc(100vw - 32px))");
 
         FormLayout formLayout = new FormLayout();
 

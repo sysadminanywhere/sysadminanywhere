@@ -35,25 +35,30 @@ public class ComputersService {
 
     public Page<ComputerEntry> getAll(Pageable pageable, String filters, String... attributes) {
         try {
-            PageResponse<ComputerEntry> response = computersServiceClient.getAll(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                pageable.getSort().toString(),
-                filters,
-                attributes
-            );
-            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
-        } catch (Exception e) {
+            return getAllOrThrow(pageable, filters, attributes);
+        } catch (RuntimeException exception) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
     }
 
+    public Page<ComputerEntry> getAllOrThrow(Pageable pageable, String filters, String... attributes) {
+        PageResponse<ComputerEntry> response = computersServiceClient.getAll(
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString(),
+                filters, attributes);
+        return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()),
+                response.totalElements());
+    }
+
     public List<ComputerEntry> getAll(String filters, String... attributes) {
         try {
-            return computersServiceClient.getList(filters, attributes);
-        } catch (Exception e) {
+            return getAllOrThrow(filters, attributes);
+        } catch (RuntimeException exception) {
             return null;
         }
+    }
+
+    public List<ComputerEntry> getAllOrThrow(String filters, String... attributes) {
+        return computersServiceClient.getList(filters, attributes);
     }
 
     public List<ComputerEntry> getAll() {
@@ -226,6 +231,38 @@ public class ComputersService {
             return wmiResolveService.getValues(wmiService.execute(hostName, "SELECT * FROM Win32_DiskDrive"));
         } catch (Exception ex) {
             return null;
+        }
+    }
+
+    public List<Map<String, Object>> getOpticalDrives(String hostName) {
+        return getHardwareClass(hostName, "Win32_CDROMDrive");
+    }
+
+    public List<Map<String, Object>> getSoundDevices(String hostName) {
+        return getHardwareClass(hostName, "Win32_SoundDevice");
+    }
+
+    public List<Map<String, Object>> getKeyboards(String hostName) {
+        return getHardwareClass(hostName, "Win32_Keyboard");
+    }
+
+    public List<Map<String, Object>> getPointingDevices(String hostName) {
+        return getHardwareClass(hostName, "Win32_PointingDevice");
+    }
+
+    public List<Map<String, Object>> getNetworkAdapters(String hostName) {
+        try {
+            return wmiService.execute(hostName, "SELECT * FROM Win32_NetworkAdapter WHERE PhysicalAdapter = True");
+        } catch (Exception ex) {
+            return List.of();
+        }
+    }
+
+    private List<Map<String, Object>> getHardwareClass(String hostName, String className) {
+        try {
+            return wmiService.execute(hostName, "SELECT * FROM " + className);
+        } catch (Exception ex) {
+            return List.of();
         }
     }
 

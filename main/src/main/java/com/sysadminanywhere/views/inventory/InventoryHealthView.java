@@ -83,6 +83,9 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         staleDays.setLabel(message("inventory_health_view.stale_days"));
         staleDays.setMin(1); staleDays.setMax(3650); staleDays.setValue(30);
         staleDays.setWidth("150px");
+        staleDays.addValueChangeListener(event -> {
+            if (event.isFromClient() && event.getValue() != null) refresh();
+        });
         computerFilter.setPlaceholder(message("inventory_health_view.filter_placeholder"));
         computerFilter.setClearButtonVisible(true);
         computerFilter.setWidth("220px");
@@ -126,12 +129,14 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         export.getElement().setAttribute("download", true);
         export.setHref(new StreamResource("inventory-health.csv", this::createCsv));
         Span subtitle = new Span(message("inventory_health_view.subtitle"));
+        subtitle.addClassName("review-intro-text");
         HorizontalLayout titleRow = new HorizontalLayout(scanStatus, refresh);
-        titleRow.addClassName("review-toolbar");
+        titleRow.addClassNames("review-toolbar", "inventory-status-row");
+        scanStatus.addClassName("inventory-scan-status");
         titleRow.setWidthFull();
         titleRow.setAlignItems(Alignment.CENTER);
 
-        HorizontalLayout filtersRow = new HorizontalLayout(computerFilter, statusFilter, staleDays);
+        HorizontalLayout filtersRow = new HorizontalLayout(computerFilter, statusFilter);
         filtersRow.addClassName("review-toolbar");
         filtersRow.setWidthFull();
         filtersRow.setAlignItems(Alignment.END);
@@ -141,7 +146,8 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         actionsRow.setAlignItems(Alignment.CENTER);
         Card controls = new Card();
         controls.setWidthFull();
-        controls.add(new H3(message("inventory_health_view.scan_controls")), subtitle, filtersRow, actionsRow);
+        controls.addClassName("review-action-card");
+        controls.add(new H3(message("inventory_health_view.scan_controls")), actionsRow);
 
         HorizontalLayout summary = new HorizontalLayout(metric(message("inventory_health_view.total"), total),
                 metric(message("inventory_health_view.stale"), stale), metric(message("inventory_health_view.never_scanned"), neverScanned));
@@ -152,10 +158,6 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         grid.addColumn(InventoryHealthComputer::name).setHeader(message("inventory_health_view.name")).setAutoWidth(true);
-        grid.addColumn(item -> item.checkingDate() == null ? message("inventory_health_view.never") : item.checkingDate().format(formatter))
-                .setHeader(message("inventory_health_view.last_scan")).setAutoWidth(true);
-        grid.addColumn(item -> item.daysSinceCheck() < 0 ? "-" : String.valueOf(item.daysSinceCheck()))
-                .setHeader(message("inventory_health_view.days_since_scan")).setAutoWidth(true);
         grid.addComponentColumn(item -> {
             Span status = new Span(item.daysSinceCheck() < 0 ? message("inventory_health_view.never") :
                     message("inventory_health_view.stale_status"));
@@ -164,12 +166,14 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
                     ? "var(--lumo-secondary-text-color)" : "var(--lumo-warning-text-color)");
             return status;
         }).setHeader(message("inventory_health_view.status")).setAutoWidth(true);
-        grid.addColumn(item -> item.scanStatus() == null ? "-" : item.scanStatus())
+        grid.addColumn(item -> item.checkingDate() == null ? message("inventory_health_view.never") : item.checkingDate().format(formatter))
+                .setHeader(message("inventory_health_view.last_scan")).setAutoWidth(true);
+        grid.addColumn(item -> item.daysSinceCheck() < 0 ? "-" : String.valueOf(item.daysSinceCheck()))
+                .setHeader(message("inventory_health_view.days_since_scan")).setAutoWidth(true);
+        grid.addColumn(item -> scanResultLabel(item.scanStatus()))
                 .setHeader(message("inventory_health_view.scan_result")).setAutoWidth(true);
         grid.addColumn(item -> item.scanError() == null ? "" : item.scanError())
                 .setHeader(message("inventory_health_view.scan_error_details")).setFlexGrow(1);
-        grid.addColumn(item -> availability(item.scanStatus()))
-                .setHeader(message("inventory_health_view.availability")).setAutoWidth(true);
         grid.addComponentColumn(item -> {
             Button create = new Button(message("inventory_health_view.create_incident"));
             create.addClickListener(event -> confirmCreateIncident(item));
@@ -188,7 +192,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
                 .setHeader(message("inventory_health_view.scan_started_at")).setAutoWidth(true);
         historyGrid.addColumn(item -> item.finishedAt() == null ? "-" : item.finishedAt().format(formatter))
                 .setHeader(message("inventory_health_view.scan_finished_at")).setAutoWidth(true);
-        historyGrid.addColumn(InventoryScanRun::status)
+        historyGrid.addColumn(item -> scanResultLabel(item.status()))
                 .setHeader(message("inventory_health_view.scan_status")).setAutoWidth(true);
         historyGrid.addColumn(item -> item.error() == null ? "" : item.error())
                 .setHeader(message("inventory_health_view.scan_error_details")).setFlexGrow(1);
@@ -198,15 +202,17 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
         Card summaryCard = new Card();
         summaryCard.setWidthFull();
-        summaryCard.add(new H3(message("inventory_health_view.summary")), summary);
+        summaryCard.addClassName("review-summary-card");
+        summaryCard.add(new H3(message("inventory_health_view.summary")), staleDays, summary);
         Card historyCard = new Card();
         historyCard.setWidthFull();
+        historyCard.addClassName("review-data-card");
         historyCard.add(new H3(message("inventory_health_view.scan_history")), historyGrid);
         Card computersCard = new Card();
         computersCard.setWidthFull();
-        computersCard.addClassName("inventory-computers-card");
+        computersCard.addClassNames("inventory-computers-card", "review-data-card");
         computersCard.add(new H3(message("inventory_health_view.computers")),
-                new Span(message("inventory_health_view.computers_hint")), grid);
+                new Span(message("inventory_health_view.computers_hint")), filtersRow, grid);
         Details platformSummaries = new Details();
         platformSummaries.setSummaryText(message("inventory_health_view.platform_summaries"));
         platformSummaries.setWidthFull();
@@ -216,7 +222,7 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
                 platformSummaries.add(createPlatformSummaries());
             }
         });
-        add(titleRow, controls, summaryCard, historyCard, computersCard, platformSummaries);
+        add(subtitle, titleRow, summaryCard, controls, computersCard, historyCard, platformSummaries);
         refresh();
     }
 
@@ -422,11 +428,13 @@ public class InventoryHealthView extends VerticalLayout implements HasDynamicTit
                 .toList());
     }
 
-    private String availability(String status) {
-        return switch (status == null ? "" : status.toUpperCase()) {
-            case "SUCCESS" -> message("inventory_health_view.online");
-            case "ERROR" -> message("inventory_health_view.offline");
-            default -> message("inventory_health_view.unknown");
+    private String scanResultLabel(String status) {
+        if (status == null || status.isBlank()) return message("inventory_health_view.status_never");
+        return switch (status.toUpperCase(java.util.Locale.ROOT)) {
+            case "SUCCESS" -> message("inventory_health_view.status_success");
+            case "ERROR" -> message("inventory_health_view.status_error");
+            case "RUNNING" -> message("inventory_health_view.status_running");
+            default -> status;
         };
     }
 

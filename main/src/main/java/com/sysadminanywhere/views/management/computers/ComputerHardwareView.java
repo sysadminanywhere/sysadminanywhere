@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.control.Table;
+import com.sysadminanywhere.control.HardwareExplorer;
 import com.sysadminanywhere.model.wmi.*;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.service.LocaleService;
@@ -22,6 +23,7 @@ import java.lang.reflect.Field;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -66,46 +68,77 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver, Ha
         List<ProcessorEntity> processors = safeList(computersService.getProcessor(id));
         List<DiskDriveEntity> disks = safeList(computersService.getDiskDrive(id));
 
-        content.add(new Span(message("computer_hardware_view.subtitle")), createOverview(system, operatingSystem,
-                processors, disks));
+        content.add(new H3(id), new Span(message("computer_hardware_view.subtitle")));
+        List<HardwareExplorer.Section> sections = List.of(
+                section("overview", () -> createOverview(system, operatingSystem, processors, disks)),
+                section("operating_system", () -> propertyContent(convert(operatingSystem), importantPropertiesFor("operating_system"))),
+                section("processor", () -> createHardwareListContent("processor", processors)),
+                section("physical_memory", () -> createHardwareListContent("physical_memory", safeList(computersService.getPhysicalMemory(id)))),
+                section("base_board", () -> boardContent()),
+                section("video_controller", () -> createHardwareListContent("video_controller", safeList(computersService.getVideoController(id)))),
+                section("storage", () -> storageContent(disks)),
+                section("optical_drive", () -> createHardwareListContent("optical_drive", safeList(computersService.getOpticalDrives(id)))),
+                section("audio", () -> createHardwareListContent("audio", safeList(computersService.getSoundDevices(id)))),
+                section("peripherals", this::peripheralsContent),
+                section("network", () -> createHardwareListContent("network", safeList(computersService.getNetworkAdapters(id)))));
+        content.add(new HardwareExplorer(message("computer_hardware_view.components"), sections));
+    }
 
-        VerticalLayout components = new VerticalLayout();
-        components.setWidthFull();
-        components.setPadding(false);
-        components.setSpacing(true);
-        components.add(new H3(message("computer_hardware_view.components")));
-        components.add(createHardwareObjectSection("computer_system", system));
-        components.add(createHardwareObjectSection("operating_system", operatingSystem));
-        components.add(createHardwareListSection("processor", processors));
-        components.add(createLazyListSection("physical_memory", () -> safeList(computersService.getPhysicalMemory(id))));
-        components.add(createHardwareListSection("disk_drive", disks));
-        components.add(createLazyListSection("video_controller", () -> safeList(computersService.getVideoController(id))));
-        components.add(createLazyObjectSection("base_board", () -> computersService.getBaseBoard(id)));
-        components.add(createLazyObjectSection("bios", () -> computersService.getBIOS(id)));
-        components.add(createLazyListSection("disk_partition", () -> safeList(computersService.getDiskPartition(id))));
-        components.add(createLazyListSection("logical_disk", () -> safeList(computersService.getLogicalDisk(id))));
-        content.add(components);
+    private HardwareExplorer.Section section(String key, Supplier<Component> component) {
+        return new HardwareExplorer.Section(key, message("computer_hardware_view." + key), component);
+    }
+
+    private Component peripheralsContent() {
+        VerticalLayout body = new VerticalLayout();
+        body.setPadding(false);
+        body.add(new H3(message("computer_hardware_view.keyboard")),
+                createHardwareListContent("keyboard", safeList(computersService.getKeyboards(id))),
+                new H3(message("computer_hardware_view.pointing_device")),
+                createHardwareListContent("pointing_device", safeList(computersService.getPointingDevices(id))));
+        return body;
+    }
+
+    private Component boardContent() {
+        VerticalLayout body = new VerticalLayout();
+        body.setPadding(false);
+        body.add(new H3(message("computer_hardware_view.base_board")),
+                propertyContent(convert(computersService.getBaseBoard(id)), importantPropertiesFor("base_board")),
+                new H3(message("computer_hardware_view.bios")),
+                propertyContent(convert(computersService.getBIOS(id)), importantPropertiesFor("bios")));
+        return body;
+    }
+
+    private Component storageContent(List<DiskDriveEntity> disks) {
+        VerticalLayout body = new VerticalLayout();
+        body.setPadding(false);
+        body.add(new H3(message("computer_hardware_view.disk_drive")), createHardwareListContent("disk_drive", disks));
+        Details volumes = new Details(message("computer_hardware_view.logical_disk"),
+                createHardwareListContent("logical_disk", safeList(computersService.getLogicalDisk(id))));
+        Details partitions = new Details(message("computer_hardware_view.disk_partition"),
+                createHardwareListContent("disk_partition", safeList(computersService.getDiskPartition(id))));
+        body.add(volumes, partitions);
+        return body;
     }
 
     private Component createOverview(ComputerSystemEntity system, OperatingSystemEntity os,
                                      List<ProcessorEntity> processors, List<DiskDriveEntity> disks) {
         Div overview = new Div();
-        overview.setWidthFull();
-        overview.getStyle().set("display", "grid")
-                .set("grid-template-columns", "repeat(auto-fit, minmax(220px, 1fr))")
-                .set("gap", "var(--lumo-space-m)");
+        overview.addClassName("hardware-overview-list");
         overview.add(
-                summaryCard(message("computer_hardware_view.model"), join(system == null ? null : system.getManufacturer(),
-                        system == null ? null : system.getModel()), message("computer_hardware_view.model_hint")),
-                summaryCard(message("computer_hardware_view.processor"), processorSummary(processors),
-                        processorHint(processors)),
-                summaryCard(message("computer_hardware_view.memory"), memorySummary(system, List.of()),
-                        message("computer_hardware_view.memory_hint")),
-                summaryCard(message("computer_hardware_view.storage"), storageSummary(disks),
-                        message("computer_hardware_view.storage_hint", disks.size())),
-                summaryCard(message("computer_hardware_view.operating_system"), osSummary(os),
-                        message("computer_hardware_view.operating_system_hint")));
+                overviewRow(message("computer_hardware_view.operating_system"), osSummary(os)),
+                overviewRow(message("computer_hardware_view.processor"), processorSummary(processors)),
+                overviewRow(message("computer_hardware_view.physical_memory"), memorySummary(system, List.of())),
+                overviewRow(message("computer_hardware_view.computer_system"), join(system == null ? null : system.getManufacturer(),
+                        system == null ? null : system.getModel())),
+                overviewRow(message("computer_hardware_view.storage"), storageSummary(disks)));
         return overview;
+    }
+
+    private Component overviewRow(String label, String value) {
+        Div row = new Div(new Span(label), new Span(value == null || value.isBlank()
+                ? message("computer_hardware_view.not_reported") : value));
+        row.addClassName("hardware-overview-row");
+        return row;
     }
 
     private Card summaryCard(String title, String value, String hint) {
@@ -187,6 +220,10 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver, Ha
             case "bios" -> Set.of("manufacturer", "sMBIOSBIOSVersion", "version", "releaseDate", "serialNumber");
             case "disk_partition" -> Set.of("name", "deviceID", "size", "startingOffset", "primaryPartition", "bootPartition");
             case "logical_disk" -> Set.of("deviceID", "volumeName", "fileSystem", "size", "freeSpace", "driveType");
+            case "optical_drive" -> Set.of("name", "drive", "mediaType", "manufacturer", "status");
+            case "audio" -> Set.of("name", "manufacturer", "status", "productName");
+            case "keyboard", "pointing_device" -> Set.of("name", "manufacturer", "description", "status");
+            case "network" -> Set.of("name", "manufacturer", "macAddress", "adapterType", "speed", "netEnabled");
             default -> Set.of();
         };
     }
@@ -212,6 +249,7 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver, Ha
             Details itemDetails = new Details();
             itemDetails.setSummaryText(name);
             itemDetails.add(propertyContent(properties, importantPropertiesFor(type)));
+            itemDetails.setOpened(index == 0);
             items.add(itemDetails);
         }
         return items;
@@ -278,6 +316,16 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver, Ha
     private List<HardwareEntity> convert(Object obj) {
         List<HardwareEntity> result = new ArrayList<>();
         if (obj == null) return result;
+        if (obj instanceof Map<?, ?> values) {
+            values.forEach((key, value) -> {
+                if (!(key instanceof String name) || name.startsWith("__") || value == null) return;
+                String propertyName = Character.toLowerCase(name.charAt(0)) + name.substring(1);
+                String text = String.valueOf(value);
+                if (!text.isBlank() && !"Unknown".equalsIgnoreCase(text))
+                    result.add(new HardwareEntity(propertyName, text));
+            });
+            return result;
+        }
         for (Field field : obj.getClass().getDeclaredFields()) {
             field.setAccessible(true);
             try {

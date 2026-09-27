@@ -36,25 +36,30 @@ public class UsersService {
 
     public Page<UserEntry> getAll(Pageable pageable, String filters, String... attributes) {
         try {
-            PageResponse<UserEntry> response = usersServiceClient.getAll(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                pageable.getSort().toString(),
-                filters,
-                attributes
-            );
-            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
-        } catch (Exception e) {
+            return getAllOrThrow(pageable, filters, attributes);
+        } catch (RuntimeException exception) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
     }
 
+    public Page<UserEntry> getAllOrThrow(Pageable pageable, String filters, String... attributes) {
+        PageResponse<UserEntry> response = usersServiceClient.getAll(
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString(),
+                filters, attributes);
+        return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()),
+                response.totalElements());
+    }
+
     public List<UserEntry> getAll(String filters, String... attributes) {
         try {
-            return usersServiceClient.getList(filters, attributes);
-        } catch (Exception e) {
+            return getAllOrThrow(filters, attributes);
+        } catch (RuntimeException exception) {
             return null;
         }
+    }
+
+    public List<UserEntry> getAllOrThrow(String filters, String... attributes) {
+        return usersServiceClient.getList(filters, attributes);
     }
 
     public List<UserEntry> getAll() {

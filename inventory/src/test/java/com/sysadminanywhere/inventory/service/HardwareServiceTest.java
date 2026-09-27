@@ -64,7 +64,13 @@ class HardwareServiceTest {
         hardwareService.scanHardware(computer);
 
         // Should attempt all hardware and Windows patch WMI queries
-        verify(wmiServiceClient, times(9)).execute(any(ExecuteDto.class));
+        ArgumentCaptor<ExecuteDto> queries = ArgumentCaptor.forClass(ExecuteDto.class);
+        verify(wmiServiceClient, times(14)).execute(queries.capture());
+        List<String> wql = queries.getAllValues().stream().map(ExecuteDto::getWqlQuery).toList();
+        for (String wmiClass : List.of("Win32_CDROMDrive", "Win32_SoundDevice", "Win32_Keyboard",
+                "Win32_PointingDevice", "Win32_NetworkAdapter")) {
+            org.junit.jupiter.api.Assertions.assertTrue(wql.stream().anyMatch(query -> query.contains(wmiClass)));
+        }
         verify(computerHardwareRepository, never()).delete(any());
     }
 
@@ -163,6 +169,25 @@ class HardwareServiceTest {
         verify(hardwareChangeRepository).save(changes.capture());
         assertEquals("REMOVED", changes.getValue().getChangeType());
         verify(computerHardwareRepository).delete(disk);
+    }
+
+    @Test
+    void failedOptionalQueryPreservesPreviouslyCollectedDevice() {
+        Computer computer = computer();
+        ComputerHardware opticalDrive = existingDisk(computer);
+        opticalDrive.getHardwareModel().setHardwareType("OpticalDrive");
+        when(hardwareChangeRepository.existsByComputerIdAndChangeTypeNot(1L, "CONFIGURATION_CHANGED"))
+                .thenReturn(true);
+        when(wmiServiceClient.execute(any(ExecuteDto.class))).thenAnswer(invocation -> {
+            ExecuteDto query = invocation.getArgument(0);
+            return query.getWqlQuery().contains("Win32_CDROMDrive") ? null
+                    : ResponseEntity.ok(List.<Map<String, Object>>of());
+        });
+        when(computerHardwareRepository.findByComputerId(1L)).thenReturn(List.of(opticalDrive));
+
+        hardwareService.scanHardware(computer);
+
+        verify(computerHardwareRepository, never()).delete(opticalDrive);
     }
 
     private void stubExistingDisk(ComputerHardware disk, List<HardwareProperty> properties,

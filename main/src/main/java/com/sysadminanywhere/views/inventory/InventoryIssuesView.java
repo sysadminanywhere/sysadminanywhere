@@ -9,11 +9,14 @@ import com.sysadminanywhere.common.incident.model.IncidentStatus;
 import com.sysadminanywhere.common.incident.model.Severity;
 import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -43,50 +46,90 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
     private List<Issue> issues = List.of();
     private final Span highCount = new Span();
     private final Span mediumCount = new Span();
+    private final Span totalCount = new Span();
 
     public InventoryIssuesView(InventoryService inventoryService, IncidentService incidentService, MessageSource messages, LocaleService locale) {
         this.inventoryService = inventoryService; this.incidentService = incidentService; this.messages = messages; this.locale = locale;
-        setSizeFull();
+        setWidthFull();
         addClassName("review-page");
         setPadding(false);
+        setSpacing(true);
         Button refresh = new Button(msg("common.refresh"), e -> refresh());
+        refresh.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         severityFilter.setItems("ALL", "HIGH", "MEDIUM");
         severityFilter.setValue("ALL");
         severityFilter.setLabel(msg("inventory_issues_view.severity"));
+        severityFilter.setWidth("220px");
+        severityFilter.setItemLabelGenerator(value -> switch (value) {
+            case "HIGH" -> msg("inventory_issues_view.high_count");
+            case "MEDIUM" -> msg("inventory_issues_view.medium_count");
+            default -> msg("inventory_issues_view.all");
+        });
         severityFilter.addValueChangeListener(event -> applyFilter());
         typeFilter.setItems("ALL", "INVENTORY", "LICENSE");
         typeFilter.setValue("ALL");
         typeFilter.setLabel(msg("inventory_issues_view.type"));
+        typeFilter.setWidth("220px");
         typeFilter.setItemLabelGenerator(value -> switch (value) {
             case "INVENTORY" -> msg("inventory_issues_view.inventory");
             case "LICENSE" -> msg("inventory_issues_view.license");
             default -> msg("inventory_issues_view.all");
         });
         typeFilter.addValueChangeListener(event -> applyFilter());
-        highCount.getStyle().set("color", "var(--lumo-error-text-color)").set("font-weight", "600");
-        mediumCount.getStyle().set("color", "var(--lumo-warning-text-color)").set("font-weight", "600");
-        HorizontalLayout summary = new HorizontalLayout(highCount, mediumCount);
+        Span intro = new Span(msg("inventory_issues_view.subtitle"));
+        intro.addClassName("review-intro-text");
+        HorizontalLayout summary = new HorizontalLayout(
+                metric(msg("inventory_issues_view.total_count"), totalCount, ""),
+                metric(msg("inventory_issues_view.high_count"), highCount, "review-stat-danger"),
+                metric(msg("inventory_issues_view.medium_count"), mediumCount, "review-stat-warning"));
+        summary.addClassName("review-stat-grid");
+        summary.setWidthFull();
         Button createIncidents = new Button(msg("inventory_issues_view.create_incidents"), e -> confirmCreateIncidents());
         createIncidents.setVisible(isAdmin());
-        HorizontalLayout header = new HorizontalLayout(summary, typeFilter, severityFilter, createIncidents, refresh);
+        createIncidents.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        HorizontalLayout header = new HorizontalLayout(createIncidents, refresh);
         header.addClassName("review-toolbar");
         header.setWidthFull();
-        header.setAlignItems(Alignment.END);
+        header.setAlignItems(Alignment.CENTER);
         grid.addComponentColumn(item -> issueBadge(item.severity())).setHeader(msg("inventory_issues_view.severity")).setAutoWidth(true);
-        grid.addColumn(Issue::type).setHeader(msg("inventory_issues_view.type")).setAutoWidth(true);
         grid.addColumn(Issue::object).setHeader(msg("inventory_issues_view.object")).setAutoWidth(true);
         grid.addColumn(Issue::details).setHeader(msg("inventory_issues_view.details")).setFlexGrow(1);
         grid.addComponentColumn(item -> new Anchor(item.actionKey().equals("open_licenses") ? "inventory/licenses" : "inventory/health",
                         msg("inventory_issues_view." + item.actionKey())))
                 .setHeader(msg("inventory_issues_view.action")).setAutoWidth(true);
+        grid.addColumn(Issue::type).setHeader(msg("inventory_issues_view.type")).setAutoWidth(true);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
-        grid.setSizeFull();
-        add(header, grid); expand(grid); refresh();
+        grid.setWidthFull();
+        grid.setHeight("min(620px, 65vh)");
+        HorizontalLayout filters = new HorizontalLayout(typeFilter, severityFilter);
+        filters.addClassName("review-filter-bar");
+        filters.setWidthFull();
+        Card records = new Card();
+        records.setWidthFull();
+        records.addClassName("review-data-card");
+        records.add(new H3(msg("inventory_issues_view.records")), filters, grid);
+        add(intro, header, summary, records);
+        refresh();
+    }
+
+    private Card metric(String label, Span value, String tone) {
+        Card card = new Card();
+        card.addClassName("review-stat-card");
+        if (!tone.isBlank()) card.addClassName(tone);
+        Span caption = new Span(label);
+        caption.addClassName("review-stat-label");
+        value.addClassName("review-stat-value");
+        VerticalLayout stack = new VerticalLayout(caption, value);
+        stack.setPadding(false);
+        stack.setSpacing(false);
+        card.add(stack);
+        return card;
     }
 
     private Span issueBadge(String severity) {
-        Span badge = new Span(severity);
+        Span badge = new Span(msg("HIGH".equals(severity)
+                ? "inventory_issues_view.high_count" : "inventory_issues_view.medium_count"));
         badge.getElement().getThemeList().add("badge");
         badge.getElement().getThemeList().add("HIGH".equals(severity) ? "error" : "warning");
         return badge;
@@ -142,10 +185,9 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
             }
         }
         this.issues = issues;
-        highCount.setText(msg("inventory_issues_view.high_count") + ": "
-                + issues.stream().filter(item -> "HIGH".equals(item.severity())).count());
-        mediumCount.setText(msg("inventory_issues_view.medium_count") + ": "
-                + issues.stream().filter(item -> "MEDIUM".equals(item.severity())).count());
+        totalCount.setText(String.valueOf(issues.size()));
+        highCount.setText(String.valueOf(issues.stream().filter(item -> "HIGH".equals(item.severity())).count()));
+        mediumCount.setText(String.valueOf(issues.stream().filter(item -> "MEDIUM".equals(item.severity())).count()));
         applyFilter();
     }
 

@@ -93,7 +93,7 @@ public class AutomationsView extends Div implements MenuControl, HasDynamicTitle
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
 
-        MenuHelper.createIconItem(menuBar, "/icons/refresh.svg", menuItemClickEvent -> {
+        MenuHelper.createIconItem(menuBar, "/icons/refresh.svg", getMessage("common.refresh"), menuItemClickEvent -> {
             refreshGrid();
         });
 

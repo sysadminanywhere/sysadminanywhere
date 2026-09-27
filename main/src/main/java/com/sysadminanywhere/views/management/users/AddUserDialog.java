@@ -53,6 +53,7 @@ public class AddUserDialog extends Dialog {
         userLoginFormat = loginPattern.getFormat();
 
         setHeaderTitle(getMessage("add_user_dialog.title"));
+        setWidth("min(800px, calc(100vw - 32px))");
         setMaxWidth("800px");
 
         FormLayout formLayout = new FormLayout();
@@ -134,6 +135,11 @@ public class AddUserDialog extends Dialog {
         formLayout.add(containerField, txtDisplayName, txtFirstName, txtInitials, txtLastName, txtAccountName, txtPassword, txtConfirmPassword, checkboxGroup);
         add(formLayout);
 
+        com.vaadin.flow.component.html.Span saveError = new com.vaadin.flow.component.html.Span();
+        saveError.addClassName("dialog-save-error");
+        saveError.setVisible(false);
+        add(saveError);
+
         Button saveButton = new Button(getMessage("common.save"), e -> {
             UserEntry user = new UserEntry();
             user.setCn(txtDisplayName.getValue());
@@ -157,8 +163,9 @@ public class AddUserDialog extends Dialog {
                 Notification notification = Notification.show(getMessage("add_user_dialog.user_added"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                saveError.setText(ex.getMessage() == null ? getMessage("common.error") : ex.getMessage());
+                saveError.setVisible(true);
+                return;
             }
 
             close();

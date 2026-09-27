@@ -80,7 +80,7 @@ public class ApiTokensView extends VerticalLayout implements HasDynamicTitle {
     private void create() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(message("api_tokens_view.create"));
-        dialog.setWidth("560px");
+        dialog.setWidth("min(560px, calc(100vw - 32px))");
         dialog.setMaxWidth("calc(100vw - 32px)");
         TextField name = new TextField(message("api_tokens_view.name"));
         name.setWidthFull();
@@ -123,7 +123,7 @@ public class ApiTokensView extends VerticalLayout implements HasDynamicTitle {
     private void showToken(ApiTokenCreatedResponse result) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(message("api_tokens_view.created_title"));
-        dialog.setWidth("640px");
+        dialog.setWidth("min(640px, calc(100vw - 32px))");
         dialog.setMaxWidth("calc(100vw - 32px)");
         TextArea token = new TextArea(message("api_tokens_view.token"));
         token.setValue(result.token());

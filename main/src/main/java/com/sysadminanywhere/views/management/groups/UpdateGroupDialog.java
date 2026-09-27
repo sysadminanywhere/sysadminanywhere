@@ -26,7 +26,7 @@ public class UpdateGroupDialog extends Dialog {
         this.localeService = localeService;
 
         setHeaderTitle(getMessage("update_group_dialog.title"));
-        setWidth("800px");
+        setWidth("min(800px, calc(100vw - 32px))");
 
         FormLayout formLayout = new FormLayout();
 
@@ -36,6 +36,11 @@ public class UpdateGroupDialog extends Dialog {
 
         formLayout.add(txtDescription);
         add(formLayout);
+
+        com.vaadin.flow.component.html.Span saveError = new com.vaadin.flow.component.html.Span();
+        saveError.addClassName("dialog-save-error");
+        saveError.setVisible(false);
+        add(saveError);
 
         Button saveButton = new com.vaadin.flow.component.button.Button(getMessage("common.save"), e -> {
             GroupEntry entry = group;
@@ -48,8 +53,9 @@ public class UpdateGroupDialog extends Dialog {
                 Notification notification = Notification.show(getMessage("update_group_dialog.group_updated"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                saveError.setText(ex.getMessage() == null ? getMessage("common.error") : ex.getMessage());
+                saveError.setVisible(true);
+                return;
             }
 
             close();

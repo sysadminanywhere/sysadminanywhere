@@ -102,7 +102,7 @@ public class ScheduledReportsView extends VerticalLayout implements HasDynamicTi
                         source.getHour(), source.getMinute(), source.getFormat(), source.getRecipients());
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(source == null ? message("scheduled_reports_view.new") : message("scheduled_reports_view.edit"));
-        dialog.setWidth("480px");
+        dialog.setWidth("min(480px, calc(100vw - 32px))");
         dialog.setMaxWidth("calc(100vw - 32px)");
 
         ComboBox<String> entry = new ComboBox<>(message("scheduled_reports_view.entry"));

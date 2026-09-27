@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.search;
 
 import com.sysadminanywhere.common.directory.model.*;
 import com.sysadminanywhere.service.*;
+import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -36,6 +37,7 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
     private final TextField query = new TextField();
     private final Button searchButton = new Button();
     private final VerticalLayout results = new VerticalLayout();
+    private boolean searching;
 
     public SearchView(UsersService usersService, ComputersService computersService,
                       GroupsService groupsService, ContactsService contactsService,
@@ -54,6 +56,7 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
         setSpacing(false);
         addClassNames("global-search-view", LumoUtility.BoxSizing.BORDER);
 
+        query.setLabel(message("search.title"));
         query.setPlaceholder(message("search.placeholder"));
         query.setClearButtonVisible(true);
         query.setWidthFull();
@@ -80,20 +83,45 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
     }
 
     private void search() {
+        if (searching) return;
         String value = query.getValue() == null ? "" : query.getValue().trim();
         if (value.length() < 2) {
             Notification.show(message("search.min_length"));
             return;
         }
-        String escaped = escapeFilter(value);
+        searching = true;
+        searchButton.setEnabled(false);
+        query.setEnabled(false);
         results.removeAll();
-        addUsers(escaped);
-        addComputers(escaped);
-        addGroups(escaped);
-        addContacts(escaped);
-        addPrinters(escaped);
-        if (results.getComponentCount() == 0) {
-            showEmptyState();
+        Span loading = new Span(message("search.loading"));
+        loading.addClassName("global-search-empty");
+        results.add(loading);
+        getElement().executeJs("requestAnimationFrame(() => $0.$server.performSearch())", getElement());
+    }
+
+    @ClientCallable
+    public void performSearch() {
+        if (!searching) return;
+        String escaped = escapeFilter(query.getValue().trim());
+        results.removeAll();
+        try {
+            addUsers(escaped);
+            addComputers(escaped);
+            addGroups(escaped);
+            addContacts(escaped);
+            addPrinters(escaped);
+            if (results.getComponentCount() == 0) showEmptyState();
+        } catch (RuntimeException exception) {
+            org.slf4j.LoggerFactory.getLogger(getClass()).warn("Directory load failed", exception);
+            results.removeAll();
+            Span error = new Span(message("directory.unavailable"));
+            error.addClassName("directory-load-error");
+            Button retry = new Button(message("common.refresh"), event -> search());
+            results.add(error, retry);
+        } finally {
+            searching = false;
+            searchButton.setEnabled(true);
+            query.setEnabled(true);
         }
     }
 
@@ -104,7 +132,7 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
     }
 
     private void addUsers(String value) {
-        List<UserEntry> entries = safe(usersService.getAll(
+        List<UserEntry> entries = safe(usersService.getAllOrThrow(
                 "(|(cn=*" + value + "*)(displayName=*" + value + "*)(sAMAccountName=*" + value + "*)(mail=*" + value + "*))",
                 "cn", "displayName", "mail", "sAMAccountName"));
         if (entries.isEmpty()) return;
@@ -119,7 +147,7 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
     }
 
     private void addComputers(String value) {
-        List<ComputerEntry> entries = safe(computersService.getAll(
+        List<ComputerEntry> entries = safe(computersService.getAllOrThrow(
                 "(|(cn=*" + value + "*)(dNSHostName=*" + value + "*)(operatingSystem=*" + value + "*))",
                 "cn", "dNSHostName", "operatingSystem"));
         if (entries.isEmpty()) return;
@@ -134,7 +162,7 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
     }
 
     private void addGroups(String value) {
-        List<GroupEntry> entries = safe(groupsService.getAll(
+        List<GroupEntry> entries = safe(groupsService.getAllOrThrow(
                 "(|(cn=*" + value + "*)(description=*" + value + "*))", "cn", "description"));
         if (entries.isEmpty()) return;
         Grid<GroupEntry> grid = new Grid<>();
@@ -147,7 +175,7 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
     }
 
     private void addContacts(String value) {
-        List<ContactEntry> entries = safe(contactsService.getAll(
+        List<ContactEntry> entries = safe(contactsService.getAllOrThrow(
                 "(|(cn=*" + value + "*)(displayName=*" + value + "*)(mail=*" + value + "*)(company=*" + value + "*))",
                 "cn", "displayName", "mail", "company"));
         if (entries.isEmpty()) return;
@@ -162,7 +190,7 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
     }
 
     private void addPrinters(String value) {
-        List<PrinterEntry> entries = safe(printersService.getAll(
+        List<PrinterEntry> entries = safe(printersService.getAllOrThrow(
                 "(|(cn=*" + value + "*)(printerName=*" + value + "*)(serverName=*" + value + "*))",
                 "cn", "printerName", "serverName"));
         if (entries.isEmpty()) return;
@@ -189,7 +217,8 @@ public class SearchView extends VerticalLayout implements HasDynamicTitle {
     }
 
     private static <T> List<T> safe(List<T> values) {
-        return values == null ? List.of() : values;
+        if (values == null) throw new IllegalStateException("Directory returned no response");
+        return values;
     }
 
     private static String escapeFilter(String value) {

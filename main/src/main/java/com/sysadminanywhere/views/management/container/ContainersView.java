@@ -194,7 +194,7 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
         MenuBar menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
 
-        MenuHelper.createIconItem(menuBar, "/icons/refresh.svg", menuItemClickEvent -> {
+        MenuHelper.createIconItem(menuBar, "/icons/refresh.svg", getMessage("common.refresh"), menuItemClickEvent -> {
             refreshGrid();
         });
         MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("common.delete"), event -> confirmBulkDelete());

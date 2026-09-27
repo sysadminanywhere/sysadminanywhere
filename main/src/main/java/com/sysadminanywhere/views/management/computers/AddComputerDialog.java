@@ -27,6 +27,7 @@ public class AddComputerDialog extends Dialog {
         this.localeService = localeService;
 
         setHeaderTitle(getMessage("add_computer_dialog.title"));
+        setWidth("min(800px, calc(100vw - 32px))");
         setMaxWidth("800px");
 
         FormLayout formLayout = new FormLayout();
@@ -54,6 +55,11 @@ public class AddComputerDialog extends Dialog {
         formLayout.add(containerField, txtName, txtDescription, txtLocation, checkboxGroup);
         add(formLayout);
 
+        com.vaadin.flow.component.html.Span saveError = new com.vaadin.flow.component.html.Span();
+        saveError.addClassName("dialog-save-error");
+        saveError.setVisible(false);
+        add(saveError);
+
         Button saveButton = new Button(getMessage("common.save"), e -> {
             ComputerEntry computer = new ComputerEntry();
             computer.setCn(txtName.getValue());
@@ -67,8 +73,9 @@ public class AddComputerDialog extends Dialog {
                 Notification notification = Notification.show(getMessage("add_computer_dialog.computer_added"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                saveError.setText(ex.getMessage() == null ? getMessage("common.error") : ex.getMessage());
+                saveError.setVisible(true);
+                return;
             }
 
             close();

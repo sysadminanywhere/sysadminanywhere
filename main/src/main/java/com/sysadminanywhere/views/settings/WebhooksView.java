@@ -62,7 +62,7 @@ public class WebhooksView extends VerticalLayout implements HasDynamicTitle {
                 : new WebhookSubscription(source.getId(), source.isEnabled(), source.getUrl(), source.getSecret(), source.getEvents());
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(source == null ? message("webhooks_view.new") : message("webhooks_view.edit"));
-        dialog.setWidth("520px");
+        dialog.setWidth("min(520px, calc(100vw - 32px))");
         dialog.setMaxWidth("calc(100vw - 32px)");
         TextField url = new TextField(message("webhooks_view.url")); url.setWidthFull(); url.setValue(value.getUrl());
         PasswordField secret = new PasswordField(message("webhooks_view.secret")); secret.setWidthFull(); secret.setValue(value.getSecret() == null ? "" : value.getSecret());

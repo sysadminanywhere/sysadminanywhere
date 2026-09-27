@@ -4,6 +4,7 @@ import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.MobileFiltersToggle;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.model.Settings;
 import com.sysadminanywhere.security.AuthenticatedUser;
@@ -51,6 +52,7 @@ import java.util.List;
 @Uses(Upload.class)
 public class UsersView extends Div implements MenuControl, HasDynamicTitle {
 
+    private final Span directoryError = new Span();
     private Grid<UserEntry> grid;
 
     private final Filters filters;
@@ -76,7 +78,10 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
         addClassNames("gridwith-filters-view");
 
         filters = new Filters(() -> refreshGrid(), usersService, authenticatedUser, settingsService, messageSource, localeService);
-        VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
+        directoryError.setText(getMessage("directory.unavailable"));
+        directoryError.addClassName("directory-load-error");
+        directoryError.setVisible(false);
+        VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, directoryError, createGrid());
         layout.setSizeFull();
         add(layout);
     }
@@ -89,35 +94,15 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
         return messageSource.getMessage(key, arguments, localeService.getCurrentLocale());
     }
 
-    private HorizontalLayout createMobileFilters() {
-        // Mobile version
-        HorizontalLayout mobileFilters = new HorizontalLayout();
-        mobileFilters.setWidthFull();
-        mobileFilters.addClassNames(LumoUtility.Padding.MEDIUM, LumoUtility.BoxSizing.BORDER,
-                LumoUtility.AlignItems.CENTER);
-        mobileFilters.addClassName("mobile-filters");
-
-        Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span(getMessage("common.filters"));
-        mobileFilters.add(mobileIcon, filtersHeading);
-        mobileFilters.setFlexGrow(1, filtersHeading);
-        mobileFilters.addClickListener(e -> {
-            if (filters.getClassNames().contains("visible")) {
-                filters.removeClassName("visible");
-                mobileIcon.getElement().setAttribute("icon", "lumo:plus");
-            } else {
-                filters.addClassName("visible");
-                mobileIcon.getElement().setAttribute("icon", "lumo:minus");
-            }
-        });
-        return mobileFilters;
+    private MobileFiltersToggle createMobileFilters() {
+        return new MobileFiltersToggle(getMessage("common.filters"), filters);
     }
 
     @Override
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
 
-        MenuHelper.createIconItem(menuBar, "/icons/refresh.svg", menuItemClickEvent -> {
+        MenuHelper.createIconItem(menuBar, "/icons/refresh.svg", getMessage("common.refresh"), menuItemClickEvent -> {
             refreshGrid();
         });
 
@@ -268,9 +253,19 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
                     ui.navigate("management/users/" + item.getItem().getCn() + "/details"));
         });
 
-        grid.setItems(query -> usersService.getAll(
+        grid.setItems(query -> {
+            try {
+                var page = usersService.getAllOrThrow(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                filters.getFilters(), "cn", "description", "distinguishedName", "userAccountControl", "pwdLastSet").stream());
+                filters.getFilters(), "cn", "description", "distinguishedName", "userAccountControl", "pwdLastSet");
+                directoryError.setVisible(false);
+                return page.stream();
+            } catch (RuntimeException exception) {
+            org.slf4j.LoggerFactory.getLogger(getClass()).warn("Directory load failed", exception);
+                directoryError.setVisible(true);
+                return java.util.stream.Stream.empty();
+            }
+        });
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 

@@ -47,7 +47,7 @@ public class ImportGroupDialog extends Dialog {
         this.localeService = localeService;
         this.onSearch = onSearch;
         setHeaderTitle(message("import_group_dialog.title"));
-        setWidth("800px");
+        setWidth("min(800px, calc(100vw - 32px))");
         setMaxWidth("calc(100vw - 32px)");
 
         FormLayout form = new FormLayout();

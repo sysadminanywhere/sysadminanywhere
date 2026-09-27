@@ -115,6 +115,11 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
             case "processor" -> "processor";
             case "videocontroller" -> "video_controller";
             case "physicalmemory" -> "physical_memory";
+            case "opticaldrive" -> "optical_drive";
+            case "sounddevice" -> "audio";
+            case "keyboard" -> "keyboard";
+            case "pointingdevice" -> "pointing_device";
+            case "networkadapter" -> "network";
             default -> null;
         };
         return key == null ? type : getMessage("inventory_hardware_view." + key);
@@ -142,7 +147,8 @@ public class InventoryHardwareView extends Div implements HasDynamicTitle {
             name.setPlaceholder(getMessage("inventory_hardware_view.filter_name_placeholder"));
             name.setClearButtonVisible(true);
             category.setItems("Processor", "VideoController", "DiskDrive", "PhysicalMemory",
-                    "ComputerSystem", "BaseBoard", "BIOS");
+                    "ComputerSystem", "BaseBoard", "BIOS", "OpticalDrive", "SoundDevice",
+                    "Keyboard", "PointingDevice", "NetworkAdapter");
             category.setPlaceholder(getMessage("inventory_hardware_view.all_hardware_types"));
             category.setItemLabelGenerator(InventoryHardwareView.this::getHardwareTypeLabel);
             category.setClearButtonVisible(true);

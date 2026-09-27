@@ -30,25 +30,30 @@ public class ContactsService {
 
     public Page<ContactEntry> getAll(Pageable pageable, String filters, String... attributes) {
         try {
-            PageResponse<ContactEntry> response = contactsServiceClient.getAll(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                pageable.getSort().toString(),
-                filters,
-                attributes
-            );
-            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
-        } catch (Exception e) {
+            return getAllOrThrow(pageable, filters, attributes);
+        } catch (RuntimeException exception) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
     }
 
+    public Page<ContactEntry> getAllOrThrow(Pageable pageable, String filters, String... attributes) {
+        PageResponse<ContactEntry> response = contactsServiceClient.getAll(
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString(),
+                filters, attributes);
+        return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()),
+                response.totalElements());
+    }
+
     public List<ContactEntry> getAll(String filters, String... attributes) {
         try {
-            return contactsServiceClient.getList(filters, attributes);
-        } catch (Exception e) {
+            return getAllOrThrow(filters, attributes);
+        } catch (RuntimeException exception) {
             return null;
         }
+    }
+
+    public List<ContactEntry> getAllOrThrow(String filters, String... attributes) {
+        return contactsServiceClient.getList(filters, attributes);
     }
 
     public List<ContactEntry> getAll() {
