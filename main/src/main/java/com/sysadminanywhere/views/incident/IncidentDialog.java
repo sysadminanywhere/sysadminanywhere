@@ -16,8 +16,9 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.TextArea;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 public class IncidentDialog extends Dialog {
 
@@ -39,50 +40,62 @@ public class IncidentDialog extends Dialog {
         FormLayout formLayout = new FormLayout();
 
         TextField txtName = new TextField(getMessage("incident_dialog.name"));
-        txtName.setValue(incident.getName());
+        txtName.setValue(value(incident.getName()));
         txtName.setReadOnly(true);
         formLayout.setColspan(txtName, 2);
 
         TextField txtCreatedAt = new TextField(getMessage("incident_dialog.created_at"));
-        txtCreatedAt.setValue(Utils.formatLocalDateTime(incident.getCreatedAt()));
+        txtCreatedAt.setValue(formatDate(incident.getCreatedAt()));
         txtCreatedAt.setReadOnly(true);
 
         TextField txtMachineName = new TextField(getMessage("incident_dialog.machine_name"));
-        txtMachineName.setValue(incident.getMachineName());
+        txtMachineName.setValue(value(incident.getMachineName()));
         txtMachineName.setReadOnly(true);
 
-        ComboBox<String> comboSeverity = new ComboBox<>(getMessage("incident_dialog.severity"));
-        comboSeverity.setItems(List.of("Low", "Medium", "High", "Critical"));
-        comboSeverity.setValue(incident.getSeverity().name());
+        ComboBox<Severity> comboSeverity = new ComboBox<>(getMessage("incident_dialog.severity"));
+        comboSeverity.setItems(Severity.values());
+        comboSeverity.setItemLabelGenerator(item -> getMessage("incidents_view." + item.name().toLowerCase()));
+        comboSeverity.setValue(incident.getSeverity());
         comboSeverity.setReadOnly(!UiAuthorization.isAdmin());
 
-        ComboBox<String> comboStatus = new ComboBox<>(getMessage("incident_dialog.status"));
-        comboStatus.setItems(List.of("Open", "In Progress", "Resolved", "False Positive", "Closed"));
-        comboStatus.setValue(incident.getStatus().name().replace("_", " "));
+        ComboBox<IncidentStatus> comboStatus = new ComboBox<>(getMessage("incident_dialog.status"));
+        comboStatus.setItems(IncidentStatus.values());
+        comboStatus.setItemLabelGenerator(item -> getMessage("incidents_view." + item.name().toLowerCase()));
+        comboStatus.setValue(incident.getStatus());
         comboStatus.setReadOnly(!UiAuthorization.isAdmin());
 
         TextField txtFirstEventTime = new TextField(getMessage("incident_dialog.first_event_time"));
-        txtFirstEventTime.setValue(Utils.formatLocalDateTime(incident.getFirstEventTime()));
+        txtFirstEventTime.setValue(formatDate(incident.getFirstEventTime()));
         txtFirstEventTime.setReadOnly(true);
 
         TextField txtLastEventTime = new TextField(getMessage("incident_dialog.last_event_time"));
-        txtLastEventTime.setValue(Utils.formatLocalDateTime(incident.getLastEventTime()));
+        txtLastEventTime.setValue(formatDate(incident.getLastEventTime()));
         txtLastEventTime.setReadOnly(true);
 
         TextField txtRecommendation = new TextField(getMessage("incident_dialog.recommendation"));
-        txtRecommendation.setValue(incident.getRecommendation());
+        txtRecommendation.setValue(value(incident.getRecommendation()));
         txtRecommendation.setReadOnly(true);
         formLayout.setColspan(txtRecommendation, 2);
+
+        TextField txtAffectedUser = new TextField(getMessage("incident_dialog.affected_user"));
+        txtAffectedUser.setValue(value(incident.getAffectedUser()));
+        txtAffectedUser.setReadOnly(true);
+
+        TextArea txtContext = new TextArea(getMessage("incident_dialog.context"));
+        txtContext.setValue(value(incident.getContext()));
+        txtContext.setReadOnly(true);
+        txtContext.setMinHeight("120px");
+        formLayout.setColspan(txtContext, 2);
 
         TextField txtEventCount = new TextField(getMessage("incident_dialog.event_count"));
         txtEventCount.setValue(String.valueOf(incident.getEventCount()));
         txtEventCount.setReadOnly(true);
 
         TextField txtUpdatedAt = new TextField(getMessage("incident_dialog.updated_at"));
-        txtUpdatedAt.setValue(Utils.formatLocalDateTime(incident.getUpdatedAt()));
+        txtUpdatedAt.setValue(formatDate(incident.getUpdatedAt()));
         txtUpdatedAt.setReadOnly(true);
 
-        formLayout.add(txtName, txtRecommendation, txtCreatedAt, txtMachineName, txtFirstEventTime, txtLastEventTime, txtEventCount, txtUpdatedAt, comboSeverity, comboStatus);
+        formLayout.add(txtName, txtRecommendation, txtContext, txtCreatedAt, txtMachineName, txtAffectedUser, txtFirstEventTime, txtLastEventTime, txtEventCount, txtUpdatedAt, comboSeverity, comboStatus);
 
         add(formLayout);
 
@@ -93,8 +106,8 @@ public class IncidentDialog extends Dialog {
 
         Button saveButton = new Button(getMessage("common.save"), e -> {
             try {
-                Severity severity = Severity.valueOf(comboSeverity.getValue().toUpperCase());
-                IncidentStatus status = IncidentStatus.valueOf(comboStatus.getValue().toUpperCase().replace(" ", "_"));
+                Severity severity = comboSeverity.getValue();
+                IncidentStatus status = comboStatus.getValue();
 
                 if (status == IncidentStatus.CLOSED) {
                     incidentService.closeIncident(incident.getId());
@@ -129,6 +142,14 @@ public class IncidentDialog extends Dialog {
 
     private String getMessage(String key) {
         return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    }
+
+    private static String value(String text) {
+        return text == null ? "" : text;
+    }
+
+    private static String formatDate(LocalDateTime dateTime) {
+        return dateTime == null ? "" : Utils.formatLocalDateTime(dateTime);
     }
 
 }

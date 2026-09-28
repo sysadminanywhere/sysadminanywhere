@@ -115,10 +115,7 @@ public class IncidentsView extends Div implements HasDynamicTitle {
             Button resetBtn = new Button(getMessage("common.reset"));
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
-                severity.clear();
-                severity.setValue(getMessage("incidents_view.critical"));
-
-                status.clear();
+                severity.setValue(getMessage("incidents_view.all"));
                 status.setValue(getMessage("incidents_view.open"));
 
                 onSearch.run();
@@ -164,8 +161,8 @@ public class IncidentsView extends Div implements HasDynamicTitle {
             String severityValue = severity.getValue();
             String statusValue = status.getValue();
 
-            filters.put("severity", getSeverityReverseMapping().getOrDefault(severityValue, severityValue.toUpperCase()));
-            filters.put("status", getStatusReverseMapping().getOrDefault(statusValue, statusValue.toUpperCase().replace(" ", "_")));
+            filters.put("severity", getSeverityReverseMapping().getOrDefault(severityValue, "ALL"));
+            filters.put("status", getStatusReverseMapping().getOrDefault(statusValue, "OPEN"));
             return filters;
         }
 
@@ -176,13 +173,14 @@ public class IncidentsView extends Div implements HasDynamicTitle {
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn(incidentItem ->
-                        Utils.formatLocalDateTime(incidentItem.getCreatedAt()))
+                        incidentItem.getCreatedAt() == null ? "" : Utils.formatLocalDateTime(incidentItem.getCreatedAt()))
                 .setHeader(getMessage("common.created_at")).setAutoWidth(true);
 
         grid.addColumn("name").setHeader(getMessage("incidents_view.name")).setAutoWidth(true);
         grid.addColumn("machineName").setHeader(getMessage("incidents_view.machine_name")).setAutoWidth(true);
         grid.addColumn("severity").setHeader(getMessage("incidents_view.severity")).setAutoWidth(true);
         grid.addColumn("status").setHeader(getMessage("incidents_view.status")).setAutoWidth(true);
+        grid.addColumn("eventCount").setHeader(getMessage("incident_dialog.event_count")).setAutoWidth(true);
         grid.addColumn("recommendation").setHeader(getMessage("incidents_view.recommendation")).setAutoWidth(true);
 
         grid.addItemClickListener(item -> {

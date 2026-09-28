@@ -85,6 +85,7 @@ Interface:
 Top menu actions:
 - Refresh;
 - New -> User / Computer / Group / Contact.
+- `⋯` -> move selected objects to a container or delete them.
 
 Navigation:
 - click on object row opens details card (user/computer/group/printer/contact).
@@ -105,7 +106,7 @@ Top menu actions:
 
 Bulk operations:
 - select multiple users using the checkboxes in the table;
-- choose `Enable selected` or `Disable selected` from the page menu;
+- open `⋯` and choose `Enable selected` or `Disable selected`;
 - confirm the operation. Changes apply to the selected users on the current page and are reflected in the directory audit.
 
 Navigation:
@@ -156,8 +157,7 @@ In the table, blue icons indicate enabled computers and gray icons indicate disa
 Top menu actions:
 - Refresh,
 - New (add computer),
-- enable/disable selected computers,
-- delete selected computers.
+- `⋯` -> enable/disable, add to/remove from a group, or delete selected computers.
 
 Use row checkboxes for bulk actions and confirm the operation. A single row click still opens the computer details.
 
@@ -303,13 +303,14 @@ Table:
 - machineName,
 - severity,
 - status,
+- event count,
 - recommendation.
 
 ### 5.2 Incident Dialog
 Opens on incident click.
 
 Shows:
-- incident metadata (time, machine, recommendations, event count, etc.).
+- incident metadata (time, machine, affected user, context, recommendations, event count, etc.).
 
 Allows:
 - change severity/status,

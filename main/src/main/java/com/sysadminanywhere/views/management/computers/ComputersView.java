@@ -23,6 +23,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -97,11 +98,13 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
             addDialog(this::refreshGrid).open();
         });
 
-        MenuHelper.createIconItem(menuBar, "/icons/options.svg", getMessage("users_view.bulk_enable"), event -> confirmBulkAccountState(false));
-        MenuHelper.createIconItem(menuBar, "/icons/options.svg", getMessage("users_view.bulk_disable"), event -> confirmBulkAccountState(true));
-        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("common.delete"), event -> confirmBulkDelete());
-        MenuHelper.createIconItem(menuBar, "/icons/group.svg", getMessage("bulk.add_to_group"), event -> confirmBulkGroupMembership(false));
-        MenuHelper.createIconItem(menuBar, "/icons/group.svg", getMessage("bulk.remove_from_group"), event -> confirmBulkGroupMembership(true));
+        MenuItem actions = menuBar.addItem("⋯");
+        actions.getElement().setAttribute("aria-label", getMessage("common.actions"));
+        actions.getSubMenu().addItem(getMessage("users_view.bulk_enable"), event -> confirmBulkAccountState(false));
+        actions.getSubMenu().addItem(getMessage("users_view.bulk_disable"), event -> confirmBulkAccountState(true));
+        actions.getSubMenu().addItem(getMessage("bulk.add_to_group"), event -> confirmBulkGroupMembership(false));
+        actions.getSubMenu().addItem(getMessage("bulk.remove_from_group"), event -> confirmBulkGroupMembership(true));
+        actions.getSubMenu().addItem(getMessage("common.delete"), event -> confirmBulkDelete());
 
         return menuBar;
     }

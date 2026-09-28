@@ -29,7 +29,6 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
-import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -192,14 +191,10 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
     @Override
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
-        menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
 
         MenuHelper.createIconItem(menuBar, "/icons/refresh.svg", getMessage("common.refresh"), menuItemClickEvent -> {
             refreshGrid();
         });
-        MenuHelper.createIconItem(menuBar, "/icons/trash.svg", getMessage("common.delete"), event -> confirmBulkDelete());
-        MenuHelper.createIconItem(menuBar, "/icons/options.svg", getMessage("bulk.move_selected"), event -> confirmBulkMove());
-
         MenuItem menuAdd = menuBar.addItem(getMessage("common.new"));
 
         SubMenu subMenu = menuAdd.getSubMenu();
@@ -215,6 +210,11 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
         subMenu.addItem(getMessage("containers_view.contact"), menuItemClickEvent -> {
             addContactDialog(this::refreshGrid).open();
         });
+
+        MenuItem actions = menuBar.addItem("⋯");
+        actions.getElement().setAttribute("aria-label", getMessage("common.actions"));
+        actions.getSubMenu().addItem(getMessage("bulk.move_selected"), event -> confirmBulkMove());
+        actions.getSubMenu().addItem(getMessage("common.delete"), event -> confirmBulkDelete());
 
         return menuBar;
     }
