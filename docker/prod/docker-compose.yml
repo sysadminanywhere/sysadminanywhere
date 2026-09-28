@@ -58,6 +58,13 @@ services:
       LDAP_SERVER: ${LDAP_SERVER}
       LDAP_PORT: ${LDAP_PORT}
       LDAP_USE_SSL: ${LDAP_USE_SSL}
+      LDAP_VERIFY_CERTIFICATE: ${LDAP_VERIFY_CERTIFICATE:-false}
+      LDAP_ADMIN_GROUP_DNS: ${LDAP_ADMIN_GROUP_DNS:-}
+      LDAP_ADMIN_USERS: ${LDAP_ADMIN_USERS:-}
+      LDAP_WMI_READ_USERS: ${LDAP_WMI_READ_USERS:-}
+      DIRECTORY_AUDIT_JOURNAL_PATH: ${DIRECTORY_AUDIT_JOURNAL_PATH:-/data/change-journal.json}
+      DIRECTORY_AUDIT_JOURNAL_MAX_ENTRIES: ${DIRECTORY_AUDIT_JOURNAL_MAX_ENTRIES:-10000}
+      API_TOKENS_CONFIG_PATH: ${API_TOKENS_CONFIG_PATH:-/data/api-tokens.json}
       VAULT_URI: http://vault:8200
       VAULT_TOKEN: ${VAULT_TOKEN}
       JWT_SECRET: ${JWT_SECRET}
@@ -65,6 +72,8 @@ services:
     depends_on:
       - vault
     restart: unless-stopped
+    volumes:
+      - directory_change_journal:/data
 
   inventory:
     image: sysadminanywhere/inventory:latest
@@ -76,6 +85,8 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DIRECTORY_SERVICE: http://directory:8080
+      DIRECTORY_AUTH_MAX_ATTEMPTS: ${DIRECTORY_AUTH_MAX_ATTEMPTS:-5}
+      DIRECTORY_AUTH_RETRY_DELAY_MS: ${DIRECTORY_AUTH_RETRY_DELAY_MS:-3000}
       SCAN_CRON: ${INVENTORY_SCAN_CRON}
       LDAP_USERNAME: ${INVENTORY_USERNAME}
       LDAP_PASSWORD: ${INVENTORY_PASSWORD}
@@ -125,6 +136,16 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       N8N_HOST: http://n8n:5678
       N8N_API_KEY: ${N8N_API_KEY}
+      REPORTS_SCHEDULER_CONFIG_PATH: ${REPORTS_SCHEDULER_CONFIG_PATH:-/data/scheduled-reports.json}
+      REPORTS_SCHEDULER_RUNS_PATH: ${REPORTS_SCHEDULER_RUNS_PATH:-/data/scheduled-report-runs.json}
+      REPORTS_SCHEDULER_OUTPUT_DIR: ${REPORTS_SCHEDULER_OUTPUT_DIR:-/data/scheduled-reports}
+      WEBHOOKS_CONFIG_PATH: ${WEBHOOKS_CONFIG_PATH:-/data/webhooks.json}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      MAIL_SMTP_STARTTLS: ${MAIL_SMTP_STARTTLS:-true}
       SPRING_PROFILES_ACTIVE: prod
       ALLOWED_USERS:
       ALLOWED_GROUPS:
@@ -133,9 +154,13 @@ services:
       - directory
       - inventory
       - incident
+    volumes:
+      - report_scheduler_data:/data
     restart: unless-stopped
 
 volumes:
   postgres_data:
   vault_data:
   n8n_data:
+  directory_change_journal:
+  report_scheduler_data:

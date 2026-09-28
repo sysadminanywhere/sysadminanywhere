@@ -5,6 +5,8 @@ import com.sysadminanywhere.common.directory.model.AD;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
+import com.sysadminanywhere.common.directory.model.PrinterEntry;
+import com.sysadminanywhere.common.directory.model.ContactEntry;
 import com.sysadminanywhere.model.ReportItem;
 import com.sysadminanywhere.service.*;
 import com.sysadminanywhere.service.LocaleService;
@@ -30,7 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "reports/report")
 @Uses(Icon.class)
 public class ReportPreviewView extends VerticalLayout implements BeforeEnterObserver, HasDynamicTitle {
@@ -44,6 +46,7 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
     private final UsersService usersService;
     private final GroupsService groupsService;
     private final PrintersService printersService;
+    private final ContactsService contactsService;
 
     private final ReportGeneratorService reportGeneratorService;
     private final MessageSource messageSource;
@@ -70,6 +73,7 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
                              UsersService usersService,
                              GroupsService groupsService,
                              PrintersService printersService,
+                             ContactsService contactsService,
                              ReportGeneratorService reportGeneratorService,
                              MessageSource messageSource,
                              LocaleService localeService) {
@@ -77,6 +81,7 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
         this.usersService = usersService;
         this.groupsService = groupsService;
         this.printersService = printersService;
+        this.contactsService = contactsService;
         this.reportGeneratorService = reportGeneratorService;
         this.messageSource = messageSource;
         this.localeService = localeService;
@@ -131,6 +136,12 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
                 break;
             case "groups":
                 result = groupReports(reportItem);
+                break;
+            case "printers":
+                result = printerReports(reportItem);
+                break;
+            case "contacts":
+                result = contactReports(reportItem);
                 break;
         }
 
@@ -207,9 +218,25 @@ public class ReportPreviewView extends VerticalLayout implements BeforeEnterObse
                 attributes, reportItem.getNames());
     }
 
+    private byte[] printerReports(ReportItem reportItem) {
+        String[] attributes = getAttributes(reportItem.getColumns(), PrinterEntry.class);
+
+        return reportGeneratorService.generateReport(printersService.getAll(reportItem.getFilter(), attributes),
+                reportItem.getName(), reportItem.getDescription(),
+                attributes, reportItem.getNames());
+    }
+
+    private byte[] contactReports(ReportItem reportItem) {
+        String[] attributes = getAttributes(reportItem.getColumns(), ContactEntry.class);
+
+        return reportGeneratorService.generateReport(contactsService.getAll(reportItem.getFilter(), attributes),
+                reportItem.getName(), reportItem.getDescription(),
+                attributes, reportItem.getNames());
+    }
+
     private Long getFileTime(int days) {
         ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-        ZonedDateTime targetDate = now.minusDays(180);
+        ZonedDateTime targetDate = now.minusDays(days);
 
         // 2. Windows FileTime начинается с 1601-01-01
         ZonedDateTime windowsEpoch = ZonedDateTime.of(1601, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);

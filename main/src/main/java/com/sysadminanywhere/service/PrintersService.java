@@ -4,6 +4,8 @@ import com.sysadminanywhere.common.PageResponse;
 
 import com.sysadminanywhere.client.directory.PrintersServiceClient;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
 import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
@@ -29,26 +31,31 @@ public class PrintersService {
     @SneakyThrows
     public Page<PrinterEntry> getAll(Pageable pageable, String filters, String... attributes) {
         try {
-            PageResponse<PrinterEntry> response = printersServiceClient.getAll(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                pageable.getSort().toString(),
-                filters,
-                attributes
-            );
-            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
-        } catch (Exception e) {
+            return getAllOrThrow(pageable, filters, attributes);
+        } catch (RuntimeException exception) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
+    }
+
+    public Page<PrinterEntry> getAllOrThrow(Pageable pageable, String filters, String... attributes) {
+        PageResponse<PrinterEntry> response = printersServiceClient.getAll(
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString(),
+                filters, attributes);
+        return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()),
+                response.totalElements());
     }
 
     @SneakyThrows
     public List<PrinterEntry> getAll(String filters, String... attributes) {
         try {
-            return printersServiceClient.getList(filters, attributes);
-        } catch (Exception e) {
+            return getAllOrThrow(filters, attributes);
+        } catch (RuntimeException exception) {
             return null;
         }
+    }
+
+    public List<PrinterEntry> getAllOrThrow(String filters, String... attributes) {
+        return printersServiceClient.getList(filters, attributes);
     }
 
     public List<PrinterEntry> getAll() {
@@ -75,6 +82,18 @@ public class PrintersService {
     @SneakyThrows
     public void delete(String distinguishedName) {
         printersServiceClient.delete(distinguishedName);
+    }
+
+    public BulkOperationResult bulkDelete(List<PrinterEntry> printers) {
+        List<String> distinguishedNames = printers.stream()
+                .map(PrinterEntry::getDistinguishedName)
+                .filter(name -> name != null && !name.isBlank())
+                .toList();
+        return printersServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
+    }
+
+    public BulkOperationResult bulkDeleteDistinguishedNames(List<String> distinguishedNames) {
+        return printersServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
     }
 
     public String getDefaultContainer() {

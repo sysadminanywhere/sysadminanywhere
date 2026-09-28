@@ -28,7 +28,7 @@ public class UpdateUserDialog extends Dialog {
         this.localeService = localeService;
 
         setHeaderTitle(getMessage("update_user_dialog.title"));
-        setWidth("800px");
+        setWidth("min(800px, calc(100vw - 32px))");
 
         TabSheet tabSheet = new TabSheet();
 
@@ -127,6 +127,11 @@ public class UpdateUserDialog extends Dialog {
 
         add(tabSheet);
 
+        com.vaadin.flow.component.html.Span saveError = new com.vaadin.flow.component.html.Span();
+        saveError.addClassName("dialog-save-error");
+        saveError.setVisible(false);
+        add(saveError);
+
         Button saveButton = new com.vaadin.flow.component.button.Button(getMessage("common.save"), e -> {
             UserEntry entry = user;
 
@@ -161,8 +166,9 @@ public class UpdateUserDialog extends Dialog {
                 Notification notification = Notification.show(getMessage("update_user_dialog.user_updated"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                saveError.setText(ex.getMessage() == null ? getMessage("common.error") : ex.getMessage());
+                saveError.setVisible(true);
+                return;
             }
 
             close();

@@ -6,8 +6,14 @@ import com.sysadminanywhere.client.directory.LdapServiceClient;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.SearchDto;
+import com.sysadminanywhere.common.directory.dto.BulkGroupMembershipDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
+import com.sysadminanywhere.common.directory.dto.BulkMoveDto;
+import com.sysadminanywhere.common.directory.dto.ChangeJournalDto;
+import com.sysadminanywhere.common.directory.dto.DomainHealthDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
+import com.sysadminanywhere.common.directory.model.UserAccountControls;
 import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.Entry;
 import lombok.SneakyThrows;
@@ -127,7 +133,7 @@ public class LdapService {
     public Page<Entry> search(int page, int size, String sort, String dn, String filter, SearchScope searchScope) {
         try {
             List<EntryDto> dtos = ldapServiceClient.getSearch(new SearchDto(dn, filter, searchScope.ordinal(),
-                    "cn", "objectclass", "description", "showinadvancedviewonly")).getBody();
+                    "cn", "distinguishedname", "objectclass", "description", "showinadvancedviewonly", "useraccountcontrol")).getBody();
 
             List<Entry> list = new ArrayList<>();
             for (EntryDto dto : dtos) {
@@ -151,9 +157,26 @@ public class LdapService {
     private Entry convertToEntity(EntryDto dto) {
         return Entry.builder()
                 .cn(dto.getAttributes().get("cn").toString())
+                .distinguishedName(dto.getAttributes().get("distinguishedname") != null
+                        ? dto.getAttributes().get("distinguishedname").toString() : null)
                 .type(getType(dto.getAttributes().get("objectclass")))
                 .description(dto.getAttributes().get("description") != null ? dto.getAttributes().get("description").toString() : "")
+                .disabled(isDisabled(dto))
                 .build();
+    }
+
+    private boolean isDisabled(EntryDto dto) {
+        Object objectClass = dto.getAttributes().get("objectclass");
+        String type = getType(objectClass);
+        Object accountControl = dto.getAttributes().get("useraccountcontrol");
+        if (accountControl == null || !(type.equalsIgnoreCase("user") || type.equalsIgnoreCase("computer"))) {
+            return false;
+        }
+        try {
+            return (Integer.parseInt(accountControl.toString()) & UserAccountControls.ACCOUNTDISABLE.getValue()) != 0;
+        } catch (NumberFormatException ignored) {
+            return false;
+        }
     }
 
     private String getType(Object object) {
@@ -276,6 +299,43 @@ public class LdapService {
             return Boolean.valueOf(ldapServiceClient.addMember(dn, group).getBody().toString());
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    public List<ChangeJournalDto> getChangeHistory(Map<String, String> filters) {
+        try {
+            List<ChangeJournalDto> result = ldapServiceClient.getChangeHistory(filters).getBody();
+            return result == null ? new ArrayList<>() : result;
+        } catch (Exception exception) {
+            return new ArrayList<>();
+        }
+    }
+
+    public DomainHealthDto getDomainHealth() {
+        try {
+            return ldapServiceClient.getDomainHealth().getBody();
+        } catch (Exception exception) {
+            return new DomainHealthDto("ERROR", java.time.LocalDateTime.now(), List.of(
+                    new DomainHealthDto.DomainHealthCheckDto("LDAP", "ERROR", exception.getMessage())));
+        }
+    }
+
+    public BulkOperationResult bulkChangeMembers(List<String> memberDistinguishedNames, String groupDistinguishedName, boolean remove) {
+        try {
+            return ldapServiceClient.bulkChangeMembers(new BulkGroupMembershipDto(
+                    memberDistinguishedNames, groupDistinguishedName, remove));
+        } catch (Exception exception) {
+            return new BulkOperationResult(0, memberDistinguishedNames == null
+                    ? new ArrayList<>() : new ArrayList<>(memberDistinguishedNames));
+        }
+    }
+
+    public BulkOperationResult bulkMove(List<String> distinguishedNames, String targetContainerDistinguishedName) {
+        try {
+            return ldapServiceClient.bulkMove(new BulkMoveDto(distinguishedNames, targetContainerDistinguishedName));
+        } catch (Exception exception) {
+            return new BulkOperationResult(0, distinguishedNames == null
+                    ? new ArrayList<>() : new ArrayList<>(distinguishedNames));
         }
     }
 

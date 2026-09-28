@@ -36,7 +36,7 @@ import jakarta.annotation.security.RolesAllowed;
 
 import java.io.ByteArrayInputStream;
 
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "management/users/:id?/details")
 @Uses(Upload.class)
 @Uses(Icon.class)
@@ -203,7 +203,7 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
     private Dialog resetPasswordForm() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(getMessage("user_details_view.reset_password"));
-        dialog.setWidth("500px");
+        dialog.setWidth("min(500px, calc(100vw - 32px))");
 
         FormLayout formLayout = new FormLayout();
 
@@ -243,23 +243,37 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
     private Dialog optionsForm() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(getMessage("user_details_view.user_options"));
-        dialog.setWidth("600px");
+        dialog.setWidth("min(600px, calc(100vw - 32px))");
 
         FormLayout formLayout = new FormLayout();
 
         VerticalLayout checkboxGroup = new VerticalLayout();
         formLayout.setColspan(checkboxGroup, 2);
+
+        boolean mustChangePassword = user != null
+                && user.getPwdLastSet() != null
+                && user.isUserMustChangePassword();
+        boolean cannotChangePassword = user != null && user.isUserCannotChangePassword();
+        boolean passwordNeverExpires = user != null && user.isNeverExpires();
+        boolean accountDisabled = user != null && user.isDisabled();
+
         Checkbox chkUserMustChangePassword = new Checkbox(getMessage("user_details_view.user_must_change_password"));
-        //chkUserMustChangePassword.setValue(user.isUserMustChangePassword());
+        chkUserMustChangePassword.setValue(mustChangePassword);
 
         Checkbox chkUserCannotChangePassword = new Checkbox(getMessage("user_details_view.user_cannot_change_password"));
-        //chkUserCannotChangePassword.setValue(user.isUserCannotChangePassword());
+        chkUserCannotChangePassword.setValue(cannotChangePassword);
 
         Checkbox chkPasswordNeverExpires = new Checkbox(getMessage("user_details_view.password_never_expires"));
-        //chkPasswordNeverExpires.setValue(user.isNeverExpires());
+        chkPasswordNeverExpires.setValue(passwordNeverExpires);
 
         Checkbox chkAccountDisabled = new Checkbox(getMessage("user_details_view.account_disabled"));
-        //chkAccountDisabled.setValue(user.isDisabled());
+        chkAccountDisabled.setValue(accountDisabled);
+
+        if (mustChangePassword && !passwordNeverExpires) {
+            chkPasswordNeverExpires.setEnabled(false);
+        } else if (passwordNeverExpires && !mustChangePassword) {
+            chkUserMustChangePassword.setEnabled(false);
+        }
 
         checkboxGroup.add(chkUserMustChangePassword, chkUserCannotChangePassword, chkPasswordNeverExpires, chkAccountDisabled);
 
@@ -285,11 +299,9 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
         dialog.add(formLayout);
 
         Button saveButton = new com.vaadin.flow.component.button.Button(getMessage("common.save"), e -> {
-            UserEntry entry = user;
-
             try {
                 usersService.changeUserAccountControl(
-                        entry,
+                        user,
                         chkUserCannotChangePassword.getValue(),
                         chkPasswordNeverExpires.getValue(),
                         chkAccountDisabled.getValue(),
@@ -299,12 +311,14 @@ public class UserDetailsView extends Div implements BeforeEnterObserver, MenuCon
 
                 Notification notification = Notification.show(getMessage("user_details_view.options_changed"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                dialog.close();
             } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
+                String message = ex.getMessage() == null || ex.getMessage().isBlank()
+                        ? getMessage("common.error")
+                        : ex.getMessage();
+                Notification notification = Notification.show(message);
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
-
-            dialog.close();
         });
 
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);

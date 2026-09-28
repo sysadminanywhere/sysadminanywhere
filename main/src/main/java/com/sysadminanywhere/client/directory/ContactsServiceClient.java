@@ -2,6 +2,8 @@ package com.sysadminanywhere.client.directory;
 
 import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddContactDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,5 +36,8 @@ public interface ContactsServiceClient {
 
     @DeleteExchange("/api/contacts")
     void delete(@RequestParam String distinguishedName);
+
+    @PostExchange("/api/contacts/bulk/delete")
+    BulkOperationResult bulkDelete(@RequestBody BulkDeleteDto request);
 
 }

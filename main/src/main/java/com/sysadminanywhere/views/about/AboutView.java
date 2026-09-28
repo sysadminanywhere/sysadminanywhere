@@ -10,13 +10,13 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import jakarta.annotation.security.PermitAll;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.component.card.Card;
 import org.springframework.context.MessageSource;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 @Route(value = "settings/about")
-@PermitAll
+@AnonymousAllowed
 public class AboutView extends VerticalLayout implements HasDynamicTitle {
 
     private final VersionService versionService;

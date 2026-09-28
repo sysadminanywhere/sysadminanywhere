@@ -40,4 +40,32 @@
   "filter" : "",
   "columns" : ["cn","operatingSystem","lastLogon"],
   "names" : ["reports.columns.cn","reports.columns.operating_system","reports.columns.last_logon"]
+}, {
+  "id" : "workstations",
+  "name" : "reports.computers_workstations.name",
+  "description" : "reports.computers_workstations.description",
+  "filter" : "(!(operatingSystem=*Server*))",
+  "columns" : ["cn","operatingSystem","operatingSystemServicePack"],
+  "names" : ["reports.columns.cn","reports.columns.operating_system","reports.columns.operating_system_service_pack"]
+}, {
+  "id" : "withoutlocation",
+  "name" : "reports.computers_without_location.name",
+  "description" : "reports.computers_without_location.description",
+  "filter" : "(!(location=*))",
+  "columns" : ["cn","operatingSystem","location"],
+  "names" : ["reports.columns.cn","reports.columns.operating_system","reports.columns.location"]
+}, {
+  "id" : "withoutdns",
+  "name" : "reports.computers_without_dns.name",
+  "description" : "reports.computers_without_dns.description",
+  "filter" : "(!(dNSHostName=*))",
+  "columns" : ["cn","operatingSystem","dnsHostName"],
+  "names" : ["reports.columns.cn","reports.columns.operating_system","reports.columns.dns_host_name"]
+}, {
+  "id" : "critical",
+  "name" : "reports.computers_critical.name",
+  "description" : "reports.computers_critical.description",
+  "filter" : "(isCriticalSystemObject=TRUE)",
+  "columns" : ["cn","operatingSystem","operatingSystemServicePack"],
+  "names" : ["reports.columns.cn","reports.columns.operating_system","reports.columns.operating_system_service_pack"]
 } ]

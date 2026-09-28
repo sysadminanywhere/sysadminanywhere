@@ -7,15 +7,56 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.PostExchange;
+import org.springframework.web.service.annotation.PutExchange;
 
 import java.util.List;
 
 public interface InventoryServiceClient {
 
+    @GetExchange("/api/inventory/health")
+    InventoryHealthDto getInventoryHealth(@RequestParam int staleDays);
+
+    @PostExchange("/api/inventory/scan")
+    void startScan(@org.springframework.web.bind.annotation.RequestBody InventoryScanRequest request);
+
+    @GetExchange("/api/inventory/scan/status")
+    InventoryScanStatus getScanStatus();
+
+    @GetExchange("/api/inventory/schedule")
+    InventorySchedule getSchedule();
+
+    @PutExchange("/api/inventory/schedule")
+    InventorySchedule updateSchedule(@org.springframework.web.bind.annotation.RequestBody InventorySchedule schedule);
+
+    @GetExchange("/api/inventory/licenses")
+    List<SoftwareLicense> getLicenses();
+
+    @org.springframework.web.service.annotation.PostExchange("/api/inventory/licenses")
+    SoftwareLicense saveLicense(@org.springframework.web.bind.annotation.RequestBody SoftwareLicense license);
+
+    @org.springframework.web.service.annotation.DeleteExchange("/api/inventory/licenses/{id}")
+    void deleteLicense(@org.springframework.web.bind.annotation.PathVariable Long id);
+
+    @PostExchange("/api/inventory/scan/cancel")
+    void cancelScan();
+
+    @GetExchange("/api/inventory/scan/history")
+    List<InventoryScanRun> getScanHistory();
+
     // Software
 
     @GetExchange("/api/inventory/software/count")
-    PageResponse<SoftwareCount> getSoftwareCount(@RequestParam String name, @RequestParam String vendor, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
+    PageResponse<SoftwareCount> getSoftwareCount(@RequestParam String name, @RequestParam String vendor,
+                                                  @RequestParam(required = false) Long minCount, @RequestParam(required = false) Long maxCount,
+                                                  @RequestParam int page, @RequestParam int size, @RequestParam String sort);
+
+    @GetExchange("/api/inventory/software/discovered")
+    PageResponse<SoftwareCount> getDiscoveredSoftware(@RequestParam String search,
+                                                       @RequestParam int page, @RequestParam int size);
+
+    @GetExchange("/api/inventory/software/vulnerabilities")
+    List<SoftwareVulnerability> getSoftwareVulnerabilities();
 
     @GetExchange("/api/inventory/computers/{computerId}/software")
     PageResponse<SoftwareOnComputer> getSoftwareOnComputer(@PathVariable Long computerId, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
@@ -26,6 +67,27 @@ public interface InventoryServiceClient {
 
     // Hardware
 
+    @GetExchange("/api/inventory/hardware/computers")
+    PageResponse<HardwareComputerItem> getHardwareComputers(@RequestParam String name, @RequestParam int page, @RequestParam int size);
+
+    @GetExchange("/api/inventory/hardware/computers/{computerId}")
+    ComputerHardwareDetails getComputerHardwareDetails(@PathVariable Long computerId);
+
+    @GetExchange("/api/inventory/hardware/catalog")
+    PageResponse<HardwareCatalogItem> getHardwareCatalog(@RequestParam String name,
+            @RequestParam(required = false) String type, @RequestParam int page, @RequestParam int size);
+
+    @GetExchange("/api/inventory/hardware/catalog/{modelId}")
+    HardwareCatalogItem getHardwareCatalogItem(@PathVariable Long modelId);
+
+    @GetExchange("/api/inventory/hardware/models/{modelId}/computers")
+    PageResponse<HardwareComputerItem> getComputersByHardwareModel(@PathVariable Long modelId,
+            @RequestParam int page, @RequestParam int size);
+
+    @GetExchange("/api/inventory/hardware/changes")
+    PageResponse<HardwareChangeItem> getHardwareChanges(@RequestParam(required = false) Long computerId,
+            @RequestParam(required = false) Long modelId, @RequestParam int page, @RequestParam int size);
+
     @GetExchange("/api/inventory/hardware/count")
     Page<Object[]> getHardwareCount(@RequestParam String name, @RequestParam String type, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
 
@@ -34,6 +96,15 @@ public interface InventoryServiceClient {
 
     @GetExchange("/api/inventory/hardware")
     PageResponse<HardwareItem> getHardware(@RequestParam String name, @RequestParam String type, @RequestParam int page, @RequestParam int size, @RequestParam String sort);
+
+    @GetExchange("/api/inventory/hardware/operating-systems")
+    List<OperatingSystemCount> getOperatingSystemCounts();
+
+    @GetExchange("/api/inventory/hardware/coverage")
+    InventoryCoverage getInventoryCoverage();
+
+    @GetExchange("/api/inventory/hardware/patches/status")
+    List<ComputerPatchStatus> getPatchStatuses();
 
 
     // Ping

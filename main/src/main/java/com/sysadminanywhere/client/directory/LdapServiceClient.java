@@ -4,6 +4,11 @@ import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.SearchDto;
+import com.sysadminanywhere.common.directory.dto.BulkGroupMembershipDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
+import com.sysadminanywhere.common.directory.dto.BulkMoveDto;
+import com.sysadminanywhere.common.directory.dto.ChangeJournalDto;
+import com.sysadminanywhere.common.directory.dto.DomainHealthDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +29,12 @@ public interface LdapServiceClient {
     @GetExchange("/api/ldap/audit/list")
     ResponseEntity<List<AuditDto>> getAuditList(@RequestParam Map<String, String> filters);
 
+    @GetExchange("/api/ldap/change-history")
+    ResponseEntity<List<ChangeJournalDto>> getChangeHistory(@RequestParam Map<String, String> filters);
+
+    @GetExchange("/api/ldap/domain-health")
+    ResponseEntity<DomainHealthDto> getDomainHealth();
+
     @PostExchange("/api/ldap/search")
     ResponseEntity<List<EntryDto>> getSearch(@RequestBody SearchDto searchDto);
 
@@ -38,5 +49,11 @@ public interface LdapServiceClient {
 
     @DeleteExchange("/api/ldap/members")
     ResponseEntity<?> deleteMember(@RequestParam String dn, @RequestParam String group);
+
+    @PostExchange("/api/ldap/members/bulk")
+    BulkOperationResult bulkChangeMembers(@RequestBody BulkGroupMembershipDto request);
+
+    @PostExchange("/api/ldap/move/bulk")
+    BulkOperationResult bulkMove(@RequestBody BulkMoveDto request);
 
 }

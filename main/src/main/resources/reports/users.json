@@ -72,14 +72,42 @@
   "id" : "didntchangepassword",
   "name" : "reports.users_didnt_change_password.name",
   "description" : "reports.users_didnt_change_password.description",
-  "filter" : "(&(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=65536)(pwdLastSet<={days:180}))",
+  "filter" : "(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=65536))(pwdLastSet<={days:180}))",
   "columns" : ["cn","description"],
   "names" : ["reports.columns.cn","reports.columns.description"]
 }, {
   "id" : "passwordexpiration",
   "name" : "reports.users_password_expiration.name",
   "description" : "reports.users_password_expiration.description",
-  "filter" : "(&(objectCategory=person)(objectClass=user)(!userAccountControl:1.2.840.113556.1.4.803:=65536)(pwdLastSet<={maxPwdAgeDays:7}))",
+  "filter" : "(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=65536))(pwdLastSet<={maxPwdAgeDays:7}))",
   "columns" : ["cn","description"],
   "names" : ["reports.columns.cn","reports.columns.description"]
+}, {
+  "id" : "administrators",
+  "name" : "reports.users_administrators.name",
+  "description" : "reports.users_administrators.description",
+  "filter" : "(adminCount=1)",
+  "columns" : ["cn","description","lastLogon"],
+  "names" : ["reports.columns.cn","reports.columns.description","reports.columns.last_logon"]
+}, {
+  "id" : "withoutmanager",
+  "name" : "reports.users_without_manager.name",
+  "description" : "reports.users_without_manager.description",
+  "filter" : "(!(manager=*))",
+  "columns" : ["cn","description","manager"],
+  "names" : ["reports.columns.cn","reports.columns.description","reports.columns.manager"]
+}, {
+  "id" : "serviceaccounts",
+  "name" : "reports.users_service_accounts.name",
+  "description" : "reports.users_service_accounts.description",
+  "filter" : "(servicePrincipalName=*)",
+  "columns" : ["cn","description","servicePrincipalName"],
+  "names" : ["reports.columns.cn","reports.columns.description","reports.columns.service_principal_name"]
+}, {
+  "id" : "withoutemail",
+  "name" : "reports.users_without_email.name",
+  "description" : "reports.users_without_email.description",
+  "filter" : "(!(mail=*))",
+  "columns" : ["cn","description","emailAddress"],
+  "names" : ["reports.columns.cn","reports.columns.description","reports.columns.email"]
 } ]

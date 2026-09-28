@@ -1,6 +1,7 @@
 package com.sysadminanywhere.directory.service;
 
 import com.sysadminanywhere.common.directory.model.GroupEntry;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.model.GroupScope;
 import com.sysadminanywhere.common.directory.model.GroupType;
 import lombok.SneakyThrows;
@@ -85,6 +86,20 @@ public class GroupsService {
     public void delete(String distinguishedName) {
         Entry entry = new DefaultEntry(distinguishedName);
         ldapService.delete(entry);
+    }
+
+    public BulkOperationResult bulkDelete(List<String> distinguishedNames) {
+        int updated = 0;
+        List<String> failures = new java.util.ArrayList<>();
+        for (String distinguishedName : distinguishedNames) {
+            try {
+                delete(distinguishedName);
+                updated++;
+            } catch (Exception exception) {
+                failures.add(distinguishedName);
+            }
+        }
+        return new BulkOperationResult(updated, failures);
     }
 
     public String getGroupTypeName(long groupType)

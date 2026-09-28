@@ -2,6 +2,9 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddComputerDto;
+import com.sysadminanywhere.common.directory.dto.BulkComputerAccountStatusDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
 import com.sysadminanywhere.directory.service.ComputersService;
 import jakarta.validation.Valid;
@@ -30,7 +33,7 @@ public class ComputersController {
      * Получение всех компьютеров с постраничным выводом и фильтрацией
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<PageResponse<ComputerEntry>> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -66,7 +69,7 @@ public class ComputersController {
      * Получение списка компьютеров без постраничного вывода
      */
     @GetMapping("/list")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<List<ComputerEntry>> getList(
             @RequestParam String filters,
             @RequestParam String[] attributes) {
@@ -91,7 +94,7 @@ public class ComputersController {
      * Получение компьютера по CN (Common Name)
      */
     @GetMapping("/{cn}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<ComputerEntry> getByCN(@PathVariable String cn) {
         try {
             if (cn == null || cn.isBlank()) {
@@ -114,7 +117,7 @@ public class ComputersController {
      * Создание нового компьютера
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<ComputerEntry> add(@Valid @RequestBody AddComputerDto addComputer) {
         try {
             if (addComputer == null || addComputer.getDistinguishedName() == null || addComputer.getDistinguishedName().isBlank()) {
@@ -148,7 +151,7 @@ public class ComputersController {
      * Обновление компьютера
      */
     @PutMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<ComputerEntry> update(@Valid @RequestBody ComputerEntry computer) {
         try {
             if (computer == null || computer.getDistinguishedName() == null || computer.getDistinguishedName().isBlank()) {
@@ -171,7 +174,7 @@ public class ComputersController {
      * Удаление компьютера
      */
     @DeleteMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<?> delete(
             @RequestParam @NotBlank(message = "DistinguishedName cannot be empty") String distinguishedName) {
 
@@ -186,6 +189,26 @@ public class ComputersController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to delete computer"));
         }
+    }
+
+    @PostMapping("/bulk/change-status")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<BulkOperationResult> bulkChangeAccountStatus(
+            @Valid @RequestBody BulkComputerAccountStatusDto request) {
+        if (request == null || request.getDistinguishedNames() == null || request.getDistinguishedNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(computersService.bulkChangeAccountStatus(
+                request.getDistinguishedNames(), request.isAccountDisabled()));
+    }
+
+    @PostMapping("/bulk/delete")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<BulkOperationResult> bulkDelete(@Valid @RequestBody BulkDeleteDto request) {
+        if (request == null || request.getDistinguishedNames() == null || request.getDistinguishedNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(computersService.bulkDelete(request.getDistinguishedNames()));
     }
 
 }

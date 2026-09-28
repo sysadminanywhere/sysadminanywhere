@@ -1,7 +1,7 @@
 # Sysadmin Anywhere
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
-![Static Badge](https://img.shields.io/badge/version-4.2.5-blue)
+![Static Badge](https://img.shields.io/badge/version-5.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Java](https://img.shields.io/badge/java-21-orange)
 ![Spring Boot](https://img.shields.io/badge/spring%20boot-4-brightgreen)
@@ -18,6 +18,15 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 
 ### 📋 Active Directory Management
 - **User Management**: Add, edit, delete users with comprehensive attribute support
+- **Bulk User Operations**: Select multiple users and enable or disable their accounts with confirmation
+- **Bulk Directory Operations**: Select computers, groups, contacts and printers with checkboxes; change computer account state or delete selected objects in one request with per-object success/failure results
+- **Container Bulk Delete**: Delete supported mixed object selections from a container view with protection for system/unknown types
+- **Bulk Group Membership**: Add or remove selected users and computers from a target group with confirmation and per-object results
+- **Bulk Container Move**: Move selected supported objects to another container with a destination picker, confirmation and per-object results
+- **Audit History**: Filter directory changes by object name, DN, action and period, then inspect the available LDAP metadata
+- **Application Change Journal**: Review changes made through the application with operator, timestamp and before/after snapshots; entries are stored in a configurable JSON file (credential attributes are redacted)
+- **Domain Health**: Check LDAP connectivity, domain controllers, DNS, SYSVOL/NETLOGON SMB reachability, time drift and LDAP certificate expiry
+- **Status Indicators**: Disabled user and computer accounts are shown with gray icons in directory tables
 - **Group Operations**: Add/remove objects from groups with bulk operations
 - **Password Management**: Secure password reset functionality
 - **User Photos**: Add and manage user profile pictures
@@ -34,14 +43,40 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 - **Performance Monitoring**: Real-time computer performance metrics
 
 ### 📊 Inventory & Reporting
-- **Hardware Inventory**: Detailed hardware information collection
+- **Hardware Inventory**: Browse installed processors, graphics cards, disks, memory and other components by model; see how many computers report each model, open the affected computers, and review additions, removals and serial-confirmed replacements between scans. Routine WMI property updates do not create hardware change events. Removal is recorded only after successful WMI scans; a missing device is an investigation signal, not proof of theft.
 - **Software Inventory**: Comprehensive software asset management
 - **Incident Management**: Incident tracking and resolution (preview)
-- **20+ Reports**: Extensive reporting capabilities with customizable outputs
+- **44 PDF Reports**: Reports for users, computers, groups, printers and contacts
+- **Directory Health Reports**: Disabled accounts, password policies, stale objects, missing ownership data and critical objects
+- **Security Audit**: Privileged users/groups, service principal names (SPNs), and accounts missing contact or ownership data
+- **Inventory Health**: Detect computers that have not been scanned within a configurable threshold and open their details directly
+- **Inventory Operations**: Start full or selective scans, monitor progress, cancel a run, retry failed computers, review scan history, filter results and export CSV
+- **Inventory Coverage**: Review operating-system distribution, Windows patch coverage, computers without patch data and software records without versions
+- **Patch Freshness**: Track the last collected Windows patch date per computer and identify stale patch data using a configurable threshold
+- **Software Vulnerability Rules**: Match installed software by name/version (including wildcard versions), show CVE findings and create incidents from the Issues Center
+- **Finding-to-Incident Workflow**: Create a confirmed incident from a security or inventory finding with the affected object attached
+- **Safe CSV/Excel Import**: Preview user and group rows, validate required fields, import valid rows only, keep per-row errors visible and roll back objects created by the import
+- **Webhooks**: Configure signed incident and directory-change notifications with retry delivery
+- **Validated LDAP Filters**: Report filters are validated with Apache Directory API 2.1.8
+- **Scheduled Reports**: Daily or weekly PDF/CSV generation with optional SMTP email attachments; schedules and run history are persisted
+- **Service Reliability**: Retried idempotent service requests, WMI retries, a short circuit breaker, dependency health checks and an administrator-only dependency status page
+- **E2E Coverage**: Playwright-based browser checks cover navigation and inventory summary grids; the full scenario is enabled with `e2e.tests.enabled=true`
+
+### Inventory roadmap
+- Configure the inventory scan schedule from Settings; `SCAN_CRON` remains the startup default
+- Add automated NVD/CPE synchronization for vulnerability data (local rules are currently supported)
+- Add remediation workflows for stale patches and assign owners/deadlines to inventory issues
+
+### 🧭 Onboarding & User Experience
+- **Guided Tour**: An onboarding tour introduces the primary navigation, section menu and page content
+- **Help Center**: Built-in help page with common tasks, documentation and support links
+- **Global Search**: Search users, computers, groups, contacts and printers from one screen; click a result to open its details
+- **Themes**: Light and dark themes with persisted user preference
+- **Localization**: The interface, help content and reports are translated consistently across all supported languages
 
 ### 🤖 Automation & Integration
 - **n8n Workflows**: Build automation workflows using n8n integration
-- **API Support**: RESTful API for third-party integrations
+- **API Support**: Scoped, revocable integration tokens, OpenAPI examples, and per-service Swagger UI
 - **Monitoring**: Automated monitoring and alerting capabilities
 
 ## 🌍 Internationalization
@@ -59,12 +94,24 @@ Full multi-language support with professional translations:
 
 ## 🛠️ Technology Stack
 
-- **Backend**: Spring Boot 4.0.6, Java 21
-- **Frontend**: Vaadin Flow framework
+- **Backend**: Spring Boot 4.1.1, Java 21
+- **Frontend**: Vaadin Flow 25.2.8
+- **Directory Integration**: Apache Directory API 2.1.8
 - **Build Tool**: Maven
 - **Architecture**: Modular multi-module Maven project
 - **Security**: Spring Security with AD integration
 - **Caching**: Spring Cache for performance optimization
+- **Dashboard**: Directory totals and lightweight distribution charts appear first; domain health, security audit, account state, inventory health and software-license cards load afterward. Directory, health and audit snapshots are reused for up to one minute. Refresh requests fresh values, and each card links to its detailed page.
+
+### Report Catalog
+
+Reports are grouped by directory object type and rendered as PDF documents:
+
+- **Users**: administrators, service accounts, users without a manager or email, disabled and locked accounts, password expiration and logon information
+- **Computers**: servers, workstations, domain controllers, critical computers, missing DNS or location data and operating system details
+- **Groups**: security scopes, empty groups, privileged groups, groups without an owner and critical groups
+- **Printers**: all printers, printers without drivers or servers, and color-capable printers
+- **Contacts**: all contacts, contacts without email or phone, and contacts with company information
 
 ## 📁 Project Structure
 
@@ -158,6 +205,17 @@ DB_PASSWORD=your_secure_password
 LDAP_SERVER=dc.example.local
 LDAP_PORT=389
 LDAP_USE_SSL=false
+# Leave false for legacy behavior; set true to validate the LDAP certificate.
+LDAP_VERIFY_CERTIFICATE=false
+# Optional administrator group DNs (semicolon-separated). Empty uses Domain Admins.
+LDAP_ADMIN_GROUP_DNS=
+# Optional exact administrator login names (comma-separated).
+LDAP_ADMIN_USERS=
+# Account allowed to run read-only WMI queries for inventory.
+LDAP_WMI_READ_USERS=readonly
+# Application-level change journal (JSON)
+DIRECTORY_AUDIT_JOURNAL_PATH=/data/change-journal.json
+DIRECTORY_AUDIT_JOURNAL_MAX_ENTRIES=10000
 
 # Security
 VAULT_TOKEN=your_vault_token
@@ -167,14 +225,53 @@ JWT_SECRET=your_jwt_secret
 N8N_USER=admin
 N8N_PASSWORD=your_n8n_password
 N8N_API_KEY=your_n8n_api_key
+
+# Scheduled reports and optional SMTP delivery
+REPORTS_SCHEDULER_CONFIG_PATH=/data/scheduled-reports.json
+REPORTS_SCHEDULER_RUNS_PATH=/data/scheduled-report-runs.json
+REPORTS_SCHEDULER_OUTPUT_DIR=/data/scheduled-reports
+WEBHOOKS_CONFIG_PATH=/data/webhooks.json
+API_TOKENS_CONFIG_PATH=/data/api-tokens.json
+MAIL_HOST=
+MAIL_PORT=587
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_SMTP_AUTH=true
+MAIL_SMTP_STARTTLS=true
 ```
+
+When `LDAP_USE_SSL=true`, certificate validation is disabled by default for compatibility with existing installations. To enable validation, set `LDAP_VERIFY_CERTIFICATE=true` and ensure the issuing CA or controller certificate is available in the JVM truststore. If validation is enabled without a trusted certificate, startup can fail with `PKIX path building failed`.
+
+To enable certificate validation in a container, import the CA certificate into the truststore used by the directory service and then restart it:
+
+```bash
+# Replace /path/to/ad-ca.crt with the CA that issued the domain controller certificate.
+keytool -importcert -noprompt -trustcacerts \
+  -alias sysadmin-ad-ca -file /path/to/ad-ca.crt \
+  -keystore /path/to/truststore.p12 -storetype PKCS12 \
+  -storepass "changeit"
+
+LDAP_USE_SSL=true
+LDAP_VERIFY_CERTIFICATE=true
+```
+
+For Docker, mount the truststore into the `directory` container and set
+`JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/path/to/truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit`.
+Keep `LDAP_VERIFY_CERTIFICATE=false` only for isolated legacy environments: trust-any mode is vulnerable to man-in-the-middle attacks.
+
+LDAP login now grants `ROLE_READER` by default. A direct member of `CN=Domain Admins,CN=Users,<domain base DN>` also receives `ROLE_ADMIN`. Override administrator group DNs with `LDAP_ADMIN_GROUP_DNS` (semicolon-separated) or grant exact login names through `LDAP_ADMIN_USERS` (comma-separated). Admin access is required for directory changes, automation, settings, API tokens, and remote commands. Readers can browse directory objects, inventory, incidents, and reports. Group membership is read at login; sign in again after changing it. For the inventory scan account, set `LDAP_WMI_READ_USERS` to its exact login name (for example `readonly`); this permits WMI queries but not remote commands or method invocations. These variables are passed to the Directory container by `docker/prod/docker-compose.yml`.
+
+The inventory service retries a temporary connection failure to Directory. Configure `DIRECTORY_AUTH_MAX_ATTEMPTS` and `DIRECTORY_AUTH_RETRY_DELAY_MS` if Directory starts more slowly in your environment. A `ConnectException` to `localhost:8081` means the Directory service is not listening at the configured `DIRECTORY_SERVICE` address; start it or point the inventory service to the correct host.
 
 ## 📚 Documentation
 
 - **[Official Documentation](https://docs.sysadminanywhere.com)** - Comprehensive user guides and API documentation
-- **[User Guide](docs/user-guide-en.md)** - Detailed usage instructions
+- **[User Guide (English)](docs/user-guide-en.md)** - Detailed usage instructions
+- **[Руководство пользователя (русский)](docs/user-guide-ru.md)** - Подробная инструкция по работе с приложением
 - **[n8n Integration Guide](docs/n8n-integration-guide-en.md)** - Automation workflow setup
-- **[API Documentation](docs/ai-openapi.yaml)** - REST API reference
+- **[API Reference (English)](docs/api-reference-en.md)** - Authentication, service URLs, and request examples
+- **[Справочник API (русский)](docs/api-reference-ru.md)** - Аутентификация, адреса сервисов и примеры запросов
+- **[OpenAPI Examples](docs/ai-openapi.yaml)** - Machine-readable examples for implemented REST endpoints
 
 ## 🔧 Configuration
 
@@ -185,6 +282,7 @@ The application can be configured through Spring Boot properties files. Key conf
 - Database configuration (if using external storage)
 - Caching settings
 - Logging configuration
+- Scheduled report storage (`reports.scheduler.*`) and optional SMTP delivery (`MAIL_*`)
 
 ## 🤝 Contributing
 

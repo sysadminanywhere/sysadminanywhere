@@ -39,7 +39,10 @@ public class InventoryService {
         try {
             String name = filters.get("name");
             String vendor = filters.get("vendor");
-            PageResponse<SoftwareCount> response = inventoryServiceClient.getSoftwareCount(name, vendor, pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString());
+            Long minCount = parseLong(filters.get("minCount"));
+            Long maxCount = parseLong(filters.get("maxCount"));
+            PageResponse<SoftwareCount> response = inventoryServiceClient.getSoftwareCount(name, vendor, minCount, maxCount,
+                    pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString());
             return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
         } catch (Exception e) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
@@ -58,6 +61,74 @@ public class InventoryService {
 
 
     // Hardware
+
+    public Page<HardwareComputerItem> getHardwareComputers(Pageable pageable, String name) {
+        try {
+            PageResponse<HardwareComputerItem> response = inventoryServiceClient.getHardwareComputers(
+                    name == null ? "" : name, pageable.getPageNumber(), pageable.getPageSize());
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
+        } catch (Exception e) {
+            log.warn("Unable to load computer hardware inventory: {}", e.getMessage());
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<SoftwareCount> getDiscoveredSoftware(Pageable pageable, String search) {
+        try {
+            PageResponse<SoftwareCount> response = inventoryServiceClient.getDiscoveredSoftware(
+                    search == null ? "" : search, pageable.getPageNumber(), pageable.getPageSize());
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
+        } catch (Exception e) {
+            log.warn("Unable to search discovered software: {}", e.getMessage());
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public ComputerHardwareDetails getComputerHardwareDetails(Long computerId) {
+        try { return inventoryServiceClient.getComputerHardwareDetails(computerId); }
+        catch (Exception e) { log.warn("Unable to load hardware details for computer {}: {}", computerId, e.getMessage()); return null; }
+    }
+
+    public Page<HardwareCatalogItem> getHardwareCatalog(Pageable pageable, String name, String type) {
+        try {
+            PageResponse<HardwareCatalogItem> response = inventoryServiceClient.getHardwareCatalog(
+                    name == null ? "" : name, type, pageable.getPageNumber(), pageable.getPageSize());
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
+        } catch (Exception e) {
+            log.warn("Unable to load hardware catalog: {}", e.getMessage());
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public HardwareCatalogItem getHardwareCatalogItem(Long modelId) {
+        try { return inventoryServiceClient.getHardwareCatalogItem(modelId); }
+        catch (Exception e) {
+            log.warn("Unable to load hardware model {}: {}", modelId, e.getMessage());
+            return null;
+        }
+    }
+
+    public Page<HardwareComputerItem> getComputersByHardwareModel(Long modelId, Pageable pageable) {
+        try {
+            PageResponse<HardwareComputerItem> response = inventoryServiceClient.getComputersByHardwareModel(
+                    modelId, pageable.getPageNumber(), pageable.getPageSize());
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
+        } catch (Exception e) {
+            log.warn("Unable to load computers using hardware model {}: {}", modelId, e.getMessage());
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
+
+    public Page<HardwareChangeItem> getHardwareChanges(Long computerId, Long modelId, Pageable pageable) {
+        try {
+            PageResponse<HardwareChangeItem> response = inventoryServiceClient.getHardwareChanges(computerId, modelId,
+                    pageable.getPageNumber(), pageable.getPageSize());
+            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
+        } catch (Exception e) {
+            log.warn("Unable to load hardware change history: {}", e.getMessage());
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+    }
 
     public Page<HardwareCount> getHardwareCount(Pageable pageable, Map<String, String> filters) {
         try {
@@ -104,6 +175,123 @@ public class InventoryService {
             return true;
         } catch (Exception ex) {
             return false;
+        }
+    }
+
+    public List<SoftwareVulnerability> getSoftwareVulnerabilities() {
+        try {
+            return inventoryServiceClient.getSoftwareVulnerabilities();
+        } catch (Exception e) {
+            log.warn("Unable to load software vulnerabilities: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    public List<OperatingSystemCount> getOperatingSystemCounts() {
+        try {
+            return inventoryServiceClient.getOperatingSystemCounts();
+        } catch (Exception e) {
+            log.warn("Unable to load operating system summary: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    public InventoryCoverage getInventoryCoverage() {
+        try {
+            return inventoryServiceClient.getInventoryCoverage();
+        } catch (Exception e) {
+            log.warn("Unable to load inventory coverage: {}", e.getMessage());
+            return new InventoryCoverage(0, 0, 0, 0, 90);
+        }
+    }
+
+    public List<ComputerPatchStatus> getPatchStatuses() {
+        try {
+            return inventoryServiceClient.getPatchStatuses();
+        } catch (Exception e) {
+            log.warn("Unable to load patch statuses: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    private Long parseLong(String value) {
+        try { return value == null || value.isBlank() ? null : Long.valueOf(value); }
+        catch (NumberFormatException ignored) { return null; }
+    }
+
+    public InventoryHealthDto getInventoryHealth(int staleDays) {
+        try {
+            return inventoryServiceClient.getInventoryHealth(staleDays);
+        } catch (Exception e) {
+            log.warn("Unable to load inventory health: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public boolean startScan() {
+        return startScan(List.of());
+    }
+
+    public boolean startScan(List<String> computerNames) {
+        try {
+            inventoryServiceClient.startScan(new InventoryScanRequest(computerNames));
+            return true;
+        } catch (Exception e) {
+            log.warn("Unable to start inventory scan: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean cancelScan() {
+        try {
+            inventoryServiceClient.cancelScan();
+            return true;
+        } catch (Exception e) {
+            log.warn("Unable to cancel inventory scan: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    public InventorySchedule getSchedule() {
+        try { return inventoryServiceClient.getSchedule(); }
+        catch (Exception e) { log.warn("Unable to load inventory schedule: {}", e.getMessage()); return null; }
+    }
+
+    public InventorySchedule updateSchedule(String cron, boolean enabled) {
+        try { return inventoryServiceClient.updateSchedule(new InventorySchedule(cron, enabled)); }
+        catch (Exception e) { log.warn("Unable to update inventory schedule: {}", e.getMessage()); return null; }
+    }
+
+    public List<SoftwareLicense> getLicenses() {
+        try { return inventoryServiceClient.getLicenses(); }
+        catch (Exception e) { log.warn("Unable to load software licenses: {}", e.getMessage()); return List.of(); }
+    }
+
+    public SoftwareLicense saveLicense(SoftwareLicense license) {
+        try { return inventoryServiceClient.saveLicense(license); }
+        catch (Exception e) { log.warn("Unable to save software license: {}", e.getMessage()); return null; }
+    }
+
+    public boolean deleteLicense(Long id) {
+        try { inventoryServiceClient.deleteLicense(id); return true; }
+        catch (Exception e) { log.warn("Unable to delete software license: {}", e.getMessage()); return false; }
+    }
+
+    public InventoryScanStatus getScanStatus() {
+        try {
+            return inventoryServiceClient.getScanStatus();
+        } catch (Exception e) {
+            log.warn("Unable to load inventory scan status: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public List<InventoryScanRun> getScanHistory() {
+        try {
+            return inventoryServiceClient.getScanHistory();
+        } catch (Exception e) {
+            log.warn("Unable to load inventory scan history: {}", e.getMessage());
+            return List.of();
         }
     }
 

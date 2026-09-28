@@ -4,6 +4,8 @@ import com.sysadminanywhere.common.PageResponse;
 
 import com.sysadminanywhere.client.directory.ContactsServiceClient;
 import com.sysadminanywhere.common.directory.dto.AddContactDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
 import org.springframework.data.domain.Page;
@@ -28,25 +30,30 @@ public class ContactsService {
 
     public Page<ContactEntry> getAll(Pageable pageable, String filters, String... attributes) {
         try {
-            PageResponse<ContactEntry> response = contactsServiceClient.getAll(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                pageable.getSort().toString(),
-                filters,
-                attributes
-            );
-            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
-        } catch (Exception e) {
+            return getAllOrThrow(pageable, filters, attributes);
+        } catch (RuntimeException exception) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
     }
 
+    public Page<ContactEntry> getAllOrThrow(Pageable pageable, String filters, String... attributes) {
+        PageResponse<ContactEntry> response = contactsServiceClient.getAll(
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString(),
+                filters, attributes);
+        return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()),
+                response.totalElements());
+    }
+
     public List<ContactEntry> getAll(String filters, String... attributes) {
         try {
-            return contactsServiceClient.getList(filters, attributes);
-        } catch (Exception e) {
+            return getAllOrThrow(filters, attributes);
+        } catch (RuntimeException exception) {
             return null;
         }
+    }
+
+    public List<ContactEntry> getAllOrThrow(String filters, String... attributes) {
+        return contactsServiceClient.getList(filters, attributes);
     }
 
     public List<ContactEntry> getAll() {
@@ -86,6 +93,18 @@ public class ContactsService {
 
     public void delete(String distinguishedName) {
         contactsServiceClient.delete(distinguishedName);
+    }
+
+    public BulkOperationResult bulkDelete(List<ContactEntry> contacts) {
+        List<String> distinguishedNames = contacts.stream()
+                .map(ContactEntry::getDistinguishedName)
+                .filter(name -> name != null && !name.isBlank())
+                .toList();
+        return contactsServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
+    }
+
+    public BulkOperationResult bulkDeleteDistinguishedNames(List<String> distinguishedNames) {
+        return contactsServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
     }
 
     public String getDefaultContainer() {

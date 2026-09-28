@@ -1,6 +1,7 @@
 package com.sysadminanywhere.directory.service;
 
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -90,6 +91,20 @@ public class PrintersService {
             log.error("Error deleting printer {}: {}", distinguishedName, e.getMessage());
             throw e;
         }
+    }
+
+    public BulkOperationResult bulkDelete(List<String> distinguishedNames) {
+        int updated = 0;
+        List<String> failures = new java.util.ArrayList<>();
+        for (String distinguishedName : distinguishedNames) {
+            try {
+                delete(distinguishedName);
+                updated++;
+            } catch (Exception exception) {
+                failures.add(distinguishedName);
+            }
+        }
+        return new BulkOperationResult(updated, failures);
     }
 
     /**

@@ -4,6 +4,8 @@ import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AuditDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.JwtResponse;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
+import com.sysadminanywhere.common.directory.dto.DomainHealthDto;
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
 import io.jsonwebtoken.security.Keys;
@@ -26,12 +28,24 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,6 +57,20 @@ public class LdapService {
     private final VaultService vaultService;
 
     private final UserConnectionManager userConnectionManager;
+    private final ChangeJournalService changeJournalService;
+    private final LdapRolePolicy rolePolicy;
+
+    @org.springframework.beans.factory.annotation.Value("${ldap.host.server:localhost}")
+    private String ldapHost;
+
+    @org.springframework.beans.factory.annotation.Value("${ldap.host.port:389}")
+    private int ldapPort;
+
+    @org.springframework.beans.factory.annotation.Value("${ldap.host.use.ssl:false}")
+    private boolean ldapUseSsl;
+
+    @org.springframework.beans.factory.annotation.Value("${ldap.host.verify-certificate:false}")
+    private boolean ldapVerifyCertificate;
 
     private final String domainName;
     private final String defaultNamingContext;
@@ -65,11 +93,15 @@ public class LdapService {
     @SneakyThrows
     public LdapService(JwtService jwtService,
                        VaultService vaultService,
-                       UserConnectionManager userConnectionManager) {
+                       UserConnectionManager userConnectionManager,
+                       ChangeJournalService changeJournalService,
+                       LdapRolePolicy rolePolicy) {
 
         this.jwtService = jwtService;
         this.vaultService = vaultService;
         this.userConnectionManager = userConnectionManager;
+        this.changeJournalService = changeJournalService;
+        this.rolePolicy = rolePolicy;
 
         domainEntry = getRootDse();
         baseDn = new Dn(domainEntry.get("rootdomainnamingcontext").get().getString());
@@ -351,6 +383,7 @@ public class LdapService {
 
     @SneakyThrows
     public void add(Entry entry) {
+        Entry after = entry.clone();
         executeAsUser(conn -> {
             AddRequest addRequest = new AddRequestImpl();
             addRequest.setEntry(entry);
@@ -358,22 +391,28 @@ public class LdapService {
             conn.add(addRequest);
             return null;
         });
+        changeJournalService.record("Created", null, after, entry.getDn().getName());
     }
 
     @SneakyThrows
     public void update(ModifyRequest modifyRequest) {
+        Entry before = readEntry(modifyRequest.getName().getName());
         executeAsUser(conn -> {
             conn.modify(modifyRequest);
             return null;
         });
+        Entry after = readEntry(modifyRequest.getName().getName());
+        changeJournalService.record("Changed", before, after, modifyRequest.getName().getName());
     }
 
     @SneakyThrows
     public void delete(Entry entry) {
+        Entry before = readEntry(entry.getDn().getName());
         executeAsUser(conn -> {
             conn.delete(entry.getDn());
             return null;
         });
+        changeJournalService.record("Deleted", before, null, entry.getDn().getName());
     }
 
     public String getComputersContainer() {
@@ -403,12 +442,24 @@ public class LdapService {
 
     @SneakyThrows
     public void updateProperty(String dn, String name, String value) {
+        Entry before = readEntry(dn);
         executeAsUser(conn -> {
             Attribute attribute = new DefaultAttribute(name, value);
             Modification modification = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, attribute);
             conn.modify(dn, modification);
             return null;
         });
+        Entry after = readEntry(dn);
+        changeJournalService.record("Changed", before, after, dn);
+    }
+
+    private Entry readEntry(String dn) {
+        try {
+            List<Entry> entries = search(new Dn(dn), "(objectClass=*)", SearchScope.OBJECT);
+            return entries == null || entries.isEmpty() ? null : entries.get(0).clone();
+        } catch (Exception exception) {
+            return null;
+        }
     }
 
     @Cacheable(value = "containers")
@@ -488,13 +539,16 @@ public class LdapService {
             for (Entry entry : list) {
                 AuditDto item = new AuditDto();
 
-                item.setName(entry.get("name").getString());
+                item.setName(entry.get("name") != null ? entry.get("name").get().getString() : entry.getDn().getRdn().getName());
                 item.setDistinguishedName(entry.getDn().getName());
+                if (entry.get("objectclass") != null) {
+                    item.setObjectClass(entry.get("objectclass").get().getString());
+                }
 
                 Value whenCreatedValue = entry.get("whencreated") != null ? entry.get("whencreated").get() : null;
                 Value whenChangedValue = entry.get("whenchanged") != null ? entry.get("whenchanged").get() : null;
 
-                if (whenChangedValue != null && whenChangedValue != null) {
+                if (whenCreatedValue != null && whenChangedValue != null) {
 
                     String whenCreated = whenCreatedValue.getString();
                     String whenChanged = whenChangedValue.getString();
@@ -512,11 +566,162 @@ public class LdapService {
 
             }
         }
+        String nameFilter = filters.getOrDefault("name", "");
+        String distinguishedNameFilter = filters.getOrDefault("distinguishedName", "");
+        String actionFilter = filters.getOrDefault("action", "");
+        content.removeIf(item -> (!nameFilter.isBlank()
+                        && (item.getName() == null || !item.getName().toLowerCase().contains(nameFilter.toLowerCase())))
+                || (!distinguishedNameFilter.isBlank()
+                        && (item.getDistinguishedName() == null
+                        || !item.getDistinguishedName().toLowerCase().contains(distinguishedNameFilter.toLowerCase())))
+                || (!actionFilter.isBlank() && !actionFilter.equalsIgnoreCase("All")
+                        && (item.getAction() == null || !item.getAction().equalsIgnoreCase(actionFilter))));
         content.sort(Comparator.comparing(AuditDto::getWhenChanged).reversed());
         return content;
     }
 
+    public DomainHealthDto getDomainHealth() {
+        LocalDateTime checkedAt = LocalDateTime.now();
+        List<DomainHealthDto.DomainHealthCheckDto> checks = new ArrayList<>();
+        Entry root = null;
+
+        try {
+            root = getRootDse();
+            checks.add(check(root != null ? "HEALTHY" : "ERROR", "LDAP",
+                    root != null ? "LDAP root DSE is available" : "LDAP root DSE is unavailable"));
+        } catch (Exception exception) {
+            checks.add(check("ERROR", "LDAP", "LDAP check failed: " + safeMessage(exception)));
+        }
+
+        checks.add(checkControllers());
+        checks.add(checkReplication());
+        checks.add(checkDns());
+        checks.add(checkFileServices());
+        checks.add(checkTime(root));
+        checks.add(checkCertificate());
+
+        String overallStatus = checks.stream().anyMatch(item -> "ERROR".equals(item.getStatus()))
+                ? "ERROR" : checks.stream().anyMatch(item -> "WARNING".equals(item.getStatus()))
+                ? "WARNING" : "HEALTHY";
+        return new DomainHealthDto(overallStatus, checkedAt, checks);
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto checkControllers() {
+        try {
+            List<Entry> controllers = search(new Dn("CN=Sites,CN=Configuration," + defaultNamingContext),
+                    "(objectClass=server)", SearchScope.SUBTREE);
+            int count = controllers == null ? 0 : controllers.size();
+            return check(count > 0 ? "HEALTHY" : "WARNING", "DOMAIN_CONTROLLERS",
+                    count > 0 ? count + " domain controller(s) discovered" : "No domain controllers discovered");
+        } catch (Exception exception) {
+            return check("ERROR", "DOMAIN_CONTROLLERS", "Controller discovery failed: " + safeMessage(exception));
+        }
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto checkReplication() {
+        try {
+            List<Entry> namingContexts = searchWithAttributes(new Dn(defaultNamingContext), "(objectClass=*)",
+                    SearchScope.OBJECT, "highestCommittedUSN", "replUpToDateVector", "uSNCreated");
+            if (namingContexts == null || namingContexts.isEmpty()) {
+                return check("ERROR", "REPLICATION", "Domain naming context is unavailable");
+            }
+            Entry namingContext = namingContexts.get(0);
+            boolean hasUsn = namingContext.get("highestCommittedUSN") != null
+                    || namingContext.get("uSNCreated") != null;
+            boolean hasVector = namingContext.get("replUpToDateVector") != null;
+            if (!hasUsn) {
+                return check("WARNING", "REPLICATION", "Replication USN metadata is unavailable");
+            }
+            if (!hasVector) {
+                return check("WARNING", "REPLICATION",
+                        "Replication metadata is readable, but no up-to-date vector was returned by this controller");
+            }
+            return check("HEALTHY", "REPLICATION", "Replication metadata and up-to-date vector are available");
+        } catch (Exception exception) {
+            return check("ERROR", "REPLICATION", "Replication check failed: " + safeMessage(exception));
+        }
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto checkDns() {
+        try {
+            InetAddress[] addresses = InetAddress.getAllByName(domainName);
+            return check(addresses.length > 0 ? "HEALTHY" : "WARNING", "DNS",
+                    addresses.length + " address(es) resolved for " + domainName);
+        } catch (Exception exception) {
+            return check("ERROR", "DNS", "DNS resolution failed for " + domainName);
+        }
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto checkFileServices() {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(ldapHost, 445), 2000);
+            return check("HEALTHY", "SYSVOL_NETLOGON", "SMB is reachable on " + ldapHost + ":445");
+        } catch (Exception exception) {
+            return check("WARNING", "SYSVOL_NETLOGON",
+                    "SMB port 445 is not reachable on " + ldapHost + "; SYSVOL/NETLOGON could not be verified");
+        }
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto checkTime(Entry root) {
+        if (root == null || root.get("currentTime") == null) {
+            return check("WARNING", "TIME_SYNC", "LDAP currentTime is unavailable");
+        }
+        try {
+            String value = root.get("currentTime").get().getString();
+            Instant ldapTime = LocalDateTime.parse(value,
+                    DateTimeFormatter.ofPattern("yyyyMMddHHmmss.SX")).toInstant(ZoneOffset.UTC);
+            long driftSeconds = Math.abs(Duration.between(Instant.now(), ldapTime).getSeconds());
+            return check(driftSeconds <= 300 ? "HEALTHY" : "WARNING", "TIME_SYNC",
+                    "LDAP clock drift: " + driftSeconds + " second(s)");
+        } catch (Exception exception) {
+            return check("WARNING", "TIME_SYNC", "LDAP currentTime could not be parsed");
+        }
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto checkCertificate() {
+        if (!ldapUseSsl) {
+            return check("NOT_CHECKED", "CERTIFICATE", "LDAP SSL is disabled");
+        }
+        try {
+            SSLSocketFactory factory = sslSocketFactory();
+            try (SSLSocket socket = (SSLSocket) factory.createSocket()) {
+                socket.connect(new InetSocketAddress(ldapHost, ldapPort), 3000);
+                socket.startHandshake();
+                X509Certificate certificate = (X509Certificate) socket.getSession().getPeerCertificates()[0];
+                certificate.checkValidity();
+                long days = Duration.between(Instant.now(), certificate.getNotAfter().toInstant()).toDays();
+                return check(days <= 30 ? "WARNING" : "HEALTHY", "CERTIFICATE",
+                        "Certificate expires in " + days + " day(s)");
+            }
+        } catch (Exception exception) {
+            return check("ERROR", "CERTIFICATE", "Certificate check failed: " + safeMessage(exception));
+        }
+    }
+
+    private SSLSocketFactory sslSocketFactory() throws Exception {
+        if (ldapVerifyCertificate) {
+            return (SSLSocketFactory) SSLSocketFactory.getDefault();
+        }
+        TrustManager[] trustAll = {new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+            public void checkClientTrusted(X509Certificate[] chain, String authType) { }
+            public void checkServerTrusted(X509Certificate[] chain, String authType) { }
+        }};
+        SSLContext context = SSLContext.getInstance("TLS");
+        context.init(null, trustAll, new java.security.SecureRandom());
+        return context.getSocketFactory();
+    }
+
+    private DomainHealthDto.DomainHealthCheckDto check(String status, String name, String details) {
+        return new DomainHealthDto.DomainHealthCheckDto(name, status, details);
+    }
+
+    private String safeMessage(Exception exception) {
+        return exception.getMessage() == null ? exception.getClass().getSimpleName() : exception.getMessage();
+    }
+
     public boolean deleteMember(String dn, String group) {
+        Entry before = readEntry(group);
         return executeAsUser(conn -> {
             Modification removeMember = new DefaultModification(
                     ModificationOperation.REMOVE_ATTRIBUTE, "member", dn
@@ -528,12 +733,18 @@ public class LdapService {
             modifyRequest.addModification(removeMember);
 
             ModifyResponse response = conn.modify(modifyRequest);
+            if (!isSuccessful(response)) {
+                return false;
+            }
 
+            Entry after = readEntry(group);
+            changeJournalService.record("Changed", before, after, group);
             return true;
         });
     }
 
     public boolean addMember(String dn, String group) {
+        Entry before = readEntry(group);
         return executeAsUser(conn -> {
             Modification removeMember = new DefaultModification(
                     ModificationOperation.ADD_ATTRIBUTE, "member", dn
@@ -544,30 +755,157 @@ public class LdapService {
 
             modifyRequest.addModification(removeMember);
             ModifyResponse response = conn.modify(modifyRequest);
+            if (!isSuccessful(response)) {
+                return false;
+            }
 
+            Entry after = readEntry(group);
+            changeJournalService.record("Changed", before, after, group);
             return true;
         });
+    }
+
+    public BulkOperationResult bulkChangeMembers(List<String> memberDistinguishedNames,
+                                                 String groupDistinguishedName,
+                                                 boolean remove) {
+        int updated = 0;
+        List<String> failures = new ArrayList<>();
+        for (String memberDn : memberDistinguishedNames) {
+            try {
+                boolean success = remove
+                        ? deleteMember(memberDn, groupDistinguishedName)
+                        : addMember(memberDn, groupDistinguishedName);
+                if (success) {
+                    updated++;
+                } else {
+                    failures.add(memberDn);
+                }
+            } catch (Exception exception) {
+                failures.add(memberDn);
+            }
+        }
+        return new BulkOperationResult(updated, failures);
+    }
+
+    public BulkOperationResult bulkMove(List<String> distinguishedNames, String targetContainerDistinguishedName) {
+        int updated = 0;
+        List<String> failures = new ArrayList<>();
+        Entry targetContainer = readEntry(targetContainerDistinguishedName);
+        if (!isMovableContainer(targetContainer)) {
+            return new BulkOperationResult(0, new ArrayList<>(distinguishedNames));
+        }
+        for (String distinguishedName : distinguishedNames) {
+            try {
+                Entry before = readEntry(distinguishedName);
+                if (!isMovableObject(before)) {
+                    failures.add(distinguishedName);
+                    continue;
+                }
+                Dn sourceDn = new Dn(distinguishedName);
+                String movedDistinguishedName = sourceDn.getRdn().getName() + "," + targetContainerDistinguishedName;
+                boolean success = executeAsUser(conn -> {
+                    conn.move(sourceDn, new Dn(targetContainerDistinguishedName));
+                    Entry after = readEntry(movedDistinguishedName);
+                    changeJournalService.record("Changed", before, after, movedDistinguishedName);
+                    return true;
+                });
+                if (success) {
+                    updated++;
+                } else {
+                    failures.add(distinguishedName);
+                }
+            } catch (Exception exception) {
+                failures.add(distinguishedName);
+            }
+        }
+        return new BulkOperationResult(updated, failures);
+    }
+
+    private boolean isSuccessful(ModifyResponse response) {
+        return response != null && response.getLdapResult() != null
+                && ResultCodeEnum.SUCCESS.equals(response.getLdapResult().getResultCode());
+    }
+
+    private boolean isMovableObject(Entry entry) {
+        return hasObjectClass(entry, "user", "computer", "group", "contact", "printqueue");
+    }
+
+    private boolean isMovableContainer(Entry entry) {
+        return hasObjectClass(entry, "organizationalunit", "container", "domaindns");
+    }
+
+    private boolean hasObjectClass(Entry entry, String... allowedClasses) {
+        if (entry == null || entry.get("objectClass") == null) {
+            return false;
+        }
+        Set<String> allowed = new HashSet<>(Arrays.asList(allowedClasses));
+        for (Value value : entry.get("objectClass")) {
+            try {
+                if (allowed.contains(value.getString().toLowerCase(Locale.ROOT))) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+                // Binary objectClass values are not valid AD class names.
+            }
+        }
+        return false;
     }
 
     @SneakyThrows
     public JwtResponse authenticate(String username, String password, String service) {
         String serviceContext = normalizeService(service);
 
-        boolean authenticated = execute(conn -> {
+        return execute(conn -> {
             conn.bind(userConnectionManager.createBindRequest(username, password));
+            Entry account = findBoundAccount(conn, username);
+            List<String> groups = memberOf(account);
+            List<String> roles = rolePolicy.roles(username, groups, defaultNamingContext);
             vaultService.savePassword(serviceContext, username, password);
-            return true;
+            String jwt = jwtService.generateToken(username, roles, serviceContext, groups);
+            return new JwtResponse(jwt, username, roles);
         });
+    }
 
-        String jwt = null;
-        List<String> roles = new ArrayList<>();
-
-        if (authenticated) {
-            roles = List.of("ROLE_ADMIN");
-            jwt = jwtService.generateToken(username, roles, serviceContext);
+    private Entry findBoundAccount(LdapConnection connection, String username) throws Exception {
+        if (username.contains("=") && username.contains(",")) {
+            Entry account = connection.lookup(new Dn(username), "memberOf");
+            if (account == null) throw new IllegalStateException("Bound LDAP account was not found");
+            return account;
         }
 
-        return new JwtResponse(jwt, username, roles);
+        String accountName = username;
+        if (accountName.contains("\\")) accountName = accountName.substring(accountName.lastIndexOf('\\') + 1);
+        String attribute = accountName.contains("@") ? "userPrincipalName" : "sAMAccountName";
+        SearchRequest request = new SearchRequestImpl();
+        request.setBase(baseDn);
+        request.setScope(SearchScope.SUBTREE);
+        request.setFilter("(&(objectClass=user)(" + attribute + "=" + escapeFilterValue(accountName) + "))");
+        request.addAttributes("memberOf");
+        request.setTimeLimit(10);
+        Entry account = null;
+        try (SearchCursor cursor = connection.search(request)) {
+            while (cursor.next()) {
+                if (cursor.get() instanceof SearchResultEntry result) {
+                    if (account != null) throw new IllegalStateException("Ambiguous LDAP account name");
+                    account = result.getEntry().clone();
+                }
+            }
+        }
+        if (account == null) throw new IllegalStateException("Bound LDAP account was not found");
+        return account;
+    }
+
+    private List<String> memberOf(Entry account) {
+        Attribute attribute = account.get("memberOf");
+        if (attribute == null) return List.of();
+        List<String> groups = new ArrayList<>();
+        for (Value value : attribute) groups.add(value.getString());
+        return groups;
+    }
+
+    private String escapeFilterValue(String value) {
+        return value.replace("\\", "\\5c").replace("*", "\\2a")
+                .replace("(", "\\28").replace(")", "\\29").replace("\u0000", "\\00");
     }
 
     private <T> T execute(LdapConnectionOperation<T> operation) {
@@ -580,12 +918,23 @@ public class LdapService {
         } finally {
             if (connection != null) {
                 try {
-                    connection.close();
+                    closeConnection(connection);
                 } catch (IOException e) {
                     log.error("Failed to close LDAP connection", e);
                 }
             }
         }
+    }
+
+    private void closeConnection(LdapConnection connection) throws IOException {
+        if (connection.isConnected()) {
+            try {
+                connection.unBind();
+            } catch (Exception exception) {
+                log.debug("LDAP unbind failed while closing operation session: {}", exception.getMessage());
+            }
+        }
+        connection.close();
     }
 
     private <T> T executeAsUser(LdapConnectionOperation<T> operation) {

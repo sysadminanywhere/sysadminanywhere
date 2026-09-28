@@ -23,6 +23,7 @@ public class MenuHelper {
 
         MenuItem item = menu.addItem(icon, clickListener);
         if (text != null) {
+            item.getElement().setAttribute("aria-label", text);
             icon.getStyle().setMarginRight("8px");
             item.add(new Text(text));
         }

@@ -2,7 +2,9 @@ package com.sysadminanywhere.views.management.container;
 
 import com.sysadminanywhere.common.directory.model.Container;
 import com.sysadminanywhere.common.directory.model.Containers;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.ContainerField;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.domain.SearchScope;
 import com.sysadminanywhere.model.Entry;
@@ -16,16 +18,19 @@ import com.sysadminanywhere.views.management.users.AddUserDialog;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
-import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -40,7 +45,12 @@ import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 import org.vaadin.tatu.Tree;
 
-@RolesAllowed("ADMIN")
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "management/containers")
 @Uses(Icon.class)
 public class ContainersView extends Div implements MenuControl, HasDynamicTitle {
@@ -52,6 +62,7 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
     private final ComputersService computersService;
     private final GroupsService groupsService;
     private final ContactsService contactsService;
+    private final PrintersService printersService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
 
@@ -65,6 +76,7 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
                           ComputersService computersService,
                           GroupsService groupsService,
                           ContactsService contactsService,
+                          PrintersService printersService,
                           MessageSource messageSource,
                           LocaleService localeService) {
 
@@ -75,6 +87,7 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
         this.computersService = computersService;
         this.groupsService = groupsService;
         this.contactsService = contactsService;
+        this.printersService = printersService;
         this.messageSource = messageSource;
         this.localeService = localeService;
 
@@ -108,8 +121,14 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
         return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
+    private String getMessage(String key, Object... arguments) {
+        return messageSource.getMessage(key, arguments, localeService.getCurrentLocale());
+    }
+
     private Component createGrid() {
         grid = new Grid<>(Entry.class, false);
+        grid.setSelectionMode(com.sysadminanywhere.security.UiAuthorization.isAdmin()
+                ? Grid.SelectionMode.MULTI : Grid.SelectionMode.NONE);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn(new ComponentRenderer<>(item -> {
@@ -136,7 +155,7 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
                     break;
             }
 
-            icon.setColor("grey");
+            icon.addClassName(item.isDisabled() ? "disabled-object-icon" : "enabled-object-icon");
 
             Span text = new Span(item.getCn());
 
@@ -172,12 +191,10 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
     @Override
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
-        menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
 
-        MenuHelper.createIconItem(menuBar, "/icons/refresh.svg", menuItemClickEvent -> {
+        MenuHelper.createIconItem(menuBar, "/icons/refresh.svg", getMessage("common.refresh"), menuItemClickEvent -> {
             refreshGrid();
         });
-
         MenuItem menuAdd = menuBar.addItem(getMessage("common.new"));
 
         SubMenu subMenu = menuAdd.getSubMenu();
@@ -194,7 +211,100 @@ public class ContainersView extends Div implements MenuControl, HasDynamicTitle 
             addContactDialog(this::refreshGrid).open();
         });
 
+        MenuItem actions = menuBar.addItem("⋯");
+        actions.getElement().setAttribute("aria-label", getMessage("common.actions"));
+        actions.getSubMenu().addItem(getMessage("bulk.move_selected"), event -> confirmBulkMove());
+        actions.getSubMenu().addItem(getMessage("common.delete"), event -> confirmBulkDelete());
+
         return menuBar;
+    }
+
+    private void confirmBulkDelete() {
+        if (grid == null || grid.getSelectedItems().isEmpty()) {
+            Notification.show(getMessage("bulk.no_selection"));
+            return;
+        }
+        int selectedCount = grid.getSelectedItems().size();
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(getMessage("common.delete"));
+        dialog.add(new Paragraph(getMessage("bulk.delete_confirm_text", selectedCount)));
+        Button cancel = new Button(getMessage("common.cancel"), event -> dialog.close());
+        Button confirm = new Button(getMessage("common.execute"), event -> {
+            Map<String, List<String>> byType = new HashMap<>();
+            int unsupported = 0;
+            for (Entry item : grid.getSelectedItems()) {
+                String type = item.getType() == null ? "" : item.getType().toLowerCase();
+                if (item.getDistinguishedName() == null || item.getDistinguishedName().isBlank()
+                        || !List.of("user", "computer", "group", "contact", "printer").contains(type)) {
+                    unsupported++;
+                } else {
+                    byType.computeIfAbsent(type, key -> new ArrayList<>()).add(item.getDistinguishedName());
+                }
+            }
+            int updated = 0;
+            int failed = unsupported;
+            try {
+                for (Map.Entry<String, List<String>> values : byType.entrySet()) {
+                    BulkOperationResult result = switch (values.getKey()) {
+                        case "user" -> usersService.bulkDeleteDistinguishedNames(values.getValue());
+                        case "computer" -> computersService.bulkDeleteDistinguishedNames(values.getValue());
+                        case "group" -> groupsService.bulkDeleteDistinguishedNames(values.getValue());
+                        case "contact" -> contactsService.bulkDeleteDistinguishedNames(values.getValue());
+                        case "printer" -> printersService.bulkDeleteDistinguishedNames(values.getValue());
+                        default -> null;
+                    };
+                    updated += result == null ? 0 : result.getUpdated();
+                    failed += result == null || result.getFailures() == null
+                            ? values.getValue().size() : result.getFailures().size();
+                }
+            } catch (Exception exception) {
+                failed += selectedCount - updated - failed;
+            }
+            grid.deselectAll();
+            refreshGrid();
+            Notification notification = Notification.show(getMessage(failed == 0 ? "bulk.success" : "bulk.error", updated));
+            notification.addThemeVariants(failed == 0 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+            dialog.close();
+        });
+        confirm.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_PRIMARY,
+                com.vaadin.flow.component.button.ButtonVariant.LUMO_ERROR);
+        dialog.getFooter().add(cancel, confirm);
+        dialog.open();
+    }
+
+    private void confirmBulkMove() {
+        if (grid == null || grid.getSelectedItems().isEmpty()) {
+            Notification.show(getMessage("bulk.no_selection"));
+            return;
+        }
+        ContainerField target = new ContainerField(ldapService, messageSource, localeService);
+        target.setWidthFull();
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(getMessage("bulk.move_selected"));
+        dialog.add(new Paragraph(getMessage("bulk.move_confirm_text", grid.getSelectedItems().size())));
+        dialog.add(new Paragraph(getMessage("bulk.preview", grid.getSelectedItems().stream()
+                .map(Entry::getCn).limit(20).collect(java.util.stream.Collectors.joining(", ")))));
+        dialog.add(target);
+        Button cancel = new Button(getMessage("common.cancel"), event -> dialog.close());
+        Button confirm = new Button(getMessage("common.execute"), event -> {
+            if (target.getValue() == null || target.getValue().isBlank()) {
+                Notification.show(getMessage("bulk.move_required"));
+                return;
+            }
+            List<String> dns = grid.getSelectedItems().stream().map(Entry::getDistinguishedName)
+                    .filter(name -> name != null && !name.isBlank()).toList();
+            BulkOperationResult result = ldapService.bulkMove(dns, target.getValue());
+            int updated = result == null ? 0 : result.getUpdated();
+            int failed = result == null || result.getFailures() == null ? dns.size() : result.getFailures().size();
+            Notification notification = Notification.show(getMessage(failed == 0 ? "bulk.success" : "bulk.error", updated));
+            notification.addThemeVariants(failed == 0 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+            grid.deselectAll();
+            refreshGrid();
+            dialog.close();
+        });
+        confirm.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_PRIMARY);
+        dialog.getFooter().add(cancel, confirm);
+        dialog.open();
     }
 
     private Dialog addUserDialog(Runnable onSearch) {

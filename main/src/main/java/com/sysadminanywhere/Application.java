@@ -2,6 +2,7 @@ package com.sysadminanywhere;
 
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.component.page.Push;
+import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.theme.Theme;
@@ -20,6 +21,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @SpringBootApplication()
 @Theme(value = "sysadminanywhere")
+@JsModule("./theme.js")
 @EnableCaching
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 @EnableScheduling

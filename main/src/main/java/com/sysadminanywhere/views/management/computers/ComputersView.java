@@ -1,9 +1,13 @@
 package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.MobileFiltersToggle;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.common.directory.model.ComputerEntry;
+import com.sysadminanywhere.common.directory.model.GroupEntry;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.service.ComputersService;
+import com.sysadminanywhere.service.GroupsService;
 import com.sysadminanywhere.service.LocaleService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -14,10 +18,14 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -31,20 +39,25 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
 
-@RolesAllowed("ADMIN")
+import java.util.List;
+
+@RolesAllowed({"ADMIN", "READER"})
 @Route(value = "management/computers")
 @Uses(Icon.class)
 public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
 
+    private final Span directoryError = new Span();
     private Grid<ComputerEntry> grid;
 
     private final Filters filters;
     private final ComputersService computersService;
+    private final GroupsService groupsService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
 
-    public ComputersView(ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
+    public ComputersView(ComputersService computersService, GroupsService groupsService, MessageSource messageSource, LocaleService localeService) {
         this.computersService = computersService;
+        this.groupsService = groupsService;
         this.messageSource = messageSource;
         this.localeService = localeService;
 
@@ -52,7 +65,10 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
         addClassNames("gridwith-filters-view");
 
         filters = new Filters(() -> refreshGrid(), computersService, messageSource, localeService);
-        VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
+        directoryError.setText(getMessage("directory.unavailable"));
+        directoryError.addClassName("directory-load-error");
+        directoryError.setVisible(false);
+        VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, directoryError, createGrid());
         layout.setSizeFull();
 
         add(layout);
@@ -62,41 +78,33 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
         return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
-    private HorizontalLayout createMobileFilters() {
-        // Mobile version
-        HorizontalLayout mobileFilters = new HorizontalLayout();
-        mobileFilters.setWidthFull();
-        mobileFilters.addClassNames(LumoUtility.Padding.MEDIUM, LumoUtility.BoxSizing.BORDER,
-                LumoUtility.AlignItems.CENTER);
-        mobileFilters.addClassName("mobile-filters");
+    private String getMessage(String key, Object... arguments) {
+        return messageSource.getMessage(key, arguments, localeService.getCurrentLocale());
+    }
 
-        Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span(getMessage("common.filters"));
-        mobileFilters.add(mobileIcon, filtersHeading);
-        mobileFilters.setFlexGrow(1, filtersHeading);
-        mobileFilters.addClickListener(e -> {
-            if (filters.getClassNames().contains("visible")) {
-                filters.removeClassName("visible");
-                mobileIcon.getElement().setAttribute("icon", "lumo:plus");
-            } else {
-                filters.addClassName("visible");
-                mobileIcon.getElement().setAttribute("icon", "lumo:minus");
-            }
-        });
-        return mobileFilters;
+    private MobileFiltersToggle createMobileFilters() {
+        return new MobileFiltersToggle(getMessage("common.filters"), filters);
     }
 
     @Override
     public MenuBar getMenu() {
         MenuBar menuBar = new MenuBar();
 
-        MenuHelper.createIconItem(menuBar,"/icons/refresh.svg", menuItemClickEvent -> {
+        MenuHelper.createIconItem(menuBar,"/icons/refresh.svg", getMessage("common.refresh"), menuItemClickEvent -> {
             refreshGrid();
         });
 
         MenuHelper.createIconItem(menuBar, "/icons/plus.svg", getMessage("common.new"), event -> {
             addDialog(this::refreshGrid).open();
         });
+
+        MenuItem actions = menuBar.addItem("⋯");
+        actions.getElement().setAttribute("aria-label", getMessage("common.actions"));
+        actions.getSubMenu().addItem(getMessage("users_view.bulk_enable"), event -> confirmBulkAccountState(false));
+        actions.getSubMenu().addItem(getMessage("users_view.bulk_disable"), event -> confirmBulkAccountState(true));
+        actions.getSubMenu().addItem(getMessage("bulk.add_to_group"), event -> confirmBulkGroupMembership(false));
+        actions.getSubMenu().addItem(getMessage("bulk.remove_from_group"), event -> confirmBulkGroupMembership(true));
+        actions.getSubMenu().addItem(getMessage("common.delete"), event -> confirmBulkDelete());
 
         return menuBar;
     }
@@ -183,6 +191,8 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
 
     private Component createGrid() {
         grid = new Grid<>(ComputerEntry.class, false);
+        grid.setSelectionMode(com.sysadminanywhere.security.UiAuthorization.isAdmin()
+                ? Grid.SelectionMode.MULTI : Grid.SelectionMode.NONE);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         grid.addColumn(new ComponentRenderer<>(computer -> {
@@ -190,7 +200,7 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
             layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
             SvgIcon icon = new SvgIcon("icons/computer.svg");
-            icon.setColor("grey");
+            icon.addClassName(computer.isDisabled() ? "disabled-object-icon" : "enabled-object-icon");
 
             Span text = new Span(computer.getCn());
 
@@ -206,9 +216,19 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
                     ui.navigate("management/computers/" + item.getItem().getCn() + "/details"));
         });
 
-        grid.setItems(query -> computersService.getAll(
+        grid.setItems(query -> {
+            try {
+                var page = computersService.getAllOrThrow(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                filters.getFilters(), "cn", "description").stream());
+                filters.getFilters(), "cn", "description", "distinguishedName", "userAccountControl");
+                directoryError.setVisible(false);
+                return page.stream();
+            } catch (RuntimeException exception) {
+            org.slf4j.LoggerFactory.getLogger(getClass()).warn("Directory load failed", exception);
+                directoryError.setVisible(true);
+                return java.util.stream.Stream.empty();
+            }
+        });
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 
@@ -217,6 +237,93 @@ public class ComputersView extends Div implements MenuControl, HasDynamicTitle {
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    private void confirmBulkAccountState(boolean disabled) {
+        if (grid == null || grid.getSelectedItems().isEmpty()) {
+            Notification.show(getMessage("users_view.bulk_no_selection"));
+            return;
+        }
+        int selectedCount = grid.getSelectedItems().size();
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(getMessage(disabled ? "users_view.bulk_disable" : "users_view.bulk_enable"));
+        dialog.add(new Paragraph(getMessage("bulk.account_confirm_text", selectedCount)));
+        Button cancel = new Button(getMessage("common.cancel"), event -> dialog.close());
+        Button confirm = new Button(getMessage("common.execute"), event -> {
+            BulkOperationResult result = computersService.bulkChangeAccountStatus(new java.util.ArrayList<>(grid.getSelectedItems()), disabled);
+            showBulkResult(result, selectedCount);
+            dialog.close();
+        });
+        confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        dialog.getFooter().add(cancel, confirm);
+        dialog.open();
+    }
+
+    private void confirmBulkDelete() {
+        if (grid == null || grid.getSelectedItems().isEmpty()) {
+            Notification.show(getMessage("bulk.no_selection"));
+            return;
+        }
+        int selectedCount = grid.getSelectedItems().size();
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(getMessage("common.delete"));
+        dialog.add(new Paragraph(getMessage("bulk.delete_confirm_text", selectedCount)));
+        Button cancel = new Button(getMessage("common.cancel"), event -> dialog.close());
+        Button confirm = new Button(getMessage("common.execute"), event -> {
+            BulkOperationResult result = computersService.bulkDelete(new java.util.ArrayList<>(grid.getSelectedItems()));
+            showBulkResult(result, selectedCount);
+            dialog.close();
+        });
+        confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+        dialog.getFooter().add(cancel, confirm);
+        dialog.open();
+    }
+
+    private void showBulkResult(BulkOperationResult result, int selectedCount) {
+        int updated = result == null ? 0 : result.getUpdated();
+        int failed = result == null || result.getFailures() == null ? selectedCount : result.getFailures().size();
+        grid.deselectAll();
+        refreshGrid();
+        Notification notification = Notification.show(getMessage(failed == 0 ? "bulk.success" : "bulk.error", updated));
+        notification.addThemeVariants(failed == 0 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+    }
+
+    private void confirmBulkGroupMembership(boolean remove) {
+        if (grid == null || grid.getSelectedItems().isEmpty()) {
+            Notification.show(getMessage("bulk.no_selection"));
+            return;
+        }
+        ComboBox<GroupEntry> groups = new ComboBox<>(getMessage("bulk.group_label"));
+        groups.setWidthFull();
+        List<GroupEntry> availableGroups = groupsService.getAll("", "cn", "distinguishedName");
+        groups.setItems(availableGroups == null ? List.of() : availableGroups);
+        groups.setItemLabelGenerator(group -> group.getCn() + " (" + group.getDistinguishedName() + ")");
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(getMessage(remove ? "bulk.remove_from_group" : "bulk.add_to_group"));
+        dialog.add(new Paragraph(getMessage("bulk.group_confirm_text", grid.getSelectedItems().size())));
+        dialog.add(new Paragraph(getMessage("bulk.preview", grid.getSelectedItems().stream()
+                .map(ComputerEntry::getCn).limit(20).collect(java.util.stream.Collectors.joining(", ")))));
+        dialog.add(groups);
+        Button cancel = new Button(getMessage("common.cancel"), event -> dialog.close());
+        Button confirm = new Button(getMessage("common.execute"), event -> {
+            if (groups.getValue() == null) {
+                Notification.show(getMessage("bulk.group_required"));
+                return;
+            }
+            List<String> dns = grid.getSelectedItems().stream().map(ComputerEntry::getDistinguishedName)
+                    .filter(name -> name != null && !name.isBlank()).toList();
+            BulkOperationResult result = computersService.getLdapService().bulkChangeMembers(
+                    dns, groups.getValue().getDistinguishedName(), remove);
+            int updated = result == null ? 0 : result.getUpdated();
+            int failed = result == null || result.getFailures() == null ? dns.size() : result.getFailures().size();
+            Notification notification = Notification.show(getMessage(failed == 0 ? "bulk.success" : "bulk.error", updated));
+            notification.addThemeVariants(failed == 0 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+            grid.deselectAll();
+            dialog.close();
+        });
+        confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        dialog.getFooter().add(cancel, confirm);
+        dialog.open();
     }
 
     public String getPageTitle() {

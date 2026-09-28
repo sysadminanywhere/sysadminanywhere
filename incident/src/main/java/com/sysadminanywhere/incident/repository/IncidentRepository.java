@@ -47,8 +47,8 @@ public interface IncidentRepository extends JpaRepository<IncidentEntity, Long> 
 
     @Query("""
         SELECT i FROM IncidentEntity i
-        WHERE i.severity = :severity
-            AND i.status = :status
+        WHERE (:severity IS NULL OR i.severity = :severity)
+            AND (:status IS NULL OR i.status = :status)
         ORDER BY i.createdAt DESC
         """)
     Page<IncidentEntity> findWithFilters(

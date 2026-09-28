@@ -1,0 +1,29 @@
+[ {
+  "id" : "printers",
+  "name" : "reports.printers.name",
+  "description" : "reports.printers.description",
+  "filter" : "",
+  "columns" : ["cn","serverName","driverName"],
+  "names" : ["reports.columns.cn","reports.columns.server_name","reports.columns.driver_name"]
+}, {
+  "id" : "withoutdriver",
+  "name" : "reports.printers_without_driver.name",
+  "description" : "reports.printers_without_driver.description",
+  "filter" : "(!(driverName=*))",
+  "columns" : ["cn","serverName","driverName"],
+  "names" : ["reports.columns.cn","reports.columns.server_name","reports.columns.driver_name"]
+}, {
+  "id" : "withoutserver",
+  "name" : "reports.printers_without_server.name",
+  "description" : "reports.printers_without_server.description",
+  "filter" : "(!(serverName=*))",
+  "columns" : ["cn","serverName","driverName"],
+  "names" : ["reports.columns.cn","reports.columns.server_name","reports.columns.driver_name"]
+}, {
+  "id" : "color",
+  "name" : "reports.printers_color.name",
+  "description" : "reports.printers_color.description",
+  "filter" : "(printColor=TRUE)",
+  "columns" : ["cn","serverName","driverName"],
+  "names" : ["reports.columns.cn","reports.columns.server_name","reports.columns.driver_name"]
+} ]

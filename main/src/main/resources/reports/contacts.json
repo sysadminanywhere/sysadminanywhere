@@ -1,0 +1,29 @@
+[ {
+  "id" : "contacts",
+  "name" : "reports.contacts.name",
+  "description" : "reports.contacts.description",
+  "filter" : "",
+  "columns" : ["cn","displayName","company"],
+  "names" : ["reports.columns.cn","reports.columns.display_name","reports.columns.company"]
+}, {
+  "id" : "withoutemail",
+  "name" : "reports.contacts_without_email.name",
+  "description" : "reports.contacts_without_email.description",
+  "filter" : "(!(mail=*))",
+  "columns" : ["cn","displayName","emailAddress"],
+  "names" : ["reports.columns.cn","reports.columns.display_name","reports.columns.email"]
+}, {
+  "id" : "withoutphone",
+  "name" : "reports.contacts_without_phone.name",
+  "description" : "reports.contacts_without_phone.description",
+  "filter" : "(!(telephoneNumber=*))",
+  "columns" : ["cn","displayName","officePhone"],
+  "names" : ["reports.columns.cn","reports.columns.display_name","reports.columns.office_phone"]
+}, {
+  "id" : "withcompany",
+  "name" : "reports.contacts_with_company.name",
+  "description" : "reports.contacts_with_company.description",
+  "filter" : "(company=*)",
+  "columns" : ["cn","displayName","company"],
+  "names" : ["reports.columns.cn","reports.columns.display_name","reports.columns.company"]
+} ]

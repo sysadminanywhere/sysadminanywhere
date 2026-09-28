@@ -6,17 +6,24 @@ import com.sysadminanywhere.inventory.client.ComputersServiceClient;
 import com.sysadminanywhere.inventory.client.WmiServiceClient;
 import com.sysadminanywhere.inventory.entity.Computer;
 import com.sysadminanywhere.inventory.repository.ComputerRepository;
+import com.sysadminanywhere.inventory.repository.InventoryScanRunRepository;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.sysadminanywhere.common.inventory.model.ComputerHardwareDetails;
+import com.sysadminanywhere.common.inventory.model.HardwareComputerItem;
+import com.sysadminanywhere.common.inventory.model.HardwareModelItem;
+import com.sysadminanywhere.common.inventory.model.HardwarePropertyItem;
+import com.sysadminanywhere.inventory.entity.ComputerHardware;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Service
@@ -34,18 +41,121 @@ public class InventoryService {
     private final ComputerRepository computerRepository;
     private final SoftwareService softwareService;
     private final HardwareService hardwareService;
+    private final InventoryScanRunRepository scanRunRepository;
+    private final com.sysadminanywhere.inventory.repository.ComputerHardwareRepository computerHardwareRepository;
+    private final AtomicBoolean scanRunning = new AtomicBoolean();
+    private volatile String lastScanError;
+    private volatile LocalDateTime scanStartedAt;
+    private volatile LocalDateTime scanFinishedAt;
+    private volatile Set<String> scanTargets = Set.of();
+    private volatile int scanProcessed;
+    private volatile int scanTotal;
+    private volatile boolean cancelRequested;
 
     public InventoryService(AuthService authService,
                             ComputersServiceClient computersServiceClient,
                             ComputerRepository computerRepository,
                             SoftwareService softwareService,
-                            HardwareService hardwareService) {
+                            HardwareService hardwareService,
+                            InventoryScanRunRepository scanRunRepository,
+                            com.sysadminanywhere.inventory.repository.ComputerHardwareRepository computerHardwareRepository) {
 
         this.authService = authService;
         this.computersServiceClient = computersServiceClient;
         this.computerRepository = computerRepository;
         this.softwareService = softwareService;
         this.hardwareService = hardwareService;
+        this.scanRunRepository = scanRunRepository;
+        this.computerHardwareRepository = computerHardwareRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<HardwareComputerItem> getComputerHardwareSummaries(String name, org.springframework.data.domain.Pageable pageable) {
+        return computerHardwareRepository.findComputerHardwareSummaries("%" + (name == null ? "" : name.trim()) + "%", pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public ComputerHardwareDetails getComputerHardwareDetails(Long computerId) {
+        List<ComputerHardware> records = computerHardwareRepository.findByComputerId(computerId);
+        if (records.isEmpty()) return null;
+        var computer = records.get(0).getComputer();
+        var summary = new HardwareComputerItem(computer.getId(), computer.getName(), computer.getCheckingDate(),
+                computer.getLastScanStatus(), computer.getLastScanError(), records.size());
+        List<HardwareModelItem> components = records.stream().map(record -> new HardwareModelItem(
+                record.getHardwareModel().getId(), record.getHardwareModel().getName(),
+                record.getHardwareModel().getHardwareType(), record.getProperties().stream()
+                .map(property -> new HardwarePropertyItem(property.getId(), property.getPropertyName(),
+                        property.getPropertyValue(), record.getId())).toList()))
+                .sorted(java.util.Comparator.comparing(HardwareModelItem::getType, java.util.Comparator.nullsLast(String::compareTo))
+                        .thenComparing(HardwareModelItem::getName, java.util.Comparator.nullsLast(String::compareTo)))
+                .toList();
+        return new ComputerHardwareDetails(summary, components);
+    }
+
+    public boolean startScan() {
+        return startScan(List.of());
+    }
+
+    public boolean startScan(List<String> computerNames) {
+        if (!scanRunning.compareAndSet(false, true)) {
+            return false;
+        }
+        scanTargets = computerNames == null ? Set.of() : computerNames.stream()
+                .filter(Objects::nonNull).map(String::trim).filter(name -> !name.isEmpty())
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
+        cancelRequested = false;
+        scanStartedAt = LocalDateTime.now();
+        scanFinishedAt = null;
+        lastScanError = null;
+        scanProcessed = 0;
+        scanTotal = 0;
+        com.sysadminanywhere.inventory.entity.InventoryScanRun run = new com.sysadminanywhere.inventory.entity.InventoryScanRun();
+        run.setStartedAt(scanStartedAt);
+        run.setStatus("RUNNING");
+        run.setTotal((int) computerRepository.count());
+        scanRunRepository.save(run);
+        CompletableFuture.runAsync(() -> {
+            try {
+                scan();
+                run.setStatus(lastScanError == null ? "COMPLETED" : "FAILED");
+            } catch (Exception exception) {
+                lastScanError = exception.getMessage();
+                run.setStatus("FAILED");
+                run.setError(lastScanError);
+                log.error("Inventory scan failed", exception);
+            } finally {
+                scanFinishedAt = LocalDateTime.now();
+                scanRunning.set(false);
+                scanTargets = Set.of();
+                run.setFinishedAt(scanFinishedAt);
+                run.setProcessed(scanProcessed);
+                run.setTotal(scanTotal);
+                if (run.getError() == null) {
+                    run.setError(lastScanError);
+                }
+                scanRunRepository.save(run);
+            }
+        });
+        return true;
+    }
+
+    public boolean cancelScan() {
+        if (!scanRunning.get()) return false;
+        cancelRequested = true;
+        return true;
+    }
+
+    public com.sysadminanywhere.common.inventory.model.InventoryScanStatus getScanStatus() {
+        return new com.sysadminanywhere.common.inventory.model.InventoryScanStatus(
+                scanRunning.get(), scanProcessed, scanTotal, scanStartedAt, scanFinishedAt, lastScanError);
+    }
+
+    public List<com.sysadminanywhere.common.inventory.model.InventoryScanRun> getScanHistory() {
+        return scanRunRepository.findTop20ByOrderByStartedAtDesc().stream()
+                .map(run -> new com.sysadminanywhere.common.inventory.model.InventoryScanRun(
+                        run.getId(), run.getStartedAt(), run.getFinishedAt(), run.getStatus(),
+                        run.getProcessed(), run.getTotal(), run.getError()))
+                .toList();
     }
 
     /*
@@ -63,7 +173,6 @@ public class InventoryService {
     */
 
     @SneakyThrows
-    @Scheduled(cron = "${cron.expression}")
     public void scan() {
         log.info("Scan started");
 
@@ -82,26 +191,50 @@ public class InventoryService {
             return;
         }
 
-        log.info("Found {} computers", computers.size());
+        scanTotal = (int) computers.stream()
+                .filter(computer -> computer != null && !computer.isDisabled())
+                .filter(computer -> scanTargets.isEmpty() || scanTargets.contains(computer.getCn()))
+                .count();
+        log.info("Found {} computers to scan", scanTotal);
 
         for (ComputerEntry computerEntry : computers) {
-            if (computerEntry != null && !computerEntry.isDisabled()) {
+            if (cancelRequested) {
+                lastScanError = "Scan cancelled by administrator";
+                break;
+            }
+            if (computerEntry != null && !computerEntry.isDisabled()
+                    && (scanTargets.isEmpty() || scanTargets.contains(computerEntry.getCn()))) {
+                Computer computer = null;
                 try {
-                    Computer computer = checkComputer(computerEntry.getCn());
+                    computer = checkComputer(computerEntry.getCn());
                     if (computerEntry.getCn() == null || computerEntry.getCn().isEmpty()) {
                         log.error("Host name is null or empty for software scan");
-                        return;
+                        throw new IllegalArgumentException("Host name is empty");
                     } else {
+                        computer.setLastScanStatus("RUNNING");
+                        computer.setLastScanError(null);
+                        computerRepository.save(computer);
                         softwareService.scanSoftware(computer);
                         hardwareService.scanHardware(computer);
 
                         computer.setCheckingDate(LocalDateTime.now());
+                        computer.setLastScanStatus("SUCCESS");
                         computerRepository.save(computer);
                     }
-                } catch (Exception ex) {
-                    log.error("Error scanning on computer {}: {}",
-                            computerEntry.getCn(), ex.getMessage(), ex);
+            } catch (Exception ex) {
+                if (computer != null) {
+                    computer.setLastScanStatus("ERROR");
+                    computer.setLastScanError(ex.getMessage());
+                    computerRepository.save(computer);
                 }
+                log.error("Error scanning on computer {}: {}",
+                        computerEntry.getCn(), ex.getMessage(), ex);
+            } finally {
+                if (computerEntry != null && !computerEntry.isDisabled()
+                        && (scanTargets.isEmpty() || scanTargets.contains(computerEntry.getCn()))) {
+                    scanProcessed++;
+                }
+            }
             }
         }
 

@@ -31,7 +31,7 @@ public class ThemeSwitcher extends Button {
         ui.getPage().executeJs("return localStorage.getItem('theme');")
                 .then(String.class, theme -> {
                     dark = "dark".equals(theme);
-                    applyTheme(dark);
+                    applyTheme(ui, dark);
                     updateIcon();
                 });
     }
@@ -41,13 +41,17 @@ public class ThemeSwitcher extends Button {
     }
 
     private void applyTheme(boolean dark) {
-        UI ui = UI.getCurrent();
+        applyTheme(UI.getCurrent(), dark);
+    }
 
-        if (dark) {
-            ui.getElement().setAttribute("theme", Lumo.DARK);
-        } else {
-            ui.getElement().setAttribute("theme", Lumo.LIGHT);
-        }
+    private void applyTheme(UI ui, boolean dark) {
+        ui.getElement().getThemeList().remove(Lumo.DARK);
+        ui.getElement().getThemeList().remove(Lumo.LIGHT);
+        ui.getElement().getThemeList().add(dark ? Lumo.DARK : Lumo.LIGHT);
+        ui.getPage().executeJs(
+                "document.documentElement.setAttribute('theme', $0);",
+                dark ? Lumo.DARK : Lumo.LIGHT
+        );
     }
 
     private void saveTheme(boolean dark) {

@@ -4,6 +4,8 @@ import com.sysadminanywhere.common.PageResponse;
 
 import com.sysadminanywhere.client.directory.GroupsServiceClient;
 import com.sysadminanywhere.common.directory.dto.AddGroupDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.common.directory.model.GroupScope;
@@ -16,39 +18,47 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class GroupsService {
 
     private final LdapService ldapService;
     private final GroupsServiceClient groupsServiceClient;
+    private final WebhookService webhookService;
 
-    public GroupsService(LdapService ldapService, GroupsServiceClient groupsServiceClient) {
+    public GroupsService(LdapService ldapService, GroupsServiceClient groupsServiceClient, WebhookService webhookService) {
         this.ldapService = ldapService;
         this.groupsServiceClient = groupsServiceClient;
+        this.webhookService = webhookService;
     }
 
     public Page<GroupEntry> getAll(Pageable pageable, String filters, String... attributes) {
         try {
-            PageResponse<GroupEntry> response = groupsServiceClient.getAll(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                pageable.getSort().toString(),
-                filters,
-                attributes
-            );
-            return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()), response.totalElements());
-        } catch (Exception e) {
+            return getAllOrThrow(pageable, filters, attributes);
+        } catch (RuntimeException exception) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
     }
 
+    public Page<GroupEntry> getAllOrThrow(Pageable pageable, String filters, String... attributes) {
+        PageResponse<GroupEntry> response = groupsServiceClient.getAll(
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().toString(),
+                filters, attributes);
+        return new PageImpl<>(response.content(), PageRequest.of(response.page(), response.size()),
+                response.totalElements());
+    }
+
     public List<GroupEntry> getAll(String filters, String... attributes) {
         try {
-            return groupsServiceClient.getList(filters, attributes);
-        } catch (Exception e) {
+            return getAllOrThrow(filters, attributes);
+        } catch (RuntimeException exception) {
             return null;
         }
+    }
+
+    public List<GroupEntry> getAllOrThrow(String filters, String... attributes) {
+        return groupsServiceClient.getList(filters, attributes);
     }
 
     public List<GroupEntry> getAll() {
@@ -74,15 +84,32 @@ public class GroupsService {
     }
 
     public GroupEntry add(String distinguishedName, GroupEntry group, GroupScope groupScope, boolean isSecurity) {
-        return groupsServiceClient.add(new AddGroupDto(distinguishedName, group.getCn(), group.getDescription(), groupScope, isSecurity));
+        GroupEntry created = groupsServiceClient.add(new AddGroupDto(distinguishedName, group.getCn(), group.getDescription(), groupScope, isSecurity));
+        if (webhookService != null && created != null) webhookService.publish("group.created", created);
+        return created;
     }
 
     public GroupEntry update(GroupEntry group) {
-        return groupsServiceClient.update(group);
+        GroupEntry updated = groupsServiceClient.update(group);
+        if (webhookService != null && updated != null) webhookService.publish("group.updated", updated);
+        return updated;
     }
 
     public void delete(String distinguishedName) {
         groupsServiceClient.delete(distinguishedName);
+        if (webhookService != null) webhookService.publish("group.deleted", Map.of("distinguishedName", String.valueOf(distinguishedName)));
+    }
+
+    public BulkOperationResult bulkDelete(List<GroupEntry> groups) {
+        List<String> distinguishedNames = groups.stream()
+                .map(GroupEntry::getDistinguishedName)
+                .filter(name -> name != null && !name.isBlank())
+                .toList();
+        return groupsServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
+    }
+
+    public BulkOperationResult bulkDeleteDistinguishedNames(List<String> distinguishedNames) {
+        return groupsServiceClient.bulkDelete(new BulkDeleteDto(distinguishedNames));
     }
 
     public String getGroupTypeName(long groupType)

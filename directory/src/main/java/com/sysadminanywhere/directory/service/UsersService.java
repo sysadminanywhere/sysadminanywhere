@@ -2,17 +2,20 @@ package com.sysadminanywhere.directory.service;
 
 import com.sysadminanywhere.common.directory.model.UserAccountControls;
 import com.sysadminanywhere.common.directory.model.UserEntry;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.name.Dn;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 
 @Slf4j
@@ -165,6 +168,48 @@ public class UsersService {
             log.error("Error changing user account control for {}: {}", user.getDistinguishedName(), e.getMessage());
             throw e;
         }
+    }
+
+    public BulkOperationResult bulkChangeAccountStatus(List<String> distinguishedNames, boolean disabled) {
+        int updated = 0;
+        List<String> failures = new ArrayList<>();
+
+        for (String distinguishedName : distinguishedNames) {
+            try {
+                List<Entry> entries = ldapService.search(new Dn(distinguishedName), "(objectClass=user)",
+                        org.apache.directory.api.ldap.model.message.SearchScope.OBJECT);
+                if (entries == null || entries.isEmpty() || entries.get(0).get("useraccountcontrol") == null) {
+                    failures.add(distinguishedName);
+                    continue;
+                }
+
+                int current = Integer.parseInt(entries.get(0).get("useraccountcontrol").getString());
+                int next = disabled
+                        ? current | UserAccountControls.ACCOUNTDISABLE.getValue()
+                        : current & ~UserAccountControls.ACCOUNTDISABLE.getValue();
+                ldapService.updateProperty(distinguishedName, "userAccountControl", String.valueOf(next));
+                updated++;
+            } catch (Exception exception) {
+                log.warn("Bulk account status update failed for {}: {}", distinguishedName, exception.getMessage());
+                failures.add(distinguishedName);
+            }
+        }
+
+        return new BulkOperationResult(updated, failures);
+    }
+
+    public BulkOperationResult bulkDelete(List<String> distinguishedNames) {
+        int updated = 0;
+        List<String> failures = new ArrayList<>();
+        for (String distinguishedName : distinguishedNames) {
+            try {
+                delete(distinguishedName);
+                updated++;
+            } catch (Exception exception) {
+                failures.add(distinguishedName);
+            }
+        }
+        return new BulkOperationResult(updated, failures);
     }
 
     /**

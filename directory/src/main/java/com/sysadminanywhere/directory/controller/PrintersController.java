@@ -2,6 +2,8 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.model.PrinterEntry;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.directory.service.PrintersService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +30,7 @@ public class PrintersController {
      * Получение всех принтеров с постраничным выводом и фильтрацией
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<PageResponse<PrinterEntry>> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -64,7 +66,7 @@ public class PrintersController {
      * Получение списка принтеров без постраничного вывода
      */
     @GetMapping("/list")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<List<PrinterEntry>> getList(
             @RequestParam String filters,
             @RequestParam String[] attributes) {
@@ -89,7 +91,7 @@ public class PrintersController {
      * Получение принтера по CN (Common Name)
      */
     @GetMapping("/{cn}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<PrinterEntry> getByCN(@PathVariable String cn) {
         try {
             if (cn == null || cn.isBlank()) {
@@ -112,7 +114,7 @@ public class PrintersController {
      * Удаление принтера
      */
     @DeleteMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<?> delete(
             @RequestParam @NotBlank(message = "DistinguishedName cannot be empty") String distinguishedName) {
 
@@ -127,6 +129,15 @@ public class PrintersController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to delete printer"));
         }
+    }
+
+    @PostMapping("/bulk/delete")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<BulkOperationResult> bulkDelete(@RequestBody BulkDeleteDto request) {
+        if (request == null || request.getDistinguishedNames() == null || request.getDistinguishedNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(printersService.bulkDelete(request.getDistinguishedNames()));
     }
 
 }

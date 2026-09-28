@@ -1,5 +1,13 @@
 # Getting Started
 
+## Hardware inventory and change history
+
+The main application groups inventoried hardware by model (for example, processors and video controllers) and shows how many computers report each model. Open a model to inspect the computers where it is present and its change history. Open a computer from that list to review its current components and computer-specific history.
+
+Use the name and component-category filters above the table, then choose Search. Reset clears both filters. On a narrow screen, expand Filters to show them.
+
+The history records hardware appearing, disappearing or being replaced. A replacement of the same disk, memory or baseboard model is recorded only when a reliable serial number changes. A model-name change with the same stable identifier updates the catalog without a hardware event. Ordinary WMI property changes update the current details without adding history entries; old property-change entries are hidden. For equipment already present when history is first enabled, the journal says **First recorded** rather than guessing an installation date. Removals are recorded only after all WMI hardware queries for a computer complete successfully; failed scans preserve the previous inventory. A disappearance is an investigation clue, not proof of theft. History starts with the first successful scan after deployment; older changes are not available from the current-state database. Multiple identical devices on one computer and replacements without reliable serial numbers cannot be distinguished by the current model-level inventory. Without a stable identifier, a model rename may still look like a removal and installation.
+
 ### Reference Documentation
 For further reference, please consider the following sections:
 

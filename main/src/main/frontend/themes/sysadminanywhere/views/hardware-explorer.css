@@ -1,0 +1,115 @@
+.hardware-explorer {
+  display: grid;
+  grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
+  min-width: 0;
+  width: 100%;
+  min-height: 420px;
+  border: 1px solid var(--lumo-contrast-10pct);
+  border-radius: var(--lumo-border-radius-l);
+  background: var(--lumo-base-color);
+  overflow: hidden;
+}
+
+.hardware-explorer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--lumo-space-m);
+  border-right: 1px solid var(--lumo-contrast-10pct);
+  background: var(--lumo-contrast-5pct);
+}
+
+.hardware-explorer-link {
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 38px;
+  text-align: left;
+  justify-content: flex-start;
+  white-space: normal;
+  color: var(--lumo-secondary-text-color);
+  background: transparent;
+}
+
+.hardware-explorer-link.selected {
+  color: var(--lumo-primary-text-color);
+  background: var(--lumo-primary-color-10pct);
+  font-weight: 600;
+}
+
+.hardware-explorer-detail {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: var(--lumo-space-l);
+}
+
+.hardware-explorer-title {
+  margin: 0 0 var(--lumo-space-l);
+  font-size: var(--lumo-font-size-xl);
+}
+
+.hardware-explorer-empty {
+  color: var(--lumo-secondary-text-color);
+  line-height: var(--lumo-line-height-m);
+}
+
+.hardware-overview-list {
+  display: grid;
+  gap: var(--lumo-space-s);
+}
+
+.hardware-overview-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 30%) minmax(0, 1fr);
+  gap: var(--lumo-space-l);
+  padding: var(--lumo-space-m) 0;
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+.hardware-overview-row > :first-child {
+  color: var(--lumo-secondary-text-color);
+}
+
+.hardware-overview-row > :last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+}
+
+.hardware-component {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: var(--lumo-space-m);
+  padding: var(--lumo-space-m);
+  border: 1px solid var(--lumo-contrast-10pct);
+  border-radius: var(--lumo-border-radius-m);
+}
+
+.hardware-component h3 {
+  margin: 0 0 var(--lumo-space-m);
+  font-size: var(--lumo-font-size-m);
+  overflow-wrap: anywhere;
+}
+
+.hardware-catalog-header {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--lumo-space-l);
+  border: 1px solid var(--lumo-contrast-10pct);
+  border-radius: var(--lumo-border-radius-l);
+  background: var(--lumo-base-color);
+}
+
+.hardware-catalog-header h2 { margin: 0 0 var(--lumo-space-s); }
+
+@media (max-width: 700px) {
+  .hardware-explorer { display: block; min-height: 0; }
+  .hardware-explorer-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+  }
+  .hardware-explorer-link { width: auto; white-space: nowrap; }
+  .hardware-explorer-detail { padding: var(--lumo-space-m); }
+  .hardware-overview-row { grid-template-columns: 1fr; gap: var(--lumo-space-xs); }
+}

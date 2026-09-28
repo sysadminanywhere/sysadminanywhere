@@ -2,6 +2,7 @@ package com.sysadminanywhere.views.management.computers;
 
 import com.sysadminanywhere.model.wmi.ProcessEntity;
 import com.sysadminanywhere.control.MenuControl;
+import com.sysadminanywhere.control.MobileFiltersToggle;
 import com.sysadminanywhere.domain.MenuHelper;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.service.LocaleService;
@@ -70,28 +71,8 @@ public class ComputerProcessesView extends Div implements BeforeEnterObserver, M
         return messageSource.getMessage(key, null, localeService.getCurrentLocale());
     }
 
-    private HorizontalLayout createMobileFilters() {
-        // Mobile version
-        HorizontalLayout mobileFilters = new HorizontalLayout();
-        mobileFilters.setWidthFull();
-        mobileFilters.addClassNames(LumoUtility.Padding.MEDIUM, LumoUtility.BoxSizing.BORDER,
-                LumoUtility.AlignItems.CENTER);
-        mobileFilters.addClassName("mobile-filters");
-
-        Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span(getMessage("computer_processes_view.filters"));
-        mobileFilters.add(mobileIcon, filtersHeading);
-        mobileFilters.setFlexGrow(1, filtersHeading);
-        mobileFilters.addClickListener(e -> {
-            if (filters.getClassNames().contains("visible")) {
-                filters.removeClassName("visible");
-                mobileIcon.getElement().setAttribute("icon", "lumo:plus");
-            } else {
-                filters.addClassName("visible");
-                mobileIcon.getElement().setAttribute("icon", "lumo:minus");
-            }
-        });
-        return mobileFilters;
+    private MobileFiltersToggle createMobileFilters() {
+        return new MobileFiltersToggle(getMessage("computer_processes_view.filters"), filters);
     }
 
     public static class Filters extends Div {

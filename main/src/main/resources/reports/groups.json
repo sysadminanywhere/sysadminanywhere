@@ -40,4 +40,32 @@
   "filter" : "",
   "columns" : ["cn","description","created"],
   "names" : ["reports.columns.cn","reports.columns.description", "reports.columns.created"]
+}, {
+  "id" : "empty",
+  "name" : "reports.groups_empty.name",
+  "description" : "reports.groups_empty.description",
+  "filter" : "(!(member=*))",
+  "columns" : ["cn","description"],
+  "names" : ["reports.columns.cn","reports.columns.description"]
+}, {
+  "id" : "withoutmanager",
+  "name" : "reports.groups_without_manager.name",
+  "description" : "reports.groups_without_manager.description",
+  "filter" : "(!(managedBy=*))",
+  "columns" : ["cn","description","managedBy"],
+  "names" : ["reports.columns.cn","reports.columns.description","reports.columns.managed_by"]
+}, {
+  "id" : "privileged",
+  "name" : "reports.groups_privileged.name",
+  "description" : "reports.groups_privileged.description",
+  "filter" : "(adminCount=1)",
+  "columns" : ["cn","description"],
+  "names" : ["reports.columns.cn","reports.columns.description"]
+}, {
+  "id" : "critical",
+  "name" : "reports.groups_critical.name",
+  "description" : "reports.groups_critical.description",
+  "filter" : "(isCriticalSystemObject=TRUE)",
+  "columns" : ["cn","description"],
+  "names" : ["reports.columns.cn","reports.columns.description"]
 } ]

@@ -25,6 +25,11 @@ public class Computer {
     @Column(nullable = false)
     private LocalDateTime checkingDate;
 
+    private String lastScanStatus;
+
+    @Column(length = 2000)
+    private String lastScanError;
+
     @OneToMany(mappedBy = "computer", fetch = FetchType.LAZY)
     private Set<Installation> installations;
 

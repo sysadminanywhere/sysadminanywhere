@@ -28,7 +28,7 @@ public class UpdateContactDialog extends Dialog {
         this.localeService = localeService;
 
         setHeaderTitle(getMessage("update_contact_dialog.title"));
-        setWidth("800px");
+        setWidth("min(800px, calc(100vw - 32px))");
 
         TabSheet tabSheet = new TabSheet();
 
@@ -127,6 +127,11 @@ public class UpdateContactDialog extends Dialog {
 
         add(tabSheet);
 
+        com.vaadin.flow.component.html.Span saveError = new com.vaadin.flow.component.html.Span();
+        saveError.addClassName("dialog-save-error");
+        saveError.setVisible(false);
+        add(saveError);
+
         Button saveButton = new com.vaadin.flow.component.button.Button(getMessage("common.save"), e -> {
             ContactEntry entry = contact;
 
@@ -161,8 +166,9 @@ public class UpdateContactDialog extends Dialog {
                 Notification notification = Notification.show(getMessage("update_contact_dialog.contact_updated"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                saveError.setText(ex.getMessage() == null ? getMessage("common.error") : ex.getMessage());
+                saveError.setVisible(true);
+                return;
             }
 
             close();

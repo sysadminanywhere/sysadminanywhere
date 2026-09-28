@@ -2,6 +2,8 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddContactDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.model.ContactEntry;
 import com.sysadminanywhere.directory.service.ContactsService;
 import jakarta.validation.Valid;
@@ -30,7 +32,7 @@ public class ContactsController {
      * Получение всех контактов с постраничным выводом и фильтрацией
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<PageResponse<ContactEntry>> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -66,7 +68,7 @@ public class ContactsController {
      * Получение списка контактов без постраничного вывода
      */
     @GetMapping("/list")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<List<ContactEntry>> getList(
             @RequestParam String filters,
             @RequestParam String[] attributes) {
@@ -91,7 +93,7 @@ public class ContactsController {
      * Получение контакта по CN (Common Name)
      */
     @GetMapping("/{cn}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<ContactEntry> getByCN(@PathVariable String cn) {
         try {
             if (cn == null || cn.isBlank()) {
@@ -114,7 +116,7 @@ public class ContactsController {
      * Создание нового контакта
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<ContactEntry> add(@Valid @RequestBody AddContactDto addContact) {
         try {
             if (addContact == null || addContact.getDistinguishedName() == null || addContact.getDistinguishedName().isBlank()) {
@@ -149,7 +151,7 @@ public class ContactsController {
      * Обновление контакта
      */
     @PutMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<ContactEntry> update(@Valid @RequestBody ContactEntry contact) {
         try {
             if (contact == null || contact.getDistinguishedName() == null || contact.getDistinguishedName().isBlank()) {
@@ -172,7 +174,7 @@ public class ContactsController {
      * Удаление контакта
      */
     @DeleteMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<?> delete(
             @RequestParam @NotBlank(message = "DistinguishedName cannot be empty") String distinguishedName) {
 
@@ -187,6 +189,15 @@ public class ContactsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to delete contact"));
         }
+    }
+
+    @PostMapping("/bulk/delete")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<BulkOperationResult> bulkDelete(@Valid @RequestBody BulkDeleteDto request) {
+        if (request == null || request.getDistinguishedNames() == null || request.getDistinguishedNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(contactsService.bulkDelete(request.getDistinguishedNames()));
     }
 
 }

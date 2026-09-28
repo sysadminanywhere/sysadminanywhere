@@ -36,7 +36,7 @@ public class IncidentController {
      * Получение списка инцидентов с фильтрацией и постраничным выводом
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public PageResponse<IncidentItem> getIncidents(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -47,18 +47,12 @@ public class IncidentController {
         Pageable pageable = Pageable.ofSize(size).withPage(page);
         Page<IncidentItem> result;
         
-        if (severity.equalsIgnoreCase("ALL") && status.equalsIgnoreCase("ALL")) {
-            result = incidentRepository.findAll(pageable).map(IncidentMapper::toItem);
-        } else if (severity.equalsIgnoreCase("ALL")) {
-            IncidentStatus statusFilter = Objects.requireNonNullElse(IncidentStatus.valueOf(status), IncidentStatus.OPEN);
-            result = incidentRepository.findWithStatus(statusFilter, pageable)
-                    .map(IncidentMapper::toItem);
-        } else {
-            IncidentStatus statusFilter = Objects.requireNonNullElse(IncidentStatus.valueOf(status), IncidentStatus.OPEN);
-            Severity severityFilter = Objects.requireNonNullElse(Severity.valueOf(severity), Severity.CRITICAL);
-            result = incidentRepository.findWithFilters(severityFilter, statusFilter, pageable)
-                    .map(IncidentMapper::toItem);
-        }
+        Severity severityFilter = severity == null || severity.isBlank() || severity.equalsIgnoreCase("ALL")
+                ? null : Severity.valueOf(severity.toUpperCase());
+        IncidentStatus statusFilter = status == null || status.isBlank() || status.equalsIgnoreCase("ALL")
+                ? null : IncidentStatus.valueOf(status.toUpperCase().replace(" ", "_"));
+        result = incidentRepository.findWithFilters(severityFilter, statusFilter, pageable)
+                .map(IncidentMapper::toItem);
 
         return new PageResponse<>(
                 result.getContent(),
@@ -73,7 +67,7 @@ public class IncidentController {
      * Получение конкретного инцидента по ID
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<IncidentItem> getIncident(@PathVariable Long id) {
         return incidentRepository.findById(id)
                 .map(entity -> ResponseEntity.ok(IncidentMapper.toItem(entity)))
@@ -84,7 +78,7 @@ public class IncidentController {
      * Создание нового инцидента
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<IncidentItem> createIncident(@Valid @RequestBody IncidentItem request) {
         IncidentEntity incident = IncidentMapper.toEntity(request);
         incident.setCreatedAt(LocalDateTime.now());
@@ -98,7 +92,7 @@ public class IncidentController {
     }
 
     @PutMapping("/{id}/update")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<IncidentItem> updateIncident(@PathVariable Long id, @RequestParam String severity, @RequestParam String status) {
         Optional<IncidentEntity> incident = incidentRepository.findById(id);
 
@@ -121,7 +115,7 @@ public class IncidentController {
      * Закрытие инцидента
      */
     @PostMapping("/{id}/close")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<IncidentItem> closeIncident(@PathVariable Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return incidentRepository.findById(id)

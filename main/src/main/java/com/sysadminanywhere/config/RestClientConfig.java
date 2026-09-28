@@ -32,9 +32,16 @@ public class RestClientConfig {
     @Value("${n8n.api-key}")
     private String n8nApiKey;
 
+    @Value("${app.services.retry.attempts:3}")
+    private int retryAttempts;
+
+    @Value("${app.services.retry.delay-ms:250}")
+    private long retryDelayMs;
+
     @Bean
     public RestClient.Builder restClientBuilder() {
-        return RestClient.builder();
+        return RestClient.builder().requestInterceptor(new RetryingHttpInterceptor(
+                retryAttempts, retryDelayMs));
     }
 
     @Bean
@@ -110,6 +117,14 @@ public class RestClientConfig {
                 .exchangeAdapter(RestClientAdapter.create(directoryServiceRestClient))
                 .build();
         return factory.createClient(AuthServiceClient.class);
+    }
+
+    @Bean
+    public ApiTokensServiceClient apiTokensServiceClient(RestClient directoryServiceRestClient) {
+        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builder()
+                .exchangeAdapter(RestClientAdapter.create(directoryServiceRestClient))
+                .build();
+        return factory.createClient(ApiTokensServiceClient.class);
     }
 
     @Bean

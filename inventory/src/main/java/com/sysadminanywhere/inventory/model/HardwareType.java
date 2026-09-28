@@ -15,7 +15,13 @@ public enum HardwareType {
     PHYSICAL_MEMORY("PhysicalMemory"),
     BASE_BOARD("BaseBoard"),
     BIOS("BIOS"),
-    COMPUTER_SYSTEM("ComputerSystem");
+    COMPUTER_SYSTEM("ComputerSystem"),
+    OPTICAL_DRIVE("OpticalDrive"),
+    SOUND_DEVICE("SoundDevice"),
+    KEYBOARD("Keyboard"),
+    POINTING_DEVICE("PointingDevice"),
+    NETWORK_ADAPTER("NetworkAdapter"),
+    PATCH("Patch");
 
     private final String displayName;
 

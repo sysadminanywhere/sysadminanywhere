@@ -13,7 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -46,12 +46,12 @@ class IncidentControllerTest {
         entity.setCreatedAt(LocalDateTime.now());
         
         Page<IncidentEntity> page = new PageImpl<>(List.of(entity));
-        when(incidentRepository.findAll(any(PageRequest.class))).thenReturn(page);
+        when(incidentRepository.findWithFilters(isNull(), isNull(), any(Pageable.class))).thenReturn(page);
 
         PageResponse<IncidentItem> result = incidentController.getIncidents(0, 10, "", "ALL", "ALL");
 
         assertNotNull(result);
-        verify(incidentRepository).findAll(any(PageRequest.class));
+        verify(incidentRepository).findWithFilters(isNull(), isNull(), any(Pageable.class));
     }
 
     @Test

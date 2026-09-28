@@ -1,6 +1,7 @@
 package com.sysadminanywhere.directory.service;
 
 import com.sysadminanywhere.common.directory.model.ContactEntry;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import lombok.SneakyThrows;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -86,6 +87,20 @@ public class ContactsService {
     public void delete(String distinguishedName) {
         Entry entry = new DefaultEntry(distinguishedName);
         ldapService.delete(entry);
+    }
+
+    public BulkOperationResult bulkDelete(List<String> distinguishedNames) {
+        int updated = 0;
+        List<String> failures = new java.util.ArrayList<>();
+        for (String distinguishedName : distinguishedNames) {
+            try {
+                delete(distinguishedName);
+                updated++;
+            } catch (Exception exception) {
+                failures.add(distinguishedName);
+            }
+        }
+        return new BulkOperationResult(updated, failures);
     }
 
     public String getDefaultContainer() {

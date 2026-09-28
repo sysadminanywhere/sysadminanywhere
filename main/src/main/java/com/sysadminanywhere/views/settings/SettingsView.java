@@ -6,6 +6,7 @@ import com.sysadminanywhere.model.LoginPattern;
 import com.sysadminanywhere.model.Settings;
 import com.sysadminanywhere.security.AuthenticatedUser;
 import com.sysadminanywhere.service.LocaleService;
+import com.sysadminanywhere.service.InventoryService;
 import com.sysadminanywhere.service.SettingsService;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.notification.Notification;
@@ -31,16 +32,19 @@ public class SettingsView extends VerticalLayout implements HasDynamicTitle {
     private final SettingsService settingsService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
+    private final InventoryService inventoryService;
 
     private Settings settings;
 
     public SettingsView(SettingsService settingsService,
                         MessageSource messageSource,
-                        LocaleService localeService) {
+                        LocaleService localeService,
+                        InventoryService inventoryService) {
 
         this.settingsService = settingsService;
         this.messageSource = messageSource;
         this.localeService = localeService;
+        this.inventoryService = inventoryService;
 
         settings = settingsService.getSettings();
         if (settings == null) settings = new Settings();
@@ -52,7 +56,7 @@ public class SettingsView extends VerticalLayout implements HasDynamicTitle {
             notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
-        add(getColorMode(), getUserPatterns(), getLanguageSelector(), saveButton);
+        add(getColorMode(), getUserPatterns(), getLanguageSelector(), getInventorySchedule(), saveButton);
     }
 
     private String getMessage(String key) {
@@ -160,6 +164,29 @@ public class SettingsView extends VerticalLayout implements HasDynamicTitle {
         });
 
         card.add(new VerticalLayout(cmbLanguage));
+        return card;
+    }
+
+    private Card getInventorySchedule() {
+        Card card = new Card();
+        card.setTitle(getMessage("settings_view.inventory_schedule"));
+        card.setWidthFull();
+        TextField cron = new TextField(getMessage("settings_view.inventory_cron"));
+        cron.setWidth("420px");
+        com.vaadin.flow.component.checkbox.Checkbox enabled = new com.vaadin.flow.component.checkbox.Checkbox(getMessage("settings_view.inventory_enabled"));
+        var current = inventoryService.getSchedule();
+        cron.setValue(current == null ? "0 0 0 * * *" : current.cron());
+        enabled.setValue(current == null || current.enabled());
+        Button apply = new Button(getMessage("common.save"), event -> {
+            if (inventoryService.updateSchedule(cron.getValue(), enabled.getValue()) == null) {
+                Notification notification = Notification.show(getMessage("settings_view.inventory_schedule_error"));
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            } else {
+                Notification notification = Notification.show(getMessage("settings_view.inventory_schedule_saved"));
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            }
+        });
+        card.add(new VerticalLayout(cron, enabled, apply));
         return card;
     }
 

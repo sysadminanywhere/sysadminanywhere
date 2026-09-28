@@ -40,7 +40,7 @@ public class UpdateUserPhotoDialog extends Dialog {
         this.localeService = localeService;
 
         setHeaderTitle(getMessage("update_user_photo_dialog.title"));
-        setWidth("600px");
+        setWidth("min(600px, calc(100vw - 32px))");
 
         AtomicReference<Image> image = new AtomicReference<>(new Image());
         if (user.getJpegPhoto() != null) {
@@ -48,6 +48,8 @@ public class UpdateUserPhotoDialog extends Dialog {
             image = new AtomicReference<>(new Image(resource, ""));
         }
         image.get().setHeight("400px");
+        image.get().getStyle().set("max-width", "100%");
+        image.get().getStyle().set("max-height", "45vh");
 
         MemoryBuffer buffer = new MemoryBuffer();
 
@@ -89,6 +91,11 @@ public class UpdateUserPhotoDialog extends Dialog {
 
         add(verticalLayout);
 
+        com.vaadin.flow.component.html.Span saveError = new com.vaadin.flow.component.html.Span();
+        saveError.addClassName("dialog-save-error");
+        saveError.setVisible(false);
+        add(saveError);
+
         Button saveButton = new com.vaadin.flow.component.button.Button(getMessage("common.save"), e -> {
             UserEntry entry = user;
 
@@ -99,8 +106,9 @@ public class UpdateUserPhotoDialog extends Dialog {
                 Notification notification = Notification.show(getMessage("update_user_photo_dialog.user_photo_updated"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                saveError.setText(ex.getMessage() == null ? getMessage("common.error") : ex.getMessage());
+                saveError.setVisible(true);
+                return;
             }
 
             close();
@@ -123,8 +131,9 @@ public class UpdateUserPhotoDialog extends Dialog {
                 Notification notification = Notification.show(getMessage("update_user_photo_dialog.user_photo_deleted"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                saveError.setText(ex.getMessage() == null ? getMessage("common.error") : ex.getMessage());
+                saveError.setVisible(true);
+                return;
             }
 
             close();

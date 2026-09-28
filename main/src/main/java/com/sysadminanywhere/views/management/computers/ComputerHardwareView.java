@@ -1,32 +1,34 @@
 package com.sysadminanywhere.views.management.computers;
 
-import com.sysadminanywhere.model.wmi.HardwareEntity;
 import com.sysadminanywhere.control.Table;
+import com.sysadminanywhere.control.HardwareExplorer;
+import com.sysadminanywhere.model.wmi.*;
 import com.sysadminanywhere.service.ComputersService;
 import com.sysadminanywhere.service.LocaleService;
-import org.springframework.context.MessageSource;
-import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.card.Card;
+import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H4;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.listbox.ListBox;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.context.MessageSource;
 
 import java.lang.reflect.Field;
+import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
 
 @RolesAllowed("ADMIN")
 @Route(value = "management/computers/:id?/hardware")
-@Uses(Icon.class)
 public class ComputerHardwareView extends Div implements BeforeEnterObserver, HasDynamicTitle {
 
     private String id;
@@ -34,172 +36,388 @@ public class ComputerHardwareView extends Div implements BeforeEnterObserver, Ha
     private final ComputersService computersService;
     private final MessageSource messageSource;
     private final LocaleService localeService;
-    Div divTable = new Div();
+    private final VerticalLayout content = new VerticalLayout();
 
-    @Override
-    public void beforeEnter(BeforeEnterEvent event) {
-        id = event.getRouteParameters().get("id").
-                orElse(null);
-    }
-
-    public ComputerHardwareView(ComputersService computersService, MessageSource messageSource, LocaleService localeService) {
+    public ComputerHardwareView(ComputersService computersService, MessageSource messageSource,
+                                LocaleService localeService) {
         this.computersService = computersService;
         this.messageSource = messageSource;
         this.localeService = localeService;
         setSizeFull();
-        addClassNames("gridwith-filters-view");
-
-        ListBox<String> listBox = new ListBox<>();
-        listBox.setItems(
-            getMessage("computer_hardware_view.computer_system"),
-            getMessage("computer_hardware_view.bios"),
-            getMessage("computer_hardware_view.base_board"),
-            getMessage("computer_hardware_view.disk_drive"),
-            getMessage("computer_hardware_view.operating_system"),
-            getMessage("computer_hardware_view.disk_partition"),
-            getMessage("computer_hardware_view.processor"),
-            getMessage("computer_hardware_view.video_controller"),
-            getMessage("computer_hardware_view.physical_memory"),
-            getMessage("computer_hardware_view.logical_disk")
-        );
-
-        listBox.addValueChangeListener(event -> {
-            divTable.removeAll();
-
-            String value = event.getValue();
-
-            if (value.equals(getMessage("computer_hardware_view.computer_system"))) {
-                createTable(value, convert(computersService.getComputerSystem(id)));
-            } else if (value.equals(getMessage("computer_hardware_view.bios"))) {
-                createTable(value, convert(computersService.getBIOS(id)));
-            } else if (value.equals(getMessage("computer_hardware_view.base_board"))) {
-                createTable(value, convert(computersService.getBaseBoard(id)));
-            } else if (value.equals(getMessage("computer_hardware_view.disk_drive"))) {
-                createTabs(value, convertList(computersService.getDiskDrive(id)));
-            } else if (value.equals(getMessage("computer_hardware_view.operating_system"))) {
-                createTable(value, convert(computersService.getOperatingSystem(id)));
-            } else if (value.equals(getMessage("computer_hardware_view.disk_partition"))) {
-                createTabs(value, convertList(computersService.getDiskPartition(id)));
-            } else if (value.equals(getMessage("computer_hardware_view.processor"))) {
-                createTabs(value, convertList(computersService.getProcessor(id)));
-            } else if (value.equals(getMessage("computer_hardware_view.video_controller"))) {
-                createTabs(value, convertList(computersService.getVideoController(id)));
-            } else if (value.equals(getMessage("computer_hardware_view.physical_memory"))) {
-                createTabs(value, convertList(computersService.getPhysicalMemory(id)));
-            } else if (value.equals(getMessage("computer_hardware_view.logical_disk"))) {
-                createTabs(value, convertList(computersService.getLogicalDisk(id)));
-            }
-        });
-
-        HorizontalLayout layout = new HorizontalLayout();
-        layout.setSizeFull();
-
-        divTable.getStyle().setMarginLeft("25px");
-
-        layout.add(listBox, divTable);
-
-        add(layout);
+        content.setWidthFull();
+        content.setPadding(true);
+        content.setSpacing(true);
+        add(content);
     }
 
-    private String getMessage(String key) {
-        return messageSource.getMessage(key, null, localeService.getCurrentLocale());
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        id = event.getRouteParameters().get("id").orElse(null);
+        updateView();
+    }
+
+    private void updateView() {
+        content.removeAll();
+        if (id == null || id.isBlank()) {
+            content.add(new Span(message("computer_hardware_view.no_computer")));
+            return;
+        }
+
+        ComputerSystemEntity system = computersService.getComputerSystem(id);
+        OperatingSystemEntity operatingSystem = computersService.getOperatingSystem(id);
+        List<ProcessorEntity> processors = safeList(computersService.getProcessor(id));
+        List<DiskDriveEntity> disks = safeList(computersService.getDiskDrive(id));
+
+        content.add(new H3(id), new Span(message("computer_hardware_view.subtitle")));
+        List<HardwareExplorer.Section> sections = List.of(
+                section("overview", () -> createOverview(system, operatingSystem, processors, disks)),
+                section("operating_system", () -> propertyContent(convert(operatingSystem), importantPropertiesFor("operating_system"))),
+                section("processor", () -> createHardwareListContent("processor", processors)),
+                section("physical_memory", () -> createHardwareListContent("physical_memory", safeList(computersService.getPhysicalMemory(id)))),
+                section("base_board", () -> boardContent()),
+                section("video_controller", () -> createHardwareListContent("video_controller", safeList(computersService.getVideoController(id)))),
+                section("storage", () -> storageContent(disks)),
+                section("optical_drive", () -> createHardwareListContent("optical_drive", safeList(computersService.getOpticalDrives(id)))),
+                section("audio", () -> createHardwareListContent("audio", safeList(computersService.getSoundDevices(id)))),
+                section("peripherals", this::peripheralsContent),
+                section("network", () -> createHardwareListContent("network", safeList(computersService.getNetworkAdapters(id)))));
+        content.add(new HardwareExplorer(message("computer_hardware_view.components"), sections));
+    }
+
+    private HardwareExplorer.Section section(String key, Supplier<Component> component) {
+        return new HardwareExplorer.Section(key, message("computer_hardware_view." + key), component);
+    }
+
+    private Component peripheralsContent() {
+        VerticalLayout body = new VerticalLayout();
+        body.setPadding(false);
+        body.add(new H3(message("computer_hardware_view.keyboard")),
+                createHardwareListContent("keyboard", safeList(computersService.getKeyboards(id))),
+                new H3(message("computer_hardware_view.pointing_device")),
+                createHardwareListContent("pointing_device", safeList(computersService.getPointingDevices(id))));
+        return body;
+    }
+
+    private Component boardContent() {
+        VerticalLayout body = new VerticalLayout();
+        body.setPadding(false);
+        body.add(new H3(message("computer_hardware_view.base_board")),
+                propertyContent(convert(computersService.getBaseBoard(id)), importantPropertiesFor("base_board")),
+                new H3(message("computer_hardware_view.bios")),
+                propertyContent(convert(computersService.getBIOS(id)), importantPropertiesFor("bios")));
+        return body;
+    }
+
+    private Component storageContent(List<DiskDriveEntity> disks) {
+        VerticalLayout body = new VerticalLayout();
+        body.setPadding(false);
+        body.add(new H3(message("computer_hardware_view.disk_drive")), createHardwareListContent("disk_drive", disks));
+        Details volumes = new Details(message("computer_hardware_view.logical_disk"),
+                createHardwareListContent("logical_disk", safeList(computersService.getLogicalDisk(id))));
+        Details partitions = new Details(message("computer_hardware_view.disk_partition"),
+                createHardwareListContent("disk_partition", safeList(computersService.getDiskPartition(id))));
+        body.add(volumes, partitions);
+        return body;
+    }
+
+    private Component createOverview(ComputerSystemEntity system, OperatingSystemEntity os,
+                                     List<ProcessorEntity> processors, List<DiskDriveEntity> disks) {
+        Div overview = new Div();
+        overview.addClassName("hardware-overview-list");
+        overview.add(
+                overviewRow(message("computer_hardware_view.operating_system"), osSummary(os)),
+                overviewRow(message("computer_hardware_view.processor"), processorSummary(processors)),
+                overviewRow(message("computer_hardware_view.physical_memory"), memorySummary(system, List.of())),
+                overviewRow(message("computer_hardware_view.computer_system"), join(system == null ? null : system.getManufacturer(),
+                        system == null ? null : system.getModel())),
+                overviewRow(message("computer_hardware_view.storage"), storageSummary(disks)));
+        return overview;
+    }
+
+    private Component overviewRow(String label, String value) {
+        Div row = new Div(new Span(label), new Span(value == null || value.isBlank()
+                ? message("computer_hardware_view.not_reported") : value));
+        row.addClassName("hardware-overview-row");
+        return row;
+    }
+
+    private Card summaryCard(String title, String value, String hint) {
+        Card card = new Card();
+        card.setWidthFull();
+        Span valueText = new Span(value == null || value.isBlank() ? message("computer_hardware_view.not_reported") : value);
+        valueText.getStyle().set("font-size", "var(--lumo-font-size-l)").set("font-weight", "600");
+        Span hintText = new Span(hint);
+        hintText.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        card.add(new Span(title), valueText, hintText);
+        return card;
+    }
+
+    private String processorSummary(List<ProcessorEntity> processors) {
+        if (processors.isEmpty()) return message("computer_hardware_view.not_reported");
+        return firstNonBlank(processors.get(0).getName(), processors.get(0).getModel());
+    }
+
+    private String processorHint(List<ProcessorEntity> processors) {
+        if (processors.isEmpty()) return message("computer_hardware_view.no_component_data");
+        long cores = processors.stream().mapToLong(item -> parseLong(item.getNumberOfCores())).sum();
+        long threads = processors.stream().mapToLong(item -> parseLong(item.getNumberOfLogicalProcessors())).sum();
+        if (cores == 0 && threads == 0) return message("computer_hardware_view.processor_count", processors.size());
+        return message("computer_hardware_view.core_thread_count", cores, threads);
+    }
+
+    private String memorySummary(ComputerSystemEntity system, List<PhysicalMemoryEntity> memory) {
+        double bytes = system == null ? 0 : parseDouble(system.getTotalPhysicalMemory());
+        if (bytes == 0) bytes = memory.stream().mapToDouble(PhysicalMemoryEntity::getCapacity).sum();
+        return bytes > 0 ? formatBytes(bytes) : message("computer_hardware_view.not_reported");
+    }
+
+    private String storageSummary(List<DiskDriveEntity> disks) {
+        double bytes = disks.stream().mapToDouble(item -> parseDouble(item.getSize())).sum();
+        return bytes > 0 ? formatBytes(bytes) : message("computer_hardware_view.not_reported");
+    }
+
+    private String osSummary(OperatingSystemEntity os) {
+        if (os == null) return message("computer_hardware_view.not_reported");
+        return join(os.getCaption(), os.getVersion());
+    }
+
+    private Table createTable(List<HardwareEntity> properties) {
+        Table table = new Table("", "220px");
+        for (HardwareEntity item : properties) {
+            table.add(propertyLabel(item.getName()), formatProperty(item.getName(), item.getValue()));
+        }
+        return table;
+    }
+
+    private String componentName(String type, List<HardwareEntity> properties, int index) {
+        String[] preferred = switch (type) {
+            case "processor" -> new String[]{"name", "model"};
+            case "physical_memory" -> new String[]{"deviceLocator", "partNumber", "manufacturer"};
+            case "disk_drive" -> new String[]{"model", "name"};
+            case "video_controller" -> new String[]{"name", "caption"};
+            case "disk_partition", "logical_disk" -> new String[]{"name", "deviceID"};
+            default -> new String[]{"name", "model"};
+        };
+        for (String key : preferred) {
+            String value = properties.stream().filter(item -> key.equals(item.getName()))
+                    .map(HardwareEntity::getValue).filter(item -> item != null && !item.isBlank() && !"-".equals(item))
+                    .findFirst().orElse(null);
+            if (value != null) return value;
+        }
+        return message("computer_hardware_view.component_number", message("computer_hardware_view." + type), index);
+    }
+
+    private Set<String> importantPropertiesFor(String type) {
+        return switch (type) {
+            case "computer_system" -> Set.of("manufacturer", "model", "totalPhysicalMemory", "numberOfProcessors",
+                    "numberOfLogicalProcessors", "systemType", "domain", "workgroup", "hypervisorPresent");
+            case "operating_system" -> Set.of("caption", "version", "osArchitecture", "cSDVersion", "manufacturer", "locale");
+            case "processor" -> Set.of("name", "manufacturer", "numberOfCores", "numberOfLogicalProcessors", "maxClockSpeed", "currentClockSpeed", "socketDesignation", "virtualizationFirmwareEnabled");
+            case "physical_memory" -> Set.of("manufacturer", "capacity", "configuredClockSpeed", "deviceLocator", "partNumber", "memoryType");
+            case "disk_drive" -> Set.of("model", "manufacturer", "interfaceType", "size", "mediaType", "partitions", "firmwareRevisions");
+            case "video_controller" -> Set.of("name", "adapterCompatibility", "adapterRAM", "videoProcessor", "driverVersion", "currentHorizontalResolution", "currentVerticalResolution");
+            case "base_board" -> Set.of("manufacturer", "product", "version", "serialNumber");
+            case "bios" -> Set.of("manufacturer", "sMBIOSBIOSVersion", "version", "releaseDate", "serialNumber");
+            case "disk_partition" -> Set.of("name", "deviceID", "size", "startingOffset", "primaryPartition", "bootPartition");
+            case "logical_disk" -> Set.of("deviceID", "volumeName", "fileSystem", "size", "freeSpace", "driveType");
+            case "optical_drive" -> Set.of("name", "drive", "mediaType", "manufacturer", "status");
+            case "audio" -> Set.of("name", "manufacturer", "status", "productName");
+            case "keyboard", "pointing_device" -> Set.of("name", "manufacturer", "description", "status");
+            case "network" -> Set.of("name", "manufacturer", "macAddress", "adapterType", "speed", "netEnabled");
+            default -> Set.of();
+        };
+    }
+
+    private Details createHardwareListSection(String type, List<?> values) {
+        Details section = new Details();
+        section.setSummaryText(message("computer_hardware_view.component_count",
+                message("computer_hardware_view." + type), values.size()));
+        section.add(createHardwareListContent(type, values));
+        return section;
+    }
+
+    private Component createHardwareListContent(String type, List<?> values) {
+        if (values.isEmpty()) {
+            return new Span(message("computer_hardware_view.no_component_data"));
+        }
+        VerticalLayout items = new VerticalLayout();
+        items.setPadding(false);
+        items.setSpacing(true);
+        for (int index = 0; index < values.size(); index++) {
+            List<HardwareEntity> properties = convert(values.get(index));
+            String name = componentName(type, properties, index + 1);
+            Details itemDetails = new Details();
+            itemDetails.setSummaryText(name);
+            itemDetails.add(propertyContent(properties, importantPropertiesFor(type)));
+            itemDetails.setOpened(index == 0);
+            items.add(itemDetails);
+        }
+        return items;
+    }
+
+    private Details createLazyListSection(String type, Supplier<? extends List<?>> dataSource) {
+        Details section = new Details();
+        section.setSummaryText(message("computer_hardware_view." + type));
+        Div body = new Div(new Span(message("computer_hardware_view.expand_to_load")));
+        section.add(body);
+        boolean[] loaded = {false};
+        section.addOpenedChangeListener(event -> {
+            if (event.isOpened() && !loaded[0]) {
+                loaded[0] = true;
+                body.removeAll();
+                body.add(createHardwareListContent(type, safeList(dataSource.get())));
+            }
+        });
+        return section;
+    }
+
+    private Details createLazyObjectSection(String type, Supplier<?> dataSource) {
+        Details section = new Details();
+        section.setSummaryText(message("computer_hardware_view." + type));
+        Div body = new Div(new Span(message("computer_hardware_view.expand_to_load")));
+        section.add(body);
+        boolean[] loaded = {false};
+        section.addOpenedChangeListener(event -> {
+            if (event.isOpened() && !loaded[0]) {
+                loaded[0] = true;
+                body.removeAll();
+                body.add(propertyContent(convert(dataSource.get()), importantPropertiesFor(type)));
+            }
+        });
+        return section;
+    }
+
+    private Details createHardwareObjectSection(String type, Object value) {
+        Details section = new Details();
+        section.setSummaryText(message("computer_hardware_view." + type));
+        section.add(propertyContent(convert(value), importantPropertiesFor(type)));
+        return section;
+    }
+
+    private Component propertyContent(List<HardwareEntity> properties, Set<String> important) {
+        if (properties.isEmpty()) {
+            return new Span(message("computer_hardware_view.no_component_data"));
+        }
+        List<HardwareEntity> keyProperties = properties.stream().filter(item -> important.contains(item.getName())).toList();
+        List<HardwareEntity> otherProperties = properties.stream().filter(item -> !important.contains(item.getName())).toList();
+        VerticalLayout content = new VerticalLayout();
+        content.setPadding(false);
+        content.setSpacing(false);
+        content.add(createTable(keyProperties.isEmpty() ? properties : keyProperties));
+        if (!otherProperties.isEmpty()) {
+            Details advanced = new Details();
+            advanced.setSummaryText(message("computer_hardware_view.all_properties", otherProperties.size()));
+            advanced.add(createTable(otherProperties));
+            content.add(advanced);
+        }
+        return content;
     }
 
     private List<HardwareEntity> convert(Object obj) {
         List<HardwareEntity> result = new ArrayList<>();
-
         if (obj == null) return result;
-
-        Class<?> clazz = obj.getClass();
-        Field[] fields = clazz.getDeclaredFields();
-
-        for (Field field : fields) {
+        if (obj instanceof Map<?, ?> values) {
+            values.forEach((key, value) -> {
+                if (!(key instanceof String name) || name.startsWith("__") || value == null) return;
+                String propertyName = Character.toLowerCase(name.charAt(0)) + name.substring(1);
+                String text = String.valueOf(value);
+                if (!text.isBlank() && !"Unknown".equalsIgnoreCase(text))
+                    result.add(new HardwareEntity(propertyName, text));
+            });
+            return result;
+        }
+        for (Field field : obj.getClass().getDeclaredFields()) {
             field.setAccessible(true);
             try {
-                String name = field.getName();
                 Object value = field.get(obj);
-                String valueStr = "-";
-
-                if (value instanceof String[] array) {
-                    valueStr = Arrays.stream(array)
-                            .collect(Collectors.joining(", "));
-                } else {
-                    valueStr = value != null ? value.toString() : "-";
-                }
-
-                result.add(new HardwareEntity(name, valueStr));
-            } catch (IllegalAccessException e) {
+                String valueText = value instanceof String[] array ? String.join(", ", array)
+                        : value == null ? "" : String.valueOf(value);
+                if (valueText.isBlank() || "-".equals(valueText) || "Unknown".equalsIgnoreCase(valueText)) continue;
+                result.add(new HardwareEntity(field.getName(), valueText));
+            } catch (IllegalAccessException ignored) {
+                // Ignore fields that cannot be read; the rest of the inventory remains useful.
             }
         }
-
         return result;
     }
 
-    private List<List<HardwareEntity>> convertList(Object obj) {
-        List<List<HardwareEntity>> result = new ArrayList<>();
+    private String propertyLabel(String propertyName) {
+        String key = "computer_hardware_view.property." + propertyName;
+        return messageSource.getMessage(key, null, pascalToSpaced(propertyName), localeService.getCurrentLocale());
+    }
 
-        if (obj == null) return result;
-
-        if (obj instanceof List) {
-            List<Object> list = (List) obj;
-            for (Object o : list) {
-                result.add(convert(o));
+    private String formatProperty(String propertyName, String value) {
+        if (value == null || value.isBlank()) return message("computer_hardware_view.not_reported");
+        return switch (propertyName) {
+            case "totalPhysicalMemory", "capacity", "size", "freeSpace", "adapterRAM" -> {
+                double bytes = parseDouble(value);
+                yield bytes > 0 ? formatBytes(bytes) : value;
             }
-        }
-
-        return result;
+            case "maxClockSpeed", "currentClockSpeed", "configuredClockSpeed" -> value + " MHz";
+            case "l2CacheSize", "l3CacheSize" -> value + " KB";
+            case "virtualizationFirmwareEnabled", "hypervisorPresent" -> Boolean.parseBoolean(value)
+                    ? message("computer_hardware_view.yes") : message("computer_hardware_view.no");
+            default -> value;
+        };
     }
 
-    private void createTable(String name, List<HardwareEntity> items) {
-        Table table = new Table(name);
-
-        for (HardwareEntity entity : items) {
-            table.add(pascalToSpaced(entity.getName()), entity.getValue());
+    private String formatBytes(double bytes) {
+        String[] units = {"B", "KB", "MB", "GB", "TB"};
+        double value = bytes;
+        int unit = 0;
+        while (value >= 1024 && unit < units.length - 1) {
+            value /= 1024;
+            unit++;
         }
-
-        divTable.add(table);
+        NumberFormat format = NumberFormat.getNumberInstance(localeService.getCurrentLocale());
+        format.setMaximumFractionDigits(1);
+        format.setMinimumFractionDigits(value < 10 && unit > 0 ? 1 : 0);
+        return format.format(value) + " " + units[unit];
     }
 
-    private void createTabs(String name, List<List<HardwareEntity>> list) {
-        TabSheet tabSheet = new TabSheet();
-        H4 title = new H4(name);
-        title.getStyle().setMarginTop("10px");
-
-        Integer n = 0;
-
-        for (List<HardwareEntity> lst : list) {
-            Table table = new Table("");
-
-            for (HardwareEntity entity : lst) {
-                table.add(pascalToSpaced(entity.getName()), entity.getValue());
-            }
-
-            tabSheet.add(n.toString(), table);
-            n++;
+    private double parseDouble(String value) {
+        try {
+            return Double.parseDouble(value.trim());
+        } catch (RuntimeException ignored) {
+            return 0;
         }
-
-        divTable.add(title, tabSheet);
     }
 
-    public String pascalToSpaced(String input) {
+    private long parseLong(String value) {
+        try {
+            return Long.parseLong(value.trim());
+        } catch (RuntimeException ignored) {
+            return 0;
+        }
+    }
+
+    private String join(String first, String second) {
+        if (first == null || first.isBlank()) return second == null ? "" : second;
+        if (second == null || second.isBlank()) return first;
+        return first + " " + second;
+    }
+
+    private String firstNonBlank(String first, String second) {
+        return first != null && !first.isBlank() ? first : second == null ? "" : second;
+    }
+
+    private <T> List<T> safeList(List<T> values) {
+        return values == null ? List.of() : values;
+    }
+
+    private String pascalToSpaced(String input) {
         if (input == null || input.isEmpty()) return input;
-
-        input = capitalizeFirstLetter(input);
-
-        String withSpaces = input
-                .replaceAll("(?<=[a-z0-9])(?=[A-Z])", " ")
+        String withSpaces = input.replaceAll("(?<=[a-z0-9])(?=[A-Z])", " ")
                 .replaceAll("(?<=[A-Z])(?=[A-Z][a-z])", " ");
-
-        return  withSpaces.trim();
+        return Character.toUpperCase(withSpaces.charAt(0)) + withSpaces.substring(1);
     }
 
-    private String capitalizeFirstLetter(String str) {
-        if (str == null || str.isEmpty()) return str;
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    private String message(String key, Object... args) {
+        return messageSource.getMessage(key, args.length == 0 ? null : args, localeService.getCurrentLocale());
     }
 
+    @Override
     public String getPageTitle() {
-        return getMessage("computer_hardware_view.title");
+        return message("computer_hardware_view.title");
     }
-
 }

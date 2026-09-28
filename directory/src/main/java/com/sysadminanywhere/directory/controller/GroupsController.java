@@ -2,6 +2,8 @@ package com.sysadminanywhere.directory.controller;
 
 import com.sysadminanywhere.common.PageResponse;
 import com.sysadminanywhere.common.directory.dto.AddGroupDto;
+import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
+import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.model.GroupEntry;
 import com.sysadminanywhere.directory.service.GroupsService;
 import jakarta.validation.Valid;
@@ -30,7 +32,7 @@ public class GroupsController {
      * Получение всех групп с постраничным выводом и фильтрацией
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<PageResponse<GroupEntry>> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -66,7 +68,7 @@ public class GroupsController {
      * Получение списка групп без постраничного вывода
      */
     @GetMapping("/list")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<List<GroupEntry>> getList(
             @RequestParam String filters,
             @RequestParam String[] attributes) {
@@ -91,7 +93,7 @@ public class GroupsController {
      * Получение группы по CN (Common Name)
      */
     @GetMapping("/{cn}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<GroupEntry> getByCN(@PathVariable String cn) {
         try {
             if (cn == null || cn.isBlank()) {
@@ -114,7 +116,7 @@ public class GroupsController {
      * Создание новой группы
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<GroupEntry> add(@Valid @RequestBody AddGroupDto addGroup) {
         try {
             if (addGroup == null || addGroup.getDistinguishedName() == null || addGroup.getDistinguishedName().isBlank()) {
@@ -148,7 +150,7 @@ public class GroupsController {
      * Обновление группы
      */
     @PutMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<GroupEntry> update(@Valid @RequestBody GroupEntry group) {
         try {
             if (group == null || group.getDistinguishedName() == null || group.getDistinguishedName().isBlank()) {
@@ -171,7 +173,7 @@ public class GroupsController {
      * Удаление группы
      */
     @DeleteMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<?> delete(
             @RequestParam @NotBlank(message = "DistinguishedName cannot be empty") String distinguishedName) {
 
@@ -186,6 +188,15 @@ public class GroupsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to delete group"));
         }
+    }
+
+    @PostMapping("/bulk/delete")
+    @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
+    public ResponseEntity<BulkOperationResult> bulkDelete(@Valid @RequestBody BulkDeleteDto request) {
+        if (request == null || request.getDistinguishedNames() == null || request.getDistinguishedNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(groupsService.bulkDelete(request.getDistinguishedNames()));
     }
 
 }

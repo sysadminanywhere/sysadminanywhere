@@ -25,6 +25,7 @@ public class AddContactDialog extends Dialog {
         this.localeService = localeService;
 
         setHeaderTitle(getMessage("add_contact_dialog.title"));
+        setWidth("min(800px, calc(100vw - 32px))");
         setMaxWidth("800px");
 
         FormLayout formLayout = new FormLayout();
@@ -46,6 +47,11 @@ public class AddContactDialog extends Dialog {
         formLayout.add(containerField,txtDisplayName, txtFirstName, txtInitials, txtLastName);
         add(formLayout);
 
+        com.vaadin.flow.component.html.Span saveError = new com.vaadin.flow.component.html.Span();
+        saveError.addClassName("dialog-save-error");
+        saveError.setVisible(false);
+        add(saveError);
+
         Button saveButton = new Button(getMessage("common.save"), e -> {
             ContactEntry contact = new ContactEntry();
             contact.setCn(txtDisplayName.getValue());
@@ -61,8 +67,9 @@ public class AddContactDialog extends Dialog {
                 Notification notification = Notification.show(getMessage("add_contact_dialog.contact_added"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception ex) {
-                Notification notification = Notification.show(ex.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                saveError.setText(ex.getMessage() == null ? getMessage("common.error") : ex.getMessage());
+                saveError.setVisible(true);
+                return;
             }
 
             close();
