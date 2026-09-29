@@ -13,6 +13,7 @@
         <java.version>21</java.version>
         <vaadin.version>25.2.8</vaadin.version>
         <postgresql.version>42.7.12</postgresql.version>
+        <tomcat.version>11.0.25</tomcat.version>
     </properties>
 
     <parent>
@@ -110,6 +111,11 @@
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jsr310</artifactId>
                 <version>2.21.5</version>
+            </dependency>
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>3.1.6</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
