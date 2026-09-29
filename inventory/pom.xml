@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.sysadminanywhere</groupId>
 	<artifactId>inventory</artifactId>
-	<version>4.0.0</version>
+	<version>5.0.1</version>
 	<name>inventory</name>
 	<description>Inventory project for Sysadmin Anywhere</description>
 	<url/>
@@ -47,7 +47,7 @@
         <dependency>
             <groupId>com.sysadminanywhere</groupId>
             <artifactId>common</artifactId>
-            <version>4.0.0</version>
+            <version>5.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

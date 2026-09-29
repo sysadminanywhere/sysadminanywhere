@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.sysadminanywhere</groupId>
 	<artifactId>directory</artifactId>
-	<version>4.0.0</version>
+	<version>5.0.1</version>
 	<name>directory</name>
 	<description>Sysadmin Anywhere Directory</description>
 	<properties>
@@ -95,7 +95,7 @@
         <dependency>
             <groupId>com.sysadminanywhere</groupId>
             <artifactId>common</artifactId>
-            <version>4.0.0</version>
+            <version>5.0.1</version>
         </dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
