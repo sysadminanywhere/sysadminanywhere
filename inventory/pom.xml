@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.sysadminanywhere</groupId>
 	<artifactId>inventory</artifactId>
-	<version>4.0.0</version>
+	<version>5.0.1</version>
 	<name>inventory</name>
 	<description>Inventory project for Sysadmin Anywhere</description>
 	<url/>
