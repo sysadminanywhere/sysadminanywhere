@@ -16,7 +16,17 @@
 	<properties>
 		<java.version>21</java.version>
 		<postgresql.version>42.7.12</postgresql.version>
+		<tomcat.version>11.0.25</tomcat.version>
 	</properties>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>tools.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>3.1.6</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<dependencies>
 		<dependency>
