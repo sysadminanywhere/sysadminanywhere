@@ -1,4 +1,4 @@
-# SysadminAnywhere REST API
+# Sysadmin Anywhere REST API
 
 OpenAPI examples are in [ai-openapi.yaml](ai-openapi.yaml). The filename is retained for existing links; the file now documents the implemented Directory, Incident, and Inventory REST APIs.
 
