@@ -1,4 +1,4 @@
-# REST API SysadminAnywhere
+# REST API Sysadmin Anywhere
 
 OpenAPI-примеры находятся в [ai-openapi.yaml](ai-openapi.yaml). Название файла сохранено ради существующих ссылок; сейчас он описывает реальные REST API каталога, инцидентов и инвентаризации.
 

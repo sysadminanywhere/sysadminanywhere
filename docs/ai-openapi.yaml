@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: SysadminAnywhere REST API
+  title: Sysadmin Anywhere REST API
   version: 5.0.1
   description: >-
     Examples for the implemented Directory, Incident, and Inventory service APIs.
