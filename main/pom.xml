@@ -6,7 +6,7 @@
     <groupId>com.sysadminanywhere</groupId>
     <artifactId>main</artifactId>
     <name>sysadminanywhere</name>
-    <version>5.0.2</version>
+    <version>5.0.3</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -117,6 +117,11 @@
                 <artifactId>jackson-databind</artifactId>
                 <version>3.1.7</version>
             </dependency>
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>3.1.7</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -155,7 +160,7 @@
         <dependency>
             <groupId>com.sysadminanywhere</groupId>
             <artifactId>common</artifactId>
-            <version>5.0.2</version>
+            <version>5.0.3</version>
         </dependency>
 
         <dependency>

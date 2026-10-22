@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.sysadminanywhere</groupId>
     <artifactId>incident</artifactId>
-    <version>5.0.2</version>
+    <version>5.0.3</version>
     <name>incident</name>
     <description>incident</description>
     <url/>
@@ -37,6 +37,11 @@
             <dependency>
                 <groupId>tools.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
+                <version>3.1.7</version>
+            </dependency>
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
                 <version>3.1.7</version>
             </dependency>
         </dependencies>
