@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.sysadminanywhere</groupId>
         <artifactId>SysadminAnywhere</artifactId>
-        <version>5.0.4</version>
+        <version>5.0.5</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -23,6 +23,12 @@
             <groupId>com.microsoft.playwright</groupId>
             <artifactId>playwright</artifactId>
             <version>1.64.0</version>
+        </dependency>
+        <!-- Keep Gson's Error Prone annotations on the latest available version. -->
+        <dependency>
+            <groupId>com.google.errorprone</groupId>
+            <artifactId>error_prone_annotations</artifactId>
+            <version>2.50.0</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
