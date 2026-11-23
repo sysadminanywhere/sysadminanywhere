@@ -172,22 +172,41 @@ public class SettingsView extends VerticalLayout implements HasDynamicTitle {
         card.setTitle(getMessage("settings_view.inventory_schedule"));
         card.setWidthFull();
         TextField cron = new TextField(getMessage("settings_view.inventory_cron"));
-        cron.setWidth("420px");
+        cron.setWidthFull();
+        cron.setMaxWidth("420px");
         com.vaadin.flow.component.checkbox.Checkbox enabled = new com.vaadin.flow.component.checkbox.Checkbox(getMessage("settings_view.inventory_enabled"));
         var current = inventoryService.getSchedule();
         cron.setValue(current == null ? "0 0 0 * * *" : current.cron());
         enabled.setValue(current == null || current.enabled());
+        var nextRun = new com.vaadin.flow.component.html.Span(formatNextInventoryRun(current));
+        nextRun.getElement().setAttribute("role", "status");
         Button apply = new Button(getMessage("common.save"), event -> {
-            if (inventoryService.updateSchedule(cron.getValue(), enabled.getValue()) == null) {
+            var saved = inventoryService.updateSchedule(cron.getValue(), enabled.getValue());
+            if (saved == null) {
                 Notification notification = Notification.show(getMessage("settings_view.inventory_schedule_error"));
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             } else {
+                cron.setValue(saved.cron());
+                enabled.setValue(saved.enabled());
+                nextRun.setText(formatNextInventoryRun(saved));
                 Notification notification = Notification.show(getMessage("settings_view.inventory_schedule_saved"));
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             }
         });
-        card.add(new VerticalLayout(cron, enabled, apply));
+        card.add(new VerticalLayout(cron, enabled, nextRun, apply));
         return card;
+    }
+
+    private String formatNextInventoryRun(com.sysadminanywhere.common.inventory.model.InventorySchedule schedule) {
+        if (schedule == null || schedule.nextRun() == null || schedule.zoneId() == null) {
+            return getMessage("settings_view.inventory_no_next_run");
+        }
+        var time = schedule.nextRun().atZone(java.time.ZoneId.of(schedule.zoneId()));
+        var formatter = java.time.format.DateTimeFormatter
+                .ofLocalizedDateTime(java.time.format.FormatStyle.MEDIUM)
+                .withLocale(localeService.getCurrentLocale());
+        return messageSource.getMessage("settings_view.inventory_next_run",
+                new Object[]{formatter.format(time), schedule.zoneId()}, localeService.getCurrentLocale());
     }
 
 }

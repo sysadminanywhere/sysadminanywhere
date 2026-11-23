@@ -29,3 +29,49 @@ jobs:
         cache: maven
     - name: Build with Maven
       run: mvn clean package -pl '!e2e-tests'
+
+  release-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: smoke-postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 3s --health-retries 12
+    env:
+      DB_PASSWORD: smoke-postgres
+      E2E_USERNAME: smoke-user
+      E2E_PASSWORD: smoke-fixture-only
+      JWT_SECRET: sysadminanywhere-smoke-jwt-secret
+    steps:
+    - uses: actions/checkout@v5
+    - uses: actions/setup-java@v5
+      with:
+        java-version: '21'
+        distribution: temurin
+        cache: maven
+    - name: Build production packages
+      run: mvn -B -ntp package -Pproduction -DskipTests -pl '!e2e-tests'
+    - name: Install Chromium
+      run: >-
+        mvn -B -ntp -pl e2e-tests
+        org.codehaus.mojo:exec-maven-plugin:3.6.3:java
+        -Dexec.mainClass=com.microsoft.playwright.CLI
+        '-Dexec.args=install --with-deps chromium'
+    - name: Verify restore, database upgrade, and browser smoke test
+      env:
+        POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+      run: bash e2e-tests/fixtures/release-smoke.sh
+    - name: Upload verification logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-smoke-results
+        path: |
+          ${{ runner.temp }}/sysadmin-smoke/*.log
+          e2e-tests/target/surefire-reports/

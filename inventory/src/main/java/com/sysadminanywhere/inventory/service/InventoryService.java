@@ -20,6 +20,7 @@ import com.sysadminanywhere.common.inventory.model.HardwareModelItem;
 import com.sysadminanywhere.common.inventory.model.HardwarePropertyItem;
 import com.sysadminanywhere.inventory.entity.ComputerHardware;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -41,6 +42,7 @@ public class InventoryService {
     private final ComputerRepository computerRepository;
     private final SoftwareService softwareService;
     private final HardwareService hardwareService;
+    private final PatchRemediationService patchRemediationService;
     private final InventoryScanRunRepository scanRunRepository;
     private final com.sysadminanywhere.inventory.repository.ComputerHardwareRepository computerHardwareRepository;
     private final AtomicBoolean scanRunning = new AtomicBoolean();
@@ -57,6 +59,7 @@ public class InventoryService {
                             ComputerRepository computerRepository,
                             SoftwareService softwareService,
                             HardwareService hardwareService,
+                            PatchRemediationService patchRemediationService,
                             InventoryScanRunRepository scanRunRepository,
                             com.sysadminanywhere.inventory.repository.ComputerHardwareRepository computerHardwareRepository) {
 
@@ -65,6 +68,7 @@ public class InventoryService {
         this.computerRepository = computerRepository;
         this.softwareService = softwareService;
         this.hardwareService = hardwareService;
+        this.patchRemediationService = patchRemediationService;
         this.scanRunRepository = scanRunRepository;
         this.computerHardwareRepository = computerHardwareRepository;
     }
@@ -211,15 +215,19 @@ public class InventoryService {
                         log.error("Host name is null or empty for software scan");
                         throw new IllegalArgumentException("Host name is empty");
                     } else {
+                        Instant scanStarted = Instant.now();
                         computer.setLastScanStatus("RUNNING");
                         computer.setLastScanError(null);
                         computerRepository.save(computer);
                         softwareService.scanSoftware(computer);
-                        hardwareService.scanHardware(computer);
+                        var latestPatch = hardwareService.scanHardware(computer);
 
                         computer.setCheckingDate(LocalDateTime.now());
                         computer.setLastScanStatus("SUCCESS");
                         computerRepository.save(computer);
+                        if (latestPatch != null) {
+                            patchRemediationService.verifyAfterScan(computer.getId(), scanStarted, latestPatch);
+                        }
                     }
             } catch (Exception ex) {
                 if (computer != null) {

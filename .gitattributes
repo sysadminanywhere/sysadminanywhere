@@ -1,0 +1,2 @@
+docker/prod/db/*.sh text eol=lf
+e2e-tests/fixtures/*.sh text eol=lf

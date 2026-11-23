@@ -1,7 +1,7 @@
 # Sysadmin Anywhere
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
-![Static Badge](https://img.shields.io/badge/version-5.0.5-blue)
+![Static Badge](https://img.shields.io/badge/version-5.1.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Java](https://img.shields.io/badge/java-21-orange)
 ![Spring Boot](https://img.shields.io/badge/spring%20boot-4-brightgreen)
@@ -62,10 +62,10 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 - **Service Reliability**: Retried idempotent service requests, WMI retries, a short circuit breaker, dependency health checks and an administrator-only dependency status page
 - **E2E Coverage**: Playwright-based browser checks cover navigation and inventory summary grids; the full scenario is enabled with `e2e.tests.enabled=true`
 
-### Inventory roadmap
-- Configure the inventory scan schedule from Settings; `SCAN_CRON` remains the startup default
+### Inventory operations and roadmap
+- Change the scan schedule from Settings. PostgreSQL retains the cron expression and enabled state. `SCAN_CRON` supplies the initial expression. Settings shows the next run in the scheduler's time zone.
+- Assign a stale patch finding to an owner with a due date in Inventory Issues. A complete later scan verifies the assignment if it reports a sufficiently recent patch.
 - Add automated NVD/CPE synchronization for vulnerability data (local rules are currently supported)
-- Add remediation workflows for stale patches and assign owners/deadlines to inventory issues
 
 ### 🧭 Onboarding & User Experience
 - **Guided Tour**: An onboarding tour introduces the primary navigation, section menu and page content
@@ -94,9 +94,9 @@ Full multi-language support with professional translations:
 
 ## 🛠️ Technology Stack
 
-- **Backend**: Spring Boot 4.1.1, Java 21
-- **Frontend**: Vaadin Flow 25.2.8
-- **Directory Integration**: Apache Directory API 2.1.8
+- **Backend**: Spring Boot 4.1.3, Java 21
+- **Frontend**: Vaadin 25.3.4
+- **Directory Integration**: Apache Directory API 2.1.9
 - **Build Tool**: Maven
 - **Architecture**: Modular multi-module Maven project
 - **Security**: Spring Security with AD integration
@@ -138,6 +138,8 @@ SysadminAnywhere/
 ### Production Deployment (Recommended)
 
 Sysadmin Anywhere uses a microservices architecture with Docker Compose for production deployment:
+
+See the [upgrade and recovery guide](docs/upgrade-and-recovery.md) before upgrading an existing installation.
 
 1. **Clone the repository**
    ```bash

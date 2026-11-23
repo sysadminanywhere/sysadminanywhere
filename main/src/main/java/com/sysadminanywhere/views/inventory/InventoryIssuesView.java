@@ -1,6 +1,7 @@
 package com.sysadminanywhere.views.inventory;
 
 import com.sysadminanywhere.common.inventory.model.InventoryHealthComputer;
+import com.sysadminanywhere.common.inventory.model.PatchRemediation;
 import com.sysadminanywhere.common.inventory.model.SoftwareLicense;
 import com.sysadminanywhere.service.InventoryService;
 import com.sysadminanywhere.service.IncidentService;
@@ -15,13 +16,18 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.textfield.TextField;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,6 +47,9 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
     private final MessageSource messages;
     private final LocaleService locale;
     private final Grid<Issue> grid = new Grid<>();
+    private final Grid<PatchRemediation> remediationGrid = new Grid<>();
+    private final Span remediationError = new Span();
+    private List<PatchRemediation> remediation = List.of();
     private final ComboBox<String> severityFilter = new ComboBox<>();
     private final ComboBox<String> typeFilter = new ComboBox<>();
     private List<Issue> issues = List.of();
@@ -97,6 +106,12 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
         grid.addComponentColumn(item -> new Anchor(item.actionKey().equals("open_licenses") ? "inventory/licenses" : "inventory/health",
                         msg("inventory_issues_view." + item.actionKey())))
                 .setHeader(msg("inventory_issues_view.action")).setAutoWidth(true);
+        if (isAdmin()) {
+            grid.addComponentColumn(item -> item.patchFinding()
+                            ? new Button(msg("inventory_issues_view.remediation_assign"), event -> editRemediation(item.object()))
+                            : new Span())
+                    .setHeader(msg("inventory_issues_view.remediation")).setAutoWidth(true);
+        }
         grid.addColumn(Issue::type).setHeader(msg("inventory_issues_view.type")).setAutoWidth(true);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
@@ -109,8 +124,85 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
         records.setWidthFull();
         records.addClassName("review-data-card");
         records.add(new H3(msg("inventory_issues_view.records")), filters, grid);
-        add(intro, header, summary, records);
+        add(intro, header, summary, records, createRemediationCard());
         refresh();
+    }
+
+    private Card createRemediationCard() {
+        remediationGrid.addColumn(PatchRemediation::computer).setHeader(msg("inventory_issues_view.object"));
+        remediationGrid.addColumn(PatchRemediation::owner).setHeader(msg("inventory_issues_view.remediation_owner"));
+        remediationGrid.addColumn(PatchRemediation::dueDate).setHeader(msg("inventory_issues_view.remediation_due"));
+        remediationGrid.addColumn(item -> item.verifiedAt() != null
+                        ? msg("inventory_issues_view.remediation_verified")
+                        : msg(item.dueDate().isBefore(LocalDate.now())
+                                ? "inventory_issues_view.remediation_overdue" : "inventory_issues_view.remediation_pending"))
+                .setHeader(msg("inventory_issues_view.remediation_status"));
+        if (isAdmin()) {
+            remediationGrid.addComponentColumn(item -> item.verifiedAt() == null
+                            ? new Button(msg("inventory_issues_view.remediation_assign"), event -> editRemediation(item.computer()))
+                            : new Span())
+                    .setHeader(msg("inventory_issues_view.action"));
+        }
+        remediationGrid.setAllRowsVisible(true);
+        remediationGrid.setEmptyStateText(msg("inventory_issues_view.remediation_empty"));
+        remediationError.getElement().setAttribute("role", "status");
+        remediationError.setVisible(false);
+        Card card = new Card();
+        card.setWidthFull();
+        card.add(new H3(msg("inventory_issues_view.remediation")), remediationError, remediationGrid);
+        return card;
+    }
+
+    private void editRemediation(String computer) {
+        if (!isAdmin()) return;
+        var current = remediation.stream().filter(item -> item.computer().equals(computer)).findFirst();
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(msg("inventory_issues_view.remediation_assign") + " · " + computer);
+        TextField owner = new TextField(msg("inventory_issues_view.remediation_owner"));
+        owner.setRequired(true);
+        owner.setMaxLength(255);
+        owner.setErrorMessage(msg("inventory_issues_view.remediation_owner_required"));
+        DatePicker due = new DatePicker(msg("inventory_issues_view.remediation_due"));
+        due.setLocale(locale.getCurrentLocale());
+        due.setRequiredIndicatorVisible(true);
+        due.setErrorMessage(msg("inventory_issues_view.remediation_due_required"));
+        current.ifPresent(item -> {
+            owner.setValue(item.owner());
+            due.setValue(item.dueDate());
+        });
+        Button save = new Button(msg("common.save"), event -> {
+            owner.setInvalid(owner.getValue().isBlank());
+            due.setInvalid(due.getValue() == null);
+            if (owner.isInvalid() || due.isInvalid()) {
+                if (owner.isInvalid()) owner.focus();
+                else due.focus();
+                return;
+            }
+            try {
+                inventoryService.assignPatchRemediation(new PatchRemediation(computer, owner.getValue(), due.getValue(), null));
+                dialog.close();
+                refreshRemediation();
+            } catch (RuntimeException exception) {
+                Notification.show(msg("inventory_issues_view.remediation_error")).addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+        });
+        save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        dialog.add(new VerticalLayout(owner, due));
+        dialog.getFooter().add(new Button(msg("common.cancel"), event -> dialog.close()), save);
+        dialog.open();
+    }
+
+    private void refreshRemediation() {
+        try {
+            remediation = inventoryService.getPatchRemediation();
+            remediationGrid.setItems(remediation);
+            remediationError.setVisible(false);
+        } catch (RuntimeException exception) {
+            remediation = List.of();
+            remediationGrid.setItems(remediation);
+            remediationError.setText(msg("inventory_issues_view.remediation_error"));
+            remediationError.setVisible(true);
+        }
     }
 
     private Card metric(String label, Span value, String tone) {
@@ -181,7 +273,7 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
         for (var patchStatus : inventoryService.getPatchStatuses()) {
             if (patchStatus.stale()) {
                 issues.add(new Issue("MEDIUM", msg("inventory_issues_view.inventory"), patchStatus.computer(),
-                        msg("inventory_issues_view.stale_patch_details", patchStatus.lastPatchDate()), "open_inventory"));
+                        msg("inventory_issues_view.stale_patch_details", patchStatus.lastPatchDate()), "open_inventory", true));
             }
         }
         this.issues = issues;
@@ -189,6 +281,7 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
         highCount.setText(String.valueOf(issues.stream().filter(item -> "HIGH".equals(item.severity())).count()));
         mediumCount.setText(String.valueOf(issues.stream().filter(item -> "MEDIUM".equals(item.severity())).count()));
         applyFilter();
+        refreshRemediation();
     }
 
     private void applyFilter() {
@@ -242,5 +335,9 @@ public class InventoryIssuesView extends VerticalLayout implements HasDynamicTit
     private String msg(String key) { return messages.getMessage(key, null, locale.getCurrentLocale()); }
     private String msg(String key, Object... args) { return messages.getMessage(key, args, locale.getCurrentLocale()); }
     @Override public String getPageTitle() { return msg("inventory_issues_view.title"); }
-    private record Issue(String severity, String type, String object, String details, String actionKey) { }
+    private record Issue(String severity, String type, String object, String details, String actionKey, boolean patchFinding) {
+        private Issue(String severity, String type, String object, String details, String actionKey) {
+            this(severity, type, object, details, actionKey, false);
+        }
+    }
 }

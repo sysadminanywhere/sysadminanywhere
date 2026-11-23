@@ -50,10 +50,10 @@ import com.sysadminanywhere.e2e.steps.users.UsersEditStep;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
+@EnabledIfSystemProperty(named = "e2e.tests.enabled", matches = "true")
 public class E2ETest extends BaseTest {
 
     @Test
-    @EnabledIfSystemProperty(named = "e2e.tests.enabled", matches = "true")
     void testE2E() throws InterruptedException {
         Thread.sleep(60000);
 

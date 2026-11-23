@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Read version
-        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+        run: echo "VERSION=$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_ENV"
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
@@ -31,34 +31,38 @@ jobs:
 
       - name: Build all modules with Maven
         run: |
-          mvn clean package -Pproduction -pl '!e2e-tests'
+          mvn -B -ntp clean verify -Pproduction -pl '!e2e-tests'
 
-      - name: Build and Push Docker images
+      - name: Build and scan Docker images
         run: |
-          # Build and push directory module
-          if [ -d "directory" ] && [ -f "directory/Dockerfile" ]; then
-            docker build -t sysadminanywhere/directory:${{ env.VERSION }} -t sysadminanywhere/directory:latest ./directory
-            docker push sysadminanywhere/directory:${{ env.VERSION }}
-            docker push sysadminanywhere/directory:latest
-          fi
+          set -euo pipefail
+          mkdir -p scan-results
+          for module in directory inventory incident main; do
+            repository="$module"
+            if [[ "$module" == main ]]; then repository=sysadminanywhere; fi
+            image="sysadminanywhere/$repository:$VERSION"
+            docker build --pull --tag "$image" "./$module"
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+              -v trivy-cache:/root/.cache/trivy aquasec/trivy:0.76.2 image \
+              --scanners vuln --timeout 15m --no-progress --format json "$image" > "scan-results/$module.json"
+          done
 
-          # Build and push inventory module
-          if [ -d "inventory" ] && [ -f "inventory/Dockerfile" ]; then
-            docker build -t sysadminanywhere/inventory:${{ env.VERSION }} -t sysadminanywhere/inventory:latest ./inventory
-            docker push sysadminanywhere/inventory:${{ env.VERSION }}
-            docker push sysadminanywhere/inventory:latest
-          fi
+      - name: Upload vulnerability scan reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-image-vulnerabilities
+          path: scan-results/
 
-          # Build and push incident module
-          if [ -d "incident" ] && [ -f "incident/Dockerfile" ]; then
-            docker build -t sysadminanywhere/incident:${{ env.VERSION }} -t sysadminanywhere/incident:latest ./incident
-            docker push sysadminanywhere/incident:${{ env.VERSION }}
-            docker push sysadminanywhere/incident:latest
-          fi
-
-          # Build and push main module
-          if [ -d "main" ] && [ -f "main/Dockerfile" ]; then
-            docker build -t sysadminanywhere/sysadminanywhere:${{ env.VERSION }} -t sysadminanywhere/sysadminanywhere:latest ./main
-            docker push sysadminanywhere/sysadminanywhere:${{ env.VERSION }}
-            docker push sysadminanywhere/sysadminanywhere:latest
-          fi
+      - name: Publish Docker images
+        run: |
+          set -euo pipefail
+          for repository in directory inventory incident sysadminanywhere; do
+            image="sysadminanywhere/$repository"
+            docker push "$image:$VERSION"
+          done
+          for repository in directory inventory incident sysadminanywhere; do
+            image="sysadminanywhere/$repository"
+            docker tag "$image:$VERSION" "$image:latest"
+            docker push "$image:latest"
+          done
