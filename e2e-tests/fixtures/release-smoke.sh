@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
+trap 'printf "Release smoke failed at line %s (exit %s)\n" "$LINENO" "$?" >&2' ERR
 
 work="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/sysadmin-smoke"
 mkdir -p "$work"
@@ -27,6 +28,7 @@ for module in main inventory incident; do
 done
 
 # Rehearse restoring a persistent application volume into an empty replacement.
+printf 'Verifying application volume backup and restore\n'
 source_volume="sysadmin-smoke-source-$BASHPID"
 restore_volume="sysadmin-smoke-restore-$BASHPID"
 fixture_pid= main_pid= inventory_pid= incident_pid=
@@ -37,9 +39,16 @@ cleanup() {
     docker volume rm "$source_volume" "$restore_volume" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
-docker run --rm -v "$source_volume:/data" postgres:17-alpine sh -ec 'printf "%s\n" "{"fixture":"report"}" > /data/scheduled-reports.json; tar -C /data -cf - .' > "$work/volume.tar"
+report_fixture='{"fixture":"report"}'
+printf '%s\n' "$report_fixture" |
+    docker run --rm -i -v "$source_volume:/data" postgres:17-alpine \
+        sh -ec 'cat > /data/scheduled-reports.json; tar -C /data -cf - .' > "$work/volume.tar"
 docker run --rm -i -v "$restore_volume:/data" postgres:17-alpine tar -C /data -xf - < "$work/volume.tar"
-[[ "$(docker run --rm -v "$restore_volume:/data:ro" postgres:17-alpine cat /data/scheduled-reports.json)" == '{"fixture":"report"}' ]]
+restored_report=$(docker run --rm -v "$restore_volume:/data:ro" postgres:17-alpine cat /data/scheduled-reports.json)
+if [[ "$restored_report" != "$report_fixture" ]]; then
+    printf 'Restored scheduled-reports.json differs from the fixture\n' >&2
+    exit 1
+fi
 
 wait_for() {
     for ((attempt = 0; attempt < 90; attempt++)); do
