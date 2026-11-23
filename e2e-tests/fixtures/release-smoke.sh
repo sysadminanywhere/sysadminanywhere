@@ -51,11 +51,13 @@ if [[ "$restored_report" != "$report_fixture" ]]; then
 fi
 
 wait_for() {
+    local url=$1
+    shift
     for ((attempt = 0; attempt < 90; attempt++)); do
-        if curl --silent --fail "$1" >/dev/null; then return 0; fi
+        if curl --silent --fail --max-time 10 "$@" "$url" >/dev/null; then return 0; fi
         sleep 2
     done
-    printf 'Timed out waiting for %s\n' "$1" >&2
+    printf 'Timed out waiting for %s\n' "$url" >&2
     return 1
 }
 
@@ -73,15 +75,17 @@ start_inventory
 java -jar "main/target/main-$version.jar" --vaadin.launch-browser=false > "$work/main.log" 2>&1 &
 main_pid=$!
 wait_for http://localhost:8080/login
-wait_for http://localhost:8083/ping
+wait_for http://localhost:8081/ping
+
+token=$(curl --silent --show-error --fail -X POST -H 'Content-Type: application/json' \
+    -d "$(python3 -c 'import json, os; print(json.dumps({"username": os.environ["E2E_USERNAME"], "password": os.environ["E2E_PASSWORD"]}))')" \
+    http://localhost:8081/api/ldap/authenticate | python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')
+wait_for http://localhost:8083/ping -H "Authorization: Bearer $token"
 
 [[ "$(sql -At -d sysadminanywhere -c "SELECT username FROM users WHERE username='legacy-user'")" == legacy-user ]]
 [[ "$(sql -At -d incident -c "SELECT name FROM incidents WHERE signal_id='SMOKE'")" == legacy-incident ]]
 [[ "$(sql -At -d inventory -c "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1")" == 2 ]]
 
-token=$(curl --silent --fail -X POST -H 'Content-Type: application/json' \
-    -d "$(python3 -c 'import json, os; print(json.dumps({"username": os.environ["E2E_USERNAME"], "password": os.environ["E2E_PASSWORD"]}))')" \
-    http://localhost:8081/api/ldap/authenticate | python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')
 schedule_url=http://localhost:8082/api/inventory/schedule
 curl --silent --show-error --fail -X PUT -H "Authorization: Bearer $token" -H 'Content-Type: application/json' \
     -d '{"cron":"0 15 3 * * *","enabled":false}' "$schedule_url" > /dev/null
