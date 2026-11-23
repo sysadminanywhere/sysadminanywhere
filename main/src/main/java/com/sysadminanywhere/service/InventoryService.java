@@ -214,6 +214,14 @@ public class InventoryService {
         }
     }
 
+    public List<PatchRemediation> getPatchRemediation() {
+        return inventoryServiceClient.getPatchRemediation();
+    }
+
+    public void assignPatchRemediation(PatchRemediation assignment) {
+        inventoryServiceClient.assignPatchRemediation(assignment);
+    }
+
     private Long parseLong(String value) {
         try { return value == null || value.isBlank() ? null : Long.valueOf(value); }
         catch (NumberFormatException ignored) { return null; }

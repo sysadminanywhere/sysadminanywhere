@@ -27,4 +27,5 @@ webpack.generated.js
 /directory/target/
 /inventory/target/
 /incident/target/
+/e2e-tests/target/
 /main/src/main/frontend/generated/

@@ -13,6 +13,7 @@ import com.sysadminanywhere.inventory.repository.SoftwareRepository;
 import com.sysadminanywhere.inventory.repository.SoftwareLicenseRepository;
 import com.sysadminanywhere.inventory.entity.SoftwareLicense;
 import com.sysadminanywhere.inventory.service.InventoryService;
+import com.sysadminanywhere.inventory.service.PatchRemediationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,9 +27,6 @@ import java.util.List;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Locale;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
 @Slf4j
 @RestController
@@ -43,6 +41,7 @@ public class InventoryController {
     private final HardwareModelRepository hardwareModelRepository;
     private final HardwarePropertyRepository hardwarePropertyRepository;
     private final SoftwareLicenseRepository softwareLicenseRepository;
+    private final PatchRemediationService patchRemediationService;
     @org.springframework.beans.factory.annotation.Value("${inventory.vulnerability.rules:}")
     private String vulnerabilityRules;
 
@@ -361,20 +360,24 @@ public class InventoryController {
     @GetMapping("/hardware/patches/status")
     @PreAuthorize("hasRole('ADMIN') or @apiTokenAuthorization.isAllowed()")
     public ResponseEntity<List<ComputerPatchStatus>> getPatchStatuses() {
-        LocalDate threshold = LocalDate.now().minusDays(Math.max(1, patchStaleDays));
-        return ResponseEntity.ok(computerHardwareRepository.findPatchStatuses().stream()
-                .map(item -> new ComputerPatchStatus(item.computer(), item.lastPatchDate(), isPatchStale(item.lastPatchDate(), threshold)))
-                .toList());
+        return ResponseEntity.ok(patchRemediationService.getPatchStatuses());
     }
 
-    private boolean isPatchStale(String value, LocalDate threshold) {
-        if (value == null || value.isBlank()) return true;
-        for (DateTimeFormatter formatter : List.of(DateTimeFormatter.ISO_LOCAL_DATE,
-                DateTimeFormatter.ofPattern("MM/dd/yyyy"), DateTimeFormatter.ofPattern("M/d/yyyy"))) {
-            try { return LocalDate.parse(value.trim(), formatter).isBefore(threshold); }
-            catch (DateTimeParseException ignored) { }
+    @GetMapping("/hardware/patches/remediation")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('READER')")
+    public List<PatchRemediation> getPatchRemediation() {
+        return patchRemediationService.findAll();
+    }
+
+    @PutMapping("/hardware/patches/remediation")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> assignPatchRemediation(@RequestBody PatchRemediation request) {
+        try {
+            return patchRemediationService.assign(request)
+                    ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException exception) {
+            return ResponseEntity.badRequest().build();
         }
-        return true;
     }
 
     @GetMapping("/hardware")

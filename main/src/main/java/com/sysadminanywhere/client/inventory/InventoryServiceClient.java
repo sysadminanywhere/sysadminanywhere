@@ -106,6 +106,12 @@ public interface InventoryServiceClient {
     @GetExchange("/api/inventory/hardware/patches/status")
     List<ComputerPatchStatus> getPatchStatuses();
 
+    @GetExchange("/api/inventory/hardware/patches/remediation")
+    List<PatchRemediation> getPatchRemediation();
+
+    @PutExchange("/api/inventory/hardware/patches/remediation")
+    void assignPatchRemediation(@org.springframework.web.bind.annotation.RequestBody PatchRemediation assignment);
+
 
     // Ping
 

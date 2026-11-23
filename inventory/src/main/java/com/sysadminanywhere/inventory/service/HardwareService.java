@@ -52,7 +52,7 @@ public class HardwareService {
     @SneakyThrows
     @SuppressWarnings("unchecked")
     @Transactional
-    public void scanHardware(Computer computer) {
+    public java.time.LocalDate scanHardware(Computer computer) {
         String hostName = computer.getName();
         log.info("Scanning hardware on computer {}", hostName);
         boolean firstHistoryScan = !hardwareChangeRepository.existsByComputerIdAndChangeTypeNot(
@@ -105,9 +105,12 @@ public class HardwareService {
         // Remove hardware that no longer exists
         if (completeScan) {
             removeObsoleteHardware(computer, currentHardwareModelIds, unavailableTypes);
-        } else {
-            log.warn("Keeping previous hardware records for {} because one or more WMI queries failed", hostName);
+            return PatchRemediationService.latestPatchDate(patches.stream()
+                    .map(patch -> Objects.toString(patch.get("InstalledOn"), null))
+                    .toList(), java.time.LocalDate.now());
         }
+        log.warn("Keeping previous hardware records for {} because one or more WMI queries failed", hostName);
+        return null;
     }
 
     private List<Map<String, Object>> execute(String hostName, String query) {

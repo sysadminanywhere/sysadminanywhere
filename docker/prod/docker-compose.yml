@@ -11,6 +11,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
     restart: unless-stopped
 
   vault:
@@ -52,9 +57,10 @@ services:
       - n8n_data:/home/node/.n8n
 
   directory:
-    image: sysadminanywhere/directory:latest
+    image: sysadminanywhere/directory:${SYSADMINANYWHERE_VERSION:-5.1.0}
     container_name: directory
     environment:
+      PORT: 8080
       LDAP_SERVER: ${LDAP_SERVER}
       LDAP_PORT: ${LDAP_PORT}
       LDAP_USE_SSL: ${LDAP_USE_SSL}
@@ -76,9 +82,10 @@ services:
       - directory_change_journal:/data
 
   inventory:
-    image: sysadminanywhere/inventory:latest
+    image: sysadminanywhere/inventory:${SYSADMINANYWHERE_VERSION:-5.1.0}
     container_name: inventory
     environment:
+      PORT: 8080
       DB_ADDRESS: db
       DB_PORT: 5432
       DB_BASE: inventory
@@ -94,12 +101,18 @@ services:
       SPRING_PROFILES_ACTIVE: prod
     ports:
       - "8082:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      directory:
+        condition: service_started
     restart: unless-stopped
 
   incident:
-    image: sysadminanywhere/incident:latest
+    image: sysadminanywhere/incident:${SYSADMINANYWHERE_VERSION:-5.1.0}
     container_name: incident
     environment:
+      PORT: 8080
       DB_ADDRESS: db
       DB_PORT: 5432
       DB_BASE: incident
@@ -115,19 +128,21 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
-      - db
-      - directory
+      db:
+        condition: service_healthy
+      directory:
+        condition: service_started
     restart: unless-stopped
 
   sysadminanywhere:
-    image: sysadminanywhere/sysadminanywhere:latest
+    image: sysadminanywhere/sysadminanywhere:${SYSADMINANYWHERE_VERSION:-5.1.0}
     container_name: sysadminanywhere
     ports:
       - "8080:8080"
     environment:
       DB_ADDRESS: db
       DB_PORT: 5432
-      DB_BASE: sysadminanywhere
+      DB_BASE: ${DB_NAME:-sysadminanywhere}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DIRECTORY_SERVICE: http://directory:8080
@@ -150,10 +165,14 @@ services:
       ALLOWED_USERS:
       ALLOWED_GROUPS:
     depends_on:
-      - db
-      - directory
-      - inventory
-      - incident
+      db:
+        condition: service_healthy
+      directory:
+        condition: service_started
+      inventory:
+        condition: service_started
+      incident:
+        condition: service_started
     volumes:
       - report_scheduler_data:/data
     restart: unless-stopped
