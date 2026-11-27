@@ -288,6 +288,16 @@ Selected supported objects can also be moved to another container. Choose the de
 Actions:
 - Delete (confirmation).
 
+### 4.7 Organization chart (`/management/organization`)
+
+Open **Management → Organization chart** to browse the reporting structure from Active Directory. Administrators and readers can use this view.
+
+- **Reporting lines** shows managers and their direct reports. Search by name, login or job title, or filter by country, office, department and manager. The manager filter includes direct and indirect reports.
+- **By office** groups employees by country and office. Selecting a country narrows the office list. Open an employee and choose **Show reporting line** to jump to their branch.
+- Select an employee to see their manager and direct reports. Use **Include disabled accounts** to include disabled users in the results.
+
+In **Reporting lines**, managers who fall outside the filters stay visible to preserve the reporting chain. The employee count includes matching accounts only. The view reads the **Manager**, **Country** and **Office** attributes from Active Directory. Missing locations, unavailable managers and circular reporting links are identified in the view.
+
 ## 5. Incidents Section
 
 ### 5.1 Incidents (`/incidents`)
