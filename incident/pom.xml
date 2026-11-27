@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.sysadminanywhere</groupId>
     <artifactId>incident</artifactId>
-    <version>5.1.0</version>
+    <version>5.2.0</version>
     <name>incident</name>
     <description>incident</description>
     <url/>
@@ -102,7 +102,7 @@
         <dependency>
             <groupId>com.sysadminanywhere</groupId>
             <artifactId>common</artifactId>
-            <version>5.1.0</version>
+            <version>5.2.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
