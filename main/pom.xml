@@ -6,7 +6,7 @@
     <groupId>com.sysadminanywhere</groupId>
     <artifactId>main</artifactId>
     <name>sysadminanywhere</name>
-    <version>5.1.0</version>
+    <version>5.2.0</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -174,7 +174,7 @@
         <dependency>
             <groupId>com.sysadminanywhere</groupId>
             <artifactId>common</artifactId>
-            <version>5.1.0</version>
+            <version>5.2.0</version>
         </dependency>
 
         <dependency>

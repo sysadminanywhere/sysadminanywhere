@@ -95,7 +95,8 @@ start_inventory '--cron.expression=0 0 8 * * *'
 curl --silent --show-error --fail -H "Authorization: Bearer $token" "$schedule_url" |
     python3 -c 'import json,sys; s=json.load(sys.stdin); assert s["cron"] == "0 15 3 * * *" and not s["enabled"] and s["nextRun"] is None'
 
-PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 mvn -B -ntp -pl e2e-tests -Plocal -Dtest=SmokeTest -De2e.smoke.enabled=true test
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 mvn -B -ntp -pl e2e-tests -Plocal -Dtest=SmokeTest \
+    -De2e.smoke.enabled=true -De2e.organization.enabled=true test
 
 remediation_url=http://localhost:8082/api/inventory/hardware/patches/remediation
 curl --silent --show-error --fail -X PUT -H "Authorization: Bearer $token" -H 'Content-Type: application/json' \

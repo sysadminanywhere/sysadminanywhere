@@ -3,6 +3,7 @@ package com.sysadminanywhere.directory.service;
 import com.sysadminanywhere.common.directory.model.UserAccountControls;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
+import com.sysadminanywhere.common.directory.dto.OrganizationEmployee;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,16 @@ public class UsersService {
 
     public UsersService(LdapService ldapService) {
         this.ldapService = ldapService;
+    }
+
+    public List<OrganizationEmployee> getOrganization() {
+        return getAll("", "objectGUID", "distinguishedName", "cn", "displayName", "sAMAccountName",
+                "title", "department", "c", "physicalDeliveryOfficeName", "manager", "userAccountControl")
+                .stream()
+                .map(user -> new OrganizationEmployee(user.getObjectGUID(), user.getDistinguishedName(), user.getCn(),
+                        user.getDisplayName(), user.getSamAccountName(), user.getTitle(), user.getDepartment(),
+                        user.getCountry(), user.getOffice(), user.getManager(), user.isDisabled()))
+                .toList();
     }
 
     /**

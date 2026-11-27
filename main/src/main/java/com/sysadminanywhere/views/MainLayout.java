@@ -25,6 +25,7 @@ import com.sysadminanywhere.views.management.contacts.ContactsView;
 import com.sysadminanywhere.views.management.container.ContainersView;
 import com.sysadminanywhere.views.management.groups.GroupsView;
 import com.sysadminanywhere.views.management.printers.PrintersView;
+import com.sysadminanywhere.views.management.users.OrganizationView;
 import com.sysadminanywhere.views.management.users.UsersView;
 import com.sysadminanywhere.views.reports.ComputerReportsView;
 import com.sysadminanywhere.views.reports.ContactReportsView;
@@ -190,6 +191,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver, Be
         managementSubNavs.addItem(
                 createSideNavItem(getMessage("main_layout.containers"), ContainersView.class),
                 createSideNavItem(getMessage("main_layout.users"), UsersView.class),
+                createSideNavItem(getMessage("organization.title"), OrganizationView.class),
                 createSideNavItem(getMessage("main_layout.computers"), ComputersView.class),
                 createSideNavItem(getMessage("main_layout.groups"), GroupsView.class),
                 createSideNavItem(getMessage("main_layout.printers"), PrintersView.class),

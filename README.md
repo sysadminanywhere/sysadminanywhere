@@ -1,7 +1,7 @@
 # Sysadmin Anywhere
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sysadminanywhere/sysadminanywhere/maven.yml)
-![Static Badge](https://img.shields.io/badge/version-5.1.0-blue)
+![Static Badge](https://img.shields.io/badge/version-5.2.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Java](https://img.shields.io/badge/java-21-orange)
 ![Spring Boot](https://img.shields.io/badge/spring%20boot-4-brightgreen)
@@ -18,6 +18,7 @@ Sysadmin Anywhere is a powerful Spring Boot + Vaadin application designed for sy
 
 ### 📋 Active Directory Management
 - **User Management**: Add, edit, delete users with comprehensive attribute support
+- **Organization chart** — Browse Active Directory reporting lines and group employees by country and office. Filter by location, department or manager while keeping the management chain visible. [Organization chart guide](docs/user-guide-en.md#47-organization-chart-managementorganization)
 - **Bulk User Operations**: Select multiple users and enable or disable their accounts with confirmation
 - **Bulk Directory Operations**: Select computers, groups, contacts and printers with checkboxes; change computer account state or delete selected objects in one request with per-object success/failure results
 - **Container Bulk Delete**: Delete supported mixed object selections from a container view with protection for system/unknown types

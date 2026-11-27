@@ -57,7 +57,7 @@ services:
       - n8n_data:/home/node/.n8n
 
   directory:
-    image: sysadminanywhere/directory:${SYSADMINANYWHERE_VERSION:-5.1.0}
+    image: sysadminanywhere/directory:${SYSADMINANYWHERE_VERSION:-5.2.0}
     container_name: directory
     environment:
       PORT: 8080
@@ -82,7 +82,7 @@ services:
       - directory_change_journal:/data
 
   inventory:
-    image: sysadminanywhere/inventory:${SYSADMINANYWHERE_VERSION:-5.1.0}
+    image: sysadminanywhere/inventory:${SYSADMINANYWHERE_VERSION:-5.2.0}
     container_name: inventory
     environment:
       PORT: 8080
@@ -109,7 +109,7 @@ services:
     restart: unless-stopped
 
   incident:
-    image: sysadminanywhere/incident:${SYSADMINANYWHERE_VERSION:-5.1.0}
+    image: sysadminanywhere/incident:${SYSADMINANYWHERE_VERSION:-5.2.0}
     container_name: incident
     environment:
       PORT: 8080
@@ -135,7 +135,7 @@ services:
     restart: unless-stopped
 
   sysadminanywhere:
-    image: sysadminanywhere/sysadminanywhere:${SYSADMINANYWHERE_VERSION:-5.1.0}
+    image: sysadminanywhere/sysadminanywhere:${SYSADMINANYWHERE_VERSION:-5.2.0}
     container_name: sysadminanywhere
     ports:
       - "8080:8080"
