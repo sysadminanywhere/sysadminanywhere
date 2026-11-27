@@ -82,8 +82,7 @@ public class UsersView extends Div implements MenuControl, HasDynamicTitle {
         directoryError.setText(getMessage("directory.unavailable"));
         directoryError.addClassName("directory-load-error");
         directoryError.setVisible(false);
-        VerticalLayout layout = new VerticalLayout(OrganizationView.navigation(false, messageSource, localeService.getCurrentLocale()),
-                createMobileFilters(), filters, directoryError, createGrid());
+        VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, directoryError, createGrid());
         layout.setSizeFull();
         add(layout);
     }

@@ -1,6 +1,8 @@
 package com.sysadminanywhere.e2e;
 
 import com.microsoft.playwright.Locator.GetByTextOptions;
+import com.microsoft.playwright.Page.GetByRoleOptions;
+import com.microsoft.playwright.options.AriaRole;
 import com.sysadminanywhere.e2e.steps.LoginStep;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -17,7 +19,11 @@ class SmokeTest extends BaseTest {
         String baseUrl = System.getenv().getOrDefault("E2E_BASE_URL", "http://localhost:8080");
         var exact = new GetByTextOptions().setExact(true);
 
+        page.navigate(baseUrl + "/management/users");
+        page.getByRole(AriaRole.LINK, new GetByRoleOptions().setName("Organization chart").setExact(true)).click();
+        assertThat(page).hasURL(baseUrl + "/management/organization");
         page.navigate(baseUrl + "/management/users/organization");
+        assertThat(page).hasURL(baseUrl + "/management/organization");
         page.locator("#organization-search input").fill("Support Specialist");
         var tree = page.locator("#organization-tree");
         assertThat(tree.getByText("Smoke Director", exact)).isVisible();

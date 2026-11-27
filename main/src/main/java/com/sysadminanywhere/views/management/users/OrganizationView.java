@@ -11,7 +11,6 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -22,8 +21,11 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.router.RouteParameters;
 import com.vaadin.flow.router.RouterLink;
 import jakarta.annotation.security.RolesAllowed;
@@ -46,9 +48,10 @@ import java.util.function.Function;
 import static com.sysadminanywhere.domain.OrganizationChart.name;
 import static com.sysadminanywhere.domain.OrganizationChart.text;
 
-@Route("management/users/organization")
+@Route("management/organization")
+@RouteAlias("management/users/organization")
 @RolesAllowed({"ADMIN", "READER"})
-public class OrganizationView extends VerticalLayout implements HasDynamicTitle {
+public class OrganizationView extends VerticalLayout implements HasDynamicTitle, BeforeEnterObserver {
     private final UsersService usersService;
     private final MessageSource messages;
     private final LocaleService locales;
@@ -111,20 +114,16 @@ public class OrganizationView extends VerticalLayout implements HasDynamicTitle 
         filters.getStyle().set("flex-wrap", "wrap");
         configureTree();
         setSizeFull();
-        add(navigation(true, messages, locales.getCurrentLocale()), modes, filters, status, tree);
+        add(modes, filters, status, tree);
         expand(tree);
         reload();
     }
 
-    static Nav navigation(boolean organization, MessageSource messages, Locale locale) {
-        RouterLink users = new RouterLink(messages.getMessage("organization.users", null, locale), UsersView.class);
-        RouterLink chart = new RouterLink(messages.getMessage("organization.title", null, locale), OrganizationView.class);
-        RouterLink current = organization ? chart : users;
-        current.getElement().setAttribute("aria-current", "page");
-        current.getStyle().set("font-weight", "600");
-        Nav nav = new Nav(new HorizontalLayout(users, chart));
-        nav.getElement().setAttribute("aria-label", messages.getMessage("organization.users", null, locale));
-        return nav;
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        if (event.getLocation().getPath().equals("management/users/organization")) {
+            event.forwardTo(OrganizationView.class, event.getLocation().getQueryParameters());
+        }
     }
 
     private void configure(ComboBox<?> field, String key) {
