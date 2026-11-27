@@ -7,6 +7,7 @@ import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.dto.BulkUserAccountStatusDto;
 import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
 import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
+import com.sysadminanywhere.common.directory.dto.OrganizationEmployee;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,9 @@ public interface UsersServiceClient {
 
     @GetExchange("/api/users/list")
     List<UserEntry> getList(@RequestParam String filters, @RequestParam String[] attributes);
+
+    @GetExchange("/api/users/organization/snapshot")
+    List<OrganizationEmployee> getOrganization();
 
     @GetExchange("/api/users/{cn}")
     UserEntry getByCN(@PathVariable String cn);

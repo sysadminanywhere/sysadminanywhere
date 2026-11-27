@@ -9,10 +9,32 @@ import time
 from datetime import date, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
+from uuid import NAMESPACE_DNS, uuid5
 
 
 def encode(value):
     return base64.urlsafe_b64encode(value).rstrip(b"=")
+
+
+def organization_fixture():
+    def dn(name):
+        return f"CN={name},OU=Smoke,DC=example,DC=test"
+
+    director = "Smoke Director"
+    operator = "Smoke Operator"
+    assignments = [
+        (director, "PL", "Warsaw", "Director", None),
+        (operator, "DE", "Berlin", "Operations Manager", director),
+        ("Smoke Specialist", "DE", "Berlin", "Support Specialist", operator),
+        ("Smoke Analyst", "PL", "Warsaw", "Analyst", director),
+    ]
+    return [
+        {"id": str(uuid5(NAMESPACE_DNS, dn(name))), "distinguishedName": dn(name),
+         "cn": name, "name": name, "login": name.lower().replace(" ", "-"),
+         "title": title, "department": "Operations", "country": country, "office": office,
+         "managerDn": dn(manager) if manager else None, "disabled": False}
+        for name, country, office, title, manager in assignments
+    ]
 
 
 class Directory(BaseHTTPRequestHandler):
@@ -70,6 +92,8 @@ class Directory(BaseHTTPRequestHandler):
         route = urlsplit(self.path)
         if route.path == "/ping":
             self.respond("pong")
+        elif route.path == "/api/users/organization/snapshot":
+            self.respond(organization_fixture())
         elif route.path == "/api/users/list":
             search_name = os.environ.get("E2E_SEARCH_NAME", "Smoke Operator")
             if any(search_name in value for values in parse_qs(route.query).values() for value in values):

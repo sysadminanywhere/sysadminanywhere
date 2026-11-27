@@ -7,6 +7,7 @@ import com.sysadminanywhere.common.directory.dto.BulkOperationResult;
 import com.sysadminanywhere.common.directory.dto.BulkUserAccountStatusDto;
 import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
 import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
+import com.sysadminanywhere.common.directory.dto.OrganizationEmployee;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import com.sysadminanywhere.directory.service.UsersService;
 import jakarta.validation.Valid;
@@ -30,6 +31,12 @@ import java.util.Map;
 public class UsersController {
 
     private final UsersService usersService;
+
+    @GetMapping("/organization/snapshot")
+    @PreAuthorize("hasAnyRole('ADMIN', 'READER') and !hasRole('API_TOKEN')")
+    public List<OrganizationEmployee> getOrganization() {
+        return usersService.getOrganization();
+    }
 
     /**
      * Получение всех пользователей с постраничным выводом и фильтрацией

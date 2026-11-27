@@ -10,6 +10,7 @@ import com.sysadminanywhere.common.directory.dto.BulkUserAccountStatusDto;
 import com.sysadminanywhere.common.directory.dto.BulkDeleteDto;
 import com.sysadminanywhere.common.directory.dto.EntryDto;
 import com.sysadminanywhere.common.directory.dto.ResetPasswordDto;
+import com.sysadminanywhere.common.directory.dto.OrganizationEmployee;
 import com.sysadminanywhere.common.directory.model.UserEntry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -60,6 +61,10 @@ public class UsersService {
 
     public List<UserEntry> getAllOrThrow(String filters, String... attributes) {
         return usersServiceClient.getList(filters, attributes);
+    }
+
+    public List<OrganizationEmployee> getOrganization() {
+        return usersServiceClient.getOrganization();
     }
 
     public List<UserEntry> getAll() {
